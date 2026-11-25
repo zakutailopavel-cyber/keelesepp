@@ -1,64 +1,137 @@
-// B1 course (A2 → B1 roadmap), module 3 „Kodu, kohad ja linn” (a2b1-011…015), stage A2+. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md §6.2 row 3 with the leads made valid: KUUL L→W · LUGE R→W · RÄÄK L→S · PROB R→S ·
-// EKS A2 — §4 allows RÄÄK only with a speaking outcome, so the four lead pairs force KUUL to L→W; how it is written:
-// docs/FINAL_SHAPE_AUTHORING.md). One storyline, picked up from module 2 (Helgi's 60th): at the party Sofia tells her
-// mother that she has to leave Malle's room in Mustamäe by 20 December, because Malle's grandson Kaarel comes back
-// from Finland. The goal, said on the first sheet: Sofia finds a flat, moves, gets to know Kalamaja and invites the
-// family to her housewarming (soolaleivapidu) — the learner helps her all the way.
-//   011 KUUL L→W  „Kodu otsingul” — eight voice messages about flats, the viewing at Valgevase 7 with the owner Heino
-//                 and the neighbour Tiina (adjective suffixes -ne/-line, -kas, -lik, -tu, eba-); a radio programme on
-//                 renting, the house notice board; Heino's voicemail with the contract terms → explain them to Jaan →
-//                 phone the owner (phone cards) → the letter to Helgi about the flat (80–100 words).
-//   012 LUGE R→W  „Kolimispäev” — Sofia's blog post (predict, then read): the lost box of pots (kus? kuhu? kust?);
-//                 Malle's letter (cloze), the list „what goes where”, the house rules (õige / vale / ei selgu), a polite
-//                 notice to the neighbours; Helgi's answer → where does grandmother's wardrobe go (idea card) → the
-//                 story of the moving day (80–100 words) and the invitation card.
-//   013 RÄÄK L→S  „Minu uus linnaosa” — residents on the radio, Tiina's walk with numbers, opinions with suffix
-//                 adjectives and sest / kuna, a survey, the society's questionnaire; three districts, Tiina interviewed by
-//                 the society's paper (is Kalamaja safe?), 4-3-2; five proposals for the empty plot → the residents'
-//                 meeting (agreement) → the summary for the society.
-//   014 PROB R→S  „Pidu on ohus” — the evening before the party the radiator is cold and the street is closed: decide
-//                 first, then ads (who helps on Saturday), the city announcement, giving the way to a friend and to
-//                 strangers (mine – minge, kuni ristmikuni); Viktor got lost once, Helgi phones from the station; the
-//                 maintenance firm's terms and the day plan → the call to the firm (complaint and solution) → the
-//                 better way description → meeting Tiina at the party.
-//   015 EKS       module exam in Harno A2 form (reading 5 tasks, listening 4, writing 2, speaking intro + 2), timed parts,
-//                 target 80 % in every part; the story closes: the housewarming went well.
-// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): adjective suffixes -line, -kas, -lik, -tu, eba- (011, 013);
-// the locative cases kus? kuhu? kust? (012). Earlier versions: archive/v3/b1/module03.js, archive/v1/b1/module03.js.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE.md §13), 2026-11-03: topic „maja ja
-// kodu” (+ ümbruskond, kohad). 011 opens the module with census facts (flat or house, own or rent, how old Estonia's homes
-// are, Tallinn's districts); 012 adds an article on registering one's address (rahvastikuregister) with a true / false
-// task; 013 a „Kas teadsid?” on Tallinn's participatory budget; 014 one on the apartment association (korteriühistu);
-// 015's warm-up is the examiner set. Retellings 4 → 1 (013_p_432 stays). Every number outside a cast scene names its source.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 3 „Kodu, kohad ja linn” (a2b1-011…015), stage A2 (lessons 001–020).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1 and 2: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, 45 min). Lengths of the A2 stage: text
+// 80–150 words, audio ≤ 1.5 min, writing 30–60 words, speech 30–60 s.
+//   011 case    „Kodu otsingul” — the module's COLD TASK first (45–60 s about your home, no help), two flat ads (adjective
+//               suffixes -ne / -line, -kas, -lik, -tu, eba- in context) and the learning visual „Kaks korterit” (two floor
+//               plans). Outcome: a 30–60-word message to someone close — which flat I choose and why — read to a partner,
+//               then told again without the text (the module's free writing: no given opening).
+//   012 project „Kolimispäev” — a voice message before a move (kus? kuhu? kust?, heard twice). Outcome: agree with a
+//               partner on the plan „Uus korter” where things go and write the helpers a 30–60-word note; at home the
+//               module's LINK TASK: the real eesti.ee page on registering one's address.
+//   013 debate  „Minu linnaosa” — residents' opinions on the radio (75 s, heard twice; opinion + sest / kuna, suffix
+//               adjectives). Outcome: a residents' meeting with the visual „Tühi krunt” — argue, answer, agree on one
+//               proposal; second attempt in a new situation without phrases.
+//   014 infogap „Kuidas sinna saada?” — a host's directions to the guests (imperative sina / teie, kuni …-ni, mööda, üle,
+//               läbi) and a model call. Outcome: a phone call with a HIDDEN-INFORMATION card: the lost guest is not where
+//               the learner thinks (visual „Jaamast majani”); second attempt: a friend on a bike (sina-form).
+//   015 EKS     Control 3 (one sheet): listening and speaking + one short message, the PARALLEL NEW TASK of 011's cold
+//               task (same criteria, new content); thresholds named one way; recordings heard twice and locked.
+// The continuing story (Sofia's move to Kalamaja, Helgi, Jaan, Viktor …) is not used in this module: the people of the
+// texts are made up and appear in one lesson only. Drills (crossword, matching, sorting, word order, „Mäletad?”) are off
+// the sheets: the removed blocks stay in this file as hide(block, why) — ids and learners' answers are kept, and the
+// practice engine (practice/engine/extract.js) still builds Harjuta items from their form tasks. Owner 2026-11-25: texts
+// adapted to A2, facts need not be real or checked, no hard numbers. The previous version (design v2, „final shape”
+// storyline: Sofia finds a flat, moves and gives a housewarming) is in git history (main before this PR) and
+// archive/v3/b1/module03.js.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
-export const MODULE = { id: 'a2b1-module-03', course: 'b1', title: 'Kodu, kohad ja linn', level: 'A2+', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-03', course: 'b1', title: 'Kodu, kohad ja linn', level: 'A2', design: 'v3-stations', template: 'v4' };
+
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 3). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a recording in the control: heard twice, the player counts and locks (G6)
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 011 case: two flats (liitega omadussõnad)
   'a2b1-011': {
     title: 'Kodu otsingul',
-    canDo: 'Ma kirjutan emale 80–100-sõnalise kirja korterist, mille leidsin: milline see on, mis on hea ja halb ning millised on üüritingimused.',
+    phases: grammar('Keel: liitega omadussõnad — ruumikas, päikeseline, kodune, rahulik, ohutu, ebamugav'),
+    format: 'case',
+    topic: 'home',
+    canDo: 'Ma kirjeldan korterit liitega omadussõnadega, võrdlen kahte korterit ja kirjutan lähedasele 30–60-sõnalise sõnumi, kumma ma valin ja miks.',
+    teacherPage: {
+      goal: 'Ученик описывает квартиру прилагательными с суффиксами (-ne/-line, -kas, -lik, -tu, eba-), сравнивает две квартиры по плану и пишет близкому человеку 30–60 слов: какую выбирает и почему.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 1 минута) → пункт 2 без разговора по плану → пункт 4: сообщение в классе, исправление дома. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля: ученик 45–60 секунд без помощи рассказывает о своём доме. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja/aga/sest, формы: прилагательные с суффиксами, kus/kuhu). Урок 15 начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт: «Milline on sinu kodu?» 45–60 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), объявления «Kaks korterit» (суффиксы в контексте), 7 вопросов (суть, детали, «почему»), план «Kaks korterit»: A спрашивает, B отвечает полным предложением, смена ролей',
+        '25–40: пункт 3 — заметить → правило → 8 форм (tolm → tolmune …) → 4–5 своих предложений о своём доме',
+        '40–65: пункт 4 — сообщение близкому 30–60 слов (10–12 мин без помощи), чтение партнёру, партнёр задаёт 2 вопроса «Milline …?»; вторая попытка: рассказать то же устно новому партнёру без текста',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рисует план своей квартиры и объясняет его партнёру',
+        '72–90: запас',
+      ],
+      sources: 'Объявления пункта 2 и план «Kaks korterit» — учебные (Nadja и квартиры выдуманы, ситуация типичная); реальных цифр нет. В пункте 4 ученик пишет о выбранной квартире или о своём настоящем доме.',
+      groups: 'Пункт 2: план в парах (A спрашивает, B отвечает, смена). Пункт 4: каждый пишет сам, потом читает партнёру; партнёр задаёт два вопроса. Один на один вы — партнёр.',
+      errors: [
+        '«ruumiline tuba» вместо «ruumikas tuba» (много места → -kas: ruum → ruumikas).',
+        '«ohutav hoov» вместо «ohutu hoov» (без опасности → -tu: oht → ohutu).',
+        '«mitte mugav» вместо «ebamugav» (не- → eba-: mugav → ebamugav, meeldiv → ebameeldiv).',
+        'В сообщении нет выбора: сначала какая квартира, потом какая она, в конце плюс, минус и почему.',
+      ],
+      notes: [
+        'Холодный старт и урок 15 — пара «до / после»: те же три заметки, другая тема (свой район). Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: суффикс по смыслу (-kas много, -tu без, eba- не) и связь «выбор → описание → почему». Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('011_d_review', [['Mis kell pidi Helgi Viktori tallu jõudma ja miks see oli saladus?', 'a2b1-009'], ['Mis oli Jaani peoplaanis veel lahtine? Tee üks ettepanek.', 'a2b1-009'], ['Kuhu Sofia ja Anna ujuma lähevad? Vasta kuhu-vormiga.', 'a2b1-004']]),
-      // the module's topic opener (§13.2), checked 2026-11-03: rahvaloendus.ee „Population census: the average home in
-      // Estonia is older than the average person” (census 2021), err.ee „Eesti kodud on nõukogudeaegsete paneelmajade nägu”
-      // (2022), err.ee „Rahvaloendus: veerand eluruumidest on püsielaniketa” (2022), Statistikaamet population of Tallinn's
-      // districts on 1.1.2026 (Lasnamäe 115 008 of 452 563, via citypopulation.de)
-      B.topicOpener('011_d_open', 'Teema avaleht: kuidas Eesti elab', [
-        'Kus elavad Eesti inimesed: korteris või eramajas? Vastuse annab rahvaloendus. Viimane rahvaloendus oli 2021. aastal. Selle andmetel elab korteris 67,9 % Eesti elanikest ja eramajas 29,3 %. Ülejäänud elavad näiteks hooldekodus või ühiselamus. Eramus elab 36 % eestlastest, aga ainult 8 % venelastest. Eramajades elab nüüd natuke suurem osa leibkondadest kui 2011. aastal. Linnas korteris elab üle poole kõigist Eesti elanikest.',
-        'Kodusid on Eestis rohkem kui leibkondi. Rahvaloendus luges kokku 737 873 eluruumi, aga peaaegu igas neljandas ei elanud keegi püsivalt. Statistikaameti analüütiku sõnul on paljud inimesed ostnud endale näiteks suvila, kus nad elavad ainult osa aastast. Mõnes uues majas ei ole aga keegi veel jõudnud sisse kolida.',
-        'Kas kodu on oma või üüritud? 71,9 % inimestest elab kodus, mis kuulub neile endile või kellelegi nende perest. Üürikorteris või üüritud majas elab 18,3 %. Kõige sagedamini üürivad kodu inimesed, kes elavad üksi.',
-        'Eesti kodud ei ole uued. Keskmine elumaja on ehitatud 1965. aastal ja keskmine korter 1972. aastal. Keskmine Eesti elanik on aga sündinud 1979. aastal: kodu on vanem kui inimene, kes seal elab! Enamik inimesi elab majades, mis on ehitatud nõukogude ajal, aastatel 1960–1990. Need on sageli paneelmajad. Peaaegu kõigis korterites on kraanivesi, WC ja dušš või vann. Eramajades on see teisiti: kraanivesi on umbes neljas eramajas viiest.',
-        'Tallinnas on kaheksa linnaosa. Kõige rohkem inimesi elab Lasnamäel, mis on suur paneelmajade linnaosa: 2026. aasta alguses umbes 115 000 inimest ehk iga neljas tallinlane. Kalamajas on palju vanu puumaju, Nõmmel eramaju ja männimetsa.',
-      ], 'Statistikaamet (rahvaloendus 2021; rahvastik linnaosade kaupa 1.1.2026); ERR, „Eesti kodud on nõukogudeaegsete paneelmajade nägu” ja „Rahvaloendus: veerand eluruumidest on püsielaniketa” (2022)', [
-        'Mis sind nendes arvudes kõige rohkem üllatas? Miks?',
-        'Kumb on sinu arvates parem: elada korteris või eramajas? Miks?',
-        'Kas sinu kodumaal elavad inimesed pigem korteris või majas? Kas kodu ostetakse või üüritakse?',
-        'Mis on sinu meelest kõige tähtsam, kui valid linnaosa, kus elada?',
+      station(teach(tag(purpose(B.speaking('011_d_cold', 'Külm start: milline on sinu kodu?', 'Räägi 45–60 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Kus sa elad ja milline on sinu kodu?',
+      ], [45, 60]), 'Sinu minut on mooduli 3 lähtepunkt: tunnis 15 räägid uuel teemal ja näed, mis on muutunud.'), { task: 'S02', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 3 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest); 3) vormid: liitega omadussõnad (ruumikas, rahulik), kus- ja kuhu-vorm. Hoia märkmed alles: tunnis 15 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(B.vocab('011_d_vocab', 'Tunni sõnad.', ['üürima — снимать (жильё)', 'üür — арендная плата', 'omanik — владелец', 'korrus — этаж', 'ruumikas — просторный', 'valgusküllane — светлый', 'päikeseline — солнечный', 'kodune — уютный', 'ohutu — безопасный', 'ebamugav — неудобный']), { topic: ['ruumikas', 'valgusküllane', 'kodune'] }), 2, 17),
+      B.topicOpener('011_d_open', 'Kaks korterit', [
+        'Nadja otsib Tallinnas üürikorterit. Ta leidis internetist kaks kuulutust.',
+        'A. Pelgulinn, uus maja, viies korrus. Kaks ruumikat ja valgusküllast tuba ning suur rõdu. Majas on lift ja maja ees on ohutu mänguväljak. Köök on moodne, aga väike. Lemmikloomad ei ole lubatud. Üür on kõrgem kui Kalamajas.',
+        'B. Kalamaja, vana puumaja, teine korrus, lifti ei ole. Elutuba on päikeseline ja kodune. Magamistoa aken on hoovi poole, seal on öösel rahulik. Köök on ebamugav: kapid on vanad ja nõudepesumasinat ei ole. Hoovis on rattakuur. Kass on lubatud ja üür on odavam.',
+        'Nadja töötab kodus arvutiga ja tal on kass. Tööle sõidab ta jalgrattaga kaks korda nädalas. Kumma korteri ta valib?',
+      ], 'KeeleSepa õppetekst', [
+        'Kumma korteri valiks sinu arvates Nadja? Miks?',
+        'Mis on sinu jaoks kodus kõige tähtsam: ruum, rahu, hind või asukoht?',
+        'Kas sinu kodumaal elavad noored pigem üürikorteris või vanematega koos?',
       ]),
-      B.text('011_d_goal', 'Moodul 3: kodu ja linn', 'Helgi peol rääkis Sofia emale uudise: perenaise Malle lapselaps Kaarel tuleb Soomest tagasi ja vajab oma tuba. Sofia peab Mustamäelt välja kolima hiljemalt 20. detsembril. Selles moodulis otsib Sofia uue kodu, kolib, tutvub uue linnaosaga ja kutsub pere soolaleivapeole. Sina aitad teda. Täna kuulad häälsõnumeid ja korteri vaatamist ning kirjutad lõpuks emale kirja korterist, mille Sofia leidis.'),
-      tag(B.examListen('011_d_msgs', 'Kaheksa häälsõnumit.', 'Sofia telefonis on kaheksa sõnumit korterite kohta. Kuula ja vali igale küsimusele vastus.', 'choice', [
+      tag(purpose(why(B.choice('011_d_read', 'Milline korter?', 'Loe kuulutusi ja vali õige vastus.', [
+        ['Mida Nadja otsib?', 'üürikorterit', 'korterit, mida osta', 'uut tööd'],
+        ['Milline on Pelgulinna korteri köök?', 'moodne, aga väike', 'suur ja vana', 'pime ja niiske'],
+        ['Mis on Pelgulinna maja juures lastele hea?', 'ohutu mänguväljak', 'suur park', 'rattakuur'],
+        ['Miks on Kalamaja magamistoas öösel rahulik?', 'Aken on hoovi poole.', 'Maja on uus.', 'Tänaval ei ole autosid.'],
+        ['Mis on Kalamaja köögis ebamugav?', 'Kapid on vanad ja nõudepesumasinat ei ole.', 'Köök on liiga ruumikas.', 'Köögis on liiga palju päikest.'],
+        ['Kumb korter on odavam?', 'Kalamaja korter', 'Pelgulinna korter', 'Mõlemad maksavad sama palju.'],
+        ['Miks ei sobi Pelgulinna korter Nadjale hästi?', 'Nadjal on kass.', 'Nadja kardab lifti.', 'Nadja sõidab tööle autoga.'],
+      ], 'full', 'g_read'), [
+        'Esimene lõik: Nadja otsib üürikorterit.',
+        'Kuulutus A: köök on moodne, aga väike.',
+        'Kuulutus A: maja ees on ohutu mänguväljak.',
+        'Kuulutus B: magamistoa aken on hoovi poole, seal on rahulik.',
+        'Kuulutus B: köök on ebamugav — vanad kapid, nõudepesumasinat ei ole.',
+        'Kuulutus B: üür on odavam (A-s on üür kõrgem).',
+        'Kuulutus A: lemmikloomad ei ole lubatud, aga Nadjal on kass.',
+      ]), 'Enne kui sa oma valiku teed, saad aru, kuidas kuulutus korterit kirjeldab.'), { task: 'R12' }),
+      teach(tag(purpose(B.speaking('011_d_plan', 'Kumb korter? Räägi plaani järgi.', 'Vaata pilti „Kaks korterit”. Küsi paariliselt: A küsib, B vastab terve lausega ja kasutab liitega omadussõna. Siis vahetage.', [
+        'Milline on korteri A elutuba?',
+        'Kus on korteris B vaikne ja miks?',
+        'Mis on korteris B ebamugav?',
+        'Kumb korter on lastele ohutum? Miks?',
+        'Kumb korter sulle rohkem sobib? Miks?',
+      ], [45, 60], '', 'g_read'), 'Kirjeldad korterit nii, et paariline leiab plaanilt, millest sa räägid.'), { task: 'S06', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Korteri B köök on mugav”) ja õpilane parandab sind plaani järgi.'),
+      hide(B.review('011_d_review', [['Mis kell pidi Helgi Viktori tallu jõudma ja miks see oli saladus?', 'a2b1-009'], ['Mis oli Jaani peoplaanis veel lahtine? Tee üks ettepanek.', 'a2b1-009'], ['Kuhu Sofia ja Anna ujuma lähevad? Vasta kuhu-vormiga.', 'a2b1-004']]), V5_DRILL),
+      hide(B.text('011_d_goal', 'Moodul 3: kodu ja linn', 'Helgi peol rääkis Sofia emale uudise: perenaise Malle lapselaps Kaarel tuleb Soomest tagasi ja vajab oma tuba. Sofia peab Mustamäelt välja kolima hiljemalt 20. detsembril. Selles moodulis otsib Sofia uue kodu, kolib, tutvub uue linnaosaga ja kutsub pere soolaleivapeole. Sina aitad teda. Täna kuulad häälsõnumeid ja korteri vaatamist ning kirjutad lõpuks emale kirja korterist, mille Sofia leidis.'), V5_CUT),
+      hide(tag(B.examListen('011_d_msgs', 'Kaheksa häälsõnumit.', 'Sofia telefonis on kaheksa sõnumit korterite kohta. Kuula ja vali igale küsimusele vastus.', 'choice', [
         'Kaja: Tere, Sofia! Siin Kaja Mänd, maakler. Pelgulinna korter on uues majas viiendal korrusel. Toad on ruumikad ja valgusküllased ning majas on lift.',
         'Grete: Sofia, tere! Nägin Kristiines odavat ühetoalist korterit. Aga aknad on suure tee poole ja seal on päeval ja öösel väga lärmakas.',
         'Heino: Tere! Siin Heino Sild. Minu korter on Kalamajas, Valgevase tänaval, vanas puumajas. Tulge seda vaatama neljapäeval kell kuus õhtul.',
@@ -76,9 +149,8 @@ export const LESSONS = withShapes({
         ['Mis on Nõmme korteri probleem?', 'pikk sõit kesklinna', 'lärmakas tänav', 'kõrge üür'],
         ['Mida ei tohi Pelgulinna korteris teha?', 'pidada lemmikloomi', 'kutsuda külalisi', 'kuulata muusikat'],
         ['Mida soovitab Jaan küsida?', 'kas majas on koht jalgrattale', 'kas majas on lift', 'kas majas on saun'],
-      ]), { task: 'L01' }),
-      tag(B.vocab('011_d_vocab', 'Tunni sõnad.', ['üürima — снимать (жильё)', 'üürnik — жилец', 'üür — арендная плата', 'leping — договор', 'omanik — владелец', 'korrus — этаж', 'niiske — сырой', 'ruumikas — просторный', 'ebameeldiv — неприятный', 'ohutu — безопасный']), { topic: ['ruumikas'] }),
-      tag(B.listening('011_d_view', 'Korteri vaatamine Valgevase tänaval.', 'Kuula, kuidas Sofia Heinoga korterit vaatab. Kirjuta igasse lünka üks või kaks sõna.', [
+      ]), { task: 'L01' }), V5_CUT),
+      hide(tag(B.listening('011_d_view', 'Korteri vaatamine Valgevase tänaval.', 'Kuula, kuidas Sofia Heinoga korterit vaatab. Kirjuta igasse lünka üks või kaks sõna.', [
         'Heino: Tere õhtust! Teie olete vist Sofia. Mina olen Heino. Tulge sisse, palun.',
         'Sofia: Tere! Oi, siin on trepp väga järsk. Kui vana see maja on?',
         'Heino: Maja on üle saja aasta vana. See on puumaja, aga elekter ja veetorud on uued.',
@@ -106,35 +178,45 @@ export const LESSONS = withShapes({
         'Tiina on korteriühistu [esimees].',
         'Jalgratta saab panna hoovis [rattakuuri|kuuri].',
         'Korter on vaba [kümnendast|10.] detsembrist.',
-      ]), { task: 'L03' }),
-      B.notice('011_d_notice', 'Märka: milline korter?', [
-        'Sõnumites ja vaatamisel: **ruumikad** toad · **lärmakas** tänav · **rahulik** koht · **ebameeldiv** keldrikorter · **kivine** ahi',
-        '**-kas** = millel on palju: ruum → ruumi**kas**, lärm → lärma**kas**, värv → värvi**kas**',
-        '**-ne / -line** = millest, millega: kivi → kivi**ne**, kodu → kodu**ne**, päike → päikese**line**',
-        '**-lik** = milline, kelle moodi: rahu → rahu**lik**, sõber → sõbra**lik**, õnn → õnne**lik**',
-        '**-tu** = ilma: oht → ohu**tu**, maitse → maitse**tu** · **eba-** = mitte: mugav → **eba**mugav, meeldiv → **eba**meeldiv',
-      ], 'full'),
-      tag(B.categorize('011_d_rule', 'Leia reegel: mida liide ütleb?', 'Mõtle, mida liide sõnale lisab. Pane kakskümmend omadussõna viide rühma.', [
+      ]), { task: 'L03' }), V5_CUT),
+      hide(tag(B.categorize('011_d_rule', 'Leia reegel: mida liide ütleb?', 'Mõtle, mida liide sõnale lisab. Pane kakskümmend omadussõna viide rühma.', [
         ['millest? millega?', ['kivine', 'liivane', 'tolmune', 'päikeseline']],
         ['millel on palju', ['ruumikas', 'värvikas', 'jõukas', 'mahukas']],
         ['milline? kelle moodi?', ['sõbralik', 'rahulik', 'lapsik', 'õnnelik']],
         ['ilma millegita', ['ohutu', 'maitsetu', 'kasutu', 'rahatu']],
         ['mitte', ['ebamugav', 'ebameeldiv', 'ebatavaline', 'ebapraktiline']],
-      ], 'full', 'g_notice'), { task: 'G02' }),
-      teach(tag(B.speaking('011_d_pic', 'Kirjelda korterit pildil.', 'Kirjelda korteri pilti umbes üks minut. Kasuta liitega omadussõnu. Siis ütle oma arvamus ja võrdle.', ['Mis toad on pildil ja millised need on?', 'Kus on lemmiktugitool ja miks see on hea koht?', 'Mis on selles korteris mugav, mis ebamugav?', 'Kas sina tahaksid seal elada? Miks?', 'Kas sinu kodumaal on korterid suuremad või väiksemad kui Eestis?'], [60, 120], ['Elutuba on ruumikas ja…', 'Akna juures on…', 'Minu meelest on see korter…, aga…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti üks minut ilma pausideta; õpetaja küsib siis kaks uut küsimust („Mis on köögis ebamugav?”) ja vaidleb arvamusele vastu, nii et õpilane põhjendab.'),
-      tag(B.writing('011_d_free', 'Kes siin elab?', 'Vaata pilti ja kirjuta 8 minutit ilma peatumata: kes siin elab ja milline on tema õhtu?', [7, 9], ['valgusküllane', 'rahulik', 'kodune', 'ebamugav'], 2), { task: 'W06', fluency: true }),
+      ], 'full', 'g_notice'), { task: 'G02' }), V5_DRILL),
+      hide(teach(tag(B.speaking('011_d_pic', 'Kirjelda korterit pildil.', 'Kirjelda korteri pilti umbes üks minut. Kasuta liitega omadussõnu. Siis ütle oma arvamus ja võrdle.', ['Mis toad on pildil ja millised need on?', 'Kus on lemmiktugitool ja miks see on hea koht?', 'Mis on selles korteris mugav, mis ebamugav?', 'Kas sina tahaksid seal elada? Miks?', 'Kas sinu kodumaal on korterid suuremad või väiksemad kui Eestis?'], [60, 120], ['Elutuba on ruumikas ja…', 'Akna juures on…', 'Minu meelest on see korter…, aga…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti üks minut ilma pausideta; õpetaja küsib siis kaks uut küsimust („Mis on köögis ebamugav?”) ja vaidleb arvamusele vastu, nii et õpilane põhjendab.'), V5_CUT),
+      hide(tag(B.writing('011_d_free', 'Kes siin elab?', 'Vaata pilti ja kirjuta 8 minutit ilma peatumata: kes siin elab ja milline on tema õhtu?', [7, 9], ['valgusküllane', 'rahulik', 'kodune', 'ebamugav'], 2), { task: 'W06', fluency: true }), V5_CUT),
     ],
     practice: [
-      B.wordforms('011_p_suffix', 'Tee omadussõna.', 'Lisa nimisõnale liide ja kirjuta omadussõna, mis sobib väljendisse.', [
+      station(B.notice('011_d_notice', 'Märka: milline korter?', [
+        'Kuulutustest: **ruumikad** toad · **valgusküllane** tuba · **päikeseline** elutuba · **kodune** tuba · **rahulik** magamistuba · **ohutu** mänguväljak · **ebamugav** köök',
+        '**-kas** = millel on palju: ruum → ruumi**kas**, lärm → lärma**kas**',
+        '**-ne / -line** = millest, millega: kodu → kodu**ne**, tolm → tolmu**ne**, päike → päikese**line**',
+        '**-lik** = milline, kelle moodi: rahu → rahu**lik**, sõber → sõbra**lik**',
+        '**-tu** = ilma: oht → ohu**tu**, maitse → maitse**tu** · **eba-** = mitte: mugav → **eba**mugav',
+      ], 'full'), 3, 15),
+      purpose(why(B.wordforms('011_p_suffix', 'Tee omadussõna.', 'Lisa nimisõnale liide ja kirjuta omadussõna, mis sobib väljendisse.', [
         ['tolm', '-ne: … riiul', 'tolmune'], ['päike', '-line: … rõdu', 'päikeseline'], ['kodu', '-ne: … tunne', 'kodune'], ['ruum', '-kas: … esik', 'ruumikas'],
         ['lärm', '-kas: … pidu', 'lärmakas'], ['rahu', '-lik: … naaber', 'rahulik'], ['oht', '-tu: … mänguväljak', 'ohutu'], ['mugav', 'eba-: … diivan', 'ebamugav'],
-      ], 'half', 'g_notice'),
-      B.match('011_p_opp', 'Vastandpaarid.', 'Leia igale korteri või maja omadusele vastand.', [
+      ], 'full', 'g_notice'), [
+        'tolm + -ne → tolmune (millega kaetud).',
+        'päike + -line → päikeseline (tüvi päikese-).',
+        'kodu + -ne → kodune.',
+        'ruum + -kas → ruumikas (palju ruumi).',
+        'lärm + -kas → lärmakas (palju lärmi).',
+        'rahu + -lik → rahulik.',
+        'oht + -tu → ohutu (ilma ohuta; tüvi ohu-).',
+        'eba- + mugav → ebamugav (mitte mugav).',
+      ]), 'Kaheksa sõna näitavad, kuidas liide sõna tähendust muudab.'),
+      tag(purpose(B.writing('011_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma kodust neli-viis lauset liitega omadussõnadega: „Minu köök on …, sest …”, „Meie hoov on …”.', [4, 5]), 'Neli-viis oma lauset on sinu sõnumi materjal.'), { task: 'W05' }),
+      hide(B.match('011_p_opp', 'Vastandpaarid.', 'Leia igale korteri või maja omadusele vastand.', [
         ['ruumikas', 'kitsas'], ['lärmakas', 'vaikne'], ['valgusküllane', 'pime'], ['ohutu', 'ohtlik'], ['ebamugav', 'mugav'],
         ['kodune', 'võõras'], ['kuiv', 'niiske'], ['odav', 'kallis'],
-      ], 'full', 'g_vocab'),
-      tag(B.examListen('011_p_radio', 'Raadiosaade „Kodutunnis”.', 'Kuula raadiosaadet üürikorteritest kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.examListen('011_p_radio', 'Raadiosaade „Kodutunnis”.', 'Kuula raadiosaadet üürikorteritest kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
         'Ülle: Tere, kuulajad! Saates „Kodutunnis” räägime täna üürikorteritest. Stuudios on Priit Tamm üürnike ühingust.',
         'Priit: Tere! Detsembris otsivad paljud uut kodu, sest tudengid ja töötajad tulevad linna tagasi.',
         'Ülle: Mida peaks üürnik kõigepealt tegema?',
@@ -158,8 +240,8 @@ export const LESSONS = withShapes({
         ['Keda kaitseb kirjalik leping?', 'üürnikku ja omanikku', 'ainult omanikku', 'ainult naabreid'],
         ['Kui suur on tavaliselt tagatisraha?', 'ühe kuu üür', 'kahe kuu üür', 'sada eurot'],
         ['Miks tasub naabritega rääkida?', 'nad räägivad ausalt, milline maja on', 'nad annavad korteri odavamalt', 'nad aitavad alati kolida'],
-      ]), { voice: 'interview' }),
-      B.transformation('011_p_short', 'Lühemalt: üks omadussõna.', 'Ütle sama mõte lühemalt: kasuta antud liidet ja kirjuta uus lause.', [
+      ]), { voice: 'interview' }), V5_CUT),
+      hide(B.transformation('011_p_short', 'Lühemalt: üks omadussõna.', 'Ütle sama mõte lühemalt: kasuta antud liidet ja kirjuta uus lause.', [
         ['Selles esikus on palju ruumi.', '-kas', 'See esik on ruumikas.'],
         ['Meie hoovis ei ole lastele mingit ohtu.', '-tu', 'Meie hoov on lastele ohutu.'],
         ['Naabri koer teeb öösel palju lärmi.', '-kas', 'Naabri koer on öösel lärmakas.'],
@@ -168,8 +250,8 @@ export const LESSONS = withShapes({
         ['Keldris on igal pool tolm.', '-ne', 'Kelder on tolmune.'],
         ['Tiina käitub alati nagu hea sõber.', '-lik', 'Tiina on alati sõbralik.'],
         ['Kohviku supil polnud eile mingit maitset.', '-tu', 'Kohviku supp oli eile maitsetu.'],
-      ]),
-      B.dialogue('011_p_chat', 'Sõnumid Gretega.', 'Sofia kirjutab oma endisele toakaaslasele Gretele. Täida lüngad sobiva omadussõnaga.', 'Sofia', 'Grete', [
+      ]), V5_DRILL),
+      hide(B.dialogue('011_p_chat', 'Sõnumid Gretega.', 'Sofia kirjutab oma endisele toakaaslasele Gretele. Täida lüngad sobiva omadussõnaga.', 'Sofia', 'Grete', [
         ['A', 'Tere, Grete! Käisin eile Kalamajas korterit vaatamas. Elutuba on suur ja [valgusküllane].'],
         ['B', 'Vau! Aga kas tänav ei ole [lärmakas]? Kalamajas on ju palju kohvikuid.'],
         ['A', 'Ei, magamistuba on hoovi poole ja seal on väga [vaikne|rahulik].'],
@@ -178,8 +260,8 @@ export const LESSONS = withShapes({
         ['B', 'Kas korter on [niiske]? Vanades majades on see tihti probleem.'],
         ['A', 'Ei, seinad on kuivad. Aga köögis ei ole nõudepesumasinat — see on natuke [ebamugav].'],
         ['A', 'Üür on viissada üheksakümmend eurot. See on [odavam] kui Pelgulinnas, kus maakler Kaja pakkus korterit.'],
-      ], 'g_vocab'),
-      tag(B.reading('011_p_board', 'Teated maja trepikojas.', 'Valgevase maja trepikojas on kuus teadet. Loe neid ja vasta küsimustele.', 'Teadetetahvel', [
+      ], 'g_vocab'), V5_CUT),
+      hide(tag(B.reading('011_p_board', 'Teated maja trepikojas.', 'Valgevase maja trepikojas on kuus teadet. Loe neid ja vasta küsimustele.', 'Teadetetahvel', [
         'Korteriühistu teatab: prügikonteinerid on hoovi tagaosas. Paber ja pappkastid pange sinisesse konteinerisse, klaas rohelisse. Suuri asju, näiteks vana mööblit, konteinerite kõrvale panna ei tohi.',
         '',
         'Rattakuur on avatud kõigile maja elanikele. Võtme saab Tiinalt, korter 1. Palun pange jalgratas kuuri ja ärge jätke seda trepikotta.',
@@ -200,18 +282,35 @@ export const LESSONS = withShapes({
         ['Milline on kadunud kass?', 'hall, punase kaelarihmaga|hall kass punase kaelarihmaga'],
         ['Millal tuleb arvestite numbrid kirja panna?', 'iga kuu viimasel päeval'],
         ['Miks on jaanuaris majas müra?', 'korteris 2 tehakse remonti|remondi pärast'],
-      ], 'g_read'), { task: 'R07' }),
-      teach(B.rolecards('011_p_two', 'Kaks korterit, kaks kuulutust.', 'A teab Pelgulinna korterist, B Kalamaja korterist. Küsige ja võrrelge: üür, korrus, toad, plussid.',
+      ], 'g_read'), { task: 'R07' }), V5_CUT),
+      hide(teach(B.rolecards('011_p_two', 'Kaks korterit, kaks kuulutust.', 'A teab Pelgulinna korterist, B Kalamaja korterist. Küsige ja võrrelge: üür, korrus, toad, plussid.',
         'Sinu kuulutus (maakler Kaja): Pelgulinn, uus maja, 5. korrus, lift. Kaks ruumikat ja valgusküllast tuba, rõdu. Üür 640 €, kulud talvel 80 €. Lemmikloomad keelatud. Vaba 1. detsembrist. Küsi B-lt Kalamaja korteri kohta samu asju.',
         'Sinu kuulutus: Kalamaja, vana puumaja, 2. korrus, lifti ei ole. Kaks tuba, elutuba valgusküllane, magamistuba vaikne. Üür 590 €, kulud talvel umbes 100 €. Hoovis rattakuur. Vaba 10. detsembrist. Küsi A-lt Pelgulinna korteri kohta samu asju.',
         ['Kui suur on üür?', 'Mitmendal korrusel korter on?', 'Mis on selle korteri suurim pluss?'], ['Üür on … eurot kuus.', 'Korter on … korrusel.', 'Pluss on see, et…, aga miinus…']),
-      'Üks-ühele: õpetaja on B ja vastab kaardi järgi; siis vahetatakse kaardid. Lõpus võrdleb õpilane kahte korterit kolme lausega („Pelgulinna korter on…, aga…”).'),
-      teach(tag(B.speaking('011_p_retell', 'Jutusta Gretele.', 'Jutusta Gretele korteri vaatamisest kaks korda: kõigepealt 2 minutit, siis 90 sekundit.', ['Kus korter asub ja milline maja see on?', 'Millised on toad ja köök?', 'Keda Sofia trepil kohtas?', 'Mis on korteri plussid ja miinused?', 'Mida sina Sofiale soovitad?'], [90, 120], ['Korter on Kalamajas, vanas…', 'Elutuba on…, aga köök…', 'Minu meelest peaks Sofia…, sest…']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpetaja on Grete ja hoiab aega. Teisel korral on aega vähem — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'),
+      'Üks-ühele: õpetaja on B ja vastab kaardi järgi; siis vahetatakse kaardid. Lõpus võrdleb õpilane kahte korterit kolme lausega („Pelgulinna korter on…, aga…”).'), V5_CUT),
+      hide(teach(tag(B.speaking('011_p_retell', 'Jutusta Gretele.', 'Jutusta Gretele korteri vaatamisest kaks korda: kõigepealt 2 minutit, siis 90 sekundit.', ['Kus korter asub ja milline maja see on?', 'Millised on toad ja köök?', 'Keda Sofia trepil kohtas?', 'Mis on korteri plussid ja miinused?', 'Mida sina Sofiale soovitad?'], [90, 120], ['Korter on Kalamajas, vanas…', 'Elutuba on…, aga köök…', 'Minu meelest peaks Sofia…, sest…']), { task: 'S07', fluency: true }),
+        'Üks-ühele: õpetaja on Grete ja hoiab aega. Teisel korral on aega vähem — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'), V5_CUT),
     ],
     transfer: [
-      B.text('011_t_sit', 'Otsus tuleb teha täna', 'Reede hommikul jättis omanik Heino Sofiale pika häälsõnumi lepingu tingimustega. Sofia peab talle õhtuks vastama. Jaan ei jõudnud sõnumit kuulata ja Helgi muretseb Tartus, kas tütar leiab kodu. Kuula Heino sõnumit, seleta tingimused Jaanile, helista Heinole ja kirjuta lõpuks emale kiri.'),
-      tag(B.listening('011_t_voice', 'Heino häälsõnum.', 'Kuula omaniku sõnumit kaks korda. Kirjuta lünka, mida Sofia peab meeles pidama.', [
+      station(teach(tag(purpose(B.examWriting('011_t_mom', 'Sõnum lähedasele: kumma korteri ma valin?', 'Kujutle, et sina otsid kodu ja nägid neid kahte korterit (või kirjuta oma päris kodust). Kirjuta lähedasele 30–60 sõna. Algus ja lõpp on sinu oma.', 'kiri', {
+        situation: 'Sinu ema, õde või sõber küsib: „Kas sa leidsid uue kodu?” Kirjuta, kumma korteri sa valid. Siis loe sõnum paarilisele ette: paariline küsib kaks küsimust „Milline …?”. Teisel korral räägi sama uuele paarilisele ilma tekstita.',
+        points: ['kumma korteri sa valid ja kus see on', 'milline see on (kolm liitega omadussõna)', 'üks pluss, üks miinus ja miks see korter sulle sobib'],
+        words: [30, 60],
+      }), 'Sinu lähedane saab aru, millise kodu sa valisid ja miks.'), { task: 'W06', main: true, level: 4 }),
+      'Õpilane kirjutab tunnis 10–12 minutit ilma abita, siis loeb paarilisele (või sulle) ette; kuulaja küsib kaks küsimust („Milline on köök?”, „Miks just see korter?”). Teine katse: õpilane räägib sama uuele paarilisele ilma tekstita. Parandatud versioon on kodutöö. Kontrolli: kolm sisupunkti, liide tähenduse järgi (ruumikas, ohutu, ebamugav), järjekord valik → kirjeldus → miks.'), 4, 25, { final: 'decide' }),
+      tag(exitCheck(why(purpose(B.gaps('011_t_exit', 'Kontrolli end: kolm sõna.', 'Kirjuta lünka liitega omadussõna.', [
+        'Toas on palju ruumi: tuba on [ruumikas].',
+        'Hoovis ei ole lastele ohtu: hoov on [ohutu].',
+        'Tool ei ole mugav: tool on [ebamugav].',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas liited on käes.'), ['palju ruumi → -kas: ruumikas.', 'ilma ohuta → -tu: ohutu.', 'mitte mugav → eba-: ebamugav.'])), {}),
+      purpose(B.selfcheck('011_t_self', ['Ma kirjeldan korterit: ruumikas, valgusküllane, rahulik, ebamugav.', 'Ma moodustan omadussõna liitega -ne, -kas, -lik, -tu või eba-.', 'Ma võrdlen kahte korterit ja ütlen, kumma ma valin ja miks.', 'Ma kirjutan lähedasele 30–60-sõnalise sõnumi.'], 'Kodu valitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('011_t_home', 'Kodus: kodu, kus ma tahaksin elada.', 'Salvesta 45–60 sekundit: milline on kodu, kus sa tahaksid elada?', [
+        'Milline see kodu on ja kus see asub?',
+        'Miks see kodu sulle sobiks?',
+      ], [45, 60]), 'Õpetaja kuulab sinu salvestuse enne järgmist tundi ja ütleb, mis läks kõige selgemalt.')), { task: 'S15', fluency: true }),
+      homework('011_t_homework', ['1. Paranda oma sõnum tagasiside järgi ja saada see õpetajale.', '2. Räägi 45–60 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('011_t_sit', 'Otsus tuleb teha täna', 'Reede hommikul jättis omanik Heino Sofiale pika häälsõnumi lepingu tingimustega. Sofia peab talle õhtuks vastama. Jaan ei jõudnud sõnumit kuulata ja Helgi muretseb Tartus, kas tütar leiab kodu. Kuula Heino sõnumit, seleta tingimused Jaanile, helista Heinole ja kirjuta lõpuks emale kiri.'), V5_CUT),
+      hide(tag(B.listening('011_t_voice', 'Heino häälsõnum.', 'Kuula omaniku sõnumit kaks korda. Kirjuta lünka, mida Sofia peab meeles pidama.', [
         'Heino: Tere, Sofia! Siin Heino Sild, Valgevase tänava korteri omanik. Aitäh, et käisite eile vaatamas.',
         'Heino: Mul on hea meel, et korter teile meeldis. Tiina ütles ka, et olete tore ja rahulik inimene. Ütlen lühidalt, mis lepingus on.',
         'Heino: Üür on viissada üheksakümmend eurot kuus. Selle peab maksma iga kuu viiendaks kuupäevaks pangaülekandega.',
@@ -236,30 +335,100 @@ export const LESSONS = withShapes({
         'Korteris ja rõdul ei tohi [suitsetada].',
         'Seinte värvimiseks tuleb küsida omanikult [luba].',
         'Lepingu saab alla kirjutada järgmisel [esmaspäeval].',
-      ]), { task: 'L07' }),
-      teach(tag(B.speaking('011_t_brother', 'Seleta Jaanile.', 'Jaan ei kuulnud sõnumit. Seleta talle oma sõnadega, mis lepingus on ja mis on veel selgusetu.', ['Kui palju maksab Sofia talvel kuus kokku?', 'Mis saab tagatisrahast?', 'Mida Sofia korteris teha ei tohi?', 'Millest peab omanikule ette ütlema?', 'Mida peaks Sofia Heinolt veel küsima?'], [90, 120], ['Heino ütles, et…', 'Talvel maksab Sofia kokku…', 'Selgusetu on veel see, kas…']), { task: 'S13' }),
-        'Üks-ühele: õpetaja on Jaan, kes sõnumit ei kuulnud, ja küsib täpsustusi („Kas koera võib pidada?”). Õpilane seletab oma sõnadega, mitte ei loe märkmeid ette.'),
-      teach(tag(B.phoneCards('011_t_call', 'Helista omanikule.', 'A helistab Heinole ja küsib selgusetud asjad üle, B vastab. Leppige kokku lepingu aeg.', 'Sofia tahab Valgevase tänava korteri võtta, aga tal on veel küsimusi.',
+      ]), { task: 'L07' }), V5_CUT),
+      hide(teach(tag(B.speaking('011_t_brother', 'Seleta Jaanile.', 'Jaan ei kuulnud sõnumit. Seleta talle oma sõnadega, mis lepingus on ja mis on veel selgusetu.', ['Kui palju maksab Sofia talvel kuus kokku?', 'Mis saab tagatisrahast?', 'Mida Sofia korteris teha ei tohi?', 'Millest peab omanikule ette ütlema?', 'Mida peaks Sofia Heinolt veel küsima?'], [90, 120], ['Heino ütles, et…', 'Talvel maksab Sofia kokku…', 'Selgusetu on veel see, kas…']), { task: 'S13' }),
+        'Üks-ühele: õpetaja on Jaan, kes sõnumit ei kuulnud, ja küsib täpsustusi („Kas koera võib pidada?”). Õpilane seletab oma sõnadega, mitte ei loe märkmeid ette.'), V5_CUT),
+      hide(teach(tag(B.phoneCards('011_t_call', 'Helista omanikule.', 'A helistab Heinole ja küsib selgusetud asjad üle, B vastab. Leppige kokku lepingu aeg.', 'Sofia tahab Valgevase tänava korteri võtta, aga tal on veel küsimusi.',
         ['Helistaja (Sofia)', ['Tervita ja ütle, kes sa oled ja miks helistad.', 'Küsi, kus saab rattakuuri võtme.', 'Küsi, kas köögis võib olla oma nõudepesumasin.', 'Küsi, kas sõber võib kolimispäeval auto hoovi jätta.', 'Lepi kokku lepingu allkirjastamise päev ja kellaaeg.']],
         ['Omanik (Heino)', ['Rattakuuri võti on Tiina käes, ta annab oma varuvõtme.', 'Nõudepesumasin on lubatud, kui selle paneb meister.', 'Hoovi võib auto jätta ainult üheks tunniks.', 'Esmaspäeval sobib kell 17 või kell 19.', 'Kaasa tuleb võtta isikut tõendav dokument.']])),
-      'Üks-ühele: õpetaja on Heino ja vastab ainult küsitule — kui õpilane midagi ei küsi, jääb see teadmata. Siis vahetatakse: õpetaja üürib korterit ja õpilane on omanik.'),
-      tag(B.examWriting('011_t_mom', 'Kiri emale: ma leidsin korteri!', 'Kirjuta Helgile 80–100 sõnaga korterist, mille Sofia leidis. Kirjuta kõigist viiest punktist.', 'kiri', {
-        situation: 'Helgi muretseb, kas Sofia leiab enne 20. detsembrit uue kodu.',
-        points: ['kus korter asub ja milline maja see on', 'millised on toad (vähemalt kolm liitega omadussõna)', 'mis on korteris hea ja mis halb', 'üür, kulud ja millal saab sisse kolida', 'küsi ema arvamust'],
-        words: [80, 100], opening: 'Kallis ema!', closing: 'Kallistan, Sofia',
-      }), { main: true }),
-      B.rubricW2('011_t_rubric', 'Hindamine: kiri korterist (12 punkti).'),
-      B.selfcheck('011_t_self', ['Ma saan aru korterite kohta jäetud häälsõnumitest.', 'Ma moodustan omadussõnu: ruumikas, rahulik, ohutu, ebamugav.', 'Ma seletan teisele ja küsin omanikult telefonis üle.', 'Ma kirjutan emale 80–100-sõnalise kirja korterist.'], 'Kodu otsingul'),
+      'Üks-ühele: õpetaja on Heino ja vastab ainult küsitule — kui õpilane midagi ei küsi, jääb see teadmata. Siis vahetatakse: õpetaja üürib korterit ja õpilane on omanik.'), V5_CUT),
+      hide(B.rubricW2('011_t_rubric', 'Hindamine: kiri korterist (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 012 project: moving day (kus? kuhu? kust?)
   'a2b1-012': {
     title: 'Kolimispäev',
-    canDo: 'Ma kirjutan 80–100-sõnalise loo oma kolimispäevast: kust ja kuhu kolisin, kes aitas ja kuhu asjad panin.',
+    phases: grammar('Keel: kus? kuhu? kust? — kastis / kasti / kastist, laual / lauale / laualt, naabri juures / juurde / juurest'),
+    format: 'project',
+    topic: 'family',
+    canDo: 'Ma saan aru häälsõnumist, kus asjad on ja kuhu need viia, lepin paarilisega kokku, kuhu mööbel läheb, ja kirjutan abilistele 30–60-sõnalise märkme.',
+    teacherPage: {
+      goal: 'Ученик понимает голосовое сообщение (где вещи, куда нести), договаривается по плану, куда что ставить (kus / kuhu / kust), и пишет помощникам записку 30–60 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → сообщение (2 раза) и пропуски → пункт 4: договорённость по плану и записка. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kust sa viimati kolisid ja kuhu? Kes aitas?» Сначала ответьте сами (настоящая история, 2–3 предложения), потом ученик. Вопрос из урока 11 без записей.',
+      plan: [
+        '0–8: пункт 1 — крючок: переезды; одно предложение о своём доме с суффиксом (повторение урока 11)',
+        '8–25: пункт 2 — слова, голосовое сообщение Катрин (2 раза; kus / kuhu / kust в контексте), 8 пропусков, в паре: «Kus on …? Kuhu see läheb?»',
+        '25–40: пункт 3 — заметить → правило → текст из 8 форм → 4–5 своих предложений о своём доме',
+        '40–65: пункт 4 — план «Uus korter»: договориться с партнёром, куда шкаф, диван, стол и коробки (у каждого своё мнение), записка помощникам 30–60 слов; вторая попытка: партнёр по записке расставляет вещи на плане, автор исправляет',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (ссылка eesti.ee)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, что он никогда не взял бы с собой при переезде и почему',
+        '72–90: запас',
+      ],
+      sources: 'Голосовое сообщение (пункт 2) и план «Uus korter» — учебные, люди выдуманы. Домашняя ссылка — eesti.ee, «Elukoha registreerimine» (https://www.eesti.ee/et/artikkel/eluase/elukoha-vahetamine/elukoha-registreerimine), проверено 25.11.2026; ответы ученик берёт со страницы сам, учитель проверяет по странице.',
+      groups: 'Пункт 4 в паре: сначала договорённость по плану, потом каждый пишет записку, обмен записками. Один на один вы — партнёр и сначала хотите поставить шкаф в прихожую.',
+      errors: [
+        '«Pane raamatud elutoas» вместо «Pane raamatud elutuppa» (куда? → kuhu-vorm; tuba → tuppa).',
+        '«Võta võti naabri juures» вместо «Võta võti naabrilt / naabri juurest» (откуда? → kust-vorm).',
+        '«Kast on kööki» вместо «Kast on köögis» (on, seisab → kus?).',
+        'В записке нет порядка: сначала когда и куда переезжаю, потом что куда, в конце ключ и важное.',
+      ],
+      notes: [
+        'Глагол выбирает вопрос: olema / seisma → kus?, panema / viima → kuhu?, võtma / tooma → kust? Просите назвать глагол, а не форму.',
+        'Обратная связь, 2 цели: kuhu-vorm после panema / viima и короткие формы (tuppa, kööki, koju). Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('012_d_review', [['Mida tähendab ruumikas? Ütle üks lause oma kodu kohta.', 'a2b1-011'], ['Kui suur on Valgevase korteri üür ja tagatisraha?', 'a2b1-011'], ['Kus sa eile pärast tööd olid ja kuhu läksid? Vasta kus- ja kuhu-vormiga.', 'a2b1-002']]),
-      B.text('012_d_hook', 'Laupäev, 12. detsember', 'Leping on allkirjastatud, võtmed on Sofia taskus ja kõik asjad on kastidesse pakitud. Laupäeval on kolimispäev: Jaan toob Viktori sõbra kaubiku, Markus ja Anna tulevad appi. Õhtul kirjutab Sofia oma blogisse. Loe kõigepealt pealkirja ja arva, mis kolimisel valesti läks.'),
-      tag(B.reading('012_d_blog', 'Sofia blogi: kolimispäev.', 'Arva pealkirja järgi, mis kolimisel valesti läks. Siis loe blogi ja kontrolli.', 'Kast, mida keegi ei leidnud', [
+      station(teach(tag(purpose(B.speaking('012_d_moves', 'Sinu kolimised.', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kust sa viimati kolisid ja kuhu?',
+        'Kes sind aitas ja mis oli kõige raskem?',
+        'Ütle ilma märkmeteta üks lause oma kodust liitega omadussõnaga (ruumikas, rahulik …).',
+        'Kas sinu kodumaal aitavad kolimisel sõbrad või firma? Mis sa arvad, kumb on parem?',
+      ], [45, 60]), 'Sinu enda kolimine on tänase tunni algus: lõpus kirjutad abilistele, kuhu mis läheb.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris kolimisest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Kuhu te panite kõige raskema asja?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kolima — переезжать', 'pakkima — упаковывать', 'kast — коробка', 'kandma — нести', 'tõstma — поднимать', 'kelder — подвал', 'aknalaud — подоконник', 'riiul — полка', 'kapp — шкаф', 'trepikoda — подъезд']), { topic: ['aknalaud'] }), 2, 17),
+      B.know('012_d_know', 'Kui inimene kolib Eestis uude koju, paneb ta oma uue aadressi kirja rahvastikuregistrisse. Seda nimetatakse elukoha registreerimiseks. Seda saab teha internetis portaalis eesti.ee või kohalikus omavalitsuses. Registreeritud aadressist sõltuvad näiteks lasteaiakoht ja mõned linna teenused. Kodus vaatad päris lehte.', 'KeeleSepa õppetekst; eesti.ee, „Elukoha registreerimine”'),
+      tag(purpose(why(twice(B.listening('012_d_msg', 'Katrini häälsõnum abilistele.', 'Kuula sõnumit kaks korda. Kirjuta lünka koht: kus asi on, kust see võtta või kuhu see viia.', [
+        'Katrin: Tere, Peeter ja Marek! Siin Katrin. Aitäh, et homme kolimisel aitate.',
+        'Katrin: Kaubik on meie maja ees kell üheksa. Pärast kolimist viige see parklasse pargi kõrval, sest maja ette ei tohi autot kauaks jätta.',
+        'Katrin: Kõik kastid on minu toas akna all. Raske raamatukast on voodi all. Tõstke see voodi alt välja kahekesi.',
+        'Katrin: Lilled on aknalaual. Palun pange need kasti, mis on köögis laua peal.',
+        'Katrin: Minu jalgratas on keldris. Keldri võtme saate naabrilt, korter kaks.',
+        'Katrin: Uues kodus viige raamatud elutuppa ja riided magamistuppa. Nõud pange kööki.',
+        'Katrin: Kui olete väsinud, võtke külmkapist mahla. Külmkapp on veel vanas kodus köögis, see sõidab alles pühapäeval.',
+        'Katrin: Tühjad kastid viige pärast keldrisse. Mina tulen töölt kella kaheks ja toon poest süüa. Kohtumiseni!',
+      ], [
+        'Kastid on Katrini toas akna [all].',
+        'Raamatukast tuleb tõsta voodi [alt] välja.',
+        'Lilled on praegu [aknalaual].',
+        'Lilled pannakse kasti, mis on [köögis] laua peal.',
+        'Jalgratas on praegu [keldris].',
+        'Keldri võtme saab [naabrilt].',
+        'Uues kodus viiakse raamatud [elutuppa].',
+        'Tühjad kastid viiakse pärast [keldrisse].',
+      ], 'g_read')), [
+        '„Kõik kastid on minu toas akna all.” — kus? → all.',
+        '„Tõstke see voodi alt välja.” — kust? → alt.',
+        '„Lilled on aknalaual.” — kus? → aknalaual.',
+        '„kasti, mis on köögis laua peal” — kus? → köögis.',
+        '„Minu jalgratas on keldris.” — kus? → keldris.',
+        '„Keldri võtme saate naabrilt.” — kust? → naabrilt.',
+        '„viige raamatud elutuppa” — kuhu? → elutuppa (tuba → tuppa).',
+        '„Tühjad kastid viige pärast keldrisse.” — kuhu? → keldrisse.',
+      ]), 'Pärast kuulamist tead, kus Katrini asjad on ja kuhu abilised need viivad.'), { task: 'L03' }),
+      teach(tag(purpose(B.speaking('012_d_where', 'Kus see on? Kuhu see läheb?', 'Küsi paariliselt sõnumi järgi. Vastake tervete lausetega. Siis vahetage.', [
+        'Kus on raamatukast ja kust abilised selle võtavad?',
+        'Kus on lilled ja kuhu need pannakse?',
+        'Kust saab keldri võtme?',
+        'Kuhu viiakse raamatud ja kuhu riided?',
+        'Kust Katrin kella kaheks tuleb ja mida ta toob?',
+      ], [45, 60], '', 'g_read'), 'Ütled kus-, kuhu- ja kust-vormi nii, et paariline teab, mida teha.'), { task: 'S05', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Raamatud viiakse kööki”) ja õpilane parandab sind sõnumi järgi.'),
+      hide(B.review('012_d_review', [['Mida tähendab ruumikas? Ütle üks lause oma kodu kohta.', 'a2b1-011'], ['Kui suur on Valgevase korteri üür ja tagatisraha?', 'a2b1-011'], ['Kus sa eile pärast tööd olid ja kuhu läksid? Vasta kus- ja kuhu-vormiga.', 'a2b1-002']]), V5_DRILL),
+      hide(B.text('012_d_hook', 'Laupäev, 12. detsember', 'Leping on allkirjastatud, võtmed on Sofia taskus ja kõik asjad on kastidesse pakitud. Laupäeval on kolimispäev: Jaan toob Viktori sõbra kaubiku, Markus ja Anna tulevad appi. Õhtul kirjutab Sofia oma blogisse. Loe kõigepealt pealkirja ja arva, mis kolimisel valesti läks.'), V5_CUT),
+      hide(tag(B.reading('012_d_blog', 'Sofia blogi: kolimispäev.', 'Arva pealkirja järgi, mis kolimisel valesti läks. Siis loe blogi ja kontrolli.', 'Kast, mida keegi ei leidnud', [
         'Laupäeva hommikul kell kaheksa oli Malle köögis juba kohv valmis. Kõik minu asjad olid kastides ja kastid seisid toas akna all. Kokku oli neid kakskümmend kaks.',
         '',
         'Kell üheksa tuli Jaan kaubikuga. Markus ja Anna tulid bussiga. Mehed kandsid kastid trepist alla ja panid need kaubikusse. Anna võttis aknalaualt minu lilled ja hoidis neid terve sõidu süles.',
@@ -283,20 +452,12 @@ export const LESSONS = withShapes({
         ['Kust kast lõpuks leiti?', 'Malle sahvrist|sahvrist'],
         ['Kes viis kasti uude koju?', 'Sofia ise|Sofia'],
         ['Kas sinu arvamus pealkirja kohta oli õige? Mis tegelikult juhtus?', 'Anna pani kasti sahvrisse ja unustas selle|kast jäi Malle juurde'],
-      ]), { task: 'R13' }),
-      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kolima — переезжать', 'pakkima — упаковывать', 'kast — коробка', 'kandma — нести', 'trepikoda — подъезд', 'kelder — подвал', 'aknalaud — подоконник', 'reegel — правило', 'kapp — шкаф', 'sahver — кладовка']), { topic: ['sahver'] }),
-      B.notice('012_d_notice', 'Märka: kus? kuhu? kust?', [
-        'Blogist: kastid seisid **toas** · panid need **kaubikusse** · otsisime **köögist** · kast on **sahvris**',
-        '**Kus?** (olen, seisab, on) — kasti**s**, kuuri**s**, riiuli**l**, Malle **juures**',
-        '**Kuhu?** (panen, viin, kannan) — kasti**sse**, riiuli**le**, Malle **juurde** · lühike vorm: tuba → **tuppa**, köök → **kööki**, kodu → **koju**',
-        '**Kust?** (võtan, toon, tulen) — kasti**st**, riiuli**lt**, Malle **juurest**, kodu**st**',
-        'Tegusõna valib küsimuse: **olen** kodus · **lähen** koju · **tulen** kodust',
-      ], 'full'),
-      B.table('012_d_rule', 'Leia reegel: üks sõna, kolm küsimust.', 'Otsi sõnad blogist ja Sofia sõnumist. Kirjuta tabelisse puuduv kus-, kuhu- või kust-vorm.', 'Sõna, Kus?, Kuhu?, Kust?', [
+      ]), { task: 'R13' }), V5_CUT),
+      hide(B.table('012_d_rule', 'Leia reegel: üks sõna, kolm küsimust.', 'Otsi sõnad blogist ja Sofia sõnumist. Kirjuta tabelisse puuduv kus-, kuhu- või kust-vorm.', 'Sõna, Kus?, Kuhu?, Kust?', [
         'kaubik | kaubikus | [kaubikusse] | [kaubikust]', 'sahver | [sahvris] | sahvrisse | [sahvrist]', 'kelder | [keldris] | [keldrisse] | keldrist', 'aknalaud | [aknalaual] | aknalauale | [aknalaualt]',
         'tuba | toas | [tuppa] | [toast]', 'köök | [köögis] | kööki | [köögist]', 'Malle | Malle juures | [Malle juurde] | [Malle juurest]', 'kodu | [kodus] | koju | [kodust]', 'kuur | kuuris | [kuuri] | [kuurist]', 'pood | [poes] | poodi | [poest]', 'hoov | [hoovis] | [hoovi] | hoovist',
-      ], 'g_notice'),
-      B.listening('012_d_plan', 'Sofia häälsõnum kolimise eel.', 'Kuula Sofia häälsõnumit abilistele. Kirjuta lünka koht: kus asi on või kuhu see viia.', [
+      ], 'g_notice'), V5_DRILL),
+      hide(B.listening('012_d_plan', 'Sofia häälsõnum kolimise eel.', 'Kuula Sofia häälsõnumit abilistele. Kirjuta lünka koht: kus asi on või kuhu see viia.', [
         'Sofia: Tere, Jaan, Markus ja Anna! Siin Sofia. Homme on suur päev, nii et kuulake hoolega.',
         'Sofia: Jaan, sina võtad kaubiku onu Viktori sõbra käest. Ta elab Mustamäel, Sõpruse peatuse lähedal. Võti on tema garaažis.',
         'Sofia: Hommikul kell üheksa olete Malle maja ees. Malle elab kolmandal korrusel, korter kaksteist.',
@@ -318,17 +479,41 @@ export const LESSONS = withShapes({
         'Keldri võtme saab [Mallelt|Malle käest].',
         'Nõud ja potid tuleb panna köögis [riiulile].',
         'Tühjad kastid viiakse pärast [keldrisse].',
-      ]),
-      B.categorize('012_d_verbs', 'Mis küsimusele vastab?', 'Vaata tegusõna. Pane iga väljend rühma Kus?, Kuhu? või Kust?.', [
+      ]), V5_CUT),
+      hide(B.categorize('012_d_verbs', 'Mis küsimusele vastab?', 'Vaata tegusõna. Pane iga väljend rühma Kus?, Kuhu? või Kust?.', [
         ['Kus?', ['seisab toas', 'ootab maja ees', 'on keldris', 'magab diivanil', 'töötab kontoris', 'elab Kalamajas', 'istub köögis', 'hoiab kasti sahvris']],
         ['Kuhu?', ['kannab tuppa', 'paneb riiulile', 'viib keldrisse', 'sõidab Kalamajja', 'läheb Malle juurde', 'kolib uude korterisse', 'pargib maja ette', 'paneb lilled kasti']],
         ['Kust?', ['võtab aknalaualt', 'toob poest', 'tuleb tööpäeva lõpus kontorist', 'saab võtme Tiinalt', 'kolib Mustamäelt', 'otsib köögist', 'tõstab kasti kaubikust', 'leiab salli voodi alt']],
-      ], 'full', 'g_notice'),
-      teach(tag(B.speaking('012_d_moves', 'Minu kolimised.', 'Räägi paarilisele oma kolimistest. Kasuta kust-, kuhu- ja kus-vorme. Lõpus võrdle Eestit oma kodumaaga.', ['Kust sa viimati kolisid ja kuhu?', 'Kes sind aitas?', 'Kuhu sa panid kõige raskema asja?', 'Mis kadus või läks katki?', 'Kus sa praegu elad ja kas sulle seal meeldib?', 'Kas sinu arvates on Eestis kodu leida ja kolida lihtsam või raskem kui sinu kodumaal? Miks?'], [60, 120], ['Ma kolisin … -st … -sse.', 'Kõige raskem oli…, selle panime…', 'Minu meelest on Eestis…, sest…']), { fluency: true }),
-        'Üks-ühele: õpilane räägib õpetajale; õpetaja küsib vahepeal „Kust?” või „Kuhu?” ja lõpus „Miks sa nii arvad?”.'),
+      ], 'full', 'g_notice'), V5_DRILL),
     ],
     practice: [
-      B.choice('012_p_form', 'Vali õige vorm.', 'Loe lauset Sofia kolimispäevast ja vali vorm, mis vastab küsimusele kus, kuhu või kust.', [
+      station(B.notice('012_d_notice', 'Märka: kus? kuhu? kust?', [
+        'Sõnumist: kastid on **toas** · pange need **kasti** · tõstke voodi **alt** · võtme saate **naabrilt** · viige **elutuppa** · viige **keldrisse**',
+        '**Kus?** (on, seisab, olen) — kasti**s**, keldri**s**, riiuli**l**, voodi **all**, naabri **juures**',
+        '**Kuhu?** (panen, viin, kannan) — kasti**sse**, riiuli**le**, voodi **alla**, naabri **juurde** · lühike vorm: tuba → **tuppa**, köök → **kööki**, kodu → **koju**',
+        '**Kust?** (võtan, toon, tulen) — kasti**st**, riiuli**lt**, voodi **alt**, naabri **juurest** · naabri**lt**',
+        'Tegusõna valib küsimuse: kast **on** köögis · **pane** kast kööki · **võta** kast köögist',
+      ], 'full'), 3, 15),
+      purpose(why(B.formtext('012_p_markus', 'Sõnum naabrile.', 'Marek kirjutab Katrini uuele naabrile. Pane sulgudes olev sõna õigesse kohavormi.', 'Aitäh abi eest!', [
+        'Tere! Mina olen Marek, Katrini vend. Aitäh, et lubasite meil kastid [keldrisse] (kelder) viia! Kõik tühjad kastid on nüüd [keldris] (kelder) Katrini panipaigas.',
+        '',
+        'Vana riiul jäi [hoovi] (hoov), sest see ei mahtunud [trepikotta] (trepikoda). Homme toon selle [hoovist] (hoov) ära ja viin oma garaaži.',
+        '',
+        'Kaubiku viisime kell neli [parklasse] (parkla). Vabandust, kui trepilt kostis kogu päeva müra!',
+        '',
+        'Rattakuuri võtme panin teie [postkasti] (postkast). Kui teil on vaja [poodi] (pood) minna või midagi tuua, andke mulle teada.',
+      ]), [
+        'viia kuhu? → keldrisse.',
+        'on kus? → keldris.',
+        'jäi kuhu? → hoovi (lühike kuhu-vorm).',
+        'ei mahtunud kuhu? → trepikotta (trepikoda → trepikotta).',
+        'toon kust? → hoovist.',
+        'viisime kuhu? → parklasse.',
+        'panin kuhu? → postkasti.',
+        'minna kuhu? → poodi (lühike kuhu-vorm).',
+      ]), 'Mareki sõnumis näed, kuidas üks sõna kolme küsimusega muutub.'),
+      tag(purpose(B.writing('012_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma kodust neli-viis lauset: kus mis on (kus?), kuhu sa paneksid uue asja (kuhu?) ja kust sa selle tooksid (kust?).', [4, 5]), 'Oma laused aitavad sul märkmes täpselt öelda, kuhu mis läheb.'), { task: 'W02' }),
+      hide(B.choice('012_p_form', 'Vali õige vorm.', 'Loe lauset Sofia kolimispäevast ja vali vorm, mis vastab küsimusele kus, kuhu või kust.', [
         ['Jaan parkis kaubiku otse maja …', 'ette', 'ees', 'eest'],
         ['Raamatukast seisis terve hommiku voodi …', 'all', 'alla', 'alt'],
         ['Anna võttis lilled … ja pani need kasti.', 'aknalaualt', 'aknalaual', 'aknalauale'],
@@ -337,8 +522,8 @@ export const LESSONS = withShapes({
         ['Pottide kast oli terve päeva Malle …', 'sahvris', 'sahvrisse', 'sahvrist'],
         ['Pühapäeval tõi Sofia kasti Malle … ära.', 'juurest', 'juures', 'juurde'],
         ['Õhtul läksid kõik koos nurga taha …', 'kohvikusse', 'kohvikus', 'kohvikust'],
-      ], 'full', 'g_notice'),
-      B.cloze('012_p_malle', 'Malle kiri.', 'Malle kirjutas Sofiale pärast kolimist. Vali lünka sõna, mis sobib nii tähenduse kui ka vormi poolest.', 'Kallis Sofia!', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.cloze('012_p_malle', 'Malle kiri.', 'Malle kirjutas Sofiale pärast kolimist. Vali lünka sõna, mis sobib nii tähenduse kui ka vormi poolest.', 'Kallis Sofia!', [
         'Kodu on nüüd nii vaikne, et kuulen isegi köögikella tiksumist. Kaarel tuli eile {*Soomest|Soome|Soomes} ja vaatas sinu endist tuba. Ta ütles, et tuba on väike, aga {*valgusküllane|valguskülluse|valgus}.',
         '',
         'Kui ma koristasin, leidsin voodi {*alt|alla|all} sinu sinise salli. Panin selle {*kotti|kotis|kotist} ja hoian seda sulle. Tule minu juurde, kui sul on aega, ja joome koos kohvi.',
@@ -348,17 +533,8 @@ export const LESSONS = withShapes({
         'Palun saada mulle {*pilte|pilt|pildis} oma uuest korterist! Kas sinu jalgratas mahtus hoovis {*kuuri|kuuris|kuurist}? Ja ära unusta: Kalamajas on talvel tuuline, nii et pane soojalt riidesse.',
         '',
         'Kallistan, Malle',
-      ], 'g_vocab'),
-      B.formtext('012_p_markus', 'Markuse sõnum Tiinale.', 'Markus kirjutab naabrile Tiinale. Pane sulgudes olev sõna õigesse kohavormi.', 'Aitäh abi eest!', [
-        'Tere, Tiina! Mina olen Markus, Sofia kolleeg. Aitäh, et lubasite meil kastid [keldrisse] (kelder) viia! Kõik tühjad kastid on nüüd [keldris] (kelder) Sofia panipaigas.',
-        '',
-        'Sofia vana riiul jäi [hoovi] (hoov), sest see ei mahtunud [trepikotta] (trepikoda). Homme toob Jaan selle [hoovist] (hoov) ära ja viib oma garaaži.',
-        '',
-        'Kaubiku viisime kell neli [parklasse] (parkla). Vabandust, kui trepilt kostis kogu päeva müra!',
-        '',
-        'Teie rattakuuri võtme panin [postkasti] (postkast). Kui teil on vaja [poodi] (pood) minna või midagi tuua, andke mulle teada. Ma elan Kalamajas, ainult kahe tänava kaugusel.',
-      ], 'g_notice'),
-      tag(B.bankText('012_p_list', 'Sofia nimekiri: mis kuhu läheb?', 'Sofia kirjutas abilistele nimekirja. Vali pangast sobiv koht ja pane see lünka. Kaks väljendit jääb üle.', 'Kuhu mis läheb?', [
+      ], 'g_vocab'), V5_DRILL),
+      hide(tag(B.bankText('012_p_list', 'Sofia nimekiri: mis kuhu läheb?', 'Sofia kirjutas abilistele nimekirja. Vali pangast sobiv koht ja pane see lünka. Kaks väljendit jääb üle.', 'Kuhu mis läheb?', [
         'Raamatud: kõik kastid [[elutuppa]] suurele riiulile. Kõige raskem kast pange ukse kõrvale, mitte riiulile.',
         '',
         'Riided: kotid ja kastid [[magamistuppa]]. Talvejope ja saapad jätke [[esikusse]], ma vajan neid kohe.',
@@ -366,8 +542,8 @@ export const LESSONS = withShapes({
         'Köök: potid, pannid ja taldrikud [[kööki]]. Kohvimasin on punases kastis — tooge see [[kaubikust]] esimesena!',
         '',
         'Muu: jalgratas hoovis [[kuuri]], tühjad kastid [[keldrisse]]. Lilled pange [[aknalauale]], seal on neil valgust.',
-      ], ['vannitoast', 'katuselt'], 'g_vocab'), { task: 'R04' }),
-      tag(B.reading('012_p_rules', 'Valgevase 7 maja reeglid.', 'Loe Tiina maja reegleid. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Tere tulemast meie majja!', [
+      ], ['vannitoast', 'katuselt'], 'g_vocab'), { task: 'R04' }), V5_DRILL),
+      hide(tag(B.reading('012_p_rules', 'Valgevase 7 maja reeglid.', 'Loe Tiina maja reegleid. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Tere tulemast meie majja!', [
         'Kallid uued naabrid! Meie maja on üle saja aasta vana ja siin elab kuus peret. Et kõigil oleks hea elada, palun lugege need reeglid läbi.',
         '',
         'Õhtul pärast kella kümmet ja pühapäeva hommikul on majas vaikus. Kui teete peo, öelge naabritele paar päeva ette.',
@@ -390,13 +566,13 @@ export const LESSONS = withShapes({
         ['Igal korteril on keldris oma panipaik.', 'õige'],
         ['Talgutel on alati ka maja lapsed.', 'ei selgu'],
         ['Hooldusfirma töötab ka öösel.', 'ei selgu'],
-      ]), { task: 'R06' }),
+      ]), { task: 'R06' }), V5_CUT),
       // a text from outside the cast (§13.3): a real procedure after moving, checked 2026-11-03: err.ee „Uus
       // rahvastikuregistri seadus annab rahvastikust täpsema ülevaate” (14 days from 1.1.2019, eesti.ee, services that
       // depend on the address); Siseministeerium residence notice form (2022: owner's consent or a document of the right
       // to use, e.g. the tenancy contract) and leaflet „Elukohateate esitamine” (2023: in Tallinn the district government)
-      tag(B.text('012_p_reg', 'Kolisid? Registreeri oma elukoht!', 'Kui inimene kolib Eestis uude koju, peab ta oma uue aadressi rahvastikuregistrisse kirja panema. Seda nimetatakse elukoha registreerimiseks. Seaduse järgi tuleb seda teha 14 päeva jooksul pärast kolimist.\n\nKõige kiirem viis on portaal eesti.ee. Kui sul on ID-kaart, Mobiil-ID või Smart-ID, saad elukohateate sinna saata mõne minutiga. Teate võib viia ka kohalikku omavalitsusse või saata sinna posti või e-postiga. Tallinnas läheb teade selle linnaosa valitsusse, kus sinu uus kodu asub.\n\nKui korter ei ole sinu oma, on vaja ka omaniku nõusolekut või üürilepingut.\n\nMiks see on tähtis? Paljud teenused sõltuvad sellest, kus sa registri järgi elad: näiteks lasteaiakoht, tasuta ühistransport Tallinnas ja mõned toetused. Kui elukoht on registreerimata, võid neist ilma jääda.\n\nAllikas: ERR, „Uus rahvastikuregistri seadus annab rahvastikust täpsema ülevaate” (2018); Siseministeerium, elukohateate vorm ja juhend (2022–2023).'), { voice: 'article' }),
-      tag(B.gaps('012_p_regq', 'Mida artikkel ütleb?', 'Loe artiklit elukoha registreerimisest. Kirjuta lünka üks või kaks sõna artiklist.', [
+      hide(tag(B.text('012_p_reg', 'Kolisid? Registreeri oma elukoht!', 'Kui inimene kolib Eestis uude koju, peab ta oma uue aadressi rahvastikuregistrisse kirja panema. Seda nimetatakse elukoha registreerimiseks. Seaduse järgi tuleb seda teha 14 päeva jooksul pärast kolimist.\n\nKõige kiirem viis on portaal eesti.ee. Kui sul on ID-kaart, Mobiil-ID või Smart-ID, saad elukohateate sinna saata mõne minutiga. Teate võib viia ka kohalikku omavalitsusse või saata sinna posti või e-postiga. Tallinnas läheb teade selle linnaosa valitsusse, kus sinu uus kodu asub.\n\nKui korter ei ole sinu oma, on vaja ka omaniku nõusolekut või üürilepingut.\n\nMiks see on tähtis? Paljud teenused sõltuvad sellest, kus sa registri järgi elad: näiteks lasteaiakoht, tasuta ühistransport Tallinnas ja mõned toetused. Kui elukoht on registreerimata, võid neist ilma jääda.\n\nAllikas: ERR, „Uus rahvastikuregistri seadus annab rahvastikust täpsema ülevaate” (2018); Siseministeerium, elukohateate vorm ja juhend (2022–2023).'), { voice: 'article' }), V5_CUT),
+      hide(tag(B.gaps('012_p_regq', 'Mida artikkel ütleb?', 'Loe artiklit elukoha registreerimisest. Kirjuta lünka üks või kaks sõna artiklist.', [
         'Uus aadress tuleb kirja panna [rahvastikuregistrisse].',
         'Seda tuleb teha [14|neliteist] päeva jooksul pärast kolimist.',
         'Kõige kiirem viis on portaal [eesti.ee].',
@@ -405,8 +581,8 @@ export const LESSONS = withShapes({
         'Kui korter ei ole sinu oma, on vaja omaniku nõusolekut või [üürilepingut].',
         'Registreeritud elukohast sõltub näiteks [lasteaiakoht|tasuta ühistransport].',
         'Kui elukoht on registreerimata, võid teenustest ilma [jääda].',
-      ], '', 'full', 'g_read'), { task: 'R15' }),
-      B.wordorder('012_p_order', 'Pane lause kokku.', 'Sofia kirjutab, mis kus on. Pane sõnad õigesse järjekorda; esimene sõna on suure algustähega.', [
+      ], '', 'full', 'g_read'), { task: 'R15' }), V5_DRILL),
+      hide(B.wordorder('012_p_order', 'Pane lause kokku.', 'Sofia kirjutab, mis kus on. Pane sõnad õigesse järjekorda; esimene sõna on suure algustähega.', [
         'Raamatukast seisab praegu elutoa ukse kõrval.',
         'Homme viin tühjad kastid keldrisse.',
         'Talvejope ja saapad on esikus kapis.',
@@ -415,16 +591,33 @@ export const LESSONS = withShapes({
         'Jalgratas on nüüd hoovis kuuris.',
         'Lilled panin magamistoa aknalauale.',
         'Õhtul läksime kõik nurga taha kohvikusse.',
-      ], 'half'),
-      tag(B.examWriting('012_p_notice', 'Teade naabritele.', 'Kirjuta sama info naabritele viisakalt: teie-vormis ja ilma naljata.', 'teade', {
+      ], 'half'), V5_DRILL),
+      hide(tag(B.examWriting('012_p_notice', 'Teade naabritele.', 'Kirjuta sama info naabritele viisakalt: teie-vormis ja ilma naljata.', 'teade', {
         situation: 'Maja reeglite järgi tuleb peost ette teatada. Sofia kirjutas sõbrannale Gretele: „Laupäeval on mul soolaleivapidu, tule kindlasti, tuleb lärmakas!”',
         points: ['millal pidu on', 'mis võib naabreid segada', 'mis kell pidu lõpeb', 'vabandus ja tänu'],
         words: [50, 70], opening: 'Head naabrid!', closing: 'Teie uus naaber Sofia Mets, korter 4',
-      }), { task: 'W12' }),
+      }), { task: 'W12' }), V5_CUT),
     ],
     transfer: [
-      B.text('012_t_sit', 'Ema tahab kõike teada', 'Helgi ei saanud kolimispäeval tulla, sest tal oli Tartus koolis tähtis koosolek. Ta vastas Sofia kirjale ja tahab kuulda kolimispäeva lugu. Vanaema vana kapp ootab veel Viktori talus — kuhu see panna? Loe ema kirja, lepi Jaaniga kokku, kuhu mööbel läheb, ja kirjuta oma kolimispäeva lugu.'),
-      B.insertion('012_t_mom', 'Helgi kiri.', 'Helgi kirjast on välja kukkunud kaheksa lauset. Pane iga lause oma kohale.', 'Kallis tütar!', [
+      station(teach(tag(purpose(B.examWriting('012_t_note', 'Märge abilistele: kuhu mis läheb?', 'Sina kolid (päriselt või mõttes). Vaata pilti „Uus korter” ja lepi paarilisega kokku, kuhu läheb kapp, diivan, laud ja kastid. Siis kirjuta abilistele 30–60 sõna. Algus ja lõpp on sinu oma.', 'teade', {
+        situation: 'Sõbrad tulevad homme sind kolimisel aitama, aga sina oled hommikul tööl. Jäta neile märge. Pärast vahetage märkmed: paariline paneb sinu märkme järgi asjad plaanile. Kui midagi on valesti, paranda oma märget.',
+        points: ['kust ja kuhu sa kolid ja millal abilised tulevad', 'kuhu mis läheb (vähemalt neli kuhu-vormi)', 'kust abilised võtme saavad ja mis on veel tähtis'],
+        words: [30, 60],
+      }), 'Sinu abilised teavad sinu märkme järgi, kuhu iga asi uues kodus läheb.'), { task: 'W07', main: true, level: 4 }),
+      'Kõigepealt lepivad paarilised plaani „Uus korter” järgi kokku, kuhu asjad lähevad (5 min; A tahab kapi esikusse, B magamistuppa — põhjendage). Siis kirjutab igaüks 10–12 minutit ilma abita. Teine katse: märkmed vahetatakse, paariline näitab plaanil, kuhu ta iga asja paneks; autor parandab, kui märge ei olnud selge. Kontrolli: kolm sisupunkti, kuhu-vorm pärast panema / viima, kust-vorm (naabrilt, kastist), lühike vorm tuppa / kööki.'), 4, 25, { final: 'plan' }),
+      tag(exitCheck(why(purpose(B.choice('012_t_exit', 'Kontrolli end: kolm vormi.', 'Vali sõna, mis sobib lausesse.', [
+        ['Pane raamatud …', 'elutuppa', 'elutoas', 'elutoast'],
+        ['Jalgratas on …', 'keldris', 'keldrisse', 'keldrist'],
+        ['Võtme saad …', 'naabrilt', 'naabrile', 'naabril'],
+      ], 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kus, kuhu ja kust on käes.'), ['pane kuhu? → elutuppa.', 'on kus? → keldris.', 'saad kust? → naabrilt.'])), {}),
+      purpose(B.selfcheck('012_t_self', ['Ma saan aru häälsõnumist: kus asi on ja kuhu see viia.', 'Ma valin vormi: kastis – kasti – kastist, naabri juures – juurde – juurest.', 'Ma lepin kokku, kuhu mööbel läheb.', 'Ma kirjutan abilistele selge märkme.'], 'Kolimine planeeritud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('012_t_home', 'Kodus: leia päris info ja räägi.', 'Ava eesti.ee leht „Elukoha registreerimine” (https://www.eesti.ee/et/artikkel/eluase/elukoha-vahetamine/elukoha-registreerimine). Leia kaks asja: mida tuleb pärast kolimist teha ja kus seda saab teha. Salvesta 45–60 sekundit: mida sa leidsid ja kas sina oled oma elukoha registreerinud.', [
+        'Mida tuleb teha, kui kolid uude koju?',
+        'Kus ja kuidas saab seda teha?',
+      ], [45, 60]), 'Päris leht päris riigiportaalist: tead, mida pärast kolimist teha.')), { task: 'S15', fluency: true }),
+      homework('012_t_homework', ['1. Kirjuta oma märge tagasiside järgi puhtalt ümber.', '2. Ava leht eesti.ee, räägi 45–60 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('012_t_sit', 'Ema tahab kõike teada', 'Helgi ei saanud kolimispäeval tulla, sest tal oli Tartus koolis tähtis koosolek. Ta vastas Sofia kirjale ja tahab kuulda kolimispäeva lugu. Vanaema vana kapp ootab veel Viktori talus — kuhu see panna? Loe ema kirja, lepi Jaaniga kokku, kuhu mööbel läheb, ja kirjuta oma kolimispäeva lugu.'), V5_CUT),
+      hide(B.insertion('012_t_mom', 'Helgi kiri.', 'Helgi kirjast on välja kukkunud kaheksa lauset. Pane iga lause oma kohale.', 'Kallis tütar!', [
         'Aitäh kirja eest! Korter tundub tõesti ilus. [[Mul on väga kahju, et ma ei saanud laupäeval tulla.]] Meie koolis oli õpetajate koosolek ja ma pidin seal olema.',
         '',
         'Jaan rääkis telefonis, et kõik läks hästi ja ainult üks kast jäi Malle juurde. [[Ma naersin, kui ta rääkis pottidest ja Annast.]] Kui ma kunagi Tartusse kolisin, kadus mul terve kast raamatutega. Leidsin selle alles aasta pärast naabri keldrist!',
@@ -438,30 +631,65 @@ export const LESSONS = withShapes({
         'Tulen sinu juurde kindlasti soolaleivapeole. [[Ma toon leiba ja soola, nagu meie peres kombeks on.]] Kas sa juba tead, mis päeval pidu on?',
         '',
         '[[Hoia ennast ja pane talvel soojalt riidesse!]] Kallistan, ema',
-      ], ['Ma ostsin endale eile uue jalgratta.', 'Viktor müüs oma talu ja kolib linna.']),
-      teach(tag(B.ideaCard('012_t_furniture', 'Kuhu mööbel läheb?', 'Sofia ja Jaan arutavad, kuhu panna suur mööbel. Leppige kokku, siis korrake uue paarilisega.', 'Sofia korteris on esik, elutuba, magamistuba ja väike köök. Viktor toob vanaema kapi, Markus annab vana kirjutuslaua ja Malle kingib tugitooli.', ['vanaema kapp', 'kirjutuslaud', 'tugitool', 'suur peegel'], 'Kuhu läheb iga asi ja miks? Mis jääb hoopis keldrisse?'), { fluency: true }),
-        'Üks-ühele: õpetaja on Jaan ja tahab kapi panna esikusse; õpilane põhjendab oma ettepanekut kuhu-vormidega („Pigem paneme kapi magamistuppa, sest…”). Teisel korral (3 minutit) korratakse arutelu kiiremini ja lõpus on üks kokkulepe.'),
-      B.planning('012_t_plan', 'Loo plaan.', 'Pane enne kirjutamist kirja märksõnad: mis juhtus hommikul, päeval ja õhtul?', ['Pealkiri: Kolimispäev, mida ma ei unusta', 'Kust ja kuhu ma kolisin?', 'Kes aitas ja kuidas asjad uude koju jõudsid?', 'Mis läks valesti või oli naljakas?', 'Kus mu asjad nüüd on?', 'Mis tunne oli õhtul?'], 2),
-      tag(B.examWriting('012_t_story', 'Lugu: kolimispäev.', 'Kirjuta plaani järgi lugu 80–100 sõnaga. Kasuta kus-, kuhu- ja kust-vorme.', 'jutt', {
+      ], ['Ma ostsin endale eile uue jalgratta.', 'Viktor müüs oma talu ja kolib linna.']), V5_CUT),
+      hide(teach(tag(B.ideaCard('012_t_furniture', 'Kuhu mööbel läheb?', 'Sofia ja Jaan arutavad, kuhu panna suur mööbel. Leppige kokku, siis korrake uue paarilisega.', 'Sofia korteris on esik, elutuba, magamistuba ja väike köök. Viktor toob vanaema kapi, Markus annab vana kirjutuslaua ja Malle kingib tugitooli.', ['vanaema kapp', 'kirjutuslaud', 'tugitool', 'suur peegel'], 'Kuhu läheb iga asi ja miks? Mis jääb hoopis keldrisse?'), { fluency: true }),
+        'Üks-ühele: õpetaja on Jaan ja tahab kapi panna esikusse; õpilane põhjendab oma ettepanekut kuhu-vormidega („Pigem paneme kapi magamistuppa, sest…”). Teisel korral (3 minutit) korratakse arutelu kiiremini ja lõpus on üks kokkulepe.'), V5_CUT),
+      hide(B.planning('012_t_plan', 'Loo plaan.', 'Pane enne kirjutamist kirja märksõnad: mis juhtus hommikul, päeval ja õhtul?', ['Pealkiri: Kolimispäev, mida ma ei unusta', 'Kust ja kuhu ma kolisin?', 'Kes aitas ja kuidas asjad uude koju jõudsid?', 'Mis läks valesti või oli naljakas?', 'Kus mu asjad nüüd on?', 'Mis tunne oli õhtul?'], 2), V5_CUT),
+      hide(tag(B.examWriting('012_t_story', 'Lugu: kolimispäev.', 'Kirjuta plaani järgi lugu 80–100 sõnaga. Kasuta kus-, kuhu- ja kust-vorme.', 'jutt', {
         situation: 'Helgi palus: kirjuta, kuidas kolimine läks. Pealkiri on „Kolimispäev, mida ma ei unusta”. Võid kirjutada Sofia või oma kolimisest.',
         points: ['kust ja kuhu sa kolisid', 'kes aitas ja kuidas asjad uude koju jõudsid', 'mis läks valesti või mis oli naljakas', 'kus su asjad nüüd on ja mis tunne sul on'],
         words: [80, 100],
-      }), { main: true }),
-      teach(tag(B.speaking('012_t_rec', 'Kodus: minu kodu.', 'Kirjelda 1–2 minutit oma kodu ja salvesta: kus mis asub ja kuhu sa tahad midagi uut panna.', ['Kus sinu kodu asub?', 'Mitu tuba seal on?', 'Mis on elutoas ja mis köögis?', 'Kuhu sa paned uue asja ja miks?', 'Mis sulle sinu kodus kõige rohkem meeldib?'], [60, 120], ['Minu kodu on…', 'Elutoas on…, akna all…', 'Uue lambi panen…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis küsib õpetaja kaks Kus? / Kuhu? / Kust? küsimust salvestuse kohta.'),
-      tag(B.letter('012_t_card', 'Kutse soolaleivapeole.', 'Kirjuta perele ja sõpradele lühike kutse: millal, kus ja kuidas maja üles leida.', 'Kallid sõbrad ja pere!', 'Ootan teid! Sofia', [50, 70]), { task: 'W03' }),
-      B.rubricW2('012_t_rubric', 'Hindamine: kolimislugu (12 punkti).'),
-      B.selfcheck('012_t_self', ['Ma loen kolimisloo ja leian, mis kus on.', 'Ma valin vormi: kastis – kasti – kastist, Malle juures – juurde – juurest.', 'Ma lepin kokku, kuhu mööbel läheb.', 'Ma kirjutan 80–100-sõnalise loo oma kolimispäevast.'], 'Uus kodu'),
+      }), { main: true }), V5_CUT),
+      hide(teach(tag(B.speaking('012_t_rec', 'Kodus: minu kodu.', 'Kirjelda 1–2 minutit oma kodu ja salvesta: kus mis asub ja kuhu sa tahad midagi uut panna.', ['Kus sinu kodu asub?', 'Mitu tuba seal on?', 'Mis on elutoas ja mis köögis?', 'Kuhu sa paned uue asja ja miks?', 'Mis sulle sinu kodus kõige rohkem meeldib?'], [60, 120], ['Minu kodu on…', 'Elutoas on…, akna all…', 'Uue lambi panen…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis küsib õpetaja kaks Kus? / Kuhu? / Kust? küsimust salvestuse kohta.'), V5_CUT),
+      hide(tag(B.letter('012_t_card', 'Kutse soolaleivapeole.', 'Kirjuta perele ja sõpradele lühike kutse: millal, kus ja kuidas maja üles leida.', 'Kallid sõbrad ja pere!', 'Ootan teid! Sofia', [50, 70]), { task: 'W03' }), V5_CUT),
+      hide(B.rubricW2('012_t_rubric', 'Hindamine: kolimislugu (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 013 debate: my district (arvamus, sest / kuna)
   'a2b1-013': {
-    title: 'Minu uus linnaosa',
-    canDo: 'Ma räägin oma linnaosast, põhjendan arvamust ja lepin seltsi koosolekul kokku ühe ettepaneku.',
+    title: 'Minu linnaosa',
+    phases: grammar('Keel: arvamus ja põhjus — Minu meelest …, sest … / Kuna …, …; kohad: rahulik, lärmakas, ohutu, roheline'),
+    format: 'debate',
+    topic: 'neighbours',
+    canDo: 'Ma ütlen oma arvamuse linnaosa kohta, põhjendan seda sest- ja kuna-lausega ning lepin elanike koosolekul kokku, mida tühjale krundile teha.',
+    teacherPage: {
+      goal: 'Ученик понимает мнения жителей (радио), высказывает своё мнение о районе с причиной (sest / kuna, прилагательные с суффиксами) и на собрании жителей договаривается, что сделать на пустом участке.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → запись (2 раза) и сопоставление без «Mõtle kaasa» → пункт 4: собрание и договорённость. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mis on sinu kodu lähedal hea ja mis puudu?» Сначала ответьте сами (настоящий район), потом ученик. Вопрос из урока 12 без записей.',
+      plan: [
+        '0–8: пункт 1 — крючок: свой район; одна фраза kuhu-vormiga (повторение урока 12)',
+        '8–25: пункт 2 — слова, радио «пять жителей» (2 раза; мнение и причина в контексте), 8 сопоставлений, «Mõtle kaasa» (3–4 предложения: с кем согласен)',
+        '25–40: пункт 3 — заметить → правило → 8 предложений (sest / kuna, порядок слов) → 4–5 своих предложений о своём районе',
+        '40–65: пункт 4 — собрание жителей по картинке «Tühi krunt» (у каждого своя идея и ограничение), договорённость; вторая попытка без фраз — новая ситуация (что сделать со старым зданием школы); в конце каждый говорит решение одной фразой',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик сравнивает свой район в Эстонии и место, где он вырос',
+        '72–90: запас',
+      ],
+      sources: 'Радиоопрос (пункт 2) и картинка «Tühi krunt» — учебные, жители выдуманы, цифр нет.',
+      groups: 'Пункт 4 в паре или тройке: у каждого своя карточка с идеей и ограничением; потом новая ситуация без фраз. Один на один вы — B и сначала не соглашаетесь.',
+      errors: [
+        '«Kuna autosid on palju, tänav ei ole ohutu» → после kuna-предложения глагол раньше подлежащего: «…, ei ole tänav ohutu».',
+        '«Sest siin on rahulik.» отдельным предложением — sest стоит после главного: «Mulle meeldib siin, sest siin on rahulik.»',
+        '«Minu meelest on hea, sest» без причины: после sest нужна конкретная причина (park, poed, rahu).',
+        'Договорённость не сформулирована: в конце нужна фраза «Lepime kokku, et …».',
+      ],
+      notes: [
+        'На собрании важно не согласие, а аргумент и ответ на чужой аргумент: «Ma saan aru, aga …».',
+        'Обратная связь, 2 цели: порядок слов после kuna и суффикс по смыслу (ohutu, lärmakas). Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('013_d_review', [['Kuhu Sofia pani raamatud ja kuhu riided?', 'a2b1-012'], ['Kust leiti kadunud pottide kast?', 'a2b1-012'], ['Mis harjumus sul on hommikuti? Mida sa tahaksid muuta?', 'a2b1-003']]),
-      B.text('013_d_hook', 'Esimene nädal Kalamajas', 'Sofia on elanud Kalamajas ühe nädala. Ta käib iga päev uutel tänavatel ja vaatab, kus on pood, apteek ja raamatukogu. Helgi küsib telefonis murelikult: „Kas seal on ikka ohutu?” Kalamaja Selts küsib elanikelt arvamust: mida teha tühja krundiga Valgevase tänava nurgal? Täna räägid palju: küsitled, põhjendad ja arutad. Lõpuks lepid seltsi koosolekul kokku, mida krundiga teha.'),
-      B.examListen('013_d_voices', 'Raadio küsib Kalamaja elanikelt.', 'Raadio küsis viielt Kalamaja elanikult arvamust. Kuula ja ühenda inimene tema arvamusega.', 'match', [
+      station(teach(tag(purpose(B.speaking('013_d_opinion', 'Kas sinu kodukoht on hea koht elamiseks?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Mis on sinu kodu lähedal: pood, park, peatus?',
+        'Mis on seal hea ja mis puudu?',
+        'Ütle ilma märkmeteta üks lause: kuhu sa paneksid kolimisel raamatud?',
+      ], [45, 60]), 'Sinu enda kodukoht on tänase tunni algus: lõpus otsustad koos teistega, mida linnaosas teha.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma kodukohast (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Miks seal hea on?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('013_d_vocab', 'Tunni sõnad.', ['linnaosa — район города', 'elanik — житель', 'krunt — участок земли', 'mänguväljak — детская площадка', 'parkla — парковка', 'talgud — субботник', 'koosolek — собрание', 'ettepanek — предложение', 'rahustav — успокаивающий', 'puudu olema — не хватать']), { topic: ['krunt', 'puudu olema', 'talgud'] }), 2, 17),
+      tag(purpose(why(B.examListen('013_d_voices', 'Raadio küsib elanikelt.', 'Raadio küsis viielt elanikult arvamust. Kuula kaks korda ja ühenda inimene tema arvamusega.', 'match', [
         'Ülle: Tere, kuulajad! Oleme täna Kalamajas ja küsime inimestelt, milline on nende linnaosa.',
         'Leida: Mina olen Leida, olen siin elanud viiskümmend aastat. Mulle meeldivad vanad puumajad. Need on ilusad ja kodused.',
         'Joosep: Mina olen Joosep, üliõpilane. Siin on palju kohvikuid ja kontserte. Õhtuti on tänavatel elu, see on mulle tähtis.',
@@ -475,9 +703,21 @@ export const LESSONS = withShapes({
       ], [
         ['Leida', 'armastab vanu puumaju'], ['Joosep', 'tahab õhtul kohvikutes käia'], ['Merilin', 'muretseb laste ohutuse pärast'], ['Kalle', 'ei leia autole kohta'],
         ['Arvo', 'jalutab mere ääres'], ['Merilini meelest on puudu', 'lasteaiakohti'], ['Kalle meelest on puudu', 'parklat'], ['Leida meelest on puudu', 'pinke'],
-      ]),
-      tag(B.vocab('013_d_vocab', 'Tunni sõnad.', ['linnaosa — район города', 'elanik — житель', 'selts — общество', 'krunt — участок земли', 'mänguväljak — детская площадка', 'turg — рынок', 'raamatukogu — библиотека', 'koosolek — собрание', 'rahustav — успокаивающий', 'talgud — субботник']), { topic: ['talgud'] }),
-      tag(B.listening('013_d_walk', 'Tiina näitab linnaosa.', 'Tiina näitab Sofiale linnaosa. Kuula ja kirjuta lünka number, kellaaeg või päev.', [
+      ], 'g_read', 2), [
+        'Leida: „Mulle meeldivad vanad puumajad.”',
+        'Joosep: „Siin on palju kohvikuid … Õhtuti on tänavatel elu.”',
+        'Merilin: „Tänav ei ole lastele alati ohutu.”',
+        'Kalle: „siin on võimatu parkida”.',
+        'Arvo: „Hommikul jalutan koeraga rannas.”',
+        'Merilin lõpus: „Lasteaiakohti on liiga vähe!”',
+        'Kalle lõpus: „Parklat, muidugi.”',
+        'Leida lõpus: „Pinke, kus vanad inimesed saaksid puhata.”',
+      ]), 'Pärast kuulamist tead, kuidas inimesed oma arvamust ütlevad ja põhjendavad.'), { task: 'L05' }),
+      B.know('013_t_know', 'Tallinnas saavad elanikud ise otsustada, mida linn nende linnaosas teeb. Seda nimetatakse kaasavaks eelarveks („Koos loodud linn”). Ideid võib esitada igaüks. Linnaosa elanikud hääletavad ja linn teeb võiduidee päriselt valmis. Ka paljudes teistes Eesti linnades ja valdades on kaasav eelarve.', 'Tallinna linn, „Tallinna kaasava eelarve hääletus algab täna” (2026)'),
+      tag(purpose(B.writing('013_d_think', 'Mõtle kaasa.', 'Kirjuta 3–4 lauset: kellega neist viiest oled sa nõus ja miks? Mis on sinu linnaosas puudu?', [3, 4], [], 0, 'g_read'), 'Sinu arvamus on koosoleku jaoks valmis.'), { task: 'W08' }),
+      hide(B.review('013_d_review', [['Kuhu Sofia pani raamatud ja kuhu riided?', 'a2b1-012'], ['Kust leiti kadunud pottide kast?', 'a2b1-012'], ['Mis harjumus sul on hommikuti? Mida sa tahaksid muuta?', 'a2b1-003']]), V5_DRILL),
+      hide(B.text('013_d_hook', 'Esimene nädal Kalamajas', 'Sofia on elanud Kalamajas ühe nädala. Ta käib iga päev uutel tänavatel ja vaatab, kus on pood, apteek ja raamatukogu. Helgi küsib telefonis murelikult: „Kas seal on ikka ohutu?” Kalamaja Selts küsib elanikelt arvamust: mida teha tühja krundiga Valgevase tänava nurgal? Täna räägid palju: küsitled, põhjendad ja arutad. Lõpuks lepid seltsi koosolekul kokku, mida krundiga teha.'), V5_CUT),
+      hide(tag(B.listening('013_d_walk', 'Tiina näitab linnaosa.', 'Tiina näitab Sofiale linnaosa. Kuula ja kirjuta lünka number, kellaaeg või päev.', [
         'Tiina: Sofia, alustame siit, meie maja eest. Esimene tähtis koht on apteek, kohe nurga peal. Apteek on avatud iga päev kaheksast kaheksani.',
         'Sofia: Väga hea. Aga kus on lähim toidupood?',
         'Tiina: Kahe tänava kaugusel. Väike pood on lahti hommikul seitsmest õhtul üheteistkümneni. Suur toidupood on Balti jaamas.',
@@ -499,29 +739,47 @@ export const LESSONS = withShapes({
         'Teisipäevast reedeni on raamatukogu avatud kella [kaheteistkümnest|12-st] seitsmeni.',
         'Trammiga jõuab kesklinna umbes [kaheksa|8] minutiga.',
         'Pargis on jooga pühapäeval kell [kaksteist|12].',
-      ], 'g_vocab'), { task: 'L10' }),
-      B.notice('013_d_notice', 'Märka: milline linnaosa? Miks?', [
-        'Kuuldust: **kodused** puumajad · tänav ei ole lastele **ohutu** · rand on **rahustav** · parkida on **võimatu**',
-        'Üks tüvi, kaks liidet: rahu → rahu**lik** (vaikne) · rahu → rahu**tu** (närviline) · oht → oht**lik** ↔ ohu**tu**',
-        '**-ne / -line** millest või millega: kivi**ne** tänav · liiva**ne** rand · päikese**line** hoov',
-        'Arvamus ja põhjus: Mulle meeldib Kalamaja, **sest** siin on rahulik. · **Kuna** autosid on palju, ei ole tänav lastele ohutu.',
-        'Teine arvamus: **Minu meelest**… · **Teisest küljest**… · **Ma ei ole nõus**, sest…',
-      ], 'full'),
-      teach(tag(B.speaking('013_d_opinion', 'Kas Kalamaja on hea koht elamiseks?', 'Ütle oma arvamus ja too kaks põhjust. Kasuta liitega omadussõnu ja sest või kuna.', ['Kas sina tahaksid elada vanas puumajas? Miks?', 'Kumb on parem: elav ja lärmakas või rahulik ja igav linnaosa?', 'Mis teeb linnaosa lastele ohutuks?', 'Mida vastaksid Helgile, kui ta küsib, kas Kalamaja on ohutu?', 'Mis on sinu linnaosas kõige parem?'], [90, 150], ['Minu meelest…, sest…', 'Kuna…, on…', 'Teisest küljest…']), { task: 'S11' }),
-        'Üks-ühele: õpetaja ütleb vastupidise arvamuse („Puumajas on talvel külm ja ebamugav”) ja õpilane põhjendab oma seisukohta vähemalt kahe põhjusega.'),
-      teach(tag(B.speaking('013_d_survey', 'Küsitlus: minu naabruskond.', 'Küsi kolmelt inimeselt samad küsimused nende kodukoha kohta. Lõpus ütle, mis oli kõigil sama.', ['Kus sa elad ja kui kaua oled seal elanud?', 'Mis on sinu kodu lähedal: pood, park, apteek?', 'Kas sinu tänav on rahulik või lärmakas?', 'Mis sinu linnaosas puudu on?', 'Kokkuvõte: kõik kolm ütlesid, et…'], [60, 120], ['Kui kaua sa seal elad?', 'Kas sinu tänav on…?', 'Kõik ütlesid, et…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (pensionär, üliõpilane, kahe lapse ema). Lõpus teeb õpilane kokkuvõtte.'),
-      B.examWriting('013_d_form', 'Kalamaja Seltsi küsimustik.', 'Vasta seltsi küsimustikule lühidalt. Küsimustele „Miks?” vasta sest- või kuna-lausega.', 'kusimustik', {
+      ], 'g_vocab'), { task: 'L10' }), V5_CUT),
+      hide(teach(tag(B.speaking('013_d_survey', 'Küsitlus: minu naabruskond.', 'Küsi kolmelt inimeselt samad küsimused nende kodukoha kohta. Lõpus ütle, mis oli kõigil sama.', ['Kus sa elad ja kui kaua oled seal elanud?', 'Mis on sinu kodu lähedal: pood, park, apteek?', 'Kas sinu tänav on rahulik või lärmakas?', 'Mis sinu linnaosas puudu on?', 'Kokkuvõte: kõik kolm ütlesid, et…'], [60, 120], ['Kui kaua sa seal elad?', 'Kas sinu tänav on…?', 'Kõik ütlesid, et…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (pensionär, üliõpilane, kahe lapse ema). Lõpus teeb õpilane kokkuvõtte.'), V5_CUT),
+      hide(B.examWriting('013_d_form', 'Kalamaja Seltsi küsimustik.', 'Vasta seltsi küsimustikule lühidalt. Küsimustele „Miks?” vasta sest- või kuna-lausega.', 'kusimustik', {
         situation: 'Kalamaja Selts tahab teada, mida uued elanikud oma linnaosast arvavad.',
         questions: ['Millal te Kalamajja kolisite?', 'Kus te varem elasite?', 'Miks te valisite Kalamaja?', 'Kus te käite kõige sagedamini poes?', 'Kas te käite raamatukogus? Miks?', 'Kas Kalamaja on teie meelest ohutu? Miks?', 'Mis teile linnaosas kõige rohkem meeldib?', 'Mis teid kõige rohkem segab?', 'Mida peaks Valgevase tänava tühjale krundile ehitama? Miks?', 'Kas te tahaksite tulla seltsi koosolekule?'],
-      }),
+      }), V5_CUT),
     ],
     practice: [
-      B.translation('013_p_tr', 'Tõlgi mõte: milline koht?', 'Tõlgi laused eesti keelde. Vali sobiv liide: -lik, -ne, -kas, -tu või eba-.', [
+      station(B.notice('013_d_notice', 'Märka: milline linnaosa? Miks?', [
+        'Kuuldust: **kodused** puumajad · tänav ei ole lastele **ohutu** · rand on **rahustav** · parkida on **võimatu**',
+        'Üks tüvi, kaks liidet: rahu → rahu**lik** (vaikne) · oht → oht**lik** ↔ ohu**tu** · lärm → lärma**kas**',
+        'Arvamus ja põhjus: **Minu meelest** on siin hea, **sest** meri on lähedal. · **Kuna** autosid on palju, **ei ole** tänav ohutu. (kuna-lause järel tegusõna kohe)',
+        'Vastus teisele: **Ma olen nõus**, sest … · **Ma saan aru, aga** … · **Teisest küljest** …',
+        'Kokkulepe: **Lepime kokku**, et … · **Teeme ettepaneku**, et …',
+      ], 'full'), 3, 15),
+      purpose(why(B.transformation('013_p_why', 'Arvamus koos põhjusega.', 'Ühenda kaks lauset üheks: kasuta antud sidesõna ja pane koma õigesse kohta.', [
+        ['Mulle meeldib see linnaosa. Siin on palju vanu puumaju.', 'sest', 'Mulle meeldib see linnaosa, sest siin on palju vanu puumaju.'],
+        ['Autosid on palju. Tänav ei ole lastele ohutu.', 'kuna', 'Kuna autosid on palju, ei ole tänav lastele ohutu.'],
+        ['Joosep elab kesklinnas. Siin on palju kohvikuid.', 'sest', 'Joosep elab kesklinnas, sest siin on palju kohvikuid.'],
+        ['Kalle sõidab õhtul kaua ringi. Ta ei leia parkimiskohta.', 'sest', 'Kalle sõidab õhtul kaua ringi, sest ta ei leia parkimiskohta.'],
+        ['Vana maja seinad on õhukesed. Talvel on kütmine kallis.', 'kuna', 'Kuna vana maja seinad on õhukesed, on talvel kütmine kallis.'],
+        ['Arvo on oma linnaosaga rahul. Naabrid on sõbralikud.', 'sest', 'Arvo on oma linnaosaga rahul, sest naabrid on sõbralikud.'],
+        ['Meri on kodu lähedal. Arvo jalutab hommikul rannas.', 'kuna', 'Kuna meri on kodu lähedal, jalutab Arvo hommikul rannas.'],
+        ['Raamatukogu on esmaspäeval kinni. Leida läheb sinna teisipäeval.', 'kuna', 'Kuna raamatukogu on esmaspäeval kinni, läheb Leida sinna teisipäeval.'],
+      ]), [
+        'sest pärast põhilauset, koma enne sest.',
+        'kuna ees → koma, siis tegusõna kohe: ei ole tänav.',
+        'sest pärast põhilauset.',
+        'sest pärast põhilauset; ta jääb alles.',
+        'kuna ees → on talvel kütmine.',
+        'sest pärast põhilauset.',
+        'kuna ees → jalutab Arvo.',
+        'kuna ees → läheb Leida.',
+      ]), 'Kaheksa lauset näitavad, kuidas arvamus ja põhjus üheks lauseks saavad.'),
+      tag(purpose(B.writing('013_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma linnaosast neli-viis lauset: kaks arvamust põhjusega (sest, kuna), üks asi, mis on puudu, ja üks ettepanek („Linnaosas võiks olla …, sest …”).', [4, 5]), 'Oma laused on koosoleku jaoks valmis.'), { task: 'W09' }),
+      hide(B.translation('013_p_tr', 'Tõlgi mõte: milline koht?', 'Tõlgi laused eesti keelde. Vali sobiv liide: -lik, -ne, -kas, -tu või eba-.', [
         'Наша улица тихая и безопасная.', 'В старом деревянном доме уютно, но кухня неудобная.', 'Летом в Каламая шумно, потому что много туристов.', 'Новая детская площадка просторная и солнечная.',
         'Соседка Тийна очень дружелюбная.', 'Пляж песчаный, а вода ещё холодная.', 'По-моему, ещё одна парковка — бессмысленная идея.', 'Вечером в парке немного опасно, потому что там темно.',
-      ], 'half', 'g_notice'),
-      tag(B.reading('013_p_districts', 'Kolm linnaosa.', 'Linnaosa leht tutvustab kolme linnaosa. Leia pealkirjale lõik ja vasta küsimustele.', 'Kus elada Tallinnas?', [
+      ], 'half', 'g_notice'), V5_DRILL),
+      hide(tag(B.reading('013_p_districts', 'Kolm linnaosa.', 'Linnaosa leht tutvustab kolme linnaosa. Leia pealkirjale lõik ja vasta küsimustele.', 'Kus elada Tallinnas?', [
         'Nõmme. Nõmme on väga roheline linnaosa. Majad on suurte aedade sees ja tänavate ääres kasvavad kõrged männid. Õhtul on siin nii vaikne, et kuuled ainult linde. Lastega peredele on Nõmme ohutu ja meeldiv koht. Miinus on see, et kesklinna sõidab rong või buss umbes pool tundi. Poodi tuleb sageli minna autoga.',
         '',
         'Lasnamäe. Lasnamäel on suured paneelmajad ja siin elab rohkem inimesi kui üheski teises linnaosas. Korterid on siin odavamad kui kesklinnas ja maja lähedal on alati kauplus, kool ja lasteaed. Kesklinna jõuab bussiga veerand tunniga. Paljudele ei meeldi, et majad on ühesugused ja hallid. Elanikud ütlevad aga, et naabrid on abivalmid ja elu on mugav.',
@@ -536,8 +794,8 @@ export const LESSONS = withShapes({
         ['Kes armastavad Kalamajat ja miks?', 'noored pered ja kunstnikud, sest see on värvikas ja elav'],
         ['Mis on Kalamajas talvel kallis?', 'kütmine|vanade majade kütmine'],
         ['Millises linnaosas sina elada tahaksid? Miks?', ''],
-      ]), { task: 'R09' }),
-      B.examListen('013_p_tiina', 'Intervjuu: Tiina räägib oma linnaosast.', 'Seltsi lehe ajakirjanik küsitleb Tiinat. Kuula ja märgi, kas väide on õige või vale.', 'truefalse', [
+      ]), { task: 'R09' }), V5_CUT),
+      hide(B.examListen('013_p_tiina', 'Intervjuu: Tiina räägib oma linnaosast.', 'Seltsi lehe ajakirjanik küsitleb Tiinat. Kuula ja märgi, kas väide on õige või vale.', 'truefalse', [
         'Kaur: Tiina, te olete Kalamajas elanud terve elu. Kuidas linnaosa on muutunud?',
         'Tiina: Kui ma olin laps, olid majad halvas korras ja paljud arvasid, et Kalamaja on ohtlik koht.',
         'Kaur: Ja praegu?',
@@ -563,29 +821,33 @@ export const LESSONS = withShapes({
         ['Tiina meelest on Kalamaja nagu küla linnas.', true],
         ['Talvel on Kalamaja tänavatel palju turiste.', false],
         ['Seltsi järgmine koosolek on reedel kohvikus.', false],
-      ]),
-      tag(B.transformation('013_p_why', 'Arvamus koos põhjusega.', 'Ühenda kaks lauset üheks: kasuta antud sidesõna ja pane koma õigesse kohta.', [
-        ['Mulle meeldib Kalamaja. Siin on palju vanu puumaju.', 'sest', 'Mulle meeldib Kalamaja, sest siin on palju vanu puumaju.'],
-        ['Autosid on palju. Tänav ei ole lastele ohutu.', 'kuna', 'Kuna autosid on palju, ei ole tänav lastele ohutu.'],
-        ['Joosep elab Kalamajas. Siin on palju kohvikuid.', 'sest', 'Joosep elab Kalamajas, sest siin on palju kohvikuid.'],
-        ['Kalle sõidab õhtul kaua ringi. Ta ei leia parkimiskohta.', 'sest', 'Kalle sõidab õhtul kaua ringi, sest ta ei leia parkimiskohta.'],
-        ['Vana maja seinad on õhukesed. Talvel on kütmine kallis.', 'kuna', 'Kuna vana maja seinad on õhukesed, on talvel kütmine kallis.'],
-        ['Sofia on Kalamajaga rahul. Naabrid on sõbralikud.', 'sest', 'Sofia on Kalamajaga rahul, sest naabrid on sõbralikud.'],
-        ['Meri on kodu lähedal. Arvo jalutab hommikul rannas.', 'kuna', 'Kuna meri on kodu lähedal, jalutab Arvo hommikul rannas.'],
-        ['Raamatukogu on esmaspäeval kinni. Sofia läheb sinna teisipäeval.', 'kuna', 'Kuna raamatukogu on esmaspäeval kinni, läheb Sofia sinna teisipäeval.'],
-      ]), { task: 'W09' }),
-      B.crossword('013_p_cross', 'Ristsõna: kohad linnas.', 'Loe vihjet ja kirjuta ristsõnasse linnakoht, kuhu sellega minna.', [
+      ]), V5_CUT),
+      hide(B.crossword('013_p_cross', 'Ristsõna: kohad linnas.', 'Loe vihjet ja kirjuta ristsõnasse linnakoht, kuhu sellega minna.', [
         ['Siit ostad ravimeid.', 'apteek'], ['Siin laenutad raamatuid tasuta.', 'raamatukogu'], ['Siit ostad värsket kala ja talukartuleid.', 'turg'], ['Siin mängivad väikesed lapsed liivakastis.', 'mänguväljak'],
         ['Siin ootad trammi.', 'peatus'], ['Siin räägid perearstiga.', 'tervisekeskus'], ['Siin ujud suvel meres.', 'rand'], ['Siin jalutad puude all koeraga.', 'park'],
-      ], 'half', 'g_vocab'),
-      teach(tag(B.speaking('013_p_432', 'Minu linnaosa: 4-3-2.', 'Räägi oma linnaosast kolm korda uuele kuulajale: 3, siis 2 ja lõpuks 1 minut.', ['Kus sa elad ja milline see koht on?', 'Mis on sinu kodu lähedal?', 'Mis sulle seal meeldib ja miks?', 'Mis on ebamugav või puudu?', 'Kas sa soovitad seda kohta sõbrale? Miks?'], [60, 120], ['Ma elan…, see on rahulik ja…', 'Minu kodu lähedal on…', 'Ebamugav on see, et…']), { task: 'S08', fluency: true }),
-        'Üks-ühele: õpilane räägib sama juttu õpetajale kolm korda, õpetaja hoiab aega (3 min, 2 min, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja ühe liitega omadussõna, mis tuli hästi välja.'),
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('013_p_432', 'Minu linnaosa: 4-3-2.', 'Räägi oma linnaosast kolm korda uuele kuulajale: 3, siis 2 ja lõpuks 1 minut.', ['Kus sa elad ja milline see koht on?', 'Mis on sinu kodu lähedal?', 'Mis sulle seal meeldib ja miks?', 'Mis on ebamugav või puudu?', 'Kas sa soovitad seda kohta sõbrale? Miks?'], [60, 120], ['Ma elan…, see on rahulik ja…', 'Minu kodu lähedal on…', 'Ebamugav on see, et…']), { task: 'S08', fluency: true }),
+        'Üks-ühele: õpilane räägib sama juttu õpetajale kolm korda, õpetaja hoiab aega (3 min, 2 min, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja ühe liitega omadussõna, mis tuli hästi välja.'), V5_CUT),
     ],
     transfer: [
-      B.text('013_t_sit', 'Mida teha tühja krundiga?', 'Valgevase tänava nurgal on tühi krunt. Linn lubas selle anda elanikele, kui nad lepivad kokku ühes idees. Neljapäeval on Kalamaja Seltsi koosolek raamatukogus. Viis elanikku on saatnud oma ettepaneku. Loe ettepanekuid ja leppige koosolekul kokku. Siis kirjutad seltsile, mida otsustati.'),
-      // checked 2026-11-03: tallinn.ee „Tallinna kaasava eelarve hääletus algab täna” (8.9.2026) and „Koos loodud linn” KKK
-      B.know('013_t_know', 'Tallinnas saavad elanikud ise otsustada, mida linn nende linnaosas teeb. Seda nimetatakse kaasavaks eelarveks („Koos loodud linn”). Ideid võib esitada igaüks, olenemata vanusest ja elukohast. Hääletada saavad vähemalt 14-aastased tallinlased: ainult oma linnaosa ideede poolt ja kuni kolme idee poolt. Linn annab selleks üks miljon eurot aastas. Igas linnaosas tehakse kahe aasta jooksul vähemalt üks võiduidee.', 'Tallinna linn, „Tallinna kaasava eelarve hääletus algab täna” (2026)'),
-      B.profiles('013_t_ideas', 'Viis ettepanekut.', 'Loe elanike ettepanekuid. Täienda iga kaardi lauseid ühe sõnaga.', [
+      station(teach(tag(purpose(B.rolecards('013_t_meeting', 'Elanike koosolek: mida teha tühja krundiga?', 'Te elate samas linnaosas. Vaata pilti „Tühi krunt”. Linn annab krundi elanikele, kui te lepite kokku ühes idees. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: sul on väike laps ja sa elad krundi kõrval. Sinu meelest on vaja uut mänguväljakut, sest pargi mänguväljak on kaugel.\nSinu eesmärk: öelda oma ettepanek kahe põhjusega, vastata B-le ja leppida kokku üks idee.\nPiirang: sa ei taha parklat, sest autosid on juba liiga palju.\nSiis uus olukord: linnaosas on vana tühi koolimaja. Mida sellega teha?',
+        'Olukord: sa elad üksi ja sul on auto. Sinu meelest on vaja parklat, sest õhtul ei leia sa kohta.\nSinu eesmärk: öelda oma ettepanek kahe põhjusega, vastata A-le ja leppida kokku üks idee.\nPiirang: sul on vähe aega, koosolek peab lõppema kokkuleppega.\nSiis uus olukord: linnaosas on vana tühi koolimaja. Mida sellega teha?',
+        ['Minu meelest …, sest …', 'Ma saan aru, aga …', 'Lepime kokku, et …'], []), 'Pärast koosolekut on teil üks ühine ettepanek ja sa oskad seda põhjendada.'), { task: 'S03', main: true, level: 4 }),
+      'Üks-ühele: sina oled B ja oled alguses teist meelt („Parkla on kõige tähtsam”); õpilane põhjendab sest- või kuna-lausega, vastab sinu argumendile („Ma saan aru, aga …”) ja pakub kompromissi (näiteks aed ja pingid, mõni parkimiskoht tänaval). Lõpus ütleb õpilane kokkuleppe („Lepime kokku, et …”). Teine katse ilma fraasideta: uus olukord kaardil (vana koolimaja).'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.choice('013_t_exit', 'Kontrolli end: kolm lauset.', 'Vali sõna, mis sobib lausesse.', [
+        ['Kuna autosid on palju, … lastele ohutu.', 'ei ole tänav', 'tänav ei ole', 'ei tänav ole'],
+        ['Mulle meeldib siin, … meri on lähedal.', 'sest', 'kuna', 'et'],
+        ['Hoovis ei ole lastele ohtu: hoov on …', 'ohutu', 'ohtlik', 'ohutav'],
+      ], 'full', 'g_vocab'), 'Kolm lauset näitavad, kas arvamus ja põhjus on käes.'), ['kuna-lause järel tegusõna kohe: ei ole tänav.', 'põhjus pärast põhilauset → sest.', 'ilma ohuta → ohutu.'])), {}),
+      purpose(B.selfcheck('013_t_self', ['Ma saan aru, mida inimesed oma linnaosast arvavad.', 'Ma ütlen arvamuse ja põhjendan sest- või kuna-lausega.', 'Ma vastan teise arvamusele: Ma saan aru, aga …', 'Ma lepin koosolekul kokku ühe ettepaneku.'], 'Otsus tehtud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('013_t_rec', 'Kodus: minu ettepanek linnaosale.', 'Salvesta 45–60 sekundit: mida on sinu linnaosas vaja? Ütle üks ettepanek ja kaks põhjust.', [
+        'Mis on sinu linnaosas puudu või ebamugav?',
+        'Mida linn võiks teha ja miks?',
+      ], [45, 60]), 'Õpetaja kuulab sinu ettepaneku ja vaidleb järgmises tunnis vastu.')), { task: 'S15', fluency: true }),
+      homework('013_t_homework', ['1. Kirjuta oma ettepanek linnaosale kolme lausega puhtalt üles.', '2. Räägi 45–60 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('013_t_sit', 'Mida teha tühja krundiga?', 'Valgevase tänava nurgal on tühi krunt. Linn lubas selle anda elanikele, kui nad lepivad kokku ühes idees. Neljapäeval on Kalamaja Seltsi koosolek raamatukogus. Viis elanikku on saatnud oma ettepaneku. Loe ettepanekuid ja leppige koosolekul kokku. Siis kirjutad seltsile, mida otsustati.'), V5_CUT),
+      hide(B.profiles('013_t_ideas', 'Viis ettepanekut.', 'Loe elanike ettepanekuid. Täienda iga kaardi lauseid ühe sõnaga.', [
         ['Merilin: mänguväljak', ['kahe lapse ema, elab Valgevase 3', 'lapsi on linnaosas palju', 'pargi mänguväljak on kaugel ja tihti täis', 'maksab umbes 30 000 eurot', 'linn maksab poole'],
           ['Merilini idee on uus [mänguväljak].', 'Pargis on mänguväljak tihti [täis].', 'Lapsed saaksid mängida kodu [lähedal].', 'Merilini meelest oleks see lastele [ohutu].', 'Poole rahast maksaks [linn].', 'Ta elab Valgevase tänaval, majas number [kolm|3].']],
         ['Kalle: parkla', ['autojuht, töötab sadamas', 'õhtuti ei leia parkimiskohta', 'parklasse mahuks 20 autot', 'parkimine maksaks 2 eurot päevas', 'ehitamine on kiire ja odav'],
@@ -596,29 +858,88 @@ export const LESSONS = withShapes({
           ['Joosepi koera nimi on [Muri].', 'Praegu jooksevad koerad pargis laste [kõrval].', 'Koerte väljak oleks [aiaga].', 'See maksaks umbes kümme tuhat [eurot].', 'Siis oleks park lastele [ohutum|ohutu].', 'Joosep õpib [ülikoolis].']],
         ['Arvo: välijõusaal ja pingid', ['pensionär, jalutab iga päev koeraga', 'vanad inimesed tahavad liikuda ja puhata', 'välijõusaal on kõigile tasuta', 'pingid oleksid puude all', 'maksab umbes 15 000 eurot'],
           ['Arvo on [pensionär].', 'Ta jalutab iga päev [koeraga].', 'Välijõusaal oleks kõigile [tasuta].', 'Pingid oleksid puude [all].', 'See maksaks umbes viisteist tuhat [eurot].', 'Vanad inimesed saaksid liikuda ja [puhata].']],
-      ], '2', 'g_read'),
-      teach(tag(B.rolecards('013_t_meeting', 'Seltsi koosolek.', 'A ja B on seltsi koosolekul. Arutage ettepanekuid ja leppige kokku üks, mida linnale soovitada.',
-        'Sa elad Valgevase tänaval ja sul on väike laps. Sinu meelest on kõige tähtsam, et tänav oleks lastele ohutu. Põhjenda ja kuula, mida B arvab. Lõpus leppige kokku üks idee.',
-        'Sa elad Kalamajas üksi ja käid palju jalgsi. Sulle meeldib Leida aia idee, sest see toob naabrid kokku. Parklat sa ei taha. Põhjenda ja otsi kompromissi.',
-        ['Minu meelest on kõige tähtsam…, sest…', 'Kas sa oled nõus, et…?', 'Teeme nii:…'], ['Ma saan aru, aga…', 'Kuna…, võiksime…', 'Lepime kokku, et…']), { task: 'S03', main: true }),
-      'Üks-ühele: õpetaja on B ja on alguses teist meelt; õpilane põhjendab sest- ja kuna-lausetega ning pakub kompromissi. Lõpus sõnastab õpilane kokkuleppe ühe lausega.'),
-      teach(tag(B.speaking('013_t_rec', 'Kodus: minu ettepanek linnale.', 'Mida on sinu linnaosas vaja? Ütle üks ettepanek ja kaks põhjust. Räägi 1–2 minutit ja salvesta.', ['Kus sa elad?', 'Mis on sinu linnaosas hästi?', 'Mis on puudu või ebamugav?', 'Mida linn võiks teha?', 'Miks see on tähtis?', 'Kas elanikud peaksid sinu arvates ise otsustama, mida linnaosas ehitatakse? Kuidas on see sinu kodumaal?'], [60, 120], ['Minu arvates on vaja…', 'sest…', 'Teine põhjus on…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis vaidleb õpetaja vastu ja õpilane kaitseb oma ettepanekut.'),
-      tag(B.letter('013_t_report', 'Kokkuvõte seltsile.', 'Selts palus kirjutada, mida koosolekul otsustati. Kirjuta: otsus, kaks põhjust ja üks küsimus.', 'Lugupeetud Kalamaja Selts!', 'Lugupidamisega', [90, 110]), { task: 'W08' }),
-      B.rubricSpeaking('013_t_rubric', 'Hindamine: arutelu koosolekul (20 punkti).'),
-      B.selfcheck('013_t_self', ['Ma ütlen oma arvamuse ja põhjendan seda.', 'Ma kasutan omadussõnu: rahulik, lärmakas, ohutu, kodune.', 'Ma küsitlen inimesi ja teen kokkuvõtte.', 'Ma lepin koosolekul kokku ühe ettepaneku.'], 'Minu linnaosa'),
+      ], '2', 'g_read'), V5_CUT),
+      hide(tag(B.letter('013_t_report', 'Kokkuvõte seltsile.', 'Selts palus kirjutada, mida koosolekul otsustati. Kirjuta: otsus, kaks põhjust ja üks küsimus.', 'Lugupeetud Kalamaja Selts!', 'Lugupidamisega', [90, 110]), { task: 'W08' }), V5_CUT),
+      hide(B.rubricSpeaking('013_t_rubric', 'Hindamine: arutelu koosolekul (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 014 infogap: the way to my home (käskiv kõneviis)
   'a2b1-014': {
-    title: 'Pidu on ohus',
-    canDo: 'Ma räägin hooldusfirma töötajaga, kirjeldan riket ja lepin kokku, millal ja kuidas see parandatakse.',
+    title: 'Kuidas sinna saada?',
+    phases: grammar('Keel: käskiv kõneviis — mine / minge, pööra / pöörake, ära mine / ärge minge; kuni ristmikuni, mööda tänavat, üle tee'),
+    format: 'infogap',
+    topic: 'town',
+    canDo: 'Ma juhatan telefonis teed sõbrale (sina) ja võõrale (teie), küsin üle, kus inimene on, ja leian koos temaga õige tee.',
+    teacherPage: {
+      goal: 'Ученик объясняет дорогу по телефону другу (sina) и незнакомому (teie) повелительным наклонением с ориентирами (kuni …-ni, mööda, üle, läbi), уточняет, где человек, и реагирует на скрытую информацию.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → приглашение и вопросы → пункт 4 (звонок со скрытой информацией). Пункт 3 — дома в «Harjuta».',
+      hook: '«Kuidas sinu juurde lähimast peatusest tulla?» Сначала ответьте сами (настоящая дорога), потом ученик. Вопрос из урока 13 без записей.',
+      plan: [
+        '0–8: пункт 1 — крючок: дорога к себе домой; одно мнение о своём районе с sest / kuna (повторение урока 13)',
+        '8–25: пункт 2 — слова, приглашение Тийу «Kuidas meie juurde tulla» (повелительное teie в контексте), 8 коротких ответов',
+        '25–40: пункт 3 — образец звонка (прочитать по ролям, найти minge / pöörake / ärge minge), заметить → правило → 8 предложений sina → teie → 4–5 своих указаний',
+        '40–65: пункт 4 — звонок: гость потерялся (у учителя скрытая информация, картинка «Jaamast majani»); вторая попытка без фраз — новая ситуация на карточке (друг на велосипеде, sina)',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как он однажды заблудился',
+        '72–90: запас',
+      ],
+      sources: 'Приглашение (пункт 2), образец звонка и карта «Jaamast majani» — учебный сценарий, места выдуманы, не реальные данные.',
+      groups: 'Пункт 4 в паре: B получает карточку гостя (копия вашей), A её не видит; потом смена с карточкой друга. Вы слушаете по очереди.',
+      errors: [
+        '«Minge otse kuni ristmikul» вместо «… kuni ristmikuni» (до какого места → -ni).',
+        '«Ärge minema üle raudtee» вместо «Ärge minge …» (запрет teie: ärge + -ge-форма).',
+        '«Minge üle tänavat» вместо «üle tänava» (üle + omastav), но «mööda tänavat» (mööda + osastav).',
+        'Звонок без проверки: сначала узнать, где человек и что он видит, потом путь по ориентирам, в конце «Kas saite aru?».',
+      ],
+      notes: [
+        'Скрытая информация даёт настоящую задачу: ученик должен понять, что гость не там, где он думает, и сменить путь. Не подсказывайте — ждите вопроса «Kus te praegu olete?».',
+        'Обратная связь, 2 цели: sina / teie (mine – minge, ära – ärge) и падеж после ориентира (kuni …-ni, mööda …-t, üle …). Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('014_d_review', [['Mida peaks sinu meelest tühjale krundile ehitama ja miks?', 'a2b1-013'], ['Kus on Kalamaja apteek ja millal see on avatud?', 'a2b1-013'], ['Kuidas sa palud keelekoolis tunniaega muuta?', 'a2b1-004']]),
-      B.text('014_d_hook', 'Reede õhtu, peo eel', 'Homme kell kolm on Sofia soolaleivapidu, külalisi tuleb kaksteist. Reede õhtul märkab Sofia kahte muret. Esiteks on suure toa radiaator täiesti külm. Teiseks on trepikoja uksel Tiina teade: „Laupäeval kella 9–17 on Valgevase tänav kaevetööde tõttu autodele suletud. Kalamaja trammipeatus on samuti suletud. Kella 12–14 ei ole majas vett.” Kutses oli Sofia kirjutanud, et külalised tulevad trammiga või autoga otse maja ette. Mida selle rikke ja suletud tänavaga nüüd teha?'),
-      teach(tag(B.speaking('014_d_first', 'Mida teha kõigepealt?', 'Proovi kohe ilma abita: järjesta Sofia mured ja põhjenda, mis on kõige tähtsam.', ['Radiaator on külm — kes selle parandab?', 'Külalised ei saa autoga maja ette sõita.', 'Trammipeatus on suletud — kuidas jaamast tulla?', 'Kella 12–14 ei ole vett — millal süüa teha?', 'Toole on ainult neli, külalisi kaksteist.', 'Milline on sinu järjekord ja miks?'], [90, 150], ['Kõigepealt peab Sofia…, sest…', 'Teiseks…', 'See ei ole nii tähtis, sest…']), { task: 'S12' }),
-        'Üks-ühele: õpilane järjestab mured ja põhjendab; õpetaja on Sofia ja kahtleb („Aga külalised ei leia maja üles!”), nii et õpilane peab oma järjekorda kaitsma või muutma.'),
-      B.adsmatch('014_d_help', 'Kes aitab laupäeval?', 'Loe kuulutusi. Kirjuta iga mure juurde sobiv täht; üks kuulutus võib sobida mitmele.', [
+      station(teach(tag(purpose(B.speaking('014_d_first', 'Kuidas sinu juurde tulla?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kuidas sinu juurde lähimast peatusest tulla?',
+        'Mis on sinu maja kõrval? Kuidas külaline selle ära tunneb?',
+        'Ütle ilma märkmeteta üks arvamus oma linnaosa kohta põhjusega (sest või kuna).',
+      ], [45, 60]), 'Sinu enda tee koju on tänase tunni algus: lõpus juhatad telefonis külalist.'), { task: 'S13', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris teest koju (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mis on ristmiku juures?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['ristmik — перекрёсток', 'otse — прямо', 'pöörama — поворачивать', 'mööda (tänavat) — по (улице)', 'üle (tee) — через (дорогу)', 'läbi (pargi) — через (парк)', 'maamärk — ориентир', 'suletud — закрытый', 'eksima — заблудиться', 'nurk — угол']), { topic: ['maamärk'] }), 2, 17),
+      tag(purpose(why(B.reading('014_d_way', 'Kutse: kuidas meie juurde tulla.', 'Loe Tiiu sõnumit külalistele. Vasta lühidalt, oma sõnadega.', 'Kuidas meie juurde tulla', [
+        'Head külalised! Ootame teid laupäeval kell kolm meie uude koju. Meie tänav on remondi tõttu suletud ja navigaator näitab sel päeval valet teed, seepärast lugege see juhis läbi.',
+        '',
+        'Kui tulete rongiga, väljuge jaamast turu poole. Minge mööda turu tänavat otse kuni ristmikuni. Ärge minge üle raudtee! Ristmikul pöörake paremale ja kõndige läbi pargi. Pargi taga on punane kirik. Meie maja on kollane puumaja kiriku kõrval, number seitse. Uks on hoovi poolt, mitte tänava poolt.',
+        '',
+        'Kui tulete bussiga, väljuge pargi juures peatuses ja minge mööda pargi äärt kiriku poole.',
+        '',
+        'Kui tulete autoga, jätke auto pargi parklasse, sest meie tänavale autoga sõita ei saa. Parklast on meie juurde ainult viis minutit jalgsi.',
+        '',
+        'Kui eksite, ärge muretsege ja helistage mulle! Ma tulen teile vastu. Tiiu',
+        '',
+        'Allikas: KeeleSepa õppetekst.',
+      ], [
+        ['Miks peavad külalised juhise läbi lugema?', 'tänav on suletud|tänav on remondi tõttu suletud|remondi tõttu'],
+        ['Kuhu poole tuleb jaamast väljuda?', 'turu poole'],
+        ['Kui kaugele minnakse mööda turu tänavat?', 'ristmikuni|kuni ristmikuni'],
+        ['Mida ei tohi teha?', 'minna üle raudtee|üle raudtee minna'],
+        ['Kuhu pööratakse ristmikul?', 'paremale'],
+        ['Mis on pargi taga?', 'punane kirik|kirik'],
+        ['Milline on Tiiu maja?', 'kollane puumaja|kollane puumaja kiriku kõrval|kollane'],
+        ['Kuhu tuleb auto jätta ja miks?', 'pargi parklasse, sest tänavale ei saa sõita|parklasse|pargi parklasse'],
+      ]), [
+        'Esimene lõik: tänav on remondi tõttu suletud.',
+        'Teine lõik: väljuge jaamast turu poole.',
+        'Teine lõik: mööda turu tänavat otse kuni ristmikuni.',
+        'Teine lõik: ärge minge üle raudtee.',
+        'Teine lõik: ristmikul pöörake paremale.',
+        'Teine lõik: pargi taga on punane kirik.',
+        'Teine lõik: kollane puumaja kiriku kõrval.',
+        'Kolmas lõik: pargi parklasse, sest tänavale autoga sõita ei saa.',
+      ]), 'Enne kui sa telefonis teed juhatad, näed, kuidas võõrale kirjalikult teed juhatatakse.'), { task: 'R07' }),
+      hide(B.review('014_d_review', [['Mida peaks sinu meelest tühjale krundile ehitama ja miks?', 'a2b1-013'], ['Kus on Kalamaja apteek ja millal see on avatud?', 'a2b1-013'], ['Kuidas sa palud keelekoolis tunniaega muuta?', 'a2b1-004']]), V5_DRILL),
+      hide(B.text('014_d_hook', 'Reede õhtu, peo eel', 'Homme kell kolm on Sofia soolaleivapidu, külalisi tuleb kaksteist. Reede õhtul märkab Sofia kahte muret. Esiteks on suure toa radiaator täiesti külm. Teiseks on trepikoja uksel Tiina teade: „Laupäeval kella 9–17 on Valgevase tänav kaevetööde tõttu autodele suletud. Kalamaja trammipeatus on samuti suletud. Kella 12–14 ei ole majas vett.” Kutses oli Sofia kirjutanud, et külalised tulevad trammiga või autoga otse maja ette. Mida selle rikke ja suletud tänavaga nüüd teha?'), V5_CUT),
+      hide(B.adsmatch('014_d_help', 'Kes aitab laupäeval?', 'Loe kuulutusi. Kirjuta iga mure juurde sobiv täht; üks kuulutus võib sobida mitmele.', [
         ['Soe Kodu OÜ', 'Hooldame Kalamaja ja Pelgulinna maju juba kakskümmend aastat. Parandame kütte, radiaatorid ja veetorud. Avariiabi ööpäev läbi, ka nädalavahetusel ja pühade ajal.'],
         ['Kalamaja Takso', 'Sõidame Balti jaamast igale Kalamaja tänavale. Kui tänav on suletud, viime teid lähima nurgani. Aitame kanda ka raskeid kotte. Lapse turvatool on tasuta.'],
         ['Rendi Tool', 'Rendime toole, laudu, taldrikuid ja klaase igaks peoks. Kümme tooli maksab päevas 15 eurot. Toome ja viime ära, kui tellite päev ette enne kella 18.'],
@@ -634,9 +955,8 @@ export const LESSONS = withShapes({
         ['Kui radiaator ei hakka tööle, on vaja abi ka öösel.', 'A'],
         ['Sofia vajab peoks ka taldrikuid ja klaase.', 'C'],
         ['Tiina ütleb, et maja hoovis ei ole autodele kohta.', 'E'],
-      ], 'g_vocab'),
-      tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['rike — поломка', 'katki — сломанный', 'radiaator — батарея отопления', 'remont — ремонт', 'suletud — закрытый', 'ristmik — перекрёсток', 'otse — прямо', 'pöörama — поворачивать', 'eksima — заблудиться', 'ümbersõit — объезд']), { topic: ['ümbersõit'] }),
-      tag(B.listening('014_d_radio', 'Linna teadaanne raadios.', 'Kuula linna teadaannet kaks korda. Kirjuta, mida inimesed peavad laupäeval teisiti tegema.', [
+      ], 'g_vocab'), V5_CUT),
+      hide(tag(B.listening('014_d_radio', 'Linna teadaanne raadios.', 'Kuula linna teadaannet kaks korda. Kirjuta, mida inimesed peavad laupäeval teisiti tegema.', [
         'Diktor: Tallinna linn teatab. Laupäeval, üheksateistkümnendal detsembril, parandatakse Kalamajas veetorusid.',
         'Diktor: Kella üheksast kuni seitsmeteistkümneni on Valgevase tänav ja osa Kalaranna tänavast autodele suletud.',
         'Diktor: Trammid sõidavad tavaliselt, aga Kalamaja peatus on suletud. Trammid peatuvad Balti jaama ja Telliskivi peatuses.',
@@ -657,9 +977,9 @@ export const LESSONS = withShapes({
         'Jalgsi tuleb minna turu kõrvalt ja mööda [pargi] teed.',
         'Autod tuleb jätta pargi kõrval asuvasse [parklasse].',
         'Infotelefon on avatud ka [nädalavahetusel].',
-      ], 'g_vocab'), { task: 'L06' }),
+      ], 'g_vocab'), { task: 'L06' }), V5_CUT),
       // a text from outside the cast (§13.3): three forum posts on a cold home in winter, invented people, no numbers as facts
-      tag(B.reading('014_d_forum', 'Foorum: talvel on kodus külm.', 'Loe kolme foorumipostitust. Kirjuta iga väite järele, kelle postitusest see on: Irina, Toomas või Maarja.', 'Mida teha, kui toas on külm?', [
+      hide(tag(B.reading('014_d_forum', 'Foorum: talvel on kodus külm.', 'Loe kolme foorumipostitust. Kirjuta iga väite järele, kelle postitusest see on: Irina, Toomas või Maarja.', 'Mida teha, kui toas on külm?', [
         'Irina_Narvast: Meie paneelmaja on vana ja eelmisel talvel oli toas ainult 18 kraadi. Ma läksin korteriühistu üldkoosolekule ja rääkisin oma murest. Selgus, et külm oli ka teistel. Ühistu otsustas maja seinad ja katuse korda teha. Remont kestis terve suve ja oli kallis, aga nüüd on meil soe ja küttearve on väiksem.',
         '',
         'Toomas_K: Mina elan üürikorteris. Kui radiaator külmaks läks, kirjutasin kohe omanikule ja tema kutsus meistri. Minu nõuanne: enne helistamist keera radiaatori kraan lahti ja vaata, kas teistes tubades on soe. Vahel on radiaatoris lihtsalt õhku.',
@@ -675,28 +995,49 @@ export const LESSONS = withShapes({
         ['Kes peab suvel puid ostma?', 'Maarja'],
         ['Kes kirjutas kõigepealt omanikule?', 'Toomas'],
         ['Kuidas köetakse kodusid sinu kodumaal? Mis on sinu meelest parem?', ''],
-      ]), { voice: 'forum', task: 'R14' }),
-      B.notice('014_d_notice', 'Märka: kuidas teed juhatada?', [
-        'Sõbrale (sina): **mine** otse · **pööra** paremale · **ära mine** üle tänava · **tule** pargi kaudu',
-        'Võõrale või mitmele (teie): **minge** otse · **pöörake** paremale · **ärge minge** üle tänava · **tulge** pargi kaudu',
-        '**-ni** = kuni selle kohani: mine otse **ristmikuni** · kõnni **pargini** · sõida **turuni**',
-        'Teel: **mööda** tänavat · **üle** tee · **läbi** pargi · **turu kõrvalt** · **jaama ees** · **pargi taga**',
-        'Lõpus kontrolli: Kas saite aru? · Kui eksite, helistage mulle!',
-      ], 'full'),
-      B.transformation('014_d_you', 'Sõbrale või võõrale?', 'Sofia juhatab teed vennale Jaanile (sina). Kirjuta sama juhis Tiina külalistele (teie).', [
+      ]), { voice: 'forum', task: 'R14' }), V5_CUT),
+      hide(B.letter('014_d_msg', 'Kiire sõnum külalistele.', 'Kirjuta jutugruppi kiire sõnum: mis muutus, kuidas jaamast tulla ja kuhu auto jätta.', 'Kallid külalised!', 'Kohtumiseni homme! Sofia', [60, 70]), V5_CUT),
+    ],
+    practice: [
+      station(teach(tag(purpose(half(B.dialogue('014_p_call', 'Kõne: külaline on eksinud (näidis).', 'Loe kõnet paarilisega rollides. Leia sõnad minge, pöörake ja ärge minge: kellele need on?', 'Külaline', 'Tiiu', [
+        ['B', 'Halloo, Tiiu kuuleb.'],
+        ['A', 'Tere! Ma olen jaamas, aga ma ei leia teie maja.'],
+        ['B', 'Mida te enda ees näete?'],
+        ['A', 'Ma näen turgu ja suurt ristmikku.'],
+        ['B', 'Hea. Minge mööda turu tänavat otse kuni ristmikuni ja pöörake paremale.'],
+        ['A', 'Kas ma pean minema üle raudtee?'],
+        ['B', 'Ei, ärge minge üle raudtee! Kõndige läbi pargi kuni punase kirikuni.'],
+        ['A', 'Selge. Ja teie maja on kollane, kiriku kõrval?'],
+      ], 'g_read')), 'Näidiskõne näitab, kuidas küsida, kus inimene on, ja teed samm-sammult juhatada.'), { task: 'G02' }),
+      'Üks-ühele: loe sina Tiiu rolli, õpilane külalise rolli; siis vahetage. Õpilane näitab sõnad minge, pöörake ja ärge minge ning ütleb, miks just teie-vorm.'), 3, 15),
+      half(B.notice('014_d_notice', 'Märka: kuidas teed juhatada?', [
+        'Sõbrale (sina): **mine** otse · **pööra** paremale · **ära mine** üle tee · **tule** läbi pargi',
+        'Võõrale või mitmele (teie): **minge** otse · **pöörake** paremale · **ärge minge** üle tee · **tulge** läbi pargi',
+        '**-ni** = kuni selle kohani: otse **ristmikuni** · **kirikuni** · **pargini**',
+        '**mööda** tänava**t** (osastav) · **üle** tänava (omastav) · **läbi** pargi · pargi **taga** · kiriku **kõrval**',
+        'Lõpus kontrolli: **Kas saite aru?** · **Korrake palun.**',
+      ])),
+      purpose(why(B.transformation('014_d_you', 'Sõbrale või võõrale?', 'Juhis on sõbrale (sina). Kirjuta sama juhis võõrale külalisele (teie).', [
         ['Mine jaamast otse turuni.', 'teie', 'Minge jaamast otse turuni.'],
         ['Pööra turu juures vasakule.', 'teie', 'Pöörake turu juures vasakule.'],
-        ['Ära sõida Valgevase tänavale autoga.', 'teie', 'Ärge sõitke Valgevase tänavale autoga.'],
+        ['Ära sõida meie tänavale autoga.', 'teie', 'Ärge sõitke meie tänavale autoga.'],
         ['Kõnni mööda pargi teed kuni mänguväljakuni.', 'teie', 'Kõndige mööda pargi teed kuni mänguväljakuni.'],
         ['Jäta auto pargi kõrvale parklasse.', 'teie', 'Jätke auto pargi kõrvale parklasse.'],
         ['Tule hoovi kaudu, mitte tänavalt.', 'teie', 'Tulge hoovi kaudu, mitte tänavalt.'],
         ['Helista mulle, kui sa eksid.', 'teie', 'Helistage mulle, kui te eksite.'],
         ['Ära unusta sooja mütsi!', 'teie', 'Ärge unustage sooja mütsi!'],
-      ]),
-      B.letter('014_d_msg', 'Kiire sõnum külalistele.', 'Kirjuta jutugruppi kiire sõnum: mis muutus, kuidas jaamast tulla ja kuhu auto jätta.', 'Kallid külalised!', 'Kohtumiseni homme! Sofia', [60, 70]),
-    ],
-    practice: [
-      B.choice('014_p_way', 'Mis juhis sobib?', 'Vaata, kellele Sofia räägib, ja vali juhis, mis sobib nii vormi kui ka olukorraga.', [
+      ]), [
+        'mine → minge.',
+        'pööra → pöörake.',
+        'ära sõida → ärge sõitke (ärge + -ge / -ke).',
+        'kõnni → kõndige.',
+        'jäta → jätke.',
+        'tule → tulge.',
+        'helista → helistage; sa eksid → te eksite.',
+        'ära unusta → ärge unustage.',
+      ]), 'Kaheksa juhist näitavad, kuidas sina-vormist saab teie-vorm.'),
+      tag(purpose(B.writing('014_p_sent', 'Kirjuta terved laused.', 'Kirjuta neli-viis juhist oma koju: kaks sõbrale (mine …, pööra …), kaks võõrale (minge …, pöörake …) ja üks keeld (ära … / ärge …). Kasuta maamärke.', [4, 5]), 'Oma juhised aitavad sul kõnes kiiresti ja selgelt rääkida.'), { task: 'W10' }),
+      hide(B.choice('014_p_way', 'Mis juhis sobib?', 'Vaata, kellele Sofia räägib, ja vali juhis, mis sobib nii vormi kui ka olukorraga.', [
         ['Sofia ütleb vennale: „… jaamast otse turuni!”', 'Mine', 'Minge', 'Minna'],
         ['Sofia ütleb Tiina külalistele: „… pargi juures paremale.”', 'Pöörake', 'Pööra', 'Pöörata'],
         ['Sofia ütleb Viktorile: „… autoga Valgevase tänavale!”', 'Ära sõida', 'Ärge sõida', 'Ei sõida'],
@@ -705,8 +1046,8 @@ export const LESSONS = withShapes({
         ['Sofia ütleb taksojuhile: „Palun … meid turu nurgani.”', 'viige', 'vii', 'viima'],
         ['„Kus on parkla?” — „Pargi …, viie minuti kaugusel.”', 'kõrval', 'kõrvale', 'kõrvalt'],
         ['„Kuidas ma jaamast tulen?” — „Mine … tänavat otse kuni pargini.”', 'mööda', 'üle', 'läbi'],
-      ], 'full', 'g_notice'),
-      B.reading('014_p_viktor', 'Viktori sõnum: kuidas ma ära eksisin.', 'Viktor kirjutab, kuidas ta eelmisel talvel Kalamajas ära eksis. Loe ja vasta lühidalt.', 'Kaks kirikut', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.reading('014_p_viktor', 'Viktori sõnum: kuidas ma ära eksisin.', 'Viktor kirjutab, kuidas ta eelmisel talvel Kalamajas ära eksis. Loe ja vasta lühidalt.', 'Kaks kirikut', [
         'Tere, Sofia! Kuulsin, et homme on sinu tänav suletud. Ära muretse, ma leian su maja üles. Aga ma räägin sulle ühe loo, et sa naeraksid.',
         '',
         'Eelmisel talvel tahtsin minna Kalamajja ühe vana sõbra juurde. Sõber ütles telefonis: „Tule jaamast otse ja pööra kiriku juures vasakule. Minu maja on paremal.” Lihtne, mõtlesin ma.',
@@ -736,8 +1077,8 @@ export const LESSONS = withShapes({
         ['Kui palju hiljem jõudis Viktor sõbra juurde?', 'tund aega|tunni|tund'],
         ['Milline oli supp, kui Viktor kohale jõudis?', 'külm'],
         ['Mida tegi sõber külma supiga?', 'tegi uuesti soojaks|soojendas|soojaks'],
-      ]),
-      B.errorfix('014_p_fix', 'Paranda teejuhis.', 'Igas juhises on üks vormiviga. Kirjuta juhis õigesti.', [
+      ]), V5_CUT),
+      hide(B.errorfix('014_p_fix', 'Paranda teejuhis.', 'Igas juhises on üks vormiviga. Kirjuta juhis õigesti.', [
         ['Minge otse kuni ristmikul.', 'Minge otse kuni ristmikuni.'],
         ['Ärge minema üle raudtee.', 'Ärge minge üle raudtee.'],
         ['Pööra pargi juurde paremale.', 'Pööra pargi juures paremale.'],
@@ -746,21 +1087,37 @@ export const LESSONS = withShapes({
         ['Parkla on pargi kõrvale.', 'Parkla on pargi kõrval.'],
         ['Minge üle tänavat ja siis paremale.', 'Minge üle tänava ja siis paremale.'],
         ['Külalised, ära unustage võtmeid!', 'Külalised, ärge unustage võtmeid!'],
-      ]),
-      teach(tag(B.phoneCards('014_p_station', 'Helgi on jaamas.', 'A on Helgi jaamas, B on Sofia ja juhatab teed. Siis korrake kõnet kiiremini.', 'Laupäev kell 14.25. Helgi rong jõudis Balti jaama, aga trammipeatus on suletud.',
+      ]), V5_DRILL),
+      hide(teach(tag(B.phoneCards('014_p_station', 'Helgi on jaamas.', 'A on Helgi jaamas, B on Sofia ja juhatab teed. Siis korrake kõnet kiiremini.', 'Laupäev kell 14.25. Helgi rong jõudis Balti jaama, aga trammipeatus on suletud.',
         ['Helistaja (Helgi)', ['Ütle, kus sa oled ja mida sa näed.', 'Küsi, kas minna bussiga või jalgsi.', 'Küsi, kui kaua jalgsi minek kestab.', 'Küsi, mis on Sofia maja kõrval.', 'Korda tee üle, et kontrollida.']],
         ['Vastaja (Sofia)', ['Asendusbuss nr 80 väljub jaama eest iga 15 minuti järel.', 'Jalgsi: turu kõrvalt otse ristmikuni, siis paremale.', 'Jalgsi kulub umbes 15 minutit.', 'Maja on kollane, apteegi kõrval.', 'Hoovivärav on maja vasakul pool.']]), { fluency: true }),
-      'Üks-ühele: õpetaja on Helgi ja küsib vahepeal üle („Kas paremale või vasakule?”); siis vahetatakse rollid. Teisel korral tehakse kõne ilma kaarti vaatamata ja õpetaja hoiab aega (3 minutit).'),
-      teach(tag(B.speaking('014_p_three', 'Tee minu koju.', 'Kirjelda paarilisele teed lähimast peatusest oma koju. Paariline joonistab kaardi ja küsib üle. Siis võrdle Eestit oma kodumaaga.', ['Mis on sinu kodu lähim peatus?', 'Kuhu minna peatusest välja tulles?', 'Kus tuleb pöörata?', 'Mis maamärgid on teel?', 'Milline on sinu maja ja kus on uks?', 'Kas Eesti linnas on sinu arvates lihtne teed leida? Kuidas on see sinu kodulinnas?'], [60, 120], ['Väljuge … peatuses.', 'Minge otse kuni…', 'Minu meelest on Eestis…, sest…']), { fluency: true }),
-        'Üks-ühele: õpilane kirjeldab teed; õpetaja joonistab kaardi ja küsib täpsustusi („Mis on ristmiku juures?”). Lõpus kontrollib õpilane kaarti ja parandab, kui õpetaja eksis.'),
+      'Üks-ühele: õpetaja on Helgi ja küsib vahepeal üle („Kas paremale või vasakule?”); siis vahetatakse rollid. Teisel korral tehakse kõne ilma kaarti vaatamata ja õpetaja hoiab aega (3 minutit).'), V5_CUT),
+      hide(teach(tag(B.speaking('014_p_three', 'Tee minu koju.', 'Kirjelda paarilisele teed lähimast peatusest oma koju. Paariline joonistab kaardi ja küsib üle. Siis võrdle Eestit oma kodumaaga.', ['Mis on sinu kodu lähim peatus?', 'Kuhu minna peatusest välja tulles?', 'Kus tuleb pöörata?', 'Mis maamärgid on teel?', 'Milline on sinu maja ja kus on uks?', 'Kas Eesti linnas on sinu arvates lihtne teed leida? Kuidas on see sinu kodulinnas?'], [60, 120], ['Väljuge … peatuses.', 'Minge otse kuni…', 'Minu meelest on Eestis…, sest…']), { fluency: true }),
+        'Üks-ühele: õpilane kirjeldab teed; õpetaja joonistab kaardi ja küsib täpsustusi („Mis on ristmiku juures?”). Lõpus kontrollib õpilane kaarti ja parandab, kui õpetaja eksis.'), V5_CUT),
     ],
     transfer: [
-      B.text('014_t_sit', 'Laupäeva hommik', 'Laupäeva hommikul kell kaheksa on radiaator ikka külm ja toas on ainult 15 kraadi. Kell kolm tulevad külalised. Sofia peab helistama hooldusfirmale ja leppima kokku, millal meister tuleb. Kõigepealt loe hooldusfirma tingimusi ja Sofia päevakava.'),
+      station(teach(tag(purpose(B.rolecards('014_t_call', 'Külaline helistab: ma olen eksinud!', 'Sinu juurde tuleb külaline ja ta helistab sulle, õpetaja on külaline. Vaata pilti „Jaamast majani”: sinu maja on number seitse. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: sinu juurde tuleb külla sõbra ema, keda sa ei tunne (teie). Ta helistab: ta ei leia sinu maja.\nSinu eesmärk: saada teada, kus ta on ja mida ta näeb, ja juhatada ta maamärkidega sinu majani.\nPiirang: sinu tänav on täna autodele suletud.\nSiis uus olukord: helistab sinu sõber, kes tuleb jalgrattaga (sina).',
+        'Külalise kaart on õpetajal: kus ta on, mida ta näeb ja üks probleem. Küsi ja kuula.',
+        ['Kus te praegu olete?', 'Mida te enda ees näete?', 'Minge … kuni …'], []), 'Pärast kõnet on sinu külaline sinu ukse ees ja sina tead, kuidas võõrast juhatada.'), { task: 'S04', main: true, level: 4 }),
+      'Üks-ühele, õpetaja kaart (külaline). Varjatud info: sa ei ole jaamas, vaid tulid bussiga ja seisad bussipeatuses pargi teisel pool (pilt: peatus 80); sa näed punast kirikut pargi taga, aga turgu ja ristmikku sa ei näe. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Ma ei näe turgu. Ma näen ainult parki ja kaugel üht kirikut.” 2) „Pargi värav on kinni.” 3) „Mu telefonil on vähe akut, rääkige palun lühidalt.” Õnnestunud, kui õpilane küsib, kus sa oled ja mida sa näed, saab aru, et sa ei ole jaamas, juhatab teie-vormis maamärkidega (mööda pargi äärt, kuni kirikuni, kiriku kõrval), reageerib suletud väravale ja kontrollib lõpus („Kas saite aru?”). Teine katse ilma fraasideta (lehel „uus olukord”): sina oled sõber jalgrattaga. Varjatud info: sa oled jaama ees, aga turul on jalgrattaga sõitmine keelatud ja raudtee ülekäik on remondis. Õnnestunud, kui õpilane juhatab sina-vormis (mine, pööra, ära sõida) teist teed ja lepib kokku, kus ta sind vastu võtab.'), 4, 25, { final: 'explain' }),
+      tag(exitCheck(why(purpose(B.choice('014_t_exit', 'Kontrolli end: kolm juhist.', 'Vali sõna, mis sobib lausesse.', [
+        ['Sõbrale: „… otse!”', 'Mine', 'Minge', 'Minna'],
+        ['Võõrale: „… paremale.”', 'Pöörake', 'Pööra', 'Pöörata'],
+        ['„Minge otse kuni …”', 'ristmikuni', 'ristmikul', 'ristmikule'],
+      ], 'full', 'g_vocab'), 'Kolm lauset näitavad, kas sina, teie ja kuni …-ni on käes.'), ['sõbrale (sina) → mine.', 'võõrale (teie) → pöörake.', 'kuni selle kohani → ristmikuni.'])), {}),
+      purpose(B.selfcheck('014_t_self', ['Ma juhatan teed sõbrale ja võõrale: mine – minge, pööra – pöörake.', 'Ma kasutan maamärke: kuni ristmikuni, mööda tänavat, üle tee, läbi pargi.', 'Ma küsin üle, kus inimene on ja mida ta näeb.', 'Ma lahendan probleemi, kui tee on kinni.'], 'Külaline kohal', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('014_t_home', 'Kodus: tee minu koju.', 'Salvesta 45–60 sekundit: juhata võõras külaline lähimast peatusest oma koju teie-vormis, vähemalt kahe maamärgiga.', [
+        'Kust külaline tuleb ja kuhu ta peab minema?',
+        'Mis maamärgid on teel ja kuidas ta sinu maja ära tunneb?',
+      ], [45, 60]), 'Õpetaja kuulab sinu juhise ja ütleb, kas ta leiaks sinu maja üles.')), { task: 'S15', fluency: true }),
+      homework('014_t_homework', ['1. Kirjuta oma tee koju (4–5 juhist) puhtalt üles.', '2. Räägi 45–60 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('014_t_sit', 'Laupäeva hommik', 'Laupäeva hommikul kell kaheksa on radiaator ikka külm ja toas on ainult 15 kraadi. Kell kolm tulevad külalised. Sofia peab helistama hooldusfirmale ja leppima kokku, millal meister tuleb. Kõigepealt loe hooldusfirma tingimusi ja Sofia päevakava.'), V5_CUT),
       // checked 2026-11-03: Korteriomandi- ja korteriühistuseadus (Riigi Teataja: § 1 lg 4 members, § 34 common parts
       // through the association, § 40 payments by the share), err.ee „Korteriühistute kohustuslikuks muutumine tekitab
       // inimestes ohtralt küsimusi” (in force 1.1.2018, associations formed by law)
-      B.know('014_t_know', 'Eesti kortermajades on korteriühistu. Alates 2018. aastast peab see olema igas majas, kus korterid kuuluvad eri omanikele; kui omanikud ühistut ise ei loonud, tekkis see seaduse järgi. Ühistu liikmed on kõik korteriomanikud. Ühistu kaudu hoolitsevad nad koos maja ühiste osade eest ja iga omanik maksab ühistule oma osa kuludest. Tähtsad otsused teeb üldkoosolek, juhatus juhib igapäevast tööd. Üürnik ei ole ühistu liige: kui korteris läheb midagi katki, räägib ta tavaliselt kõigepealt omanikuga.', 'Korteriomandi- ja korteriühistuseadus (Riigi Teataja); ERR, „Korteriühistute kohustuslikuks muutumine tekitab inimestes ohtralt küsimusi” (2017)'),
-      tag(B.reading('014_t_plan', 'Hooldusfirma tingimused ja päevakava.', 'Loe tingimusi ja päevakava. Vasta küsimustele: arvuta ja põhjenda.', 'Laupäev, 19. detsember', [
+      hide(B.know('014_t_know', 'Eesti kortermajades on korteriühistu. Alates 2018. aastast peab see olema igas majas, kus korterid kuuluvad eri omanikele; kui omanikud ühistut ise ei loonud, tekkis see seaduse järgi. Ühistu liikmed on kõik korteriomanikud. Ühistu kaudu hoolitsevad nad koos maja ühiste osade eest ja iga omanik maksab ühistule oma osa kuludest. Tähtsad otsused teeb üldkoosolek, juhatus juhib igapäevast tööd. Üürnik ei ole ühistu liige: kui korteris läheb midagi katki, räägib ta tavaliselt kõigepealt omanikuga.', 'Korteriomandi- ja korteriühistuseadus (Riigi Teataja); ERR, „Korteriühistute kohustuslikuks muutumine tekitab inimestes ohtralt küsimusi” (2017)'), V5_CUT),
+      hide(tag(B.reading('014_t_plan', 'Hooldusfirma tingimused ja päevakava.', 'Loe tingimusi ja päevakava. Vasta küsimustele: arvuta ja põhjenda.', 'Laupäev, 19. detsember', [
         'Soe Kodu OÜ — avariiabi nädalavahetusel. Meister tuleb kahe kuni nelja tunni jooksul pärast kõnet. Väljakutse maksab nädalavahetusel 45 eurot ja iga töötund 30 eurot. Kui rike on korteriühistu torudes, maksab ühistu. Kui katki on korteri radiaator, maksab korteri omanik. Enne meistri tulekut keerake radiaatori kraan lahti ja kontrollige, kas teistes tubades on soe.',
         '',
         'Sofia päevakava: kell 9 toob Tiina kuus tooli. Kell 10 on kohviku Kilu toit valmis ja Sofia läheb sellele järele. Kella 11–12 koristab Sofia. Kella 12–14 ei ole majas vett. Kell 14.20 jõuab Helgi rong Balti jaama. Kell 14.30 jätab Viktor auto pargi parklasse. Kell 15 tulevad kõik külalised.',
@@ -775,28 +1132,95 @@ export const LESSONS = withShapes({
         ['Mitu tooli on Sofial pärast Tiina abi kokku?', 'kümme|10'],
         ['Kas Sofia saab kell 12.30 nõusid pesta? Miks?', 'ei, sest kella 12–14 ei ole vett|ei saa, vett ei ole'],
         ['Helgi rong jõuab kell 14.20. Mis bussiga ta sõidab ja millal ta Sofia juures on?', '14.30 bussiga, umbes 14.40|kell 14.30, kohal 14.40'],
-      ]), { task: 'R08', level: 3 }),
-      teach(tag(B.rolecards('014_t_repair', 'Helista hooldusfirmale.', 'A on Sofia, B on hooldusfirma dispetšer. Kirjelda riket ja leppige kokku aeg ja hind.',
+      ]), { task: 'R08', level: 3 }), V5_CUT),
+      hide(teach(tag(B.rolecards('014_t_repair', 'Helista hooldusfirmale.', 'A on Sofia, B on hooldusfirma dispetšer. Kirjelda riket ja leppige kokku aeg ja hind.',
         'Sa oled Sofia, Valgevase 7, korter 4. Suure toa radiaator on eilsest õhtust külm ja toas on 15 kraadi. Kell 15 tulevad külalised. Selgita probleemi, ütle, mida sa juba proovisid, ja palu, et meister tuleks enne kella 12. Küsi hinda ja seda, kes maksab.',
         'Sa oled Soe Kodu dispetšer. Täna on palju väljakutseid ja meister saab tulla kella 11–13. Küsi aadressi, mis on katki ja kas teistes tubades on soe. Ütle hind (45 € + 30 € tund). Kui Sofia selgitab hästi ja viisakalt, leia aeg kell 10.30.',
         ['Tere, mul on probleem: …', 'Ma proovisin juba…, aga…', 'Kas meister saaks tulla enne…?', 'Lepime kokku, et…'], ['Soe Kodu, tere!', 'Mis aadressil?', 'Kahjuks on meister kuni … hõivatud.', 'Hea küll, meister tuleb kell…']), { task: 'S10', main: true }),
-      'Üks-ühele: õpetaja on dispetšer ja pakub alguses hilist aega; õpilane selgitab, miks on kiire, ja otsib lahendust. Siis vahetatakse: õpetaja helistab ja õpilane on dispetšer.'),
-      tag(B.writing('014_t_better', 'Parem teekirjeldus.', 'Paranda oma Avasta lehe sõnumit: lisa kolm maamärki ja bussiaeg, kirjuta puhtalt ümber.', [10, 12], ['minge', 'pöörake', 'kuni', 'mööda'], 2), { task: 'W10' }),
-      teach(tag(B.speaking('014_t_party', 'Peol: tutvu Tiinaga.', 'Sa oled peol külaline. Tutvusta end Tiinale ja küsi temalt kaks küsimust maja kohta.', ['Kes sa oled ja kuidas sa Sofiat tunned?', 'Kust sa tulid ja kuidas siia jõudsid?', 'Kas maja oli raske leida? Mis aitas?', 'Mis sulle Sofia uues kodus meeldib?', 'Küsi Tiinalt kaks küsimust maja või linnaosa kohta.'], [90, 150], ['Mina olen Sofia…', 'Ma tulin…, sest tänav oli suletud.', 'Kui vana see maja on?']), { task: 'S01' }),
-        'Üks-ühele: õpetaja on Tiina ja küsib vastu („Kas te elate ka Tallinnas?”). Teises ringis on õpetaja Helgi ja õpilane tutvustab end temale.'),
-      B.rubricSpeaking('014_t_rubric', 'Hindamine: kõne hooldusfirmaga (20 punkti).'),
-      B.selfcheck('014_t_self', ['Ma otsustan, mida probleemi korral kõigepealt teha.', 'Ma juhatan teed sõbrale ja võõrale: mine – minge, kuni ristmikuni.', 'Ma kirjeldan riket ja lepin kokku parandamise aja.', 'Ma kirjutan külalistele selge teekirjelduse.'], 'Pidu on päästetud'),
+      'Üks-ühele: õpetaja on dispetšer ja pakub alguses hilist aega; õpilane selgitab, miks on kiire, ja otsib lahendust. Siis vahetatakse: õpetaja helistab ja õpilane on dispetšer.'), V5_CUT),
+      hide(tag(B.writing('014_t_better', 'Parem teekirjeldus.', 'Paranda oma Avasta lehe sõnumit: lisa kolm maamärki ja bussiaeg, kirjuta puhtalt ümber.', [10, 12], ['minge', 'pöörake', 'kuni', 'mööda'], 2), { task: 'W10' }), V5_CUT),
+      hide(teach(tag(B.speaking('014_t_party', 'Peol: tutvu Tiinaga.', 'Sa oled peol külaline. Tutvusta end Tiinale ja küsi temalt kaks küsimust maja kohta.', ['Kes sa oled ja kuidas sa Sofiat tunned?', 'Kust sa tulid ja kuidas siia jõudsid?', 'Kas maja oli raske leida? Mis aitas?', 'Mis sulle Sofia uues kodus meeldib?', 'Küsi Tiinalt kaks küsimust maja või linnaosa kohta.'], [90, 150], ['Mina olen Sofia…', 'Ma tulin…, sest tänav oli suletud.', 'Kui vana see maja on?']), { task: 'S01' }),
+        'Üks-ühele: õpetaja on Tiina ja küsib vastu („Kas te elate ka Tallinnas?”). Teises ringis on õpetaja Helgi ja õpilane tutvustab end temale.'), V5_CUT),
+      hide(B.rubricSpeaking('014_t_rubric', 'Hindamine: kõne hooldusfirmaga (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 015 control 3 (one sheet)
   'a2b1-015': {
-    title: 'Eksam 3 — kodu ja linn',
+    title: 'Kontroll 3: kodu, kohad ja linn',
+    format: 'exam',
     assessment: true,
-    canDo: 'Ma sooritan mooduli eksami Harno A2 vormis: loen, kuulan, kirjutan ja räägin kodu ja linna teemal; eesmärk on vähemalt 80 % igas osas.',
+    canDo: 'Ma saan aru kodu ja linna teemalistest vestlustest ja sõnumitest, räägin ilma abita kohast, kus ma elan, lepin kokku ja kirjutan naabrile lühikese sõnumi.',
     discover: [
-      B.text('015_d_intro', 'Mooduli 3 eksam', 'Selles tunnis teed mooduli 3 eksami Harno A2 vormis: lugemine (50 min), kuulamine (umbes 30 min), kirjutamine (30 min) ja rääkimine (umbes 15 min). Eesmärk on vähemalt 80 % igas osas. Enne eksamit kordad mooduli sõnu ja vorme ning loed, kuidas Sofia soolaleivapidu läks.'),
-      B.vocab('015_d_vocab', 'Mooduli võtmesõnad.', ['üür — арендная плата', 'leping — договор', 'ruumikas — просторный', 'ohutu — безопасный', 'kolima — переезжать', 'trepikoda — подъезд', 'linnaosa — район', 'elanik — житель', 'ristmik — перекрёсток', 'rike — поломка']),
-      B.choice('015_d_quiz', 'Mida sa mäletad?', 'Vasta küsimustele Sofia kolimise loo kohta: vali kolmest variandist üks õige.', [
+      B.text('015_d_intro', 'Kontroll 3', `See on mooduli 3 kontroll Harno A2 eksami vormis: kuulamine 15 minutit, rääkimine 15 minutit ja kirjutamine 15 minutit, ilma sõnaraamatuta. Rääkimise esimene ülesanne on paralleelne tunni 11 külma stardiga: lõpus võrdled. ${THRESHOLDS}`),
+      half(B.examPart('015_p_lpart', 'L', { part: 'Kuulamine', minutes: 15, points: 14, tasks: 2, target: 60, note: `Iga salvestist kuulad kaks korda. ${THRESHOLDS}` })),
+      tag(half(why(locked(B.examListen('015_p_l2', 'Kuulamine 1. Raadiovestlus.', 'Kuula raadiovestlust kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', [
+        'Ülle: Tere, kuulajad! Täna räägime kolimisest. Stuudios on Mati Rand, kes on oma elus kolinud üksteist korda.',
+        'Mati: Tere! Jah, Tartust Tallinnasse, Tallinnast Pärnusse ja tagasi. Ma olen kolimise ekspert.',
+        'Ülle: Mis on kolimisel kõige raskem?',
+        'Mati: Asjade pakkimine. Inimestel on alati rohkem asju, kui nad arvavad. Mina alustan pakkimist kaks nädalat enne kolimist.',
+        'Ülle: Kas te kasutate kolimisfirmat?',
+        'Mati: Viimastel kordadel jah. Sõbrad aitavad hea meelega, aga pärast tuleb neile pitsat osta ja nende seljad valutavad!',
+        'Ülle: Mis on teie parim nõuanne?',
+        'Mati: Kirjutage igale kastile, mis tuppa see läheb. Siis ei pea uues kodus otsima, kus on potid ja kus raamatud.',
+        'Ülle: Ja kuidas uues kohas end koduselt tunda?',
+        'Mati: Minge esimesel nädalal naabritele tere ütlema. Mina viin neile alati väikese koogi.',
+      ], [
+        ['Mati on kolinud üksteist korda.', true], ['Mati alustab pakkimist päev enne kolimist.', false], ['Viimastel kordadel on Mati kasutanud kolimisfirmat.', true],
+        ['Sõbrad ei taha Matit kunagi aidata.', false], ['Mati soovitab kirjutada kastile, mis tuppa see läheb.', true], ['Mati viib uutele naabritele lilli.', false],
+        ['Mati arvab, et inimestel on vähem asju, kui nad arvavad.', false], ['Pärast abi tuleb sõpradele pitsat osta.', true],
+      ])), [
+        'Saate algus: „kolinud üksteist korda”.',
+        '„Mina alustan pakkimist kaks nädalat enne kolimist.”',
+        '„Viimastel kordadel jah.”',
+        '„Sõbrad aitavad hea meelega.”',
+        '„Kirjutage igale kastile, mis tuppa see läheb.”',
+        '„Mina viin neile alati väikese koogi.”',
+        '„Inimestel on alati rohkem asju, kui nad arvavad.”',
+        '„pärast tuleb neile pitsat osta”.',
+      ])), { harno: 'L4', task: 'L05' }),
+      tag(why(locked(B.listening('015_p_l3', 'Kuulamine 2. Telefonisõnum.', 'Kuula sõnumit kaks korda. Kirjuta igasse lünka üks või kaks sõna.', [
+        'Tiina: Tere, Marina! Siin Tiina, alumiselt korruselt. Tahtsin sulle meelde tuletada meie talguid.',
+        'Tiina: Talgud on järgmisel laupäeval, alustame kell kümme hommikul hoovis.',
+        'Tiina: Kõigepealt koristame lund ja viime vanad oksad prügikonteinerite juurde.',
+        'Tiina: Siis värvime rattakuuri ukse uuesti roheliseks. Värvi ostis korteriühistu.',
+        'Tiina: Palun võta kaasa oma töökindad. Labidaid on meil keldris piisavalt.',
+        'Tiina: Kell kaksteist joome minu köögis teed ja sööme pirukaid. Kohtumiseni!',
+      ], [
+        'Talgud on järgmisel [laupäeval].', 'Talgud algavad kell [kümme|10] hommikul.', 'Kõigepealt koristatakse [lund].',
+        'Rattakuuri uks värvitakse [roheliseks].', 'Marina peab kaasa võtma [töökindad|kindad].', 'Pärast talguid juuakse Tiina köögis [teed].',
+      ])), [
+        '„Talgud on järgmisel laupäeval.”',
+        '„alustame kell kümme hommikul”.',
+        '„Kõigepealt koristame lund.”',
+        '„värvime rattakuuri ukse uuesti roheliseks”.',
+        '„Palun võta kaasa oma töökindad.”',
+        '„joome minu köögis teed”.',
+      ]), { harno: 'L3a', task: 'L07' }),
+      half(B.examPart('015_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele või paaris. Ülesanne 1 on ilma abita; ülesanne 2 on kokkulepe.' })),
+      teach(tag(half(B.speaking('015_t_s1', 'Rääkimine 1. Koht, kus ma elan.', 'Räägi 45–60 sekundit ilma abita ja ilma märkmeteta.', [
+        'Milline on sinu linnaosa, küla või tänav? Mis on seal hea, mis on puudu ja miks?',
+      ], [45, 60])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 11 külm start): sama hindamine, uus teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: liitega omadussõnad, kus- ja kuhu-vorm, sest / kuna) ja võrdle tunni 11 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.rolecards('015_t_s2', 'Rääkimine 2. Kokkulepe: kus me elame?', 'Õpetaja (või paariline) on sinu sõber. Te tahate koos korterit üürida. Valige linnaosa ja korter: tee ettepanekuid, põhjenda ja leppige kokku.',
+        'Sina tahad korterit kesklinnas, sest tööle on lähedal. Ütle ka, mis on sinu jaoks kodus kõige tähtsam.',
+        'Sina tahad korterit rahulikus linnaosas, sest seal on park ja üür on odavam. Ütle üks takistus ja otsige koos lahendus.',
+        [], []), { harno: 'S2' }),
+      'Õpetaja on B ja ütleb ühe takistuse („Kesklinnas on öösel lärmakas”). Punktid 0–5: kaks ettepanekut põhjusega 0–2, reageerib takistusele 0–1, sõnastab kokkuleppe 0–1, vormid (sest / kuna, liitega omadussõnad) 0–1.'),
+      half(B.examPart('015_t_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks lühike sõnum, 30–50 sõna, kõigist neljast punktist.' })),
+      tag(teach(half(B.examWriting('015_t_w2', 'Kirjutamine. Sõnum naabrile.', 'Kirjuta naabrile sõnum 30–50 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
+        situation: 'Sa kolisid uude korterisse ja teed laupäeval soolaleivapeo. Kirjuta alumise korruse naabrile.',
+        points: ['kes sa oled ja millal sa kolisid', 'millal ja kus pidu on', 'miks võib laupäeval müra olla', 'kutsu naaber ka peole'],
+        words: [30, 50], opening: 'Tere, naaber!',
+      })), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (kus- ja kuhu-vorm, liitega omadussõnad, sest / kuna, viisakas palve).'), { harno: 'W1b' }),
+      teach(half(B.table('015_d_result', 'Minu tulemus.', 'Kirjuta iga osa punktid ja protsent. Kas rääkimine ilma abita on tunni 11 külma stardiga võrreldes parem? Lävendid: Harno 60 %, KeeleSepp 70 % / 80 %.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Kuulamine (14 punkti) |  |  | ',
+        'Rääkimine (10 punkti) |  |  | ',
+        'Kirjutamine (8 punkti) |  |  | ',
+        'Rääkimine ilma abita (tund 11 → tund 15) |  |  | ',
+      ])), 'Õpetajale: viimane rida on tunni 11 külma starti ja selle tunni rääkimise 1 võrdlus (kolm märget). Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (kuulamine → tund 12 või 13, rääkimine → tunnid 13–14, kirjutamine → tund 12).'),
+      hide(B.vocab('015_d_vocab', 'Mooduli võtmesõnad.', ['üür — арендная плата', 'leping — договор', 'ruumikas — просторный', 'ohutu — безопасный', 'kolima — переезжать', 'trepikoda — подъезд', 'linnaosa — район', 'elanik — житель', 'ristmik — перекрёсток', 'rike — поломка']), V5_CUT),
+      hide(B.choice('015_d_quiz', 'Mida sa mäletad?', 'Vasta küsimustele Sofia kolimise loo kohta: vali kolmest variandist üks õige.', [
         ['Miks pidi Sofia Malle juurest ära kolima?', 'Malle lapselaps vajas tuba', 'Malle müüs korteri', 'Sofia leidis uue töö'],
         ['Millises linnaosas on Sofia uus kodu?', 'Kalamajas', 'Pelgulinnas', 'Nõmmel'],
         ['Kes on Tiina?', 'korteriühistu esimees', 'korteri omanik', 'maakler'],
@@ -805,8 +1229,8 @@ export const LESSONS = withShapes({
         ['Mis oli soolaleivapeo eel katki?', 'radiaator', 'pliit', 'välisuks'],
         ['Mis sobib lausesse: Meie hoov on lastele …', 'ohutu', 'ohutus', 'ohtu'],
         ['Mis sobib lausesse: Viige tühjad kastid …', 'keldrisse', 'keldris', 'keldrist'],
-      ], 'full', 'g_notice'),
-      B.reading('015_d_party', 'Soolaleivapidu.', 'Loe Sofia blogist, kuidas soolaleivapidu möödus. Vasta igale küsimusele paari sõnaga.', 'Leib, sool ja soe tuba', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.reading('015_d_party', 'Soolaleivapidu.', 'Loe Sofia blogist, kuidas soolaleivapidu möödus. Vasta igale küsimusele paari sõnaga.', 'Leib, sool ja soe tuba', [
         'Laupäeva hommikul kell pool üksteist tuli meister ja parandas radiaatori vähem kui tunniga. Kella üheks oli toas jälle soe ja ma sain rahulikult koristada.',
         '',
         'Esimesena jõudis kohale ema. Ta sõitis jaamast asendusbussiga ja leidis maja kohe üles, sest ma olin kirjutanud: kollane puumaja apteegi kõrval. Ta tõi kaasa leiba ja soola, nagu meie peres kombeks on.',
@@ -823,14 +1247,14 @@ export const LESSONS = withShapes({
         ['Mis oli Viktori pakis?', 'puust pink|pink'],
         ['Miks ütles Helgi, et ta enam ei muretse?', 'Sofial on hea naaber'],
         ['Mis tunne oli Sofial õhtul?', 'korter tundus päris koduna|hea, kodune'],
-      ]),
-      B.categorize('015_d_sort', 'Mooduli sõnad rühmadesse.', 'Jaga mooduli sõnad nelja teema vahel: üürimine, kolimine, linnaosa, tee ja rike.', [
+      ]), V5_CUT),
+      hide(B.categorize('015_d_sort', 'Mooduli sõnad rühmadesse.', 'Jaga mooduli sõnad nelja teema vahel: üürimine, kolimine, linnaosa, tee ja rike.', [
         ['korteri üürimine', ['üür', 'leping', 'tagatisraha', 'omanik']],
         ['kolimine', ['kast', 'kaubik', 'pakkima', 'sahver']],
         ['linnaosa', ['turg', 'raamatukogu', 'mänguväljak', 'naabrivalve']],
         ['tee ja rike', ['ristmik', 'ümbersõit', 'radiaator', 'hooldusfirma']],
-      ], 'full', 'g_notice'),
-      B.transformation('015_d_trans', 'Kirjuta teisiti.', 'Muuda lauset antud sõna või vormi järgi nii, et mõte jääb samaks.', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.transformation('015_d_trans', 'Kirjuta teisiti.', 'Muuda lauset antud sõna või vormi järgi nii, et mõte jääb samaks.', [
         ['Sofia elutoas on hommikul palju päikest.', '-line', 'Sofia elutuba on hommikul päikeseline.'],
         ['Raamatud on nüüd riiulil. Mida Sofia tegi?', 'pani', 'Sofia pani raamatud riiulile.'],
         ['Tiina ei ole kunagi närviline.', '-lik', 'Tiina on alati rahulik.'],
@@ -839,8 +1263,8 @@ export const LESSONS = withShapes({
         ['Helgi tuli just jaamast. Kus ta enne oli?', 'oli', 'Helgi oli enne jaamas.'],
         ['Kalle ei leia kohta. Autosid on palju.', 'kuna', 'Kuna autosid on palju, ei leia Kalle kohta.'],
         ['See köögitool ei ole mugav.', 'eba-', 'See köögitool on ebamugav.'],
-      ], 'full', 'g_notice'),
-      B.errorfix('015_d_fix', 'Eksami tüüpvead.', 'Igas lauses on üks viga, mida kodu ja linna teemal tihti tehakse. Kirjuta lause parandatult.', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.errorfix('015_d_fix', 'Eksami tüüpvead.', 'Igas lauses on üks viga, mida kodu ja linna teemal tihti tehakse. Kirjuta lause parandatult.', [
         ['Ma kolisin uues korteris.', 'Ma kolisin uude korterisse.'],
         ['Pane lilled aknalaual.', 'Pane lilled aknalauale.'],
         ['Me läksime turul kala ostma.', 'Me läksime turule kala ostma.'],
@@ -849,10 +1273,10 @@ export const LESSONS = withShapes({
         ['Meie tänav on lastele ohutav.', 'Meie tänav on lastele ohutu.'],
         ['Ma elan Kalamajasse kaks kuud.', 'Ma elan Kalamajas kaks kuud.|Ma olen elanud Kalamajas kaks kuud.'],
         ['Võta rattakuuri võti Tiina juurde.', 'Võta rattakuuri võti Tiinalt.|Võta rattakuuri võti Tiina käest.'],
-      ], 'full', 'g_notice'),
-      B.writing('015_d_write', 'Minu kodu ja kodukoht.', 'Kirjuta 6–8 lauset: kus sa elad, milline on sinu kodu ja mis on kodu lähedal.', [6, 8], ['ruumikas', 'rahulik', 'kõrval', 'lähedal'], 2),
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.writing('015_d_write', 'Minu kodu ja kodukoht.', 'Kirjuta 6–8 lauset: kus sa elad, milline on sinu kodu ja mis on kodu lähedal.', [6, 8], ['ruumikas', 'rahulik', 'kõrval', 'lähedal'], 2), V5_CUT),
       // the examiner's question set on the module's Harno topic (§13.7); keeps the id of the warm-up it grew from
-      teach(B.examiner('015_d_warm', 'kodu ja elukoht', [
+      hide(teach(B.examiner('015_d_warm', 'kodu ja elukoht', [
         'Kus te elate ja kui kaua olete seal elanud?',
         'Kas te elate korteris või majas? Kumb on teie arvates parem ja miks?',
         'Mis on teie kodu lähedal ja mis on seal puudu?',
@@ -860,19 +1284,19 @@ export const LESSONS = withShapes({
         'Mida peab uues kodus ja uues linnaosas kõigepealt tegema?',
         'Kuidas elatakse teie kodumaal: pigem korteris või majas? Mis on seal teisiti kui Eestis?',
         'Millises Eesti linnas või linnaosas te tahaksite elada ja miks?',
-      ]), 'Üks-ühele: õpetaja on eksamineerija ja küsib; õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Õpetaja märgib liitega omadussõnad ning kus-, kuhu- ja kust-vormid.'),
+      ]), 'Üks-ühele: õpetaja on eksamineerija ja küsib; õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Õpetaja märgib liitega omadussõnad ning kus-, kuhu- ja kust-vormid.'), V5_CUT),
     ],
     practice: [
-      B.examPart('015_p_rpart', 'R', { minutes: 50, points: 30, tasks: 5, note: 'Harno A2 lugemisosa, viis ülesannet. Lugege enne iga teksti läbi ülesande juhis.' }),
-      B.choice('015_p_r1', 'Lugemine 1. Mida te ütlete?', 'Lugege, mis juhtus. Valige lause, mis sobib selleks olukorraks kõige paremini.', [
+      hide(B.examPart('015_p_rpart', 'R', { minutes: 50, points: 30, tasks: 5, note: 'Harno A2 lugemisosa, viis ülesannet. Lugege enne iga teksti läbi ülesande juhis.' }), V5_CUT),
+      hide(B.choice('015_p_r1', 'Lugemine 1. Mida te ütlete?', 'Lugege, mis juhtus. Valige lause, mis sobib selleks olukorraks kõige paremini.', [
         ['Uus naaber aitas teil kasti trepist üles kanda. Mida te ütlete?', 'Suur aitäh abi eest!', 'Head isu!', 'Palju õnne!'],
         ['Te tahate teada, kus on lähim apteek. Mida te küsite?', 'Vabandage, kus on siin lähim apteek?', 'Kas apteek on teile meeldinud?', 'Miks apteek nii kallis on?'],
         ['Sõber kolis uude korterisse. Mida te talle kirjutate?', 'Palju õnne uue kodu puhul!', 'Head paranemist!', 'Kahju, et nii läks!'],
         ['Võõras küsib, kus on raamatukogu, aga te ei tea. Mida te ütlete?', 'Vabandust, ma ei ole siit pärit.', 'Minge kohe koju!', 'Raamatukogus on palju raamatuid.'],
         ['Naaber teeb kell 23 remonti. Mida te ütlete?', 'Vabandage, kas te saaksite homme jätkata?', 'Tore, et te remonti teete!', 'Kas ma võin ka appi tulla?'],
         ['Külaline jõudis teie soolaleivapeole. Mida te ütlete?', 'Tere tulemast! Astu sisse!', 'Head teed ja ilusat õhtut!', 'Head ööd ja magage hästi!'],
-      ]),
-      B.reading('015_p_r2', 'Lugemine 2. Kolm kuulutust.', 'Lugege kolme kuulutust kodu ja linna kohta. Kirjutage iga küsimuse järele õige kuulutuse täht.', 'Kodu ja linn', [
+      ]), V5_CUT),
+      hide(B.reading('015_p_r2', 'Lugemine 2. Kolm kuulutust.', 'Lugege kolme kuulutust kodu ja linna kohta. Kirjutage iga küsimuse järele õige kuulutuse täht.', 'Kodu ja linn', [
         'A. Üürile anda ühetoaline korter Kristiines, kolmandal korrusel. Korter on remonditud ja täielikult möbleeritud. Köögis on uus pliit ja nõudepesumasin. Lähedal on kaubanduskeskus ja trammipeatus. Üür on 480 eurot kuus, kommunaalkulud umbes 70 eurot. Lemmikloomad ei ole lubatud. Helistada õhtuti pärast kella kuut.',
         '',
         'B. Kolimisfirma „Kiire Kast” aitab teil kolida nii Tallinnas kui ka mujal Eestis. Meil on suured ja väikesed autod ning tugevad töötajad. Kastid anname tasuta ja tühjad kastid viime pärast ära. Nädalavahetusel on hind kümme protsenti kõrgem. Tellige vähemalt kolm päeva ette.',
@@ -881,8 +1305,8 @@ export const LESSONS = withShapes({
       ], [
         ['Kuhu helistada, kui vajate korterit koos mööbliga?', 'A'], ['Kust saab kaste tasuta?', 'B'], ['Kuhu minna laupäeva hommikul koos lapsega?', 'C'],
         ['Kus maksab teenus nädalavahetusel rohkem?', 'B'], ['Kus ei tohi elada koeraga?', 'A'], ['Kus saab dokumente printida?', 'C'],
-      ]),
-      B.reading('015_p_r3', 'Lugemine 3. Sildid ja teated.', 'Lugege linnas nähtud silte ja teateid. Märkige iga olukorra juurde sobiv täht.', 'Linnas ja majas', [
+      ]), V5_CUT),
+      hide(B.reading('015_p_r3', 'Lugemine 3. Sildid ja teated.', 'Lugege linnas nähtud silte ja teateid. Märkige iga olukorra juurde sobiv täht.', 'Linnas ja majas', [
         'A. Trepikojas jalgrattaid ja kärusid hoida ei tohi. Jalgrattad viige hoovi rattakuuri, võtme saab korteriühistu esimehelt.',
         '',
         'B. Apteek on avatud E–R 8–20, L–P 10–16. Pühapäeva õhtul ja öösel aitab valveapteek, mis asub Balti jaamas ja on avatud ööpäev läbi.',
@@ -899,8 +1323,8 @@ export const LESSONS = withShapes({
       ], [
         ['Te kaotasite võtmed maja juures. Mis teade aitab?', 'D'], ['Te vajate pühapäeva õhtul ravimit. Kuhu minna?', 'B'], ['Te tahate tühjad pudelid ära visata. Mis silt aitab?', 'E'],
         ['Te elate viiendal korrusel ja tulete koju raske kotiga. Mis silt teid kurvastab?', 'G'], ['Te tahate laupäeval värsket kala osta. Mis silt sobib?', 'F'],
-      ]),
-      B.reading('015_p_r4text', 'Lugemine 4. Ajaleheartikkel.', 'Lugege ajaleheartiklit. Järgmises ülesandes vastate selle põhjal.', 'Vanast majast uus kodu', [
+      ]), V5_CUT),
+      hide(B.reading('015_p_r4text', 'Lugemine 4. Ajaleheartikkel.', 'Lugege ajaleheartiklit. Järgmises ülesandes vastate selle põhjal.', 'Vanast majast uus kodu', [
         'Pärnus seisab kollane puumaja, mis on üle saja aasta vana. Kümme aastat tagasi oli maja tühi ja aknad olid katki. Linn tahtis maja juba lammutada.',
         '',
         'Siis ostsid maja kolm noort peret. Nad remontisid seda ise kaks aastat, igal nädalavahetusel. Vanad uksed ja ahjud jäid alles, aga elekter, veetorud ja aknad on uued.',
@@ -910,15 +1334,15 @@ export const LESSONS = withShapes({
         '„Uues majas ma ei teaks oma naabrite nimesid,” ütleb maja elanik Kärt Lepp. „Siin oleme nagu üks suur pere.”',
         '',
         'Järgmisel aastal tahavad elanikud ehitada pööningule ühise toa. Seal saaksid lapsed mängida ja täiskasvanud koos filme vaadata.',
-      ], []),
-      tag(B.choice('015_p_r4', 'Lugemine 4. Valige õige vastus.', 'Vastake teksti põhjal. Igal küsimusel on üks õige vastus.', [
+      ], []), V5_CUT),
+      hide(tag(B.choice('015_p_r4', 'Lugemine 4. Valige õige vastus.', 'Vastake teksti põhjal. Igal küsimusel on üks õige vastus.', [
         ['Milline oli maja kümme aastat tagasi?', 'tühi ja katkiste akendega', 'uus ja ilus', 'täis elanikke'],
         ['Kes maja remontisid?', 'kolm noort peret', 'linna töötajad', 'üks ehitusfirma'],
         ['Mis jäi majas vanaks?', 'uksed ja ahjud', 'aknad ja elekter', 'veetorud'],
         ['Mida teevad naabrid kord kuus?', 'talgud ja ühise söögi', 'peo pööningul', 'filmiõhtu raamatukogus'],
         ['Mida tahavad elanikud järgmisel aastal teha?', 'ehitada pööningule ühise toa', 'müüa maja linnale', 'teha hoovi parkla'],
-      ]), { harno: 'R2' }),
-      tag(B.cloze('015_p_r5', 'Lugemine 5. Kiri Mallele.', 'Lugege Sofia kirja. Valige igasse lünka sobiv sõna.', 'Kallis Malle!', [
+      ]), { harno: 'R2' }), V5_CUT),
+      hide(tag(B.cloze('015_p_r5', 'Lugemine 5. Kiri Mallele.', 'Lugege Sofia kirja. Valige igasse lünka sobiv sõna.', 'Kallis Malle!', [
         'Aitäh sinu kirja ja salli eest! Ma elan nüüd juba kuu aega {*Kalamajas|Kalamajja|Kalamajast} ja mulle meeldib siin väga.',
         '',
         'Minu korter on väike, aga {*valgusküllane|valgus|valgust}. Hommikul paistab päike otse {*kööki|köögis|köögist} ja ma joon kohvi akna all.',
@@ -928,9 +1352,8 @@ export const LESSONS = withShapes({
         'Laupäeval {*tulen|tulin|tulla} sinu juurde Mustamäele, et salli ära tuua. Kas sulle sobib kell kaks? Ma toon kaasa koogi, {*mida|mis|kes} ema mind küpsetama õpetas.',
         '',
         'Kallistan, Sofia',
-      ]), { harno: 'R3a' }),
-      B.examPart('015_p_lpart', 'L', { minutes: 30, points: 25, tasks: 4, note: 'Kõiki tekste kuulete kaks korda. Lugege küsimused enne kuulamist läbi.' }),
-      tag(B.examListen('015_p_l1', 'Kuulamine 1. Lühikesed teated.', 'Kuulake seitset lühikest teksti. Valige igale küsimusele õige vastus.', 'choice', [
+      ]), { harno: 'R3a' }), V5_CUT),
+      hide(tag(B.examListen('015_p_l1', 'Kuulamine 1. Lühikesed teated.', 'Kuulake seitset lühikest teksti. Valige igale küsimusele õige vastus.', 'choice', [
         'Esimene tekst. Tähelepanu! Balti jaama turg on täna avatud kella kaheksast kuueni. Kalaosakond asub teisel korrusel.',
         'Teine tekst. Tere, siin on Soe Kodu. Meister tuleb teie juurde homme kell üheksa. Palun olge kodus.',
         'Kolmas tekst. Hei, Sofia! Ma jõudsin jaama, aga ma ei leia bussi. Kas buss on jaama ees või taga?',
@@ -946,34 +1369,8 @@ export const LESSONS = withShapes({
         ['Mille Markus kingituseks ostis?', 'lambi', 'tooli', 'laua'],
         ['Kus on laste uued raamatud?', 'teisel korrusel akna juures', 'esimesel korrusel ukse juures', 'keldris'],
         ['Milline on ilm laupäeval?', 'sajab lund', 'paistab päike', 'sajab vihma'],
-      ]), { harno: 'L1' }),
-      tag(B.examListen('015_p_l2', 'Kuulamine 2. Raadiovestlus.', 'Kuulake raadiovestlust. Märkige, kas väide on õige või vale.', 'truefalse', [
-        'Ülle: Tere, kuulajad! Täna räägime kolimisest. Stuudios on Mati Rand, kes on oma elus kolinud üksteist korda.',
-        'Mati: Tere! Jah, Tartust Tallinnasse, Tallinnast Pärnusse ja tagasi. Ma olen kolimise ekspert.',
-        'Ülle: Mis on kolimisel kõige raskem?',
-        'Mati: Asjade pakkimine. Inimestel on alati rohkem asju, kui nad arvavad. Mina alustan pakkimist kaks nädalat enne kolimist.',
-        'Ülle: Kas te kasutate kolimisfirmat?',
-        'Mati: Viimastel kordadel jah. Sõbrad aitavad hea meelega, aga pärast tuleb neile pitsat osta ja nende seljad valutavad!',
-        'Ülle: Mis on teie parim nõuanne?',
-        'Mati: Kirjutage igale kastile, mis tuppa see läheb. Siis ei pea uues kodus otsima, kus on potid ja kus raamatud.',
-        'Ülle: Ja kuidas uues kohas end koduselt tunda?',
-        'Mati: Minge esimesel nädalal naabritele tere ütlema. Mina viin neile alati väikese koogi.',
-      ], [
-        ['Mati on kolinud üksteist korda.', true], ['Mati alustab pakkimist päev enne kolimist.', false], ['Viimastel kordadel on Mati kasutanud kolimisfirmat.', true],
-        ['Sõbrad ei taha Matit kunagi aidata.', false], ['Mati soovitab kirjutada kastile, mis tuppa see läheb.', true], ['Mati viib uutele naabritele lilli.', false],
-      ]), { harno: 'L4' }),
-      tag(B.listening('015_p_l3', 'Kuulamine 3. Telefonisõnum.', 'Kuulake sõnumit. Kirjutage igasse lünka üks või kaks sõna.', [
-        'Tiina: Tere, Sofia! Siin Tiina, alumiselt korruselt. Tahtsin sulle meelde tuletada meie talguid.',
-        'Tiina: Talgud on järgmisel laupäeval, alustame kell kümme hommikul hoovis.',
-        'Tiina: Kõigepealt koristame lund ja viime vanad oksad prügikonteinerite juurde.',
-        'Tiina: Siis värvime rattakuuri ukse uuesti roheliseks. Värvi ostis korteriühistu.',
-        'Tiina: Palun võta kaasa oma töökindad. Labidaid on meil keldris piisavalt.',
-        'Tiina: Kell kaksteist joome minu köögis teed ja sööme pirukaid. Kohtumiseni!',
-      ], [
-        'Talgud on järgmisel [laupäeval].', 'Talgud algavad kell [kümme|10] hommikul.', 'Kõigepealt koristatakse [lund].',
-        'Rattakuuri uks värvitakse [roheliseks].', 'Sofia peab kaasa võtma [töökindad|kindad].', 'Pärast talguid juuakse Tiina köögis [teed].',
-      ]), { harno: 'L3a' }),
-      B.examListen('015_p_l4', 'Kuulamine 4. Kes mida tõi?', 'Kuulake Sofia ja Jaani vestlust. Ühendage iga külaline sellega, mida ta peole tõi.', 'match', [
+      ]), { harno: 'L1' }), V5_CUT),
+      hide(B.examListen('015_p_l4', 'Kuulamine 4. Kes mida tõi?', 'Kuulake Sofia ja Jaani vestlust. Ühendage iga külaline sellega, mida ta peole tõi.', 'match', [
         'Jaan: Sofia, kes mida sulle peole tõi? Ma tahan kõigile aitäh öelda.',
         'Sofia: Ema tõi leiba ja soola, nagu ikka.',
         'Jaan: Ja onu Viktor tõi selle ilusa puust pingi.',
@@ -984,36 +1381,23 @@ export const LESSONS = withShapes({
         'Sofia: Täpselt. Ja Mia joonistas mulle pildi minu uuest majast. See on nüüd külmkapi peal.',
       ], [
         ['Helgi', 'leiba ja soola'], ['Viktor', 'puust pingi'], ['Tiina', 'lilled'], ['Markus', 'lambi'], ['Anna', 'toataime'], ['Liis', 'kooki'],
-      ]),
-      B.rubric('015_p_points', 'Minu punktid.', 'Loe kokku oma punktid. Eesmärk on vähemalt 80 % nii lugemises kui ka kuulamises.', ['Lugemine 1–5: … / 30 (eesmärk 24)', 'Kuulamine 1–4: … / 25 (eesmärk 20)', 'Kõige rohkem punkte kaotasin ülesandes: …', 'Enne järgmist moodulit kordan: …']),
+      ]), V5_CUT),
+      hide(B.rubric('015_p_points', 'Minu punktid.', 'Loe kokku oma punktid. Eesmärk on vähemalt 80 % nii lugemises kui ka kuulamises.', ['Lugemine 1–5: … / 30 (eesmärk 24)', 'Kuulamine 1–4: … / 25 (eesmärk 20)', 'Kõige rohkem punkte kaotasin ülesandes: …', 'Enne järgmist moodulit kordan: …']), V5_CUT),
     ],
     transfer: [
-      B.examPart('015_t_wpart', 'W', { minutes: 30, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta ja vastake kõigile punktidele.' }),
-      B.notice('015_t_ad', 'Kuulutus', ['**Üürile anda** tuba Kalamajas, vanas puumajas', 'Tuba on 15 m², valgusküllane, aken hoovi poole', 'Köök ja vannituba on ühised teise üürnikuga', 'Üür 350 € kuus, kommunaalkulud 50 €', 'Vaba 1. veebruarist · Helistada: 5123 4567 (Leida)'], 'full', 'g_read'),
-      B.examWriting('015_t_w1', 'Kirjutamine 1. Soovitage tuba.', 'Teie tuttav otsib Tallinnas tuba. Kirjutage kuulutuse põhjal talle sõnum: kus tuba on, milline see on, kui palju see maksab ja kellele helistada.', 'teade', {
+      hide(B.notice('015_t_ad', 'Kuulutus', ['**Üürile anda** tuba Kalamajas, vanas puumajas', 'Tuba on 15 m², valgusküllane, aken hoovi poole', 'Köök ja vannituba on ühised teise üürnikuga', 'Üür 350 € kuus, kommunaalkulud 50 €', 'Vaba 1. veebruarist · Helistada: 5123 4567 (Leida)'], 'full', 'g_read'), V5_CUT),
+      hide(B.examWriting('015_t_w1', 'Kirjutamine 1. Soovitage tuba.', 'Teie tuttav otsib Tallinnas tuba. Kirjutage kuulutuse põhjal talle sõnum: kus tuba on, milline see on, kui palju see maksab ja kellele helistada.', 'teade', {
         situation: 'Tuttav Dmitri otsib Tallinnas tuba. Teil on Leida kuulutus.',
         points: ['kus tuba on', 'milline tuba on', 'kui palju see maksab', 'kellele ja millal helistada'],
         words: [25, 40], opening: 'Tere, Dmitri!',
-      }),
-      tag(B.examWriting('015_t_w2', 'Kirjutamine 2. Sõnum naabrile.', 'Kirjutage naabrile sõnum vähemalt 30 sõnaga. Kirjutage kõigist neljast punktist.', 'teade', {
-        situation: 'Te kolisite uude korterisse ja teete laupäeval soolaleivapeo. Kirjutage alumise korruse naabrile.',
-        points: ['kes te olete ja millal kolisite', 'millal ja kus pidu on', 'miks võib laupäeval müra olla', 'kutsuge naaber ka peole'],
-        words: [30, 50], opening: 'Tere, naaber!',
-      }), { harno: 'W1b' }),
-      B.rubricW1('015_t_rw1', ['kus tuba on', 'milline tuba on', 'kui palju see maksab', 'kellele helistada'], 'Hindamine: kirjutamine 1 (8 punkti).'),
-      B.rubricW2('015_t_rw2', 'Hindamine: kirjutamine 2 (12 punkti).'),
-      B.examPart('015_t_spart', 'S', { minutes: 15, points: 20, tasks: 3, note: 'Rääkimine toimub kahekesi. Eksamineerija küsib, teie vastate.' }),
-      tag(B.speaking('015_t_s0', 'Rääkimine. Tutvumine.', 'Vastake eksamineerija küsimustele lühidalt, nagu eksami alguses.', ['Kuidas teie nimi on ja kus te elate?', 'Kas te elate korteris või majas?', 'Mis teile oma kodukohas meeldib?'], [45, 60]), { harno: 'S0' }),
-      B.speaking('015_t_s1', 'Rääkimine 1. Minu kodu.', 'Kirjeldage oma kodu või tuba umbes üks minut. Seejärel vastake eksamineerija küsimustele.', ['Mitu tuba teie kodus on?', 'Milline on teie lemmiktuba ja miks?', 'Mis on teie kodu lähedal?', 'Mida te oma kodus muudaksite?'], [60, 90]),
-      teach(B.rolecards('015_t_s2', 'Rääkimine 2. Ideekaart „Linnaosa”.', 'A esitab kaardi märksõnade järgi viis küsimust, B vastab. Seejärel vahetage kaardid.',
-        'Märksõnad: kus elate · pood ja turg · transport · park ja vaba aeg · mis on puudu. Esita viis küsimust.',
-        'Vasta igale küsimusele kahe-kolme lausega ja lisa üks põhjus (sest…, kuna…).',
-        ['Kus te elate?', 'Kuidas te tööle sõidate?'], ['Ma elan…', 'Minu linnaosas on…, sest…']),
-      'Üks-ühele: õpetaja küsib kaardi järgi (eksamineerija roll), siis küsib õpilane õpetajalt. Hinda hindamisjuhendiga.'),
-      B.rubricSpeaking('015_t_rs', 'Hindamine: rääkimine (20 punkti).'),
-      B.selfcheck('015_t_self', ['Ma saan aru kodu ja linna teemalistest tekstidest.', 'Ma kasutan liitega omadussõnu ning kus-, kuhu- ja kust-vorme.', 'Ma kirjutan lühikese sõnumi kõigist punktidest.', 'Ma räägin oma kodust ja linnaosast.'], 'Moodul 3 tehtud'),
+      }), V5_CUT),
+      hide(B.rubricW1('015_t_rw1', ['kus tuba on', 'milline tuba on', 'kui palju see maksab', 'kellele helistada'], 'Hindamine: kirjutamine 1 (8 punkti).'), V5_CUT),
+      hide(B.rubricW2('015_t_rw2', 'Hindamine: kirjutamine 2 (12 punkti).'), V5_CUT),
+      hide(tag(B.speaking('015_t_s0', 'Rääkimine. Tutvumine.', 'Vastake eksamineerija küsimustele lühidalt, nagu eksami alguses.', ['Kuidas teie nimi on ja kus te elate?', 'Kas te elate korteris või majas?', 'Mis teile oma kodukohas meeldib?'], [45, 60]), { harno: 'S0' }), V5_CUT),
+      hide(B.rubricSpeaking('015_t_rs', 'Hindamine: rääkimine (20 punkti).'), V5_CUT),
+      hide(B.selfcheck('015_t_self', ['Ma saan aru kodu ja linna teemalistest tekstidest.', 'Ma kasutan liitega omadussõnu ning kus-, kuhu- ja kust-vorme.', 'Ma kirjutan lühikese sõnumi kõigist punktidest.', 'Ma räägin oma kodust ja linnaosast.'], 'Moodul 3 tehtud'), V5_CUT),
     ],
   },
 }, {
-  'a2b1-011': 'KUUL L→W', 'a2b1-012': 'LUGE R→W', 'a2b1-013': 'RÄÄK L→S', 'a2b1-014': 'PROB R→S', 'a2b1-015': 'EKS',
+  'a2b1-011': 'LUGE R→W', 'a2b1-012': 'KUUL L→W', 'a2b1-013': 'RÄÄK L→S', 'a2b1-014': 'PROB R→S', 'a2b1-015': 'EKS',
 });
