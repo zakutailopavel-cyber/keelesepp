@@ -41,8 +41,9 @@ export const AV = Object.freeze({
   opener: { b1: [200, 350], b2: [300, 450], enb2: [300, 450] },
   // English B2 by the module's stage (docs/COURSE_FINAL_SHAPE_EN_B2.md §8)
   openerEnStage: { 'B1+': [250, 350], 'B2-': [300, 450], B2: [300, 450] },
-  // methodology v5 (docs/METHODOLOGY_B1_B2_V5.md §3, B1 lessons 001–020): the opener body is the lesson's one A2 text
-  openerV5: { A2: [80, 150] },
+  // methodology v5 (docs/METHODOLOGY_B1_B2_V5.md §3): the opener body is the lesson's one text — B1 lessons 001–020 (A2)
+  // 80–150 words, 021–040 (A2+) 120–180 words
+  openerV5: { A2: [80, 150], 'A2+': [120, 180] },
   openerQuestions: [3, 4],
   retellMax: 1,
   // share of a module's Kasuta sheets that may follow „voicemail or phone call → letter”

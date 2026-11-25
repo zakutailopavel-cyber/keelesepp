@@ -1,46 +1,150 @@
-// B1 course (A2 → B1 roadmap), module 6 „Toit ja teenindus” (a2b1-026…030), stage B1-. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md; how: docs/FINAL_SHAPE_AUTHORING.md). One storyline: Helgi (60) comes from Tartu to
-// stay a week with her daughter Sofia in Kalamaja; the family and Sofia's colleagues shop, eat out, cook and solve
-// problems. The goal, said on the first sheet: at the end the learner phones a delivery firm's customer service and
-// writes the firm a reply that asks for a fair solution (029 Kasuta).
-//   026 LUGE R→W  „Toiduained ja kogused” — Liis's blog (predict, then read), Viktor's stall at Nõmme market, kogus +
-//                 osastav; Eksaminurk R1 (situations ↔ ads, the format is introduced here); Sunday lunch for eight:
-//                 the guests' cards, the menu agreed (idea card), the letter to Jaan with the shopping list.
-//   027 KUUL L→S  „Kohvikus ja restoranis” — Eksaminurk L1 (ten short clips), lunch at café Kaneel where Jaan serves this
-//                 week, polite ordering and -ks (supiks); the owner on the radio, ordering with an allergy; restaurant
-//                 Aed's voicemail → notes → the booking call (main), the menu ranked, Helgi meets Liis, a family message.
-//   028 AVAS R→S  „Sõin supi ära” — test first (sõin suppi / sõin supi ära), Sofia's diary of the dinner at Anna's,
-//                 the rule, Anna's recipe by phone, test again; the food bank on the radio, Viktor's apple-jam letter;
-//                 Eksaminurk S1a (topic questions with reasons, introduced here); the office fridge: who ate Markus's
-//                 soup — the story retold, the kitchen meeting (main), the story written.
-//   029 PROB L→W  „Kui midagi läheb valesti” — the wrong burger at Kaneel heard, a first try at complaining, the four
-//                 steps, notices, Markus's angry message made polite; language focus (choice, word bank, translation,
-//                 joining clauses), reviews explained to Helgi; Helgi's last evening: the late delivery from Kiire
-//                 Kõht — the order and its terms, Eksaminurk S2 (the call), the reply to the firm (main), rewritten.
-//   030 EKS       module exam in Harno A2 form with B1 tasks (R1, R2, R3a, L1, L3a, L4, W1b, W2a, S0, S1a, S2), timed
-//                 parts, target 80 % in every part; Helgi's letter from Tartu closes the story.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, 2026-11-03; topic söök ja jook + teenused): topic opener
-// 026_d_open (rye bread, kama, mulgi puder, Statistikaamet food spending and home-grown food), popsci 026_p_bread,
-// „Kas teadsid?” 027_p_know (allergens in eateries), 028_p_know (parim enne / kõlblik kuni, food waste), 029_d_know
-// (TTJA advice line); article 029_p_rights + 029_p_rightsq (consumer rights: claim, 15 days, disputes committee);
-// 028_p_radio uses the Kliimaministeerium 2026 food-waste figures (new audio); 029 opens the wider topic of complaining
-// in Estonia; examiner set 030_d_warm; one retelling left (028_d_432). Facts and sources: the PR of agent/av-b1-module-06.
-// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): kogus + osastav (026, again in 028); täis- ja osasihitis
-// (028, used again in 029: tellisin supi, aga ei saanud suppi). Cast facts kept: Markus has a milk allergy, Oskar a nut
-// allergy, Mia does not eat fish, Viktor sells apples, eggs and honey at Nõmme market on Saturdays; new: neighbour Tiina
-// is a vegetarian, Kaneel's owner is Merike Lõhmus, the delivery firm is „Kiire Kõht”. Earlier versions:
-// archive/v3/b1/module06.js, archive/v1/b1/module06.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 6 „Toit ja teenindus” (a2b1-026…030), stage A2+ (lessons 021–040).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1–5: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, 45 min). A2+ stage: text 120–180
+// words, audio ≤ 2 min, writing 50–80 words, speech 60–90 s.
+//   026 project „Mida osta ja kui palju?” — the module's COLD TASK first (60–90 s about one's own shopping, no help), a
+//               family's blog „Kuidas me toiduraha kokku hoiame” (≈ 140 words; kogus + osastav: liiter piima, kilo
+//               kartuleid, kuus muna). Outcome: a 50–80-word message to whoever goes to the shop — what and how much to
+//               buy for six guests (the learning visual „Külmkapp ja retsept” stands directly above the task, or the
+//               learner's own menu); second attempt: the list told on the phone without the text (the module's free
+//               writing).
+//   027 infogap „Laud kuuele, palun!” — a phone call to a restaurant (≈ 85 s, heard twice; Ma sooviksin …, Kas ma
+//               saaksin …?, -ks: eelroaks, magustoiduks). Outcome: the learner phones restaurant Kask for their own group
+//               with a HIDDEN-INFORMATION card (full at seven, the vegetarian dish sold out, only the terrace for eight, a
+//               prepayment) and the menu „Restorani menüü”; second attempt without phrases: lunch for four colleagues.
+//   028 debate  „Kas me viskame liiga palju toitu ära?” — a family's food diary of one week (≈ 140 words; täis- ja
+//               osasihitis: sõime suppi ↔ sõime supi ära, eituses osastav). Outcome: with the visual „Kaks külmkappi
+//               pühapäeval” each partner tells one home's week for 60–90 s and the pair decides which home wastes less and
+//               gives advice; second attempt about their own kitchens without phrases. At home the module's LINK TASK:
+//               the real Estonian Food Bank page (Toidupank, https://www.toidupank.ee).
+//   029 case    „Tellimus läks valesti” — a customer's call to a food delivery firm (≈ 80 s, heard twice; the four steps
+//               of a polite complaint, tellisin kaks pitsat — sain ühe pitsa — salatit ei saanud). Outcome: a 50–80-word
+//               complaint to the firm (the visual „Mis tuli koju?” directly above the task, or the learner's own case),
+//               read to a partner acting as customer service, second version with one more polite request.
+//   030 EKS     Control 6 (one sheet): reading (situations ↔ ads, Harno R1; a short text, right / wrong / not said),
+//               speaking — task 1 is the PARALLEL NEW TASK of 026's cold task (same criteria, new content), task 2 an
+//               order on the phone — and one message; thresholds named one way.
+// The continuing story (Helgi's week in Tallinn, the Sunday lunch for eight, café Kaneel, Markus's soup, Kiire Kõht …) is
+// not used in this module: the people of the texts are made up and appear in one lesson only. Drills (crossword, matching,
+// sorting, word order, „Mäletad?”) are off the sheets: the removed blocks stay in this file as hide(block, why) — ids
+// and learners' answers are kept, and the practice engine (practice/engine/extract.js) still builds Harjuta items from
+// their form tasks. Owner 2026-11-25: texts adapted to A2+, facts need not be real or checked, no hard numbers; the topic
+// opener 026_d_open (292 words) and Liis's blog 026_d_blog (206 words, the second long text on one sheet) are hidden.
+// The previous version (design v2, „final shape” storyline) is in git history (main before this PR); earlier ones are
+// archive/v3/b1/module06.js and archive/v1/b1/module06.js.
+// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): kogus + osastav (026, again in 028 and 029); polite requests
+// with -ksin and the -ks form (027); täis- ja osasihitis (028, used again in 029: tellisin kaks pitsat, sain ühe pitsa,
+// salatit ei saanud).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
-export const MODULE = { id: 'a2b1-module-06', course: 'b1', title: 'Toit ja teenindus', level: 'B1-', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-06', course: 'b1', title: 'Toit ja teenindus', level: 'A2+', design: 'v3-stations', template: 'v4' };
+
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 6). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a writing form of n ruled lines: the picture stands directly above the task and both fit on one page
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 026 project: shopping for guests (kogus + osastav)
   'a2b1-026': {
-    title: 'Toiduained ja kogused',
-    canDo: 'Ma kirjutan Jaanile 80–100-sõnalise kirja pühapäevase lõuna menüüst ja ostunimekirjast koos kogustega.',
+    title: 'Mida osta ja kui palju?',
+    phases: grammar('Keel: kogus + osastav — liiter piima, kilo kartuleid · arv + ainsuse osastav — kuus muna'),
+    format: 'project',
+    topic: 'money',
+    canDo: 'Ma kirjutan kaaslasele 50–80-sõnalise sõnumi: mida ja kui palju poest osta.',
+    teacherPage: {
+      goal: 'Ученик понимает текст о том, как семья экономит на еде, и пишет 50–80 слов тому, кто идёт в магазин: что и сколько купить для гостей (kogus + osastav: liiter piima, kilo kartuleid, kuus muna).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 60–90 секунд) → текст «Kuidas me toiduraha kokku hoiame» и 7 вопросов → пункт 4: сообщение по картинке «Külmkapp ja retsept» или по своему меню. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 6: ученик 60–90 секунд без помощи рассказывает, что и сколько он покупает и где. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja / aga / sest / siis, формы: количество + osastav, число + osastav ед. ч.). Урок 30 начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт «Mida sa poest ostad ja kui palju?» 60–90 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), текст «Kuidas me toiduraha kokku hoiame» (количества в контексте), 7 вопросов, в паре: «Mida nad enne poodi teevad? Mis on nende nimekirjas?»',
+        '25–40: пункт 3 — заметить → правило (kogus + osastav, mitmuse osastav: kartuleid, õunu, mune; arv + ainsuse osastav: kuus muna) → 8 форм в предложениях → 5–7 своих предложений о своём холодильнике',
+        '40–65: пункт 4 — сообщение 50–80 слов тому, кто идёт в магазин: гостей шестеро (картинка «Külmkapp ja retsept»: что уже есть, что нужно по рецепту) или своё меню, без помощи; вторая попытка: партнёр «в магазине» звонит, ученик говорит список без текста',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, что едят на праздник в его стране и сколько продуктов нужно на 10 человек',
+        '72–90: запас',
+      ],
+      sources: 'Текст (пункт 2) и картинка «Külmkapp ja retsept» — учебные, семья выдумана, цифры примерные, реальных данных нет. В пункте 4 ученик пишет по картинке или о своём настоящем меню.',
+      groups: 'Пункт 4: каждый пишет сам, потом читает партнёру; партнёр «в магазине» задаёт два вопроса («Mitu muna? Kas suur või väike pakk?»). Один на один вы — тот, кто идёт в магазин, и звоните ученику.',
+      errors: [
+        '«kaks liitrit piim» вместо «kaks liitrit piima» (после количества — osastav).',
+        '«kuus munad» / «kuus mune» вместо «kuus muna» (после числа — ainsuse osastav).',
+        '«kilo kartul» / «kilo kartulit» вместо «kilo kartuleid» (то, что считаем штуками, после kilo / palju / vähe — mitmuse osastav).',
+        '«üks pakki» вместо «üks pakk» (после üks — nimetav: üks pakk, но kaks pakki).',
+      ],
+      notes: [
+        'Холодный старт и урок 30 — пара «до / после»: те же три заметки, другая тема (запомнившаяся трапеза). Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: osastav после количества и после числа. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('026_d_review', [['Mis oli sinu kõige ootamatum päev? Räägi kolme lausega minevikus.', 'a2b1-024'], ['Mida tellis pere Helgi peoks Kõrve Köögist ja palju see inimese kohta maksis?', 'a2b1-009'], 'Mida sa sel nädalal poest ostsid?']),
-      B.topicOpener('026_d_open', 'Teema avaleht: mida Eesti sööb?', [
+      station(teach(tag(purpose(B.speaking('026_d_cold', 'Külm start: minu poeskäik', 'Räägi 60–90 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Mida sa tavaliselt poest ostad ja kui palju? Kus ja kui tihti sa toitu ostad?',
+      ], [60, 90]), 'Nii räägid sa toidust mooduli alguses. Kontrollis (tund 30) on sarnane ülesanne: siis näed, kui palju rohkem sa oskad.'), { task: 'S02', harno: 'S1a', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 6 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest, siis); 3) vormid: kogus + osastav (liiter piima, kilo kartuleid), arv + ainsuse osastav (kaks muna). Hoia märkmed alles: tunnis 30 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(B.vocab('026_d_vocab', 'Tunni sõnad.', ['toiduaine — продукт', 'kogus — количество', 'nimekiri — список', 'külmkapp — холодильник', 'pakk — пачка', 'värske — свежий', 'liiter — литр', 'köögivili — овощ', 'puuvili — фрукт', 'kokku hoidma — экономить']), { topic: ['kogus', 'kokku hoidma'] }), 2, 17),
+      B.topicOpener('026_d_shop', 'Kuidas me toiduraha kokku hoiame', [
+        'Meie peres on neli inimest. Eelmisel talvel arvutasime kokku, et kulutame toidule umbes kuussada eurot kuus. See oli liiga palju. Nüüd on meil kolm lihtsat reeglit.',
+        'Esiteks vaatame enne poodi külmkappi. Tihti on seal juba pool pakki võid, natuke juustu või paar muna.',
+        'Teiseks kirjutame nimekirja koos kogustega: mitte lihtsalt „piim”, vaid „kaks liitrit piima”, mitte „kartulid”, vaid „kaks kilo kartuleid”. Siis ei osta me kolme pakki, kui meil on vaja ainult üht.',
+        'Kolmandaks ostame köögivilju ja puuvilju laupäeval turult. Seal on kilo õunu sageli odavam kui poes ja tomatid on värskemad.',
+        'Kui sõbrad tulevad külla, küsime kõigepealt, kes mida ei söö. Siis arvutame kogused inimeste arvu järgi. Nüüd kulutame toidule umbes viissada eurot kuus ja viskame vähem toitu ära.',
+      ], 'KeeleSepa õppetekst', [
+        'Kas sina kirjutad enne poodi nimekirja?',
+        'Mida peaks pere veel tegema, et toiduraha kokku hoida?',
+        'Kas sinu kodumaal ostetakse köögivilju pigem turult või poest?',
+      ]),
+      tag(purpose(why(B.choice('026_d_read', 'Kuidas pere raha kokku hoiab?', 'Loe teksti ja vali õige vastus.', [
+        ['Miks pere oma harjumusi muutis?', 'Nad kulutasid toidule liiga palju raha.', 'Nende külmkapp läks katki.', 'Pood oli kodust liiga kaugel.'],
+        ['Mida nad teevad enne poodi?', 'vaatavad, mis külmkapis juba on', 'helistavad turule', 'söövad kõhu täis'],
+        ['Mis on kirjas nende nimekirjas?', 'toiduaine ja kogus', 'ainult toiduaine hind', 'ainult poe nimi'],
+        ['Miks on kogus nimekirjas tähtis?', 'Siis ei osta nad liiga palju.', 'Siis on poes lühem järjekord.', 'Siis saab maksta kaardiga.'],
+        ['Kust ja millal ostavad nad köögivilju?', 'laupäeval turult', 'pühapäeval supermarketist', 'iga päev kodu lähedalt'],
+        ['Mida nad teevad, kui sõbrad tulevad külla?', 'küsivad, kes mida ei söö, ja arvutavad kogused', 'ostavad kõike kaks korda rohkem', 'tellivad toidu koju'],
+        ['Kui palju raha hoiab pere nüüd kuus kokku?', 'umbes sada eurot', 'umbes viissada eurot', 'umbes kuussada eurot'],
+      ], 'full', 'g_read'), [
+        'Algus: „See oli liiga palju.”',
+        'Esiteks: „vaatame enne poodi külmkappi”.',
+        'Teiseks: „kirjutame nimekirja koos kogustega”.',
+        'Teiseks: „Siis ei osta me kolme pakki, kui meil on vaja ainult üht.”',
+        'Kolmandaks: „ostame köögivilju ja puuvilju laupäeval turult”.',
+        'Lõpp: „küsime kõigepealt, kes mida ei söö. Siis arvutame kogused inimeste arvu järgi.”',
+        'Mõtle ise: enne umbes kuussada, nüüd umbes viissada eurot — vahe on sada.',
+      ]), 'Enne kui sa ise nimekirja kirjutad, näed, kuidas pere koguseid kirja paneb.'), { task: 'R13' }),
+      teach(tag(purpose(B.speaking('026_d_retell', 'Mida ja kui palju? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega ja ütleb koguse. Siis vahetage.', [
+        'Mida pere enne poodi teeb?',
+        'Mis on nende nimekirjas? Too kaks näidet kogusega.',
+        'Mida nad ostavad turult ja miks?',
+        'Mida nad teevad, kui sõbrad tulevad külla?',
+        'Milline reegel sobiks sulle? Miks?',
+      ], [60, 90], '', 'g_read'), 'Ütled, mida ja kui palju pere ostab.'), { task: 'S06', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Nad kirjutavad nimekirja ilma kogusteta”) ja õpilane parandab sind teksti järgi.'),
+      hide(B.review('026_d_review', [['Mis oli sinu kõige ootamatum päev? Räägi kolme lausega minevikus.', 'a2b1-024'], ['Mida tellis pere Helgi peoks Kõrve Köögist ja palju see inimese kohta maksis?', 'a2b1-009'], 'Mida sa sel nädalal poest ostsid?']), V5_DRILL),
+      hide(B.topicOpener('026_d_open', 'Teema avaleht: mida Eesti sööb?', [
         'Mis on eesti köögi kõige tähtsam toit? Paljud eestlased vastavad kohe: must leib. Rukist kasvatatakse Eestis üle tuhande aasta, sest see teravili talub külma ja vaest mulda. Keskajal müüdi Eestist rukist ka teistesse Euroopa maadesse. Lõuna-Eestis Sangaste mõisas aretati 1875. aastal Sangaste rukis, mis on maailma vanim rukkisort, mida praegu veel kasvatatakse. Kui keegi sööb, võib talle öelda „Jätku leiba!” — see tähendab, et leiba jätkuks alati.',
         'Teine vana eesti toit on kama. See on röstitud ja peeneks jahvatatud odra-, rukki-, kaera- ja hernejahu segu. Kama sündis sellest, et toitu oli vähe: inimesed segasid kokku viljajäägid. Kama ei lähe kiiresti halvaks ja sellest saab mõne sekundiga kõhutäie. Kama segatakse hapupiima või keefiriga ja süüakse hommikul või vahepalaks; tänapäeval teevad kokad sellest ka magustoite. Lõuna-Eestist Mulgimaalt pärit mulgi puder on kartulist ja tangudest tehtud puder, mida 19. sajandi lõpuks tehti juba üle kogu Eesti. 2024. aasta detsembris lisas UNESCO mulgi pudru valmistamise ja söömise inimkonna vaimse kultuuripärandi nimekirja.',
         'Paljud pered söövad oma aia ja metsa toitu. Statistikaameti 2020. aasta leibkonna eelarve uuringu andmetel sõi enda kasvatatud või korjatud toitu 39 % leibkondadest: maal 57 % ja linnas 31 %. Selline pere sõi aastas keskmiselt 82 kilo oma kartuleid, 50 kilo õunu ja 9 kilo seeni. Samas uuringus kulus toidule ja alkoholita jookidele 22,7 % kõigist kulutustest. Toit on Eestis seega iga pere eelarves väga suur kulu.',
@@ -49,9 +153,9 @@ export const LESSONS = withShapes({
         'Mis on sinu kodumaa kõige tähtsam toit ja kas seda saab Eestis osta?',
         'Kas sinu meelest tasub ise kartuleid ja õunu kasvatada? Miks?',
         'Miks kulub mõnes riigis toidule suurem osa rahast kui teises?',
-      ]),
-      B.text('026_d_goal', 'Moodul 6: toit ja teenindus', 'Sofia ema Helgi tuli Tartust nädalaks Tallinnasse. Sel nädalal ostab pere toitu, käib kohvikus ja restoranis, teeb koos süüa ja lahendab ühe ebaõnnestunud toidutellimuse. Mooduli lõpus helistad klienditeenindusse ja kirjutad firmale vastuse. Täna loed, kuidas targalt osta, ja kirjutad lõpuks Jaanile kirja: mida pühapäevaseks lõunaks osta ja kui palju.'),
-      tag(B.reading('026_d_blog', 'Liisi blogi.', 'Vaata pealkirja ja arva, mis on Liisi kolm nippi. Siis loe blogi ja kontrolli.', 'Kuidas ma toiduraha kokku hoian', [
+      ]), V5_CUT),
+      hide(B.text('026_d_goal', 'Moodul 6: toit ja teenindus', 'Sofia ema Helgi tuli Tartust nädalaks Tallinnasse. Sel nädalal ostab pere toitu, käib kohvikus ja restoranis, teeb koos süüa ja lahendab ühe ebaõnnestunud toidutellimuse. Mooduli lõpus helistad klienditeenindusse ja kirjutad firmale vastuse. Täna loed, kuidas targalt osta, ja kirjutad lõpuks Jaanile kirja: mida pühapäevaseks lõunaks osta ja kui palju.'), V5_CUT),
+      hide(tag(B.reading('026_d_blog', 'Liisi blogi.', 'Vaata pealkirja ja arva, mis on Liisi kolm nippi. Siis loe blogi ja kontrolli.', 'Kuidas ma toiduraha kokku hoian', [
         'Eelmisel talvel arvutasin kokku, kui palju raha ma toidule kulutan. Summa ehmatas mind: üle kolmesaja euro kuus! Ma elan üksi, nii et see oli liiga palju. Siis otsustasin oma harjumusi muuta. Nüüd kulutan umbes kakssada eurot ja söön isegi tervislikumalt. Mul on kolm lihtsat nippi.',
         '',
         'Esimene nipp: enne poodi vaatan külmkappi. Tihti on seal juba pool pakki võid, natuke juustu või paar muna. Ma pildistan riiulid telefoniga, siis ei pea ma poes meenutama.',
@@ -72,9 +176,8 @@ export const LESSONS = withShapes({
         ['Mida tähendab tekstis „osta igaks juhuks”?', 'osta rohkem, kui vaja|osta midagi, mida ehk ei lähe vaja'],
         ['Miks on Liisil pühapäeva õhtul hea tunne?', 'külmkapp on peaaegu tühi|ta ei viska enam toitu ära'],
         ['Kas sinu arvamus Liisi nippide kohta oli õige? Milline nipp sobiks sulle?', ''],
-      ]), { task: 'R13' }),
-      tag(B.vocab('026_d_vocab', 'Tunni sõnad.', ['toiduaine — продукт', 'kogus — количество', 'nimekiri — список', 'külmkapp — холодильник', 'pakk — пачка', 'purk — банка', 'karp — коробка', 'liiter — литр', 'köögivili — овощ', 'puuvili — фрукт', 'värske — свежий', 'säästma — экономить']), { topic: ['purk'] }),
-      tag(B.listening('026_d_market', 'Laupäev Nõmme turul.', 'Kuula Helgi, Sofia ja Viktori juttu kaks korda. Vasta igale küsimusele ühe või kahe sõnaga.', [
+      ]), { task: 'R13' }), V5_CUT),
+      hide(tag(B.listening('026_d_market', 'Laupäev Nõmme turul.', 'Kuula Helgi, Sofia ja Viktori juttu kaks korda. Vasta igale küsimusele ühe või kahe sõnaga.', [
         'Viktor: Tere, Helgi! Tere, Sofia! Kas tulite pühapäevaseks lõunaks ostma?',
         'Helgi: Tere, vend! Jah, homme tuleb Sofia juurde kaheksa inimest. Mis su õunad täna maksavad?',
         'Viktor: Punased maksavad kaks eurot kilo, rohelised poolteist. Punased on magusamad.',
@@ -102,27 +205,48 @@ export const LESSONS = withShapes({
         'Mida Viktoril sel nädalal ei ole? [tilli]',
         'Mida ostab Helgi tilli asemel? [peterselli|petersell]',
         'Mida toob Viktor homme tasuta? [kartuleid|koti kartuleid]',
-      ]), { task: 'L03' }),
-      B.notice('026_d_notice', 'Märka: kui palju? → osastav', [
-        'Koguse järel on **osastav**: kilo **õunu** · pakk **võid** · liiter **piima** · purk **mett** · natuke **juustu**',
-        'Arv (2, 3, 10 …) + **osastav ainsus**: kaks **karpi**, kümme **muna**, kolm **tomatit**',
-        '**palju**, **vähe**, **natuke**, **pool kilo** + osastav: palju **mune**, vähe **leiba**',
-        'Aine on ainsuses (piima, juustu, mett), tükid mitmuses (õunu, mune, kartuleid).',
-      ], 'full'),
-      B.table('026_d_rule', 'Leia reegel: kogus + sõna', 'Kirjuta sõna vormis, mis tuleb koguse järele. Otsi abi blogist ja turuvestlusest.', 'Mis?, Kui palju?', [
+      ]), { task: 'L03' }), V5_CUT),
+      hide(B.table('026_d_rule', 'Leia reegel: kogus + sõna', 'Kirjuta sõna vormis, mis tuleb koguse järele. Otsi abi blogist ja turuvestlusest.', 'Mis?, Kui palju?', [
         'piim | kaks liitrit [piima]', 'juust | natuke [juustu]', 'mesi | üks purk [mett]', 'või | pool pakki [võid]', 'leib | kaks pätsi [leiba]',
         'õun | kaks kilo [õunu]', 'muna | kümme [muna]', 'kartul | kott [kartuleid]', 'tomat | kolm [tomatit]', 'petersell | üks kimp [peterselli]',
-      ], 'g_notice'),
-      teach(tag(B.speaking('026_d_fridge', 'Liisi külmkapp.', 'Kirjelda paarilisele pildil olevat külmkappi ja ostukorvi umbes üks minut ja kasuta koguseid. Siis arutage kahte viimast küsimust.', ['Mida on külmkapis palju ja mida vähe?', 'Mis on ostukorvis ja kui palju?', 'Mida peab Liis veel ostma?', 'Kas sinu meelest on parem osta köögivilju turult või supermarketist? Miks?', 'Kuidas ostetakse toitu sinu kodumaal: turult, poest või internetist?'], [70, 120], ['Külmkapis on pool pakki…', 'Korvis on kaks kilo…', 'Minu meelest…, sest…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti üks minut, õpetaja küsib vahepeal „Kui palju…?” ja nõuab iga kord üht uut kogust. Siis arutate kahte viimast küsimust: õpetaja räägib, kuidas Eestis ostetakse, õpilane võrdleb oma kodumaaga.'),
-      tag(B.writing('026_d_write', 'Kaheksa minutit kirjutamist.', 'Vaata pilti veel kord. Kirjuta 8 minutit peatumata lugu: mis juhtus Liisi köögis ja poes sel laupäeval?', [8, 10], ['kilo', 'liitrit', 'pakki', 'natuke'], 3), { task: 'W06', fluency: true }),
+      ], 'g_notice'), V5_DRILL),
+      hide(teach(tag(B.speaking('026_d_fridge', 'Liisi külmkapp.', 'Kirjelda paarilisele pildil olevat külmkappi ja ostukorvi umbes üks minut ja kasuta koguseid. Siis arutage kahte viimast küsimust.', ['Mida on külmkapis palju ja mida vähe?', 'Mis on ostukorvis ja kui palju?', 'Mida peab Liis veel ostma?', 'Kas sinu meelest on parem osta köögivilju turult või supermarketist? Miks?', 'Kuidas ostetakse toitu sinu kodumaal: turult, poest või internetist?'], [70, 120], ['Külmkapis on pool pakki…', 'Korvis on kaks kilo…', 'Minu meelest…, sest…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti üks minut, õpetaja küsib vahepeal „Kui palju…?” ja nõuab iga kord üht uut kogust. Siis arutate kahte viimast küsimust: õpetaja räägib, kuidas Eestis ostetakse, õpilane võrdleb oma kodumaaga.'), V5_CUT),
+      hide(tag(B.writing('026_d_write', 'Kaheksa minutit kirjutamist.', 'Vaata pilti veel kord. Kirjuta 8 minutit peatumata lugu: mis juhtus Liisi köögis ja poes sel laupäeval?', [8, 10], ['kilo', 'liitrit', 'pakki', 'natuke'], 3), { task: 'W06', fluency: true }), V5_CUT),
     ],
     practice: [
-      B.match('026_p_pairs', 'Mis kuulub kokku?', 'Ühenda tegevus ja sõna, millega see turul või köögis kokku käib.', [
+      station(B.notice('026_d_notice', 'Märka: kui palju? → osastav', [
+        'Tekstist: pool pakki **võid** · natuke **juustu** · paar **muna** · kaks liitrit **piima** · kaks kilo **kartuleid** · kilo **õunu**',
+        'Kogus (liiter, kilo, pakk, purk, natuke, palju, vähe, pool) + **osastav**: liiter **piima** · pakk **võid** · purk **moosi**',
+        'Ainet ei saa tükkideks lugeda (piim, jahu, juust) → **ainsuse** osastav: kilo **jahu**, natuke **juustu**',
+        'Asju saab lugeda (kartul, õun, muna) → **mitmuse** osastav: kilo **kartuleid**, palju **õunu**, vähe **mune**',
+        'Arv + **ainsuse** osastav: kaks **muna**, kuus **tomatit**, kolm **pakki** võid · aga **üks** + nimetav: **üks muna**, **üks pakk**',
+      ], 'full'), 3, 15),
+      purpose(why(B.gaps('026_p_forms', 'Kui palju on vaja?', 'Kirjuta sulgudes olev sõna õiges vormis. Vaata, kas ees on kogus, arv või „üks”.', [
+        'Osta palun kaks liitrit [piima] (piim).',
+        'Külmkapis on veel natuke [juustu] (juust).',
+        'Supi jaoks on vaja kilo [kartuleid] (kartulid).',
+        'Pannkookide jaoks on vaja kuus [muna] (muna).',
+        'Võta poest ka pakk [võid] (või).',
+        'Meil on kodus väga vähe [puuvilju] (puuviljad).',
+        'Turult ostsin kolm kilo [õunu] (õunad).',
+        'Laual on ainult üks [purk] (purk) moosi.',
+      ], '', 'full', 'g_notice'), [
+        'liiter + ainsuse osastav: piima.',
+        'natuke + ainsuse osastav: juustu.',
+        'kilo + loendatav asi → mitmuse osastav: kartuleid.',
+        'arv + ainsuse osastav: kuus muna.',
+        'pakk + ainsuse osastav: võid.',
+        'vähe + loendatav asi → mitmuse osastav: puuvilju.',
+        'kilo + loendatav asi → mitmuse osastav: õunu.',
+        'üks + nimetav: üks purk (aga kaks purki).',
+      ]), 'Kaheksa lauset näitavad, mis vorm tuleb koguse ja arvu järele.'),
+      tag(purpose(B.writing('026_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: mis on praegu sinu külmkapis ja kui palju (pool pakki võid, kaks muna …) ning mida sa pead ostma.', [5, 7]), 'Oma laused on sinu sõnumi materjal.'), { task: 'W11' }),
+      hide(B.match('026_p_pairs', 'Mis kuulub kokku?', 'Ühenda tegevus ja sõna, millega see turul või köögis kokku käib.', [
         ['hoida piima', 'külmkapis'], ['maksta turul', 'pangakaardiga'], ['lõigata leib', 'viiludeks'], ['kirjutada enne poodi', 'ostunimekiri'], ['küsida müüjalt', 'hinda'],
         ['visata hapu piim', 'prügikasti'], ['saada raha', 'tagasi'], ['kaaluda õunad', 'kaalul'], ['panna ostud', 'kotti'], ['korjata mune', 'kanalast'],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.adsmatch('026_p_ads', 'Eksaminurk: kust osta? (Harno B1 lugemine 1)', 'Leia igale olukorrale sobiv kuulutus ja kirjuta selle täht. Üks kuulutus võib sobida mitmele olukorrale.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.adsmatch('026_p_ads', 'Eksaminurk: kust osta? (Harno B1 lugemine 1)', 'Leia igale olukorrale sobiv kuulutus ja kirjuta selle täht. Üks kuulutus võib sobida mitmele olukorrale.', [
         ['Nõmme turg', 'Laupäeviti kell 8–15: talunike köögiviljad, puuviljad, mesi ja munad. Maksta saab sularahas ja kaardiga. Parkla on turu taga, esimene tund on tasuta. Oma kott kaasa!'],
         ['Pagariäri Leivakorv', 'Rukkileib, sai ja pirukad iga päev värskelt kell 7 hommikul. Pühapäeval oleme avatud 9–14. Õhtul pärast kella 18 on kõik saiad ja pirukad poole hinnaga.'],
         ['Toidukuller Kiire Kõht', 'Toome poekauba ja restoranitoidu koju kahe tunni jooksul. Tellimus alates 30 eurost on tasuta, väiksem tellimus maksab 4 eurot. Töötame iga päev 8–22, ka pühade ajal.'],
@@ -141,8 +265,8 @@ export const LESSONS = withShapes({
         ['Markus ei tohi piima juua ja otsib piimata jogurtit.', 'D'],
         ['Helgi tahab turul maksta pangakaardiga ja auto lähedale parkida.', 'A'],
       ]), { harno: 'R1' }),
-      'Eksaminurk (Harno B1 lugemine 1, ~8 min), formaati tutvustatakse siin. Strateegia enne lahendamist: 1) loe kõigepealt olukorrad ja jooni alla võtmesõna (pähkliallergia, koju, odavalt); 2) otsi kuulutusest sama mõte teiste sõnadega (pähkliallergia → pähklivabad); 3) üks kuulutus võib sobida mitmele. Üks-ühele: esimese olukorra lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise, ajaga 8 minutit.'),
-      B.formtext('026_p_msg', 'Sofia sõnum Jaanile.', 'Pane sulgudes olev sõna koguse järel õigesse vormi.', 'Homme on suur lõuna!', [
+      'Eksaminurk (Harno B1 lugemine 1, ~8 min), formaati tutvustatakse siin. Strateegia enne lahendamist: 1) loe kõigepealt olukorrad ja jooni alla võtmesõna (pähkliallergia, koju, odavalt); 2) otsi kuulutusest sama mõte teiste sõnadega (pähkliallergia → pähklivabad); 3) üks kuulutus võib sobida mitmele. Üks-ühele: esimese olukorra lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise, ajaga 8 minutit.'), V5_CUT),
+      hide(B.formtext('026_p_msg', 'Sofia sõnum Jaanile.', 'Pane sulgudes olev sõna koguse järel õigesse vormi.', 'Homme on suur lõuna!', [
         'Tere, Jaan! Ema on juba siin ja homme teeme kaheksale inimesele lõunat. Täna käisime Viktori juures turul ja ostsime kaks kilo [õunu] (õunad), kaks karpi [mune] (munad) ja purgi [mett] (mesi).',
         '',
         'Palun too poest neli liitrit [piima] (piim), kaks pakki [võid] (või) ja pool kilo [juustu] (juust). Leiba ei ole vaja, ema küpsetab ise.',
@@ -152,8 +276,8 @@ export const LESSONS = withShapes({
         'Lastele võta paar pudelit mahla. Oskari pärast ära osta ühtegi küpsist, kus on [pähkleid] (pähklid)!',
         '',
         'Lõuna algab kell kaks, aga tule palun juba poole ühe ajal, siis jõuame koos lauda katta. Aitäh! Sofia',
-      ]),
-      tag(B.listening('026_p_radio', 'Poe raadioreklaam.', 'Kuula toidupoe reklaami. Kirjuta lünka number: hind, protsent, kellaaeg või aadress.', [
+      ]), V5_DRILL),
+      hide(tag(B.listening('026_p_radio', 'Poe raadioreklaam.', 'Kuula toidupoe reklaami. Kirjuta lünka number: hind, protsent, kellaaeg või aadress.', [
         'Teadustaja: Head kuulajad! Toidupood Sõbralik pakub sel nädalavahetusel häid hindu.',
         'Teadustaja: Kana kilo maksab laupäeval ja pühapäeval ainult viis eurot ja üheksakümmend senti.',
         'Teadustaja: Kaks liitrit piima saate kahe euro eest.',
@@ -175,8 +299,8 @@ export const LESSONS = withShapes({
         'Õhtul suletakse pood kell [22|kümme|10].',
         'Kliendikaardiga saad tagasi [2|kaks] protsenti.',
         'Poe aadress on Niine tänav [15|viisteist].',
-      ]), { task: 'L10' }),
-      tag(B.reading('026_p_bread', 'Populaarteadus: leib.', 'Loe teksti. Vasta küsimustele lühidalt ja oma sõnadega.', 'Miks just rukkileib?', [
+      ]), { task: 'L10' }), V5_CUT),
+      hide(tag(B.reading('026_p_bread', 'Populaarteadus: leib.', 'Loe teksti. Vasta küsimustele lühidalt ja oma sõnadega.', 'Miks just rukkileib?', [
         'Rukis on teravili, mis kasvab hästi ka seal, kus talv on külm ja muld vaene. Seepärast on rukis Eestis tähtis olnud juba üle tuhande aasta. Suvel võib rukkipõllul näha siniseid rukkililli. Rukkilill on Eesti rahvuslill.',
         '',
         'Päris rukkileiva jaoks on vaja ainult mõnda asja: rukkijahu, vett, soola, natuke suhkrut ja juuretist. Leiva tegemine võtab aga palju aega, sest tainas peab rahulikult valmima. Poeleivas on sageli ka nisujahu, seepärast on see pehmem kui puhas rukkileib. Värske hea leiva koorik on krõbe. Musta leiba süüakse supi ja pearoa kõrvale, räimega või lihtsalt soolase võiga.',
@@ -193,8 +317,8 @@ export const LESSONS = withShapes({
         ['Mida ei tohtinud vanasti õhtul teha?', 'lõigata uut pätsi|uut leiba lõigata'],
         ['Mida tehti, kui leivaviil kukkus maha?', 'see tõsteti üles, suudeldi ja söödi edasi|viil suudeldi ja söödi ära'],
         ['Kas sinu kodumaal on leival sama tähtis koht? Too näide.', ''],
-      ]), { task: 'R19', voice: 'popsci' }),
-      B.transformation('026_p_more','Külalisi tuleb rohkem.', 'Pühapäeval on lauas rohkem inimesi. Kirjuta lause uue arvuga; vaata, kuidas muutub koguse sõna.', [
+      ]), { task: 'R19', voice: 'popsci' }), V5_CUT),
+      hide(B.transformation('026_p_more','Külalisi tuleb rohkem.', 'Pühapäeval on lauas rohkem inimesi. Kirjuta lause uue arvuga; vaata, kuidas muutub koguse sõna.', [
         ['Laual on üks kann vett.', 'kaks', 'Laual on kaks kannu vett.'],
         ['Sofia tõi poest ühe paki riisi.', 'kolm', 'Sofia tõi poest kolm pakki riisi.'],
         ['Helgi küpsetas ühe pätsi leiba.', 'kaks', 'Helgi küpsetas kaks pätsi leiba.'],
@@ -205,21 +329,37 @@ export const LESSONS = withShapes({
         ['Lauale pandi üks tükk kooki.', 'kuus', 'Lauale pandi kuus tükki kooki.'],
         ['Tiinale jäi üks taldrik salatit.', 'kaks', 'Tiinale jäi kaks taldrikut salatit.'],
         ['Jaan ostis ühe koti kartuleid.', 'kolm', 'Jaan ostis kolm kotti kartuleid.'],
-      ]),
-      B.crossword('026_p_cross', 'Ristsõna: turult ja poest.', 'Loe vihjet ja kirjuta toiduaine nimi ristsõnasse.', [
+      ]), V5_DRILL),
+      hide(B.crossword('026_p_cross', 'Ristsõna: turult ja poest.', 'Loe vihjet ja kirjuta toiduaine nimi ristsõnasse.', [
         ['Sellest tehakse võid, juustu ja jogurtit.', 'piim'], ['Mesilaste magus toode purgis.', 'mesi'], ['Oranž köögivili, mida jänesed armastavad.', 'porgand'],
         ['Pikk roheline köögivili salatis.', 'kurk'], ['Valge ja peen, sellega küpsetatakse.', 'jahu'], ['Kana muneb seda.', 'muna'], ['Sellega tehakse supp soolaseks.', 'sool'],
         ['Sellest teeb Helgi pühapäeval koogi.', 'õun'], ['Kollane puuvili, mille koor visatakse ära.', 'banaan'], ['Roheline maitsetaim, mida Viktoril sel nädalal ei olnud.', 'till'],
-      ], 'half', 'g_vocab'),
-      B.examWriting('026_p_card', 'Kutse Tiinale.', 'Kirjuta naabrinaisele Tiinale kutse 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'kutse', {
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(B.examWriting('026_p_card', 'Kutse Tiinale.', 'Kirjuta naabrinaisele Tiinale kutse 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'kutse', {
         situation: 'Sofia ja Helgi kutsuvad naabrinaise Tiina pühapäevasele lõunale. Tiina on taimetoitlane.',
         points: ['millal ja kus on lõuna', 'kes veel tulevad', 'mida Tiinale eraldi tehakse ja miks', 'mida Tiina võiks kaasa võtta'],
         words: [50, 70], opening: 'Kallis Tiina!', closing: 'Ootame sind! Sofia ja Helgi',
-      }),
+      }), V5_CUT),
     ],
     transfer: [
-      B.text('026_t_sit', 'Lõuna kaheksale', 'Pühapäeval tulevad Sofia juurde Helgi, Jaan, Kadri, Mia, Oskar, Viktor ja naaber Tiina. Sofia on laupäeva õhtul tööl, nii et poes käib Jaan. Loe külaliste kaarte, leppige Jaaniga menüü kokku ja kirjuta talle kiri: mida osta ja kui palju.'),
-      B.profiles('026_t_guests', 'Neli külalist.', 'Loe külaliste kaarte. Täienda lauseid: mida keegi sööb, mida mitte ja mida ta toob.', [
+      station(teach(tag(purpose(rows(B.examWriting('026_t_letter', 'Sõnum kaaslasele: mida poest osta?', 'Sulle tuleb külla viis inimest. Kirjuta sellele, kes läheb poodi, 50–80 sõna (pilt üleval või oma menüü). Algus ja lõpp on sinu oma.', 'sõnum', {
+        points: ['mis kodus juba on', 'mida ja kui palju osta (vähemalt neli asja kogusega)', 'kust osta ja miks'],
+        words: [50, 80],
+      }), 6), 'Kaaslane ostab täpselt nii palju, kui vaja.'), { task: 'W02', main: true, level: 4 }),
+      'Õpilane kirjutab tunnis 12–15 minutit ilma abita, siis loeb paarilisele (või sulle) ette; kuulaja on „poes” ja küsib kaks küsimust („Mitu muna?”, „Kas suur või väike pakk?”). Teine katse: paariline helistab poest ja õpilane ütleb nimekirja ilma tekstita (60–90 sekundit). Parandatud versioon on kodutöö. Kontrolli: kolm sisupunkti, kogus + osastav (liiter piima, kilo jahu), arv + ainsuse osastav (neli muna).'), 4, 25, { final: 'plan' }),
+      tag(exitCheck(why(purpose(B.gaps('026_t_exit', 'Kontrolli end: kolm kogust.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Osta palun liiter [piima] (piim).',
+        'Mul on vaja kaks kilo [kartuleid] (kartulid).',
+        'Pannkookide jaoks on vaja neli [muna] (muna).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kogus ja osastav on käes.'), ['liiter + ainsuse osastav: piima.', 'kilo + loendatav asi → mitmuse osastav: kartuleid.', 'arv + ainsuse osastav: neli muna.'])), {}),
+      purpose(B.selfcheck('026_t_self', ['Ma ütlen koguse järel osastava: liiter piima, pakk võid, kilo kartuleid.', 'Ma ütlen arvu järel ainsuse osastava: kuus muna, kolm tomatit.', 'Ma saan aru tekstist, kuidas toiduraha kokku hoida.', 'Ma kirjutan kaaslasele, mida ja kui palju poest osta.'], 'Nimekiri valmis', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(half(B.speaking('026_t_home', 'Kodus: minu ostukorv.', 'Salvesta 60–90 sekundit.', [
+        'Mida sa sel nädalal poest ostsid ja kui palju?',
+        'Mida sa ostad turult ja mida poest? Miks?',
+      ], [60, 90])), 'Õpetaja ütleb, kas koguse ja arvu järel tuli osastav õigesti.')), { task: 'S15', fluency: true }),
+      half(homework('026_t_homework', ['1. Paranda sõnum ja saada see õpetajale.', '2. Salvesta oma ostukorv (ülesanne kõrval).', `3. ${WORDS_HOME}`, NO_RECORDING])),
+      hide(B.text('026_t_sit', 'Lõuna kaheksale', 'Pühapäeval tulevad Sofia juurde Helgi, Jaan, Kadri, Mia, Oskar, Viktor ja naaber Tiina. Sofia on laupäeva õhtul tööl, nii et poes käib Jaan. Loe külaliste kaarte, leppige Jaaniga menüü kokku ja kirjuta talle kiri: mida osta ja kui palju.'), V5_CUT),
+      hide(B.profiles('026_t_guests', 'Neli külalist.', 'Loe külaliste kaarte. Täienda lauseid: mida keegi sööb, mida mitte ja mida ta toob.', [
         ['Oskar', ['9 aastat, Jaani poeg', 'pähkliallergia: ei tohi süüa pähkleid ega pähklitega kooki', 'armastab pannkooke ja kartuliputru', 'joob lõuna ajal palju mahla', 'sööb kiiresti ja tahab siis õue minna'],
           ['Oskar ei tohi süüa midagi, kus on [pähkleid].', 'Kõige rohkem armastab Oskar [pannkooke].', 'Lõuna ajal joob ta palju [mahla].', 'Kui kõht on täis, läheb ta [õue].', 'Magustoiduks sobib talle õunakook ilma [pähkliteta].', 'Oskarile võib teha ka [kartuliputru].']],
         ['Mia', ['6 aastat, Jaani tütar', 'ei söö kala', 'sööb vähe: pool portsjonit', 'armastab kurki ja porgandit', 'joob ainult vett'],
@@ -228,29 +368,109 @@ export const LESSONS = withShapes({
           ['Tiina ei söö [liha] ega kala.', 'Talle sobib riis [köögiviljadega].', 'Kohvi asemel joob ta rohelist [teed].', 'Tiina toob kaasa purgi [moosi].', 'Tiina on Sofia [naaber].', 'Kana Tiina ei [söö].']],
         ['Viktor', ['63 aastat, Helgi vend', 'toob turult kaks kilo õunu ja purgi mett', 'sööb palju: vajab suurt portsjonit', 'armastab kartuleid ja kana', 'joob pärast lõunat alati kaks tassi kohvi'],
           ['Viktor toob turult kaks kilo [õunu].', 'Ta toob ka purgi [mett].', 'Viktorile on vaja suur [portsjon].', 'Tema lemmiktoit on kana [kartulitega].', 'Pärast lõunat joob ta kaks tassi [kohvi].', 'Õunu ei pea Jaan poest [ostma].']],
-      ], '2'),
-      teach(B.ideaCard('026_t_menu', 'Leppige kokku: mis on menüüs?', 'Arutage Jaaniga külaliste kaarte. Leppige kokku soe toit, salat, magustoit ja joogid.', 'Pühapäeval sööb Sofia juures kaheksa inimest: kuus täiskasvanut ja kaks last. Igaüks peab saama midagi süüa.', ['kana kartulitega', 'köögiviljasupp', 'ahjukala', 'riis köögiviljadega', 'pannkoogid moosiga', 'Helgi õunakook'], 'Mis on menüüs? Mis sobib Oskarile, Miale ja Tiinale?'),
-        'Üks-ühele: õpetaja on Jaan ja tahab alguses ahjukala; õpilane põhjendab kaartide põhjal (Mia ei söö kala, Tiina ei söö liha) ja pakub kompromissi. Lõpus on menüü ühe lausega kirjas.'),
-      teach(B.speaking('026_t_helgi', 'Helgi küsib.', 'Helgi ei olnud arutelu juures. Vasta tema küsimustele ja põhjenda, miks te nii otsustasite.', ['Mis on soojaks toiduks ja miks just see?', 'Mida saavad süüa Mia, Oskar ja Tiina?', 'Kui palju kartuleid ja kana on kaheksale vaja?', 'Mis on magustoiduks ja mis joogiks?', 'Kes mida ostab ja kui palju see umbes maksab?'], [90, 150], ['Soojaks toiduks on…, sest…', 'Me ostame kaks kilo…', 'Miale teeme…']),
-        'Üks-ühele: õpetaja on Helgi ja küsib iga vastuse järel „Miks?”. Õpilane põhjendab külaliste kaartide põhjal ja kasutab koguseid.'),
-      B.planning('026_t_plan', 'Ostunimekiri enne kirja.', 'Kirjuta igale reale toiduained ja kogused kaheksale inimesele.', ['Soe toit: mida ja kui palju?', 'Lisand: kartulid või riis — mitu kilo?', 'Salat: mis köögiviljad ja kui palju?', 'Joogid: mida ja mitu pudelit või liitrit?', 'Magustoit: mida on vaja?', 'Mida ei pea ostma, sest Viktor toob?'], 2),
-      tag(B.examWriting('026_t_letter', 'Kiri Jaanile.', 'Kirjuta Jaanile kiri 80–100 sõnaga. Kirjuta kõigist viiest punktist ja pane iga toote juurde kogus.', 'kiri', {
-        situation: 'Sofia ja Jaan leppisid menüü kokku. Jaan läheb laupäeva õhtul poodi ja ootab sinu kirja.',
-        points: ['mis on menüüs', 'mida ja kui palju poest osta', 'mida ei ole vaja osta ja miks', 'millele tuleb Oskari, Mia ja Tiina pärast mõelda', 'millal Jaan peab pühapäeval kohal olema'],
-        words: [80, 100], opening: 'Tere, Jaan!', closing: 'Aitäh! Sofia',
-      }), { main: true }),
-      B.rubricW2('026_t_rubric', 'Hindamine: kiri Jaanile (12 punkti).'),
-      B.selfcheck('026_t_self', ['Ma nimetan vähemalt 15 toiduainet.', 'Ma ütlen koguse järel osastava: kilo õunu, liiter piima.', 'Ma leian kuulutustest, kust midagi osta.', 'Ma kirjutan kirja menüü ja ostunimekirjaga.'], 'Toiduained ja kogused'),
+      ], '2'), V5_CUT),
+      hide(teach(B.ideaCard('026_t_menu', 'Leppige kokku: mis on menüüs?', 'Arutage Jaaniga külaliste kaarte. Leppige kokku soe toit, salat, magustoit ja joogid.', 'Pühapäeval sööb Sofia juures kaheksa inimest: kuus täiskasvanut ja kaks last. Igaüks peab saama midagi süüa.', ['kana kartulitega', 'köögiviljasupp', 'ahjukala', 'riis köögiviljadega', 'pannkoogid moosiga', 'Helgi õunakook'], 'Mis on menüüs? Mis sobib Oskarile, Miale ja Tiinale?'),
+        'Üks-ühele: õpetaja on Jaan ja tahab alguses ahjukala; õpilane põhjendab kaartide põhjal (Mia ei söö kala, Tiina ei söö liha) ja pakub kompromissi. Lõpus on menüü ühe lausega kirjas.'), V5_CUT),
+      hide(teach(B.speaking('026_t_helgi', 'Helgi küsib.', 'Helgi ei olnud arutelu juures. Vasta tema küsimustele ja põhjenda, miks te nii otsustasite.', ['Mis on soojaks toiduks ja miks just see?', 'Mida saavad süüa Mia, Oskar ja Tiina?', 'Kui palju kartuleid ja kana on kaheksale vaja?', 'Mis on magustoiduks ja mis joogiks?', 'Kes mida ostab ja kui palju see umbes maksab?'], [90, 150], ['Soojaks toiduks on…, sest…', 'Me ostame kaks kilo…', 'Miale teeme…']),
+        'Üks-ühele: õpetaja on Helgi ja küsib iga vastuse järel „Miks?”. Õpilane põhjendab külaliste kaartide põhjal ja kasutab koguseid.'), V5_CUT),
+      hide(B.planning('026_t_plan', 'Ostunimekiri enne kirja.', 'Kirjuta igale reale toiduained ja kogused kaheksale inimesele.', ['Soe toit: mida ja kui palju?', 'Lisand: kartulid või riis — mitu kilo?', 'Salat: mis köögiviljad ja kui palju?', 'Joogid: mida ja mitu pudelit või liitrit?', 'Magustoit: mida on vaja?', 'Mida ei pea ostma, sest Viktor toob?'], 2), V5_CUT),
+      hide(B.rubricW2('026_t_rubric', 'Hindamine: kiri Jaanile (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 027 infogap: booking a table (polite requests, -ks)
   'a2b1-027': {
-    title: 'Kohvikus ja restoranis',
-    canDo: 'Ma helistan restorani, broneerin laua kogu perele ning küsin toitude ja allergiate kohta.',
+    title: 'Laud kuuele, palun!',
+    phases: grammar('Keel: viisakas palve — sooviksin, kas ma saaksin …? · -ks: eelroaks, magustoiduks'),
+    format: 'infogap',
+    topic: 'freetime',
+    canDo: 'Ma helistan restorani, broneerin laua, küsin taimetoidu ja allergia kohta ning lepin kokku, kui midagi ei sobi.',
+    teacherPage: {
+      goal: 'Ученик понимает звонок в ресторан, вежливо просит (sooviksin, saaksin, -ks) и по телефону со скрытой информацией бронирует столик для своей компании.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → звонок в ресторан (2 раза) и 8 пропусков → пункт 4: звонок в ресторан Kask со скрытой информацией по картинке «Restorani menüü». Пункт 3 — дома в «Harjuta».',
+      hook: '«Kus sa viimati väljas sõid? Mida sa tellisid?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 26 без записей: что и сколько купить на четырёх гостей.',
+      plan: [
+        '0–8: пункт 1 — где ели последний раз вне дома; фраза с количеством (повторение урока 26)',
+        '8–25: пункт 2 — слова, звонок «Restoran Kask, tere!» (2 раза; вежливые формы и -ks в контексте), 8 пропусков, в паре: «Mitmele nad laua broneerisid? Mida saab tellida õde?»',
+        '25–40: пункт 3 — заметить → правило (sooviksin, saaksin, sobiks; -ks: eelroaks, magustoiduks) → 8 форм → 5–7 своих предложений: что я заказываю и что спрашиваю',
+        '40–65: пункт 4 — звонок в ресторан Kask для своей компании (восемь человек, вегетарианец, аллергия на орехи); у учителя скрытая информация (в семь всё занято, вок закончился, на восьмерых только терраса, предоплата); вторая попытка без фраз — обед на четверых коллег в офис',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как в его стране оставляют чаевые и бронируют столик',
+        '72–90: запас',
+      ],
+      sources: 'Звонок (пункт 2), ресторан Kask и картинка «Restorani menüü» — учебные, ресторан и люди выдуманы, цены примерные, реальных данных нет.',
+      groups: 'Пункт 4 в паре: B получает карточку ресторана (копия вашей), A её не видит; потом смена ролей с карточкой кафе. Один на один вы — работник ресторана.',
+      errors: [
+        '«Ma soovin laud» вместо «Ma sooviksin lauda / laua» (вежливо: -ksin; объект: soovin lauda, broneerin laua).',
+        '«Magustoiduna jäätis» / «magustoit jäätis» вместо «magustoiduks jäätis» (в какой роли? → -ks).',
+        '«Kas ma saan menüüd?» звучит прямо; вежливее «Kas ma saaksin menüü?».',
+        '«kuus inimest» правильно, «kuus inimesed» — нет (число + ainsuse osastav, урок 26).',
+      ],
+      notes: [
+        'Скрытая информация даёт настоящую задачу: ученик не знает, что время занято и вок закончился, пока не спросит. Сначала предлагайте неудобное.',
+        'Обратная связь, 2 цели: вежливая форма -ksin / -ks и форма -ks у блюд. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('027_d_review', [['Mida ostsid Helgi ja Sofia Viktori letist ja kui palju?', 'a2b1-026'], ['Kirjelda üht head kolleegi kes-lausega.', 'a2b1-007'], 'Kus sa tavaliselt lõunat sööd ja miks just seal?']),
-      B.text('027_d_hook', 'Lõunapaus Kaneelis', 'Esmaspäeval läheb Helgi Sofia kolleegidega lõunale kohvikusse Kaneel. Seal töötab kokana Sofia vend Jaan; sel nädalal aitab ta ka saalis, sest üks ettekandja on haige. Kõigepealt kuulad kohviku ja poe lühikesi teateid, siis lõunavestlust. Tunni lõpus helistad restorani ja broneerid laua reedeseks õhtusöögiks.'),
-      teach(tag(B.examListen('027_d_clips', 'Eksaminurk: lühikesed teated (Harno B1 kuulamine 1)', 'Kuula kümmet lühikest teadet kohvikust, poest ja telefonist. Iga teade kõlab kaks korda; vali õige vastus.', 'choice', [
+      station(teach(tag(purpose((B.speaking('027_d_survey', 'Kus sa viimati väljas sõid?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kus sa viimati kohvikus või restoranis sõid? Mida sa tellisid?',
+        'Ütle ilma märkmeteta: mida ja kui palju sa ostad, kui sulle tuleb neli külalist?',
+      ], [60, 90])), 'Sinu enda kogemus on tänase tunni algus: lõpus helistad restorani ja broneerid laua.'), { task: 'S09', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris restoranikülastusest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida sa magustoiduks võtsid?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('027_d_vocab', 'Tunni sõnad.', ['broneerima — бронировать', 'saal — зал', 'täis — полный, занят', 'taimetoit — вегетарианская еда', 'allergia — аллергия', 'pähklid — орехи', 'eelroog — закуска', 'praad — второе блюдо', 'magustoit — десерт', 'sobima — подходить'], '1')), { topic: ['broneerima', 'taimetoit'] }), 2, 17),
+      teach(tag(purpose(half(B.dialogue('027_d_table', 'Enne kuulamist: laua taga.', 'Loe paarilisega rollides. Leia viisakad küsimused ja -ks-vormid.', 'Klient', 'Teenindaja', [
+        ['B', 'Tere õhtust! Kas te olete valmis tellima?'],
+        ['A', 'Jah. Ma võtan eelroaks kõrvitsasupi.'],
+        ['B', 'Mida te soovite pearoaks?'],
+        ['A', 'Pearoaks palun kala kartulitega. Kas selles on piima?'],
+        ['B', 'Ei ole. Mida te soovite joogiks?'],
+        ['A', 'Joogiks palun vett. Kas ma saaksin ka leiba?'],
+        ['B', 'Muidugi. Kas magustoiduks soovite midagi?'],
+        ['A', 'Võib-olla hiljem. Aitäh!'],
+      ], 'g_read')), 'Enne kõnet kuuled ja ütled ise, kuidas laua taga viisakalt tellida.'), { task: 'G02' }),
+      'Üks-ühele: loe sina teenindaja rolli, õpilane kliendi rolli; siis vahetage. Õpilane näitab viisakad küsimused (Kas ma saaksin …?) ja -ks-vormid (eelroaks, pearoaks, joogiks, magustoiduks) ning ütleb nende algvormi.'),
+      tag(purpose(why(ownText(twice(B.examListen('027_d_lunch', 'Kõne restorani.', 'Loe enne küsimused läbi. Siis kuula kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Teenindaja: Restoran Kask, tere! Kuidas saan aidata?',
+        'Klient: Tere! Ma sooviksin broneerida laua laupäeva õhtuks. Meid on kuus.',
+        'Teenindaja: Mis kellaks te soovite?',
+        'Klient: Kella seitsmeks, palun. Meil on ema sünnipäev.',
+        'Teenindaja: Kell seitse on saal kahjuks täis. Kas kell pool kaheksa sobiks?',
+        'Klient: Jah, see sobib. Kas teil on ka taimetoitu? Minu õde ei söö liha.',
+        'Teenindaja: Jah, meil on kõrvitsasupp ja köögiviljavokk.',
+        'Klient: Väga hea. Minu pojal on pähkliallergia. Kas magustoiduks on midagi ilma pähkliteta?',
+        'Teenindaja: Šokolaadikoogis on pähklid, aga jäätis on ilma pähkliteta.',
+        'Klient: Siis võtame pojale magustoiduks jäätise. Kas ma saaksin oma tordi kaasa tuua?',
+        'Teenindaja: Jah, saate. Tordi eest maksate kaks eurot inimese kohta.',
+        'Klient: Selge. Kas teil on ka parkla?',
+        'Teenindaja: Jah, maja taga. Mis nimele ma laua kirja panen?',
+        'Klient: Tamm. Ants Tamm.',
+        'Teenindaja: Aitäh! Laud kuuele, laupäeval kell pool kaheksa. Kohtumiseni!',
+      ], [
+        ['Mis õhtuks klient lauda soovib?', 'laupäeva õhtuks', 'reede õhtuks', 'pühapäeva õhtuks'],
+        ['Mitmele inimesele on laud?', 'kuuele', 'neljale', 'kaheksale'],
+        ['Miks ei saa nad tulla kell seitse?', 'Saal on siis täis.', 'Restoran on siis kinni.', 'Kokk on haige.'],
+        ['Mis kell nad tulevad?', 'pool kaheksa', 'kell kuus', 'kell kaheksa'],
+        ['Mida saab süüa kliendi õde, kes ei söö liha?', 'kõrvitsasuppi või köögiviljavokki', 'kana riisiga', 'seljankat'],
+        ['Miks ei sobi pojale šokolaadikook?', 'Selles on pähklid.', 'See on liiga magus.', 'See on otsas.'],
+      ], 'g_read'))), [
+        'Klient: „broneerida laua laupäeva õhtuks”.',
+        'Klient: „Meid on kuus.”',
+        'Teenindaja: „Kell seitse on saal kahjuks täis.”',
+        'Teenindaja: „Kas kell pool kaheksa sobiks?” — Klient: „Jah, see sobib.”',
+        'Teenindaja: „meil on kõrvitsasupp ja köögiviljavokk”.',
+        'Teenindaja: „Šokolaadikoogis on pähklid.”',
+      ]), 'Enne kui sa ise helistad, kuuled, kuidas klient viisakalt lauda broneerib ja toidu kohta küsib.'), { task: 'L01', harno: 'L1' }),
+      teach(tag(purpose((B.speaking('027_d_retell', 'Mida klient broneeris? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mis päevaks ja mitmele inimesele klient laua broneeris?',
+        'Miks nad ei saa tulla kell seitse?',
+        'Mida saab tellida kliendi õde? Aga poeg magustoiduks?',
+        'Kas sina broneerid lauda telefonis või internetis? Miks?',
+      ], [60, 90], '', 'g_read')), 'Ütled, mida klient küsis ja mis kokku lepiti.'), { task: 'S05', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Nad tulevad kell seitse”) ja õpilane parandab sind kõne järgi.'),
+      hide(B.review('027_d_review', [['Mida ostsid Helgi ja Sofia Viktori letist ja kui palju?', 'a2b1-026'], ['Kirjelda üht head kolleegi kes-lausega.', 'a2b1-007'], 'Kus sa tavaliselt lõunat sööd ja miks just seal?']), V5_DRILL),
+      hide(B.text('027_d_hook', 'Lõunapaus Kaneelis', 'Esmaspäeval läheb Helgi Sofia kolleegidega lõunale kohvikusse Kaneel. Seal töötab kokana Sofia vend Jaan; sel nädalal aitab ta ka saalis, sest üks ettekandja on haige. Kõigepealt kuulad kohviku ja poe lühikesi teateid, siis lõunavestlust. Tunni lõpus helistad restorani ja broneerid laua reedeseks õhtusöögiks.'), V5_CUT),
+      hide(teach(tag(B.examListen('027_d_clips', 'Eksaminurk: lühikesed teated (Harno B1 kuulamine 1)', 'Kuula kümmet lühikest teadet kohvikust, poest ja telefonist. Iga teade kõlab kaks korda; vali õige vastus.', 'choice', [
         'Esimene tekst. Tere tulemast kohvikusse Kaneel! Täna on päevapraad seenerisoto. Supiks pakume hernesuppi. Lõunamenüü hind on üksteist eurot ja kohv on hinnas.',
         'Teine tekst. Hei, Anna, siin Markus. Ma jään viis minutit hiljaks. Telli mulle palun hernesupp, aga ilma kooreta, sa tead, et ma ei tohi piima.',
         'Kolmas tekst. Head kliendid! Meie kaardimakseterminal ei tööta. Täna saab maksta ainult sularahas. Lähim pangaautomaat on kohvikust paremal, apteegi kõrval.',
@@ -273,41 +493,8 @@ export const LESSONS = withShapes({
         ['Kus on sügisel kohviku lauad?', 'toas', 'terrassil', 'aias'],
         ['Mida Tiina trepilt leidis?', 'Helgi kindad', 'Sofia võtmed', 'Helgi rahakoti'],
       ]), { task: 'L01', harno: 'L1' }),
-      'Eksaminurk (Harno B1 kuulamine 1, ~9 min). Enne kuulamist loeb õpilane küsimused ja valikud läbi (1 minut) ja mõtleb, mida ta kuulama peab: kellaaeg, toit, koht. Esimesel korral märgib, teisel korral kontrollib. Üks-ühele: pärast vastuste kontrolli kuulake üks tekst, kus õpilane eksis, veel kord ja leidke koos sõna, mis vastuse andis.'),
-      tag(B.vocab('027_d_vocab', 'Tunni sõnad.', ['menüü — меню', 'päevapraad — блюдо дня', 'eelroog — закуска', 'magustoit — десерт', 'ettekandja — официант', 'tellima — заказывать', 'arve — счёт', 'eraldi — отдельно', 'soovitama — рекомендовать', 'broneerima — бронировать', 'koostis — состав', 'maksma — платить']), { topic: ['päevapraad'] }),
-      B.listening('027_d_lunch', 'Lõuna Kaneelis.', 'Kuula, mida Helgi, Anna ja Markus Jaanilt tellivad. Kirjuta igasse lünka üks või kaks sõna.', [
-        'Jaan: Tere tulemast! Ema, sina ka siin? Kas laud kolmele sobib?',
-        'Helgi: Sobib väga hästi. Sofia jäi kontorisse, tal on koosolek, aga Anna ja Markus võtsid mind kaasa.',
-        'Jaan: Väga tore. Täna on päevapraad seenerisoto ja supiks on hernesupp. Lõunamenüü maksab üksteist eurot.',
-        'Markus: Mul on kiire, aega on ainult pool tundi. Mis on kõige kiirem?',
-        'Jaan: Supp on kohe valmis. Risoto võtab umbes viisteist minutit.',
-        'Markus: Siis palun mulle hernesuppi. Aga kas selles on koort?',
-        'Jaan: Ei ole, hernesupp on ilma piimata. Ma küsisin kokalt hommikul üle.',
-        'Anna: Mina sooviksin risotot. Ja üks küsimus: kas risotos on juustu?',
-        'Jaan: Jah, peal on parmesani. Kas soovid ilma?',
-        'Anna: Ei, juust sobib mulle. Joogiks palun klaas kraanivett.',
-        'Helgi: Mina võtan ka risoto, aga väiksema portsjoni. Kas see on võimalik?',
-        'Jaan: Muidugi, väike portsjon maksab kaheksa eurot. Ja magustoiduks? Täna on meil kaneelirullid, küpsetatud hommikul.',
-        'Helgi: Üks kaneelirull, palun. Ma tahan teada, kas need on sama head kui minu omad.',
-        'Markus: Kas me saaksime kohe ka arve? Me maksame eraldi.',
-        'Jaan: Saate. Kas maksate kaardiga?',
-        'Markus: Mina kaardiga. Anna maksab telefoniga.',
-        'Helgi: Ja minu arve maksab mu poeg, eks?',
-        'Jaan: Hea küll, ema, täna on sinu lõuna minu poolt.',
-        'Helgi: Aitäh, poeg! Ja kaneelirull oli tõesti hea. Aga minu omad on ikkagi natuke paremad.',
-      ], [
-        'Sofia ei tulnud lõunale, sest tal on [koosolek].',
-        'Täna on päevapraad [seenerisoto|risoto].',
-        'Markusel on lõunaks aega ainult [pool tundi].',
-        'Risoto valmistamine võtab umbes [viisteist|15] minutit.',
-        'Hernesupis ei ole [koort|piima].',
-        'Anna risoto peal on [parmesani|juustu].',
-        'Joogiks võtab Anna klaasi [kraanivett|vett].',
-        'Väike portsjon risotot maksab [kaheksa|8] eurot.',
-        'Kaneelirullid küpsetati täna [hommikul].',
-        'Helgi lõuna eest maksab tema [poeg|Jaan].',
-      ]),
-      B.dialogue('027_d_chat', 'Sõnumid hommikul.', 'Sofia ja Helgi kirjutavad hommikul sõnumeid. Kirjuta igasse lünka üks sobiv sõna.', 'Sofia', 'Helgi', [
+      'Eksaminurk (Harno B1 kuulamine 1, ~9 min). Enne kuulamist loeb õpilane küsimused ja valikud läbi (1 minut) ja mõtleb, mida ta kuulama peab: kellaaeg, toit, koht. Esimesel korral märgib, teisel korral kontrollib. Üks-ühele: pärast vastuste kontrolli kuulake üks tekst, kus õpilane eksis, veel kord ja leidke koos sõna, mis vastuse andis.'), V5_CUT),
+      hide(B.dialogue('027_d_chat', 'Sõnumid hommikul.', 'Sofia ja Helgi kirjutavad hommikul sõnumeid. Kirjuta igasse lünka üks sobiv sõna.', 'Sofia', 'Helgi', [
         ['A', 'Ema, kas sa lähed täna Anna ja Markusega [lõunale]?'],
         ['B', 'Jah! Markus ütles, et Kaneelis on väga hea [päevapraad].'],
         ['A', 'Ära unusta, et Markus ei tohi [piima]. Ta küsib alati toidu koostise kohta.'],
@@ -318,30 +505,48 @@ export const LESSONS = withShapes({
         ['B', 'Kas ma pean Jaanile ütlema, et [tulen]?'],
         ['A', 'Ei pea, las see olla üllatus! Ta töötab täna [saalis], sest üks ettekandja on haige.'],
         ['B', 'Tore. Ma jätan talle ka natuke [jootraha]!'],
-      ], 'g_read'),
-      B.notice('027_d_notice', 'Märka: viisakas tellimine', [
-        'Tellin: **Palun mulle** suppi. · **Ma sooviksin** risotot. · **Ma võtan** lõunamenüü.',
-        'Küsin: **Kas selles on** koort? · **Kas seda saab ilma** juustuta?',
-        'Palun: **Kas me saaksime** arve? · **Kas te saaksite** kastme eraldi tuua?',
-        'Mis roaks? omastav + **-ks**: supp → supi → **supiks** · jook → joogi → **joogiks** · magustoit → **magustoiduks**',
-        '**sooviksin**, **saaksime**, **võiksin** — tingiv kõneviis teeb palve pehmemaks.',
-      ], 'full'),
-      B.categorize('027_d_who', 'Klient või ettekandja?', 'Kes nii ütleb: klient või ettekandja? Pane laused õigesse veergu.', [
+      ], 'g_read'), V5_CUT),
+      hide(B.categorize('027_d_who', 'Klient või ettekandja?', 'Kes nii ütleb: klient või ettekandja? Pane laused õigesse veergu.', [
         ['klient ütleb', ['Palun mulle hernesuppi.', 'Kas selles on koort?', 'Ma sooviksin väiksemat portsjonit.', 'Kas me saaksime arve?', 'Me maksame eraldi.', 'Mida te täna soovitate?', 'Kas seda saab ilma sibulata?', 'Kas ma võiksin istuda akna all?']],
         ['ettekandja ütleb', ['Mida ma saan teile tuua?', 'Kas teil on laud broneeritud?', 'Supp on kohe valmis.', 'Kas soovite ka magustoitu?', 'Kas maksate kaardiga?', 'Täna soovitame seenerisotot.', 'Kas kõik maitses hästi?', 'Toon teile kohe menüü.']],
-      ], 'full', 'g_vocab'),
-      B.match('027_d_answer', 'Küsimus ja vastus.', 'Mida ettekandja vastab? Leia igale kliendi küsimusele sobiv vastus.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.match('027_d_answer', 'Küsimus ja vastus.', 'Mida ettekandja vastab? Leia igale kliendi küsimusele sobiv vastus.', [
         ['Kas teil on vaba laud kolmele?', 'Jah, palun istuge akna alla.'], ['Mis on täna päevapraad?', 'Seenerisoto salatiga.'],
         ['Kas hernesupis on koort?', 'Ei, see on tehtud ilma piimata.'], ['Kas risotot saab väiksema portsjonina?', 'Saab, väike maksab kaheksa eurot.'],
         ['Mida te joogiks soovitate?', 'Meie kohalikku õunamahla.'], ['Kui kaua peab ootama?', 'Umbes viisteist minutit.'],
         ['Kas kaneelirullid on värsked?', 'Jah, küpsetasime need hommikul.'], ['Kas siin saab telefoniga maksta?', 'Saab, terminal on leti peal.'],
         ['Kas kraanivesi on tasuta?', 'On küll, toon kohe kannu.'], ['Kas me saame maksta eraldi?', 'Muidugi, igaüks maksab ise.'],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('027_d_survey', 'Kus sa lõunat sööd?', 'Küsi kolmelt inimeselt järjest samad küsimused. Lõpus räägi, mida kõik kolm vastasid.', ['Kus sa tööpäeval lõunat sööd?', 'Kui palju sa lõuna eest tavaliselt maksad?', 'Mida sa kohvikus kõige sagedamini tellid?', 'Kas sa jätad jootraha? Miks?', 'Räägi lõpuks: mida kolm inimest vastasid?'], [70, 120], ['Kus sa…?', 'Kõik kolm ütlesid, et…', 'Üks inimene…, aga teine…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (üliõpilane, kontoritöötaja, pensionär). Lõpus teeb õpilane kokkuvõtte.'),
+      ], 'full', 'g_vocab'), V5_DRILL),
     ],
     practice: [
-      B.reading('027_p_web', 'Kohviku Kaneel koduleht.', 'Loe Kaneeli kodulehte. Vasta küsimustele: osa vastuseid leiad tekstist, osa pead ise järeldama.', 'Tere tulemast kohvikusse Kaneel!', [
+      station(B.notice('027_d_notice', 'Märka: viisakas palve ja -ks', [
+        'Kõnest: **Ma sooviksin** broneerida laua · **Kas** kell pool kaheksa **sobiks**? · **Kas ma saaksin** tordi kaasa tuua? · **Kas teil on** taimetoitu?',
+        'Viisakas vorm **-ks-**: soovin → ma **sooviksin** · saan → ma **saaksin** · sobib → **sobiks** · võite → **kas te võiksite** …?',
+        'Mis rooga? Milleks? → **-ks**: eelroog → **eelroaks** · pearoog → **pearoaks** · magustoit → **magustoiduks** · jook → **joogiks** · supp → **supiks**',
+        'Ma võtan **eelroaks** salati ja **joogiks** vett. Pojale võtame **magustoiduks** jäätise.',
+        'Teenindaja ütleb: **Kahjuks** … · **Kas** … **sobiks**? · **Mis nimele?** · **Head isu!**',
+      ], 'full'), 3, 15),
+      purpose(why(B.wordforms('027_p_ks', 'Kas ma saaksin …?', 'Kirjuta sõna viisakas vormis või -ks-vormis nii, et see sobiks lausesse.', [
+        ['soovima', 'Ma … broneerida laua kahele.', 'sooviksin'],
+        ['saama', 'Kas ma … menüü?', 'saaksin'],
+        ['sobima', 'Kas teile … kell kaheksa?', 'sobiks'],
+        ['võima', 'Kas te … arve tuua?', 'võiksite'],
+        ['eelroog', 'Ma võtan … salati.', 'eelroaks'],
+        ['pearoog', 'Ma soovin … kala kartulitega.', 'pearoaks'],
+        ['jook', 'Mida te soovite …?', 'joogiks'],
+        ['magustoit', 'Lapsele palun … jäätis.', 'magustoiduks'],
+      ], 'full', 'g_notice'), [
+        'viisakas: soovin → sooviksin.',
+        'viisakas: saan → saaksin.',
+        'viisakas: sobib → sobiks.',
+        'viisakas: võite → võiksite.',
+        'mis rooga? → -ks: eelroaks.',
+        'mis rooga? → -ks: pearoaks.',
+        'milleks? → -ks: joogiks.',
+        'mis rooga? → -ks: magustoiduks.',
+      ]), 'Kaheksa lauset näitavad viisaka palve ja -ks-vormi.'),
+      tag(purpose(B.writing('027_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: mida sa restoranis tellid (eelroaks, pearoaks, joogiks, magustoiduks) ja kaks viisakat küsimust teenindajale.', [5, 7]), 'Oma laused on sinu kõne materjal.'), { task: 'W05' }),
+      hide(B.reading('027_p_web', 'Kohviku Kaneel koduleht.', 'Loe Kaneeli kodulehte. Vasta küsimustele: osa vastuseid leiad tekstist, osa pead ise järeldama.', 'Tere tulemast kohvikusse Kaneel!', [
         'Kohvik Kaneel asub Tallinna kesklinnas, kontorimajade vahel. Meil on kolmkümmend kohta ja teisel korrusel lastenurk. Oleme avatud tööpäeviti kella kaheksast kuueni ja laupäeval kümnest neljani. Pühapäeval puhkame.',
         '',
         'Hommikusööki pakume tööpäeviti kella kaheksast kümneni: putru, võileibu ja omletti. Lõunamenüü on kella üheteistkümnest kolmeni. Sinna kuuluvad supp, päevapraad ja kohv või tee, hind on üksteist eurot. Taimetoitlastele on igal päeval oma roog.',
@@ -362,12 +567,12 @@ export const LESSONS = withShapes({
         ['Mida peab tegema seltskond, kus on kaheksa inimest?', 'broneerima laua ette'],
         ['Millal peab rühm ütlema, et maksab eraldi?', 'tellimisel|kohe tellides'],
         ['Kas Markus saab Kaneelis süüa? Kuidas?', 'jah, ta ütleb allergiast ja kokk teeb ilma piimata'],
-      ]),
-      B.wordorder('027_p_polite', 'Viisakas lause.', 'Tee segatud sõnadest viisakas lause, mida restoranis öeldakse.', [
+      ]), V5_CUT),
+      hide(B.wordorder('027_p_polite', 'Viisakas lause.', 'Tee segatud sõnadest viisakas lause, mida restoranis öeldakse.', [
         'Kas me saaksime palun menüü?', 'Ma sooviksin pearoaks ahjukala kartulitega.', 'Kas seda salatit saab ilma kastmeta?', 'Mida te meile magustoiduks soovitate?', 'Kas teil on lastele midagi ilma pähkliteta?',
         'Palun tooge mulle veel üks klaas vett.', 'Kas ma võiksin maksta telefoniga?', 'Meil on laud broneeritud Sofia nimele.', 'Kas te saaksite toidu kaasa pakkida?', 'Palun tooge meile kaks eraldi arvet.',
-      ], 'full'),
-      tag(B.examListen('027_p_radio', 'Raadiointervjuu: kohviku omanik.', 'Kuula, mida kohviku omanik raadios räägib. Kas väide on õige või vale?', 'truefalse', [
+      ], 'full'), V5_DRILL),
+      hide(tag(B.examListen('027_p_radio', 'Raadiointervjuu: kohviku omanik.', 'Kuula, mida kohviku omanik raadios räägib. Kas väide on õige või vale?', 'truefalse', [
         'Ülle: Tere, kuulajad! Täna on stuudios Merike Lõhmus, kes on kohviku Kaneel omanik. Tere, Merike!',
         'Merike: Tere, Ülle! Aitäh kutse eest.',
         'Ülle: Merike, kui kaua on Kaneel avatud olnud?',
@@ -398,27 +603,38 @@ export const LESSONS = withShapes({
         ['Eestis peab jätma kümme protsenti jootraha.', false],
         ['Kui toit ei meeldi, tahab Merike, et klient ütleks seda kohe.', true],
         ['Merike avab teise kohviku Tartus juba sel aastal.', false],
-      ]), { voice: 'interview' }),
-      B.know('027_p_know', [
+      ]), { voice: 'interview' }), V5_CUT),
+      hide(B.know('027_p_know', [
         'Toiduallergiaga inimene peab teadma, mis on toidus. Seepärast peab klient kohvikus või restoranis saama enne tellimist teada, kas roas on mõni neljateistkümnest põhilisest allergeenist: gluteeniga teravili, koorikloomad, molluskid, muna, kala, maapähklid, pähklid, soja, piim, seller, sinep, seesamiseemned, lupiin ning vääveldioksiid ja sulfitid.',
         'Söögikohas võib selle info anda kirjalikult (näiteks menüüs) või suuliselt. Kui info antakse suuliselt, peab söögikohas olema hästi nähtav teade, kust ja kellelt seda küsida. Küsi julgelt — see on sinu õigus.',
-      ], 'Regionaal- ja Põllumajandusministeerium, „Müügipakendisse pakendamata toit” ja „Allergeenid”', 'Kas teadsid? Allergeenid söögikohas'),
-      B.wordforms('027_p_ks', 'Mis roaks?', 'Pane sõna -ks vormi nii, et see sobiks lausesse.', [
-        ['eelroog', 'Mis on täna …? Kõrvitsasupp.', 'eelroaks'], ['pearoog', 'Helgi võttis … ahjukala.', 'pearoaks'], ['magustoit', 'Oskar tahab … pannkooke.', 'magustoiduks'],
-        ['jook', 'Markus tellis … õunamahla.', 'joogiks'], ['lõuna', 'Mida sa täna … sööd?', 'lõunaks'], ['hommikusöök', 'Anna sõi … putru.', 'hommikusöögiks'],
-        ['õhtusöök', 'Mis on meil täna …?', 'õhtusöögiks'], ['lisand', 'Kala kõrvale tuleb … riis.', 'lisandiks'], ['jootraha', 'Sofia jättis … kaks eurot.', 'jootrahaks'], ['tervitus', 'Kokk tõi meile … väikese suupiste.', 'tervituseks'],
-      ], 'full'),
-      teach(B.rolecards('027_p_order', 'Tellimine Kaneelis.', 'A on klient, kellel on allergia, B on ettekandja menüüga. Leidke koos, mida klient saab tellida.',
+      ], 'Regionaal- ja Põllumajandusministeerium, „Müügipakendisse pakendamata toit” ja „Allergeenid”', 'Kas teadsid? Allergeenid söögikohas'), V5_CUT),
+      hide(teach(B.rolecards('027_p_order', 'Tellimine Kaneelis.', 'A on klient, kellel on allergia, B on ettekandja menüüga. Leidke koos, mida klient saab tellida.',
         'Oled klient. Sul on pähkliallergia ja sa ei söö sealiha. Küsi, mis on täna menüüs ja mis on roogade sees. Telli eelroog, pearoog ja jook.',
         'Oled ettekandja. Menüü: kõrvitsasupp (koor), kanasalat (pähklid), seenerisoto (juust), seapraad, ahjukala (või), õunakook (pähklid). Vasta küsimustele ja paku, mida saab muuta.',
         ['Mis selles on?', 'Kas seda saab ilma…?', 'Siis ma võtan…'], ['Selles on…', 'Kokk võib teha ilma…', 'Mida joogiks?']),
-      'Üks-ühele: õpetaja on ettekandja ja vastab ainult sellele, mida õpilane küsib. Siis vahetage: õpilane on ettekandja ja õpetaja tellib taimetoitlasena.'),
-      teach(tag(B.speaking('027_p_tip', 'Kas jootraha on vajalik?', 'Arutage paaris. Ütle oma arvamus, too põhjus ja näide ning küsi, mida paariline arvab.', ['Kas sina jätad kohvikus jootraha? Miks?', 'Kui palju on sinu meelest õige jätta?', 'Kuidas on jootrahaga sinu kodumaal?', 'Millal sa jootraha kindlasti ei jäta?', 'Kas ettekandja palk peaks olema suurem? Põhjenda.'], [70, 120], ['Minu meelest…, sest…', 'Teisest küljest…', 'Näiteks…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpetaja ütleb igale küsimusele vastupidise arvamuse; õpilane põhjendab oma seisukohta ja võrdleb Eestit oma kodumaaga. Lõpus ütleb õpilane ühe lausega, kas ta muutis oma arvamust.'),
+      'Üks-ühele: õpetaja on ettekandja ja vastab ainult sellele, mida õpilane küsib. Siis vahetage: õpilane on ettekandja ja õpetaja tellib taimetoitlasena.'), V5_CUT),
+      hide(teach(tag(B.speaking('027_p_tip', 'Kas jootraha on vajalik?', 'Arutage paaris. Ütle oma arvamus, too põhjus ja näide ning küsi, mida paariline arvab.', ['Kas sina jätad kohvikus jootraha? Miks?', 'Kui palju on sinu meelest õige jätta?', 'Kuidas on jootrahaga sinu kodumaal?', 'Millal sa jootraha kindlasti ei jäta?', 'Kas ettekandja palk peaks olema suurem? Põhjenda.'], [70, 120], ['Minu meelest…, sest…', 'Teisest küljest…', 'Näiteks…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpetaja ütleb igale küsimusele vastupidise arvamuse; õpilane põhjendab oma seisukohta ja võrdleb Eestit oma kodumaaga. Lõpus ütleb õpilane ühe lausega, kas ta muutis oma arvamust.'), V5_CUT),
     ],
     transfer: [
-      B.text('027_t_sit', 'Reedene õhtusöök', 'Reede õhtul tahab Sofia viia ema restorani Aed. Kaasa tulevad Jaan, Kadri, Mia, Oskar ja Sofia ülemus Liis, kes tahab Helgiga tutvuda. Sofia jättis restoranile sõnumi ja nüüd helistati tagasi. Kuula sõnumit, helista restorani ja kirjuta perele.'),
-      tag(B.listening('027_t_voice', 'Restorani häälsõnum.', 'Kuula restorani Aed sõnumit kaks korda. Märgi üles kõik, mida Sofia peab teadma ja tegema.', [
+      station(teach(tag(purpose(B.rolecards('027_t_call', 'Helista restorani: laud sinu seltskonnale.', 'Sa tahad sel nädalal oma seltskonnaga restorani Kask minna (pilt „Restorani menüü” on üleval). Helista, õpetaja on restorani teenindaja. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: teid on kaheksa. Üks sõber ei söö liha, ühel lapsel on pähkliallergia.\nEesmärk: broneeri laud, küsi taimetoidu ja magustoidu kohta ja lepi kokku aeg, mis kõigile sobib.\nSiis uus olukord: sa tellid telefonis lõuna neljale kolleegile kontorisse.',
+        'Restorani kaart on õpetajal: vabad ajad, mis täna on ja mis mitte, ja üks probleem. Küsi ja kuula.',
+        ['Tere! Ma sooviksin …', 'Kas teil on …?', 'Kas … sobiks?'], []), 'Pärast kõnet on sinu seltskonnal laud ja igaüks saab süüa seda, mida ta tohib.'), { task: 'S04', main: true, level: 4 }),
+      'Üks-ühele, õpetaja kaart (restorani teenindaja). Varjatud info: reedel ja laupäeval kell 18–20 on saal täis, vabad on kell 17.00 või 20.30; kaheksale on vaba ainult pikk laud terrassil (tekid on olemas); köögiviljavokk on täna otsas, taimetoit on kõrvitsasupp ja ahjuköögiviljad (neid menüüs ei ole); šokolaadikoogis on pähklid, jäätis ja marjakook on pähkliteta; üle kuue inimese seltskond maksab ette 20 eurot. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Kell seitse on kahjuks täis.” 2) „Kaheksale on vaba ainult terrass.” 3) „Vokk on täna otsas.” 4) „Suurem seltskond maksab ette 20 eurot.” Õnnestunud, kui õpilane ütleb, mitu inimest ja millal, küsib taimetoidu ja pähklite kohta, reageerib takistustele (pakub teise aja, küsib, mis taimetoit veel on) ja kordab kokkuleppe üle (päev, kell, nimi). Teine katse ilma fraasideta (lehel „uus olukord”): sina oled kohviku teenindaja. Varjatud info: päevapraad on kana riisiga (9 €), päeva supp on seljanka (lihaga), kontorisse toomine maksab 3 €, alates 40 eurost on see tasuta; toit tuleb kell 12.30, mitte varem. Õnnestunud, kui õpilane tellib neljale, küsib hinna ja aja ning saab teada, millal toomine on tasuta.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.gaps('027_t_exit', 'Kontrolli end: kolm vormi.', 'Kirjuta sulgudes olev sõna viisakas vormis või -ks-vormis.', [
+        'Ma [sooviksin] (soovima) laua neljale.',
+        'Kas ma [saaksin] (saama) arve?',
+        'Ma võtan [magustoiduks] (magustoit) jäätise.',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas viisakas palve ja -ks on käes.'), ['viisakas: soovin → sooviksin.', 'viisakas: saan → saaksin.', 'mis rooga? → -ks: magustoiduks.'])), {}),
+      purpose(B.selfcheck('027_t_self', ['Ma palun viisakalt: ma sooviksin, kas ma saaksin, kas … sobiks?', 'Ma kasutan -ks-vormi: eelroaks, pearoaks, joogiks, magustoiduks.', 'Ma saan aru telefonikõnest restoraniga.', 'Ma broneerin telefonis laua ja küsin taimetoidu ja allergia kohta.'], 'Laud broneeritud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(half(B.speaking('027_t_home', 'Kodus: minu lemmikkoht.', 'Salvesta 60–90 sekundit.', [
+        'Kus sa sööd väljas kõige meelsamini? Mida sa seal tellid?',
+        'Mida sa küsid teenindajalt, kui sul on eriline soov?',
+      ], [60, 90])), 'Õpetaja ütleb, kas viisakas vorm ja -ks tulid õigesti.')), { task: 'S15', fluency: true }),
+      half(homework('027_t_homework', ['1. Kirjuta oma kokkulepe (päev, kell, mitu inimest, mida tellite) kolme lausega üles.', '2. Salvesta oma lemmikkoht (ülesanne kõrval).', `3. ${WORDS_HOME}`, NO_RECORDING])),
+      hide(B.text('027_t_sit', 'Reedene õhtusöök', 'Reede õhtul tahab Sofia viia ema restorani Aed. Kaasa tulevad Jaan, Kadri, Mia, Oskar ja Sofia ülemus Liis, kes tahab Helgiga tutvuda. Sofia jättis restoranile sõnumi ja nüüd helistati tagasi. Kuula sõnumit, helista restorani ja kirjuta perele.'), V5_CUT),
+      hide(tag(B.listening('027_t_voice', 'Restorani häälsõnum.', 'Kuula restorani Aed sõnumit kaks korda. Märgi üles kõik, mida Sofia peab teadma ja tegema.', [
         'Marta: Tere, siin Marta restoranist Aed. Helistan Sofia Metsale teie broneeringu pärast.',
         'Marta: Te soovisite lauda reedeks kella kuueks kuuele inimesele. Kahjuks on kell kuus kõik lauad täis.',
         'Marta: Saame pakkuda lauda kell pool seitse. Laud on akna all ja seal on ruumi ka lapsetoolile.',
@@ -440,34 +656,105 @@ export const LESSONS = withShapes({
         'Kolmekäiguline kalamenüü maksab inimese kohta [28|kakskümmend kaheksa] eurot.',
         'Sofia peab broneeringu kinnitama hiljemalt [neljapäeval].',
         'Kui pere tahab maksta eraldi, tuleb seda öelda [tellimisel].',
-      ]), { task: 'L07' }),
-      teach(tag(B.phoneCards('027_t_call', 'Helista restorani Aed.', 'A helistab restorani Aed ja kinnitab broneeringu, B võtab kõne vastu. Siis vahetage kaardid.', 'Sofia helistab restorani tagasi, et broneering kinnitada ja üle küsida.', ['Helistaja (Sofia või sina ise)', [
-        'Tervita ja ütle, miks helistad.', 'Kinnita laud kell 18.30 ja ütle, et inimesi on nüüd seitse.', 'Küsi, mida saab süüa Mia, kes ei söö kala.', 'Küsi, kas saate maksta eraldi.', 'Küsi, kas restoranis on parkla.',
-      ]], ['Restorani töötaja', [
-        'Seitsmele on laud olemas, lapsetool tuleb juurde.', 'Mia jaoks: kanasupp, pasta või pannkoogid.', 'Eraldi maksmine on võimalik, öelge seda tellimisel.', 'Parkla on maja taga, kaks tundi tasuta.', 'Küsi helistaja nime ja telefoninumbrit.',
-      ]]), { main: true }),
-      'Üks-ühele: õpetaja on restorani töötaja ja vastab kaardi järgi; ta küsib ise ka üht asja, mida kaardil ei ole („Kas keegi tähistab sünnipäeva?”). Siis vahetage kaardid.'),
-      teach(tag(B.speaking('027_t_choose', 'Mis sobib kõigile?', 'Restorani menüüs on kuus rooga. Järjestage need: mis sobib kõige paremini kogu perele ja miks?', ['kõrvitsasupp koorega', 'kalaõhtu menüü, 28 eurot', 'kana riisiga', 'köögiviljaroog läätsedega', 'seenerisoto juustuga', 'õunakook jäätisega', 'Mis on esimene ja miks? Mis ei sobi kellelegi?'], [90, 180], ['Esimesele kohale paneme…, sest…', 'See ei sobi Miale, kuna…', 'Lepime kokku, et…']), { task: 'S12' }),
-        'Üks-ühele: õpetaja ja õpilane järjestavad koos; õpetaja kaitseb kalaõhtut, õpilane peab Mia ja Markuse pärast vastu vaidlema ja kompromissi leidma.'),
-      teach(tag(B.speaking('027_t_liis', 'Laua taga: Helgi ja Liis.', 'Restoranis kohtuvad Helgi ja Sofia ülemus Liis esimest korda. Tutvustage end ja vestelge laua taga.', ['Kes sa oled ja kust tuled?', 'Kuidas sa Sofiat tunned?', 'Mida sa siit restoranist tellisid ja miks?', 'Mis on sinu lemmiktoit ja kes seda kõige paremini teeb?', 'Küsi teiselt kaks küsimust tema töö või kodulinna kohta.'], [70, 120], ['Mina olen…, Sofia…', 'Meeldiv tutvuda!', 'Kas te olete Tallinnas…?']), { task: 'S01' }),
-        'Üks-ühele: õpetaja on Liis, õpilane Helgi; teises ringis räägivad mõlemad enda nimel ja tutvustavad end uuele inimesele restoranilauas.'),
-      B.examWriting('027_t_family', 'Sõnum pere grupivestlusesse.', 'Kirjuta perele 50–70 sõnaga, mis on restoranis kokku lepitud. Kirjuta kõigist neljast punktist.', 'teade', {
+      ]), { task: 'L07' }), V5_CUT),
+      hide(teach(tag(B.speaking('027_t_choose', 'Mis sobib kõigile?', 'Restorani menüüs on kuus rooga. Järjestage need: mis sobib kõige paremini kogu perele ja miks?', ['kõrvitsasupp koorega', 'kalaõhtu menüü, 28 eurot', 'kana riisiga', 'köögiviljaroog läätsedega', 'seenerisoto juustuga', 'õunakook jäätisega', 'Mis on esimene ja miks? Mis ei sobi kellelegi?'], [90, 180], ['Esimesele kohale paneme…, sest…', 'See ei sobi Miale, kuna…', 'Lepime kokku, et…']), { task: 'S12' }),
+        'Üks-ühele: õpetaja ja õpilane järjestavad koos; õpetaja kaitseb kalaõhtut, õpilane peab Mia ja Markuse pärast vastu vaidlema ja kompromissi leidma.'), V5_CUT),
+      hide(teach(tag(B.speaking('027_t_liis', 'Laua taga: Helgi ja Liis.', 'Restoranis kohtuvad Helgi ja Sofia ülemus Liis esimest korda. Tutvustage end ja vestelge laua taga.', ['Kes sa oled ja kust tuled?', 'Kuidas sa Sofiat tunned?', 'Mida sa siit restoranist tellisid ja miks?', 'Mis on sinu lemmiktoit ja kes seda kõige paremini teeb?', 'Küsi teiselt kaks küsimust tema töö või kodulinna kohta.'], [70, 120], ['Mina olen…, Sofia…', 'Meeldiv tutvuda!', 'Kas te olete Tallinnas…?']), { task: 'S01' }),
+        'Üks-ühele: õpetaja on Liis, õpilane Helgi; teises ringis räägivad mõlemad enda nimel ja tutvustavad end uuele inimesele restoranilauas.'), V5_CUT),
+      hide(B.examWriting('027_t_family', 'Sõnum pere grupivestlusesse.', 'Kirjuta perele 50–70 sõnaga, mis on restoranis kokku lepitud. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Broneering on kinnitatud. Pere tahab teada, mis reedel juhtub.',
         points: ['millal ja kus on õhtusöök', 'mida saavad süüa Mia ja Oskar', 'kuidas makstakse', 'kus autoga parkida'],
         words: [50, 70], opening: 'Tere, kallid!',
-      }),
-      B.rubricSpeaking('027_t_rubric', 'Hindamine: telefonikõne (20 punkti).'),
-      B.selfcheck('027_t_self', ['Ma saan aru kohviku ja poe lühikestest teadetest.', 'Ma tellin viisakalt ja küsin toidu koostise kohta.', 'Ma helistan restorani ja broneerin laua.', 'Ma kirjutan perele lühikese sõnumi kõigest olulisest.'], 'Kohvikus ja restoranis'),
+      }), V5_CUT),
+      hide(B.rubricSpeaking('027_t_rubric', 'Hindamine: telefonikõne (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 028 debate: food waste at home (täis- ja osasihitis)
   'a2b1-028': {
-    title: 'Sõin supi ära: täis- ja osasihitis',
-    canDo: 'Ma kirjutan 8–10-lauselise loo sellest, mis juhtus Markuse lõunaga, ja kasutan õigesti täis- ja osasihitist (sõi supi ära, ei söönud leiba).',
+    title: 'Kas me viskame liiga palju toitu ära?',
+    phases: grammar('Keel: sõime suppi ↔ sõime supi ära · eituses osastav: ei söönud leiba'),
+    format: 'debate',
+    topic: 'home',
+    canDo: 'Ma räägin 60–90 sekundit, mis meie köögis nädala jooksul juhtus (mida sõime ära ja mida viskasime ära), ja arutan paarilisega, kuidas vähem toitu raisata.',
+    teacherPage: {
+      goal: 'Ученик понимает дневник семьи о еде за неделю, различает täissihitis и osastav (sõime suppi ↔ sõime supi ära, в отрицании osastav) и в паре спорит, какой дом выбрасывает меньше еды.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → дневник «Meie toidunädal» и 7 вопросов → пункт 4: картинка «Kaks külmkappi pühapäeval», рассказ и спор в паре. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mida sa eile õhtul sõid? Kas sõid kõik ära?» Ученик спрашивает 2–3 человек (или вас). Вопрос из урока 27 без записей: одна вежливая фраза, которой заказываешь напиток.',
+      plan: [
+        '0–8: пункт 1 — опрос «Mida sa eile õhtul sõid?»; вежливая фраза с -ksin (повторение урока 27)',
+        '8–25: пункт 2 — слова, дневник «Meie toidunädal» (täis- и osasihitis в контексте), 7 вопросов, в паре: «Mis supiga juhtus? Mida poeg ära sõi?»',
+        '25–40: пункт 3 — заметить → правило (часть / процесс → osastav; всё, до конца → täissihitis: ед. ч. = omastav, мн. ч. = nimetav; ära / valmis; отрицание → osastav) → 8 форм → 5–7 своих предложений о своей кухне',
+        '40–65: пункт 4 — картинка «Kaks külmkappi pühapäeval»: A рассказывает неделю дома A, B — дома B (60–90 с каждый), потом спор: какой дом выбрасывает меньше и что другому делать иначе; вторая попытка без фраз — каждый рассказывает о своей настоящей кухне, партнёр даёт один совет',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (ссылка Toidupank)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, что в его стране делают с остатками праздничного стола',
+        '72–90: запас',
+      ],
+      sources: 'Дневник (пункт 2) и картинка «Kaks külmkappi pühapäeval» — учебные, семья выдумана, реальных данных нет. Домашняя ссылка — настоящий сайт Эстонского продовольственного банка (https://www.toidupank.ee); ученик сам рассказывает, что там прочитал, учитель проверяет по странице.',
+      groups: 'Пункт 4 в паре: обе стороны видят одну картинку, A защищает большую покупку раз в неделю, B — маленькие покупки каждый день. Один на один вы — A и сначала говорите, что большая покупка дешевле.',
+      errors: [
+        '«Me sõime supp ära» вместо «Me sõime supi ära» (весь предмет, ед. ч. → omastav).',
+        '«Ma ei söönud supi» вместо «Ma ei söönud suppi» (в отрицании всегда osastav).',
+        '«Ma ostsin leiba» не ошибка, но значит «купил хлеба (какое-то количество)»; одна целая буханка — «ostsin leiva».',
+        '«Viskasime tomateid ära» → лучше «viskasime tomatid ära» (все помидоры, мн. ч. → nimetav).',
+      ],
+      notes: [
+        'Täissihitis — главная цель урока, но только в простых случаях: ära sööma, ära viskama, ostma, valmis tegema. Не углубляйтесь в исключения.',
+        'Обратная связь, 2 цели: täissihitis при ära / valmis и osastav в отрицании. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('028_d_review', [['Kuidas sa restoranis viisakalt tellid? Ütle kaks lauset.', 'a2b1-027'], ['Kelle oma see on? Vasta oma- või tema-vormiga: Markus otsib … lõunat.', 'a2b1-008'], 'Mida sa eile õhtul sõid?']),
-      B.text('028_d_hook', 'Õhtusöök Anna juures', 'Kolmapäeval kutsus Anna Sofia ja Helgi õhtusöögile. Sofia tahab õppida kanasalatit tegema. Enne kui reeglit näed, proovi ise: kas öelda „sõin suppi” või „sõin supi ära”? Siis loed Sofia päevikut, leiad reegli ja proovid uuesti.'),
-      B.choice('028_d_test', 'Proovi kõigepealt ise.', 'Kumb vorm sobib? Vali enne reegli lugemist, kõhutunde järgi.', [
+      station(teach(tag(purpose(half(B.speaking('028_d_warm', 'Mida sa eile õhtul sõid?', 'Küsi paarilisel. Siis vahetage. Kes sõi kõige huvitavamat toitu?', [
+        'Mida sa eile õhtul sõid? Kas sõid kõik ära või jäi midagi üle? Miks?',
+        'Ütle ilma märkmeteta üks viisakas lause, millega tellid restoranis joogi.',
+      ], [60, 90])), 'Sinu eilne õhtusöök on tänase tunni algus: lõpus arutad, kuidas vähem toitu ära visata.'), { task: 'S02', harno: 'S1a', fluency: true }),
+      'Eksaminurk (Harno B1 rääkimine 1, teemaküsimus põhjendusega): õpilane vastab 2–4 lausega ja ütleb miks. Üks-ühele: õpilane küsib sinult ja sina vastad oma päris õhtusöögi järgi (2–3 lauset), siis küsid sina. Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('028_d_vocab', 'Tunni sõnad.', ['ära sööma — съесть', 'ära viskama — выбросить', 'raiskama — тратить впустую', 'üle jääma — оставаться (лишним)', 'karp — контейнер', 'pott — кастрюля', 'hapu — кислый, прокисший', 'pehme — мягкий', 'prügikast — мусорное ведро', 'kaste — соус'], '2')), { topic: ['raiskama', 'üle jääma'] }), 2, 17),
+      tag(purpose(why(B.reading('028_d_diary', 'Ühe pere toidunädal.', 'Loe päevikut. Vasta lühidalt, oma sõnadega.', 'Meie toidunädal', [
+        'Esmaspäev. Ostsin poest leiva, kilo tomateid ja kaks liitrit piima. Õhtul tegin suure poti suppi, sest arvasin, et sööme seda kolm päeva.',
+        '',
+        'Teisipäev. Sõime suppi, aga me ei söönud seda ära. Ülejäänud supi panin karbiga külmkappi ja unustasin selle sinna.',
+        '',
+        'Kolmapäev. Poeg jõi piima ära ja sõi peaaegu terve leiva. Ostsin uue leiva.',
+        '',
+        'Neljapäev. Sõime sõpradega väljas, sest ühel sõbral oli sünnipäev. Kodus ei söönud keegi midagi.',
+        '',
+        'Reede. Leidsin külmkapist supi. See oli juba hapu ja ma pidin selle ära viskama. Ka pool kilo tomateid oli pehme.',
+        '',
+        'Laupäev. Kirjutasin enne poodi nimekirja ja ostsin ainult seda, mida oli vaja: liitri piima, leiva ja kurgi.',
+        '',
+        'Pühapäev. Tegin pehmetest tomatitest kastme ja sõime selle kohe pastaga ära. Järgmisel nädalal teen väiksema poti suppi!',
+        '',
+        'Allikas: KeeleSepa õppetekst.',
+      ], [
+        ['Mida kirjutaja esmaspäeval ostis?', 'leiva, tomateid ja piima|leiva|tomateid|piima'],
+        ['Kas nad sõid supi teisipäeval ära?', 'ei|ei söönud|ei, ainult osa'],
+        ['Mida poeg kolmapäeval tegi?', 'jõi piima ära|sõi peaaegu terve leiva|jõi piima ära ja sõi leiba'],
+        ['Miks ei söönud neljapäeval keegi kodus?', 'nad sõid väljas|sõid sõpradega väljas'],
+        ['Mis juhtus reedel supiga?', 'see oli hapu|ta viskas selle ära|supp oli hapu ja ta viskas selle ära'],
+        ['Mida kirjutaja pühapäeval pehmetest tomatitest tegi?', 'kastme|tegi kastme'],
+        ['Mida ta järgmisel nädalal teisiti teeb? Miks?', 'teeb väiksema poti suppi|väiksema poti|et suppi ei jääks üle'],
+      ]), [
+        'Esmaspäev: „Ostsin poest leiva, kilo tomateid ja kaks liitrit piima.”',
+        'Teisipäev: „Sõime suppi, aga me ei söönud seda ära.”',
+        'Kolmapäev: „Poeg jõi piima ära ja sõi peaaegu terve leiva.”',
+        'Neljapäev: „Sõime sõpradega väljas.”',
+        'Reede: „See oli juba hapu ja ma pidin selle ära viskama.”',
+        'Pühapäev: „Tegin pehmetest tomatitest kastme.”',
+        'Pühapäev: „Järgmisel nädalal teen väiksema poti suppi!” — supp jäi üle ja läks hapuks.',
+      ]), 'Enne kui sa ise räägid, näed, kuidas pere nädala jooksul toitu ostab, sööb ja ära viskab.'), { task: 'R15' }),
+      teach(tag(purpose(B.speaking('028_d_retell', 'Mis supiga juhtus? Küsi paarilisel.', 'Küsi paarilisel päeviku järgi. B vastab terve lausega: mida nad sõid ära ja mida mitte. Siis vahetage.', [
+        'Mida kirjutaja esmaspäeval ostis ja tegi?',
+        'Kas nad sõid supi ära? Mis supiga lõpuks juhtus?',
+        'Mida poeg kolmapäeval ära sõi ja jõi?',
+        'Mida kirjutaja pühapäeval teisiti tegi?',
+        'Kas sinu kodus jääb ka toitu üle? Mida te sellega teete?',
+      ], [60, 90], '', 'g_read'), 'Ütled, mida söödi ära ja mida visati ära.'), { task: 'S13', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Teisipäeval sõid nad supi ära”) ja õpilane parandab sind päeviku järgi.'),
+      hide(B.review('028_d_review', [['Kuidas sa restoranis viisakalt tellid? Ütle kaks lauset.', 'a2b1-027'], ['Kelle oma see on? Vasta oma- või tema-vormiga: Markus otsib … lõunat.', 'a2b1-008'], 'Mida sa eile õhtul sõid?']), V5_DRILL),
+      hide(B.text('028_d_hook', 'Õhtusöök Anna juures', 'Kolmapäeval kutsus Anna Sofia ja Helgi õhtusöögile. Sofia tahab õppida kanasalatit tegema. Enne kui reeglit näed, proovi ise: kas öelda „sõin suppi” või „sõin supi ära”? Siis loed Sofia päevikut, leiad reegli ja proovid uuesti.'), V5_CUT),
+      hide(B.choice('028_d_test', 'Proovi kõigepealt ise.', 'Kumb vorm sobib? Vali enne reegli lugemist, kõhutunde järgi.', [
         ['Anna küsib: „Kas sa sõid juba … ära?”', 'supi', 'suppi', 'supp'],
         ['Praegu teeb Anna veel …, see ei ole valmis.', 'kastet', 'kastme', 'kaste'],
         ['Sofia ei ostnud eile poest musta …', 'leiba', 'leiva', 'leib'],
@@ -478,42 +765,13 @@ export const LESSONS = withShapes({
         ['Viktor küpsetas pühapäevaks … valmis.', 'piruka', 'pirukat', 'pirukas'],
         ['Markus ei söönud eile …, sest seal oli koort.', 'praadi', 'prae', 'praad'],
         ['Sofia pesi enne keetmist kõik … ära.', 'kartulid', 'kartuleid', 'kartulite'],
-      ], 'full', 'g_notice'),
-      B.vocab('028_d_vocab', 'Tunni sõnad.', ['retsept — рецепт', 'kaste — соус', 'keetma — варить', 'lõikama — резать', 'maitsma — пробовать на вкус', 'valmis — готов', 'ära sööma — съесть', 'nõud — посуда', 'karp — контейнер', 'reegel — правило', 'pooleli — не закончено', 'kokku leppima — договориться']),
-      tag(B.reading('028_d_diary', 'Sofia päevik.', 'Loe Sofia päevikut. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Õhtusöök Anna juures', [
-        'Täna käisime emaga Anna juures õhtusöögil. Ma läksin juba kell neli, sest Anna lubas mulle õpetada oma vanaema kanasalatit. Anna köök on väike, aga väga valge ja puhas.',
-        '',
-        'Kõigepealt keetsime kartuleid. Siis lõikasin kana ja Anna tegi kastet. Ma tahtsin kastet maitsta, aga Anna ütles: „Oota, kaste ei ole veel valmis!” Kümne minuti pärast oli kaste valmis ja ma maitsesin seda. See oli hapu ja magus korraga.',
-        '',
-        'Kell viis märkasin äkki, et leiba ei ole. Ma ei ostnud eile leiba, sest unustasin. Jooksin poodi ja ostsin pätsi musta leiba. Kui tagasi tulin, oli Anna salati juba valmis teinud.',
-        '',
-        'Ema tuli kell kuus. Alguses sõi ta salatit aeglaselt ja rääkis Tartust. Siis kiitis ta kastet ja küsis retsepti. Lõpuks sõi ta kogu salati ära! Bruno vaatas kogu aeg lauda, aga kana ta ei saanud.',
-        '',
-        'Magustoiduks sõime jogurtit mustikatega. Pärast õhtusööki pesin kõik nõud ära. Anna ütles, et järgmine kord teen mina salati üksi. Ma ei ole selles kindel.',
-      ], [
-        ['Sofia läks Anna juurde varem, et õppida salatit tegema.', 'õige'],
-        ['Anna köök on suur ja valge.', 'vale'],
-        ['Kaste oli kohe valmis.', 'vale'],
-        ['Sofia unustas eile leiba osta.', 'õige'],
-        ['Pood oli Anna maja kõrval.', 'ei selgu'],
-        ['Helgile maitses salat.', 'õige'],
-        ['Bruno sai lõpuks natuke kana.', 'vale'],
-        ['Anna pesi pärast sööki nõud ära.', 'vale'],
-        ['Miks ei ole Sofia kindel, et ta teeb salati järgmine kord üksi?', 'ta ei ole veel kogenud|ta ei usu endasse|ta ei oska veel hästi'],
-      ]), { task: 'R06' }),
-      B.notice('028_d_notice', 'Märka: sõin suppi või sõin supi ära?', [
-        'Tegevus kestab või on osa asjast → **osastav**: ma **söön suppi**, Anna **teeb kastet**, me **keetsime kartuleid**.',
-        'Tegevus on lõpuni tehtud, terve asi → **täissihitis**: ma **sõin supi ära**, Anna **tegi salati valmis**, ma **pesin nõud ära**.',
-        '**ära**, **valmis**, **läbi** näitavad lõppu: **jõin kohvi ära**, **lugesin raamatu läbi**.',
-        'Eituses on alati **osastav**: ma **ei ostnud leiba**, ta **ei söönud salatit**.',
-        'Käsus on täissihitis nimetavas: **söö salat ära!** · **pese kartulid!**',
-      ], 'full'),
-      tag(B.categorize('028_d_rule', 'Leia reegel: kas lõpuni tehtud?', 'Loe laused ja pane need kolme veergu: kas tegevus kestab, on lõpuni tehtud või on eitus?', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(tag(B.categorize('028_d_rule', 'Leia reegel: kas lõpuni tehtud?', 'Loe laused ja pane need kolme veergu: kas tegevus kestab, on lõpuni tehtud või on eitus?', [
         ['protsess või osa: osastav', ['Anna teeb köögis kastet.', 'Sofia lõikab kana.', 'Me keetsime kartuleid.', 'Helgi sõi alguses salatit aeglaselt.', 'Ma joon hommikul teed.']],
         ['lõpuni tehtud: täissihitis', ['Anna tegi salati valmis.', 'Helgi sõi kogu salati ära.', 'Sofia pesi nõud ära.', 'Ma ostsin pätsi leiba.', 'Bruno sõi oma toidu kiiresti ära.']],
         ['eitus: osastav', ['Sofia ei ostnud leiba.', 'Bruno ei saanud kana.', 'Markus ei joo piima.', 'Me ei söönud kooki.', 'Mia ei taha kala.']],
-      ], 'full', 'g_notice'), { task: 'G02' }),
-      B.examListen('028_d_recipe', 'Anna retsept telefonis.', 'Kuula Anna häälsõnumit kaks korda. Ühenda iga samm ja see, mida siis teha tuleb.', 'match', [
+      ], 'full', 'g_notice'), { task: 'G02' }), V5_DRILL),
+      hide(B.examListen('028_d_recipe', 'Anna retsept telefonis.', 'Kuula Anna häälsõnumit kaks korda. Ühenda iga samm ja see, mida siis teha tuleb.', 'match', [
         'Anna: Tere, Sofia! Siin Anna. Sa küsisid eile kanasalati retsepti. Ütlen kõik järjest, kirjuta üles!',
         'Anna: Kõigepealt pese kartulid ja keeda need pehmeks. See võtab umbes kakskümmend minutit.',
         'Anna: Samal ajal lõika kana väikesteks tükkideks.',
@@ -528,8 +786,8 @@ export const LESSONS = withShapes({
       ], [
         ['samm 1', 'keeda kartulid pehmeks'], ['samm 2', 'lõika kana tükkideks'], ['samm 3', 'pane jogurt kaussi'], ['samm 4', 'lisa sidrunit, soola ja mett'], ['samm 5', 'maitse kastet'],
         ['samm 6', 'lõika kurk ja tomatid'], ['samm 7', 'pane kõik suurde kaussi'], ['samm 8', 'vala kaste peale'], ['samm 9', 'pane salat külmkappi'], ['samm 10', 'söö salat ära'],
-      ], 'g_vocab'),
-      B.transformation('028_d_again', 'Proovi uuesti: lõpuni tehtud.', 'Nüüd tead reeglit. Kirjuta lause minevikus nii, et tegevus on lõpuni tehtud. Kasuta antud sõna.', [
+      ], 'g_vocab'), V5_CUT),
+      hide(B.transformation('028_d_again', 'Proovi uuesti: lõpuni tehtud.', 'Nüüd tead reeglit. Kirjuta lause minevikus nii, et tegevus on lõpuni tehtud. Kasuta antud sõna.', [
         ['Oskar sööb köögis šokolaadijäätist.', 'ära', 'Oskar sõi köögis šokolaadijäätise ära.'],
         ['Jaan teeb lastele hommikuks pannkooke.', 'valmis', 'Jaan tegi lastele hommikuks pannkoogid valmis.'],
         ['Mia joob enne magamaminekut kakaod.', 'ära', 'Mia jõi enne magamaminekut kakao ära.'],
@@ -540,12 +798,39 @@ export const LESSONS = withShapes({
         ['Sofia keedab emale seenesuppi.', 'valmis', 'Sofia keetis emale seenesupi valmis.'],
         ['Anna peseb pärast sööki nõusid.', 'ära', 'Anna pesi pärast sööki nõud ära.'],
         ['Oskar parandab koos Viktoriga jalgratast.', 'ära', 'Oskar parandas koos Viktoriga jalgratta ära.'],
-      ]),
-      teach(tag(B.speaking('028_d_432', 'Eilne õhtusöök.', 'Jutusta oma eilsest õhtusöögist kolm korda järjest: kõigepealt 2 minutit, siis 90 sekundit ja lõpuks 1 minut.', ['Mida sa eile õhtul sõid ja jõid?', 'Kes tegi toidu ja kuidas?', 'Mida sa sõid lõpuni ära ja mida mitte?', 'Mis jäi üle või pooleli?', 'Mida sa homme teed teisiti?'], [90, 120], ['Ma sõin … ära.', 'Ma ei söönud…', '… jäi pooleli.']), { task: 'S08', fluency: true }),
-        'Üks-ühele: õpilane räägib sama lugu õpetajale kolm korda, õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja ühe sihitise vormi, mis tuli hästi välja.'),
+      ]), V5_DRILL),
+      hide(teach(tag(B.speaking('028_d_432', 'Eilne õhtusöök.', 'Jutusta oma eilsest õhtusöögist kolm korda järjest: kõigepealt 2 minutit, siis 90 sekundit ja lõpuks 1 minut.', ['Mida sa eile õhtul sõid ja jõid?', 'Kes tegi toidu ja kuidas?', 'Mida sa sõid lõpuni ära ja mida mitte?', 'Mis jäi üle või pooleli?', 'Mida sa homme teed teisiti?'], [90, 120], ['Ma sõin … ära.', 'Ma ei söönud…', '… jäi pooleli.']), { task: 'S08', fluency: true }),
+        'Üks-ühele: õpilane räägib sama lugu õpetajale kolm korda, õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja ühe sihitise vormi, mis tuli hästi välja.'), V5_CUT),
     ],
     practice: [
-      B.errorfix('028_p_fix', 'Paranda sihitis.', 'Igas lauses on sihitis vales vormis. Kirjuta lause õigesti.', [
+      station(B.notice('028_d_notice', 'Märka: sõime suppi või sõime supi ära?', [
+        'Päevikust: Sõime **suppi**, aga me ei söönud seda ära. · Poeg jõi **piima ära**. · Ostsin **leiva**. · Tegin **kastme** ja sõime **selle** kohe ära.',
+        'Tegevus käib või ainult osa: **osastav** — ma söön **suppi** · sõime **suppi** (natuke)',
+        'Kogu asi, lõpuni: **täissihitis** — ainsus = omastav: sõin **supi** ära, ostsin **leiva** · mitmus = nimetav: ostsin **tomatid**, sõin **õunad** ära',
+        '**ära**, **valmis**, **läbi** näitavad lõppu: jõi piima **ära** · tegi kastme **valmis** · luges raamatu **läbi**',
+        'Eitus → alati **osastav**: ma **ei ostnud leiba** · me **ei söönud suppi ära** · ta **ei teinud kastet**',
+      ], 'full'), 3, 15),
+      purpose(why(B.gaps('028_p_forms', 'Kõik või osa?', 'Kirjuta sulgudes olev sõna õiges vormis. Mõtle: kogu asi, osa või eitus?', [
+        'Lapsed sõid kogu [supi] (supp) ära.',
+        'Ma söön hommikul alati [putru] (puder).',
+        'Eile ostsin poest ühe [leiva] (leib).',
+        'Me ei ostnud [leiba] (leib), sest kodus oli veel.',
+        'Poeg sõi [võileiva] (võileib) kiiresti ära.',
+        'Kas sa tegid [salati] (salat) juba valmis?',
+        'Me viskasime kõik vanad [tomatid] (tomatid) ära.',
+        'Ma ei visanud sel nädalal [toitu] (toit) ära.',
+      ], '', 'full', 'g_notice'), [
+        'kogu asi + ära → täissihitis (omastav): supi.',
+        'tegevus käib (iga päev) → osastav: putru.',
+        'üks terve asi → täissihitis (omastav): ühe leiva.',
+        'eitus → osastav: leiba.',
+        'lõpuni + ära → täissihitis (omastav): võileiva.',
+        'valmis → täissihitis (omastav): salati.',
+        'kõik tomatid, mitmus + ära → nimetav: tomatid.',
+        'eitus → osastav: toitu.',
+      ]), 'Kaheksa lauset näitavad, millal on täissihitis ja millal osastav.'),
+      tag(purpose(B.writing('028_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset oma köögist sel nädalal: mida te sõite ära, mis jäi üle ja mida te ei söönud.', [5, 7]), 'Oma laused on sinu arutelu materjal.'), { task: 'W10' }),
+      hide(B.errorfix('028_p_fix', 'Paranda sihitis.', 'Igas lauses on sihitis vales vormis. Kirjuta lause õigesti.', [
         ['Ma sõin eile õhtul kogu supp ära.', 'Ma sõin eile õhtul kogu supi ära.'],
         ['Sofia ei ostnud poest leiva, sest unustas.', 'Sofia ei ostnud poest leiba, sest unustas.'],
         ['Anna tegi kella viieks salat valmis.', 'Anna tegi kella viieks salati valmis.'],
@@ -556,8 +841,8 @@ export const LESSONS = withShapes({
         ['Kas sa pesid pärast õhtusööki nõusid ära?', 'Kas sa pesid pärast õhtusööki nõud ära?'],
         ['Markus ei joo allergia pärast piim.', 'Markus ei joo allergia pärast piima.'],
         ['Ma ostsin turult kaks pakki või ja purgi mett.', 'Ma ostsin turult kaks pakki võid ja purgi mett.'],
-      ]),
-      B.cloze('028_p_letter', 'Viktori kiri Helgile.', 'Viktor kirjutab õunamoosist. Vali igasse lünka vorm, mis sobib lausesse.', 'Õunamoos on valmis!', [
+      ]), V5_DRILL),
+      hide(B.cloze('028_p_letter', 'Viktori kiri Helgile.', 'Viktor kirjutab õunamoosist. Vali igasse lünka vorm, mis sobib lausesse.', 'Õunamoos on valmis!', [
         'Kallis õde! Kuidas {*Tallinnas|Tallinn|Tallinna} läheb? Siin maal on vaikne. Eile korjasin aiast viimased {*õunad|õunu|õuntest} ja tegin neist moosi. Keetsin {*moosi|moos|moosist} kolm tundi ja terve maja lõhnas {*õunte|õunad|õuntes} järele.',
         '',
         'Kahjuks ma ei leidnud kapist {*suhkrut|suhkur|suhkru}, sest olin selle eelmisel nädalal ära kasutanud. Pidin minema {*naabri|naaber|naabrit} juurde. Naaber andis {*mulle|mina|minu} kilo {*suhkrut|suhkur|suhkrud} ja ma lubasin talle purgi moosi.',
@@ -567,8 +852,8 @@ export const LESSONS = withShapes({
         'Laupäeval toon turule kümme {*purki|purk|purgid}. Ma ei müü {*moosi|moos|moosist} odavalt, sest töö oli suur. Kaks purki jätan sulle ja Sofiale. Kas sa võtad need pühapäeval {*kaasa|kaasas|kaasast}?',
         '',
         'Ja veel: palun ära unusta Tallinnas osta mulle {*kohvi|kohv|kohvist}. Siin külapoes on ainult kallis kohv. Too palun kaks {*pakki|pakk|paki}. Sinu vend Viktor',
-      ], 'g_notice'),
-      tag(B.gaps('028_p_facts', 'Mida Viktor kirjutas?', 'Loe Viktori kirja veel kord. Kirjuta lünka 1–3 sõna kirja põhjal.', [
+      ], 'g_notice'), V5_CUT),
+      hide(tag(B.gaps('028_p_facts', 'Mida Viktor kirjutas?', 'Loe Viktori kirja veel kord. Kirjuta lünka 1–3 sõna kirja põhjal.', [
         'Viktor elab praegu [maal].',
         'Viktor keetis moosi [kolm tundi|3 tundi].',
         'Moosi keetmise ajal lõhnas õuntest terve [maja].',
@@ -579,8 +864,8 @@ export const LESSONS = withShapes({
         'Kaks purki jätab Viktor Helgile ja [Sofiale].',
         'Helgi peaks purgid kaasa võtma [pühapäeval].',
         'Külapoes on kohv Viktori meelest liiga [kallis].',
-      ], '', 'full', 'g_read'), { task: 'R15' }),
-      tag(B.examListen('028_p_radio', 'Raadiolugu: toit prügikastis.', 'Mida räägib toidupanga töötaja? Kuula kaks korda ja vali õige vastus. Raadios nimetatud summad — allikas: Kliimaministeerium, „Eesti kodudes jõuab aastas prügikasti 117 miljoni euro väärtuses toitu” (2026).', 'choice', [
+      ], '', 'full', 'g_read'), { task: 'R15' }), V5_CUT),
+      hide(tag(B.examListen('028_p_radio', 'Raadiolugu: toit prügikastis.', 'Mida räägib toidupanga töötaja? Kuula kaks korda ja vali õige vastus. Raadios nimetatud summad — allikas: Kliimaministeerium, „Eesti kodudes jõuab aastas prügikasti 117 miljoni euro väärtuses toitu” (2026).', 'choice', [
         'Ülle: Tere hommikust! Täna räägime toidust, mis jõuab prügikasti. Stuudios on Kaja Raud toidupangast.',
         'Kaja: Tere! Teema on tõesti tähtis. Eesti kodudes visatakse aastas ära umbes saja seitsmeteistkümne miljoni euro eest toitu.',
         'Ülle: Nii palju! Kui palju see ühe pere kohta on?',
@@ -610,21 +895,38 @@ export const LESSONS = withShapes({
         ['Mis on Kalamajas, kuhu võib toitu tuua?', 'jagamiskapp', 'toidupank', 'uus turg'],
         ['Mida annab üks kohvik toidupangale?', 'ülejäänud saiad ja supi', 'raha ja kohvi', 'uued nõud'],
         ['Mida sööb Kaja kodus sageli õhtul?', 'eilse toidu jääke', 'restorani toitu', 'võileibu'],
-      ]), { voice: 'interview' }),
-      B.know('028_p_know', [
+      ]), { voice: 'interview' }), V5_CUT),
+      hide(B.know('028_p_know', [
         'Pakendil on kahte liiki kuupäevi. „Kõlblik kuni” on toiduohutuse tähtaeg: pärast seda kuupäeva ei ole toit enam söögikõlblik ja seda ei tohi müüa ega annetada. „Parim enne” räägib toidu kvaliteedist: pärast seda kuupäeva võib toit olla veel ohutu, kui seda on õigesti hoitud ja see näeb, lõhnab ja maitseb hästi.',
         'Kliimaministeeriumi uuringu järgi tekkis Eestis 2025. aastal ligi 139 000 tonni toidujäätmeid ja pool neist tekkis kodudes. Viie aastaga vähenes kodude toidujäätmete hulk 14 %. Riigi eesmärk on vähendada 2030. aastaks kodude toidujäätmeid inimese kohta vähemalt 30 % võrreldes kümnendi algusega.',
-      ], 'Põllumajandus- ja Toiduamet, „Hea toit ei kuulu prügikasti” (2026); Kliimaministeerium, „Eesti kodudes jõuab aastas prügikasti 117 miljoni euro väärtuses toitu” (2026)', 'Kas teadsid? Parim enne või kõlblik kuni'),
-      B.examWriting('028_p_survey', 'Küsimustik: sinu toiduharjumused.', 'Vasta linnalehe küsimustikule lühidalt. Miks-küsimustele vasta sest-lausega.', 'kusimustik', {
+      ], 'Põllumajandus- ja Toiduamet, „Hea toit ei kuulu prügikasti” (2026); Kliimaministeerium, „Eesti kodudes jõuab aastas prügikasti 117 miljoni euro väärtuses toitu” (2026)', 'Kas teadsid? Parim enne või kõlblik kuni'), V5_CUT),
+      hide(B.examWriting('028_p_survey', 'Küsimustik: sinu toiduharjumused.', 'Vasta linnalehe küsimustikule lühidalt. Miks-küsimustele vasta sest-lausega.', 'kusimustik', {
         situation: 'Linnaleht kogub lugejate toiduharjumusi. Täida küsimustik.',
         questions: ['Mida sa tavaliselt hommikusöögiks sööd?', 'Kus sa tööpäeval lõunat sööd?', 'Kui tihti sa ise süüa teed?', 'Mis toitu sa kunagi ei söö? Miks?', 'Kas sa sööd kõik taldrikult ära? Miks?', 'Mida sa eile õhtusöögiks sõid?', 'Kas sa ostad toitu turult või poest? Miks?', 'Mis on sinu kodumaa kõige tuntum roog?', 'Kas sa viskad toitu ära? Mida ja miks?', 'Mida sa tahaksid õppida küpsetama?'],
-      }, 'g_vocab'),
-      teach(tag(B.speaking('028_p_exam', 'Eksaminurk: teemaküsimused „Toit” (Harno B1 rääkimine 1)', 'Vasta igale küsimusele 3–4 lausega. Ütle iga kord ka põhjus või näide.', ['Milline toit on sinu peres tähtis ja miks?', 'Kas sa eelistad süüa kodus või väljas? Miks?', 'Mida sa sõid eile ja mis sulle kõige rohkem maitses?', 'Kuidas on söömine sinu kodumaal ja Eestis erinev?', 'Mida saab teha, et toitu ära ei visataks?'], [90, 120], ['…, sest…', 'Näiteks eile…', 'Minu arvates…']), { harno: 'S1a' }),
-        'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min), formaati tutvustatakse siin. Eksamineerija küsib, õpilane vastab: vastus + põhjus (sest…) + näide (näiteks…). Üks-ühele: õpetaja on eksamineerija ja ei aita; pärast märgib, mitmel vastusel oli põhjus või näide (eesmärk vähemalt 4 viiest), ja õpilane vastab ühele küsimusele uuesti paremini.'),
+      }, 'g_vocab'), V5_CUT),
+      hide(teach(tag(B.speaking('028_p_exam', 'Eksaminurk: teemaküsimused „Toit” (Harno B1 rääkimine 1)', 'Vasta igale küsimusele 3–4 lausega. Ütle iga kord ka põhjus või näide.', ['Milline toit on sinu peres tähtis ja miks?', 'Kas sa eelistad süüa kodus või väljas? Miks?', 'Mida sa sõid eile ja mis sulle kõige rohkem maitses?', 'Kuidas on söömine sinu kodumaal ja Eestis erinev?', 'Mida saab teha, et toitu ära ei visataks?'], [90, 120], ['…, sest…', 'Näiteks eile…', 'Minu arvates…']), { harno: 'S1a' }),
+        'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min), formaati tutvustatakse siin. Eksamineerija küsib, õpilane vastab: vastus + põhjus (sest…) + näide (näiteks…). Üks-ühele: õpetaja on eksamineerija ja ei aita; pärast märgib, mitmel vastusel oli põhjus või näide (eesmärk vähemalt 4 viiest), ja õpilane vastab ühele küsimusele uuesti paremini.'), V5_CUT),
     ],
     transfer: [
-      B.text('028_t_sit', 'Kontori külmkapp', 'Neljapäeval on Sofia kontoris pahandus: keegi sõi külmkapist Markuse lõuna ära. Markusel on piimaallergia ja ta oli toonud endale spetsiaalse supi. Loe tema sõnumit, jutusta, mis juhtus, ja leppige köögikoosolekul kokku uued reeglid.'),
-      B.insertion('028_t_story', 'Markuse sõnum meeskonnale.', 'Markuse sõnumist on välja võetud laused. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Kes sõi minu lõuna?', [
+      station(teach(tag(purpose(B.rolecards('028_t_meeting', 'Kumb kodu raiskab vähem?', 'Vaata pilti „Kaks külmkappi pühapäeval” (pilt on üleval). Räägi oma kodu nädalast 60–90 sekundit, siis arutage: kumb kodu raiskab vähem toitu ja mida teine kodu võiks teisiti teha? Teine kord räägi oma päris köögist.',
+        'Sina räägid kodust A. Sinu arvamus: suur ost kord nädalas on mugav ja odav.',
+        'Sina räägid kodust B. Sinu arvamus: väike ost iga päev ja nädalamenüü on parem.',
+        ['Laupäeval ostsid nad …', 'Nad sõid … ära, aga …', 'Minu meelest …, sest …'], []), 'Pärast arutelu tead, kumb kodu raiskab vähem ja mida sina oma köögis teisiti teed.'), { task: 'S03', main: true, level: 4 }),
+      'Kõigepealt vaatab kumbki pilti ja oma kaarti (2 min). Siis räägib A kodu A nädalast ja B kodu B omast, kumbki 60–90 sekundit; kuulaja küsib ühe küsimuse. Seejärel arutelu (5–7 min): kumb kodu raiskab vähem ja miks; mõlemad toovad kaks põhjust ja ühe nõu teisele kodule. Õnnestunud, kui jutustuses on täis- ja osasihitis õigesti (nad viskasid leiva ära, nad ei söönud tomateid, nad sõid supi ära) ja paar jõuab otsuseni. Teine katse ilma fraasideta: kumbki räägib oma päris köögist, paariline annab ühe nõu. Üks-ühele: sina oled A ja ütled alguses, et suur ost on odavam; õpilane põhjendab.'), 4, 25, { final: 'advise' }),
+      tag(exitCheck(why(purpose(B.gaps('028_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Me sõime kogu [supi] (supp) ära.',
+        'Ma ei ostnud [leiba] (leib).',
+        'Ma söön praegu [suppi] (supp).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas täis- ja osasihitis on käes.'), ['kogu asi + ära → omastav: supi.', 'eitus → osastav: leiba.', 'tegevus käib → osastav: suppi.'])), {}),
+      purpose(B.selfcheck('028_t_self', ['Ma tean, millal öelda „sõin suppi” ja millal „sõin supi ära”.', 'Ma kasutan eituses osastavat: ei ostnud leiba.', 'Ma saan aru tekstist, mis köögis nädala jooksul juhtus.', 'Ma räägin oma köögist ja arutan, kuidas vähem toitu raisata.'], 'Köök arutatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('028_t_home', 'Kodus: kuhu läheb üleliigne toit?', 'Ava Eesti Toidupanga koduleht „Toidupank” (https://www.toidupank.ee). Vaata, mida toidupank teeb ja kuidas saab aidata. Salvesta 60–90 sekundit: mida toidupank teeb, kust toit tuleb ja kas sina saaksid aidata.', [
+        'Mida toidupank teeb?',
+        'Kust toit tuleb ja kes selle saab?',
+        'Kas sina tahaksid aidata? Kuidas?',
+      ], [60, 90]), 'Päris leht päris organisatsioonilt: räägid sellest, kuidas Eestis toitu ei raisata.')), { task: 'S15', fluency: true }),
+      homework('028_t_homework', ['1. Kirjuta oma köögi nädal (4–5 lauset) puhtalt üles.', '2. Ava leht Toidupank, räägi 60–90 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('028_t_sit', 'Kontori külmkapp', 'Neljapäeval on Sofia kontoris pahandus: keegi sõi külmkapist Markuse lõuna ära. Markusel on piimaallergia ja ta oli toonud endale spetsiaalse supi. Loe tema sõnumit, jutusta, mis juhtus, ja leppige köögikoosolekul kokku uued reeglid.'), V5_CUT),
+      hide(B.insertion('028_t_story', 'Markuse sõnum meeskonnale.', 'Markuse sõnumist on välja võetud laused. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Kes sõi minu lõuna?', [
         'Head kolleegid! Mul on üks väike, aga ebameeldiv lugu. [[Täna hommikul panin oma lõunasöögi kontori külmkappi.]] See oli punane karp, millel oli minu nimi.',
         '',
         'Karbis oli kõrvitsasupp, mille ma eile õhtul ise keetsin. [[Mul on piimaallergia, nii et ma ei saa kohvikus iga päev süüa.]] Supi tegemine võttis mul tund aega.',
@@ -636,27 +938,98 @@ export const LESSONS = withShapes({
         'Võib-olla oli see eksitus, sest meil on külmkapis palju sarnaseid karpe. [[Aga palun vaadake enne söömist, kelle nimi karbil on.]]',
         '',
         'Ma teen ettepaneku pidada reedel kell kaks lühike köögikoosolek. [[Lepime kokku mõned reeglid, et keegi ei jääks ilma lõunata.]] Kook on minu poolt — piimata, muidugi! Teie Markus',
-      ], ['Supp oli nii hea, et sõin selle hommikul juba ise ära.', 'Anna tõi mulle kohe uue supi.']),
-      teach(tag(B.speaking('028_t_retell', 'Mis juhtus Markuse lõunaga?', 'Räägi Markuse juhtum ja salvesta see kaks korda. Teisel korral on aega vähem: ainult 90 sekundit.', ['Mis oli Markuse karbis ja miks ta toob lõuna kodust?', 'Mida ta kell kaksteist leidis?', 'Mida ta lõunaks lõpuks sõi?', 'Kuidas Markus end tundis?', 'Mida ta teistele ette paneb?'], [90, 120], ['Keegi sõi Markuse supi ära.', 'Ta ei saanud võileiba süüa, sest…', 'Lõpuks…']), { task: 'S07', fluency: true }),
-        'Kodus salvestab õpilane kaks korda; tunnis jutustab ta õpetajale veel kord ja õpetaja hoiab aega. Teisel korral on aega 90 sekundit — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'),
-      teach(tag(B.rolecards('028_t_meeting', 'Köögikoosolek.', 'A on Markus, B on Liis. Leppige kokku viis köögireeglit; iga reegel tuleb põhjendada.',
-        'Oled Markus. Sinu lõuna söödi ära. Sa tahad, et igal karbil oleks nimi ja et keegi ei sööks võõrast toitu. Paku kolm reeglit ja põhjenda.',
-        'Oled Liis, ülemus. Sa tahad, et köök oleks puhas: nõud pestakse ära ja reedel visatakse vana toit ära. Paku kaks reeglit ja leia Markusega kompromiss.',
-        ['Ma teen ettepaneku, et…', 'Igal karbil peab olema…', 'See on tähtis, sest…'], ['Olen nõus, aga…', 'Lepime kokku, et…', 'Kes peseb nõud ära?']), { task: 'S03' }),
-      'Üks-ühele: õpetaja on Liis ja on ühe reegliga alguses vastu („Reedel ei jõua keegi külmkappi koristada”); õpilane põhjendab ja pakub kompromissi. Lõpus loeb õpilane viis kokkulepitud reeglit ette.'),
-      tag(B.writing('028_t_story2', 'Lugu: kontori külmkapp.', 'Kirjuta lugu „Kes sõi Markuse supi?”: mis juhtus, mida Markus tegi ja mis reeglid te kokku leppisite.', [8, 10], ['sõi ära', 'ei söönud', 'karbi', 'reegel'], 3), { main: true }),
-      B.rubricW2('028_t_rubric', 'Hindamine: lugu kontori külmkapist (12 punkti).'),
-      B.selfcheck('028_t_self', ['Ma tean, millal öelda „söön suppi” ja millal „sõin supi ära”.', 'Ma kasutan eituses osastavat: ei ostnud leiba.', 'Ma vastan teemaküsimustele põhjuse ja näitega.', 'Ma kirjutan loo ja kasutan täis- ja osasihitist.'], 'Täis- ja osasihitis'),
+      ], ['Supp oli nii hea, et sõin selle hommikul juba ise ära.', 'Anna tõi mulle kohe uue supi.']), V5_CUT),
+      hide(teach(tag(B.speaking('028_t_retell', 'Mis juhtus Markuse lõunaga?', 'Räägi Markuse juhtum ja salvesta see kaks korda. Teisel korral on aega vähem: ainult 90 sekundit.', ['Mis oli Markuse karbis ja miks ta toob lõuna kodust?', 'Mida ta kell kaksteist leidis?', 'Mida ta lõunaks lõpuks sõi?', 'Kuidas Markus end tundis?', 'Mida ta teistele ette paneb?'], [90, 120], ['Keegi sõi Markuse supi ära.', 'Ta ei saanud võileiba süüa, sest…', 'Lõpuks…']), { task: 'S07', fluency: true }),
+        'Kodus salvestab õpilane kaks korda; tunnis jutustab ta õpetajale veel kord ja õpetaja hoiab aega. Teisel korral on aega 90 sekundit — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'), V5_CUT),
+      hide(tag(B.writing('028_t_story2', 'Lugu: kontori külmkapp.', 'Kirjuta lugu „Kes sõi Markuse supi?”: mis juhtus, mida Markus tegi ja mis reeglid te kokku leppisite.', [8, 10], ['sõi ära', 'ei söönud', 'karbi', 'reegel'], 3), { main: true }), V5_CUT),
+      hide(B.rubricW2('028_t_rubric', 'Hindamine: lugu kontori külmkapist (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 029 case: a complaint to a delivery firm
   'a2b1-029': {
-    title: 'Kui midagi läheb valesti',
-    canDo: 'Ma helistan toidukulleri klienditeenindusse, kirjeldan probleemi viisakalt ja nõuan lahendust, mis tingimuste järgi mulle kuulub.',
+    title: 'Tellimus läks valesti',
+    phases: grammar('Keel: kaebus neljas sammus · tellisin kaks pitsat, sain ühe pitsa, salatit ei saanud'),
+    format: 'case',
+    topic: 'town',
+    canDo: 'Ma kirjutan firmale 50–80-sõnalise viisaka kaebuse: mis valesti läks ja mida ma soovin.',
+    teacherPage: {
+      goal: 'Ученик понимает звонок клиента в службу доставки и пишет фирме вежливую жалобу 50–80 слов в четыре шага: что заказал, что получил и чего хочет.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → звонок в службу поддержки (2 раза) и 7 вопросов → пункт 4: жалоба по картинке «Mis tuli koju?» или о своём случае. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sulle on kunagi toodud vale toit või vale kaup? Mida sa tegid?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 28 без записей: одно предложение с ära (что выбросили на этой неделе).',
+      plan: [
+        '0–8: пункт 1 — случай, когда что-то пошло не так; фраза с ära (повторение урока 28)',
+        '8–25: пункт 2 — слова, звонок «Kiire Kõht, klienditeenindus» (2 раза; четыре шага и формы объекта в контексте), 7 вопросов, в паре: «Mida klient tellis ja mida sai? Mida firma pakkus?»',
+        '25–40: пункт 3 — заметить → правило (четыре шага; arv + osastav, ühe … + omastav, eitus + osastav; sooviksin, saaksite) → 8 форм → 5–7 своих предложений о своём случае',
+        '40–65: пункт 4 — письмо фирме 50–80 слов по картинке «Mis tuli koju?» или о своём случае, без помощи; чтение партнёру — он работник службы поддержки и устно отвечает, что предлагает фирма; вторая попытка: одно предложение вежливее + ещё одна просьба',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как в его стране жалуются на плохой сервис',
+        '72–90: запас',
+      ],
+      sources: 'Звонок (пункт 2), фирма «Kiire Kõht» и картинка «Mis tuli koju?» — учебные, фирма и люди выдуманы, реальных данных нет.',
+      groups: 'Пункт 4: каждый пишет сам, потом читает партнёру; партнёр — работник службы поддержки и отвечает, что фирма может сделать (деньги назад, новая доставка, скидка). Один на один вы — работник фирмы.',
+      errors: [
+        '«Ma tellisin kaks pitsad» вместо «kaks pitsat» (число + ainsuse osastav).',
+        '«Ma ei saanud salat» вместо «Ma ei saanud salatit» (в отрицании osastav).',
+        '«Ma tahan raha tagasi!» — слишком резко; вежливее «Ma sooviksin raha tagasi».',
+        '«Te tegite kõik valesti!» → «Kahjuks läks tellimusega midagi valesti.»',
+      ],
+      notes: [
+        'Четыре шага жалобы важнее длины: приветствие и номер заказа, проблема спокойно, просьба, благодарность.',
+        'Обратная связь, 2 цели: формы объекта (kaks pitsat / ühe pitsa / ei saanud salatit) и вежливая -ksin. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('029_d_review', [['Mida Markus lõunaks lõpuks sõi? Kasuta täissihitist või osastavat.', 'a2b1-028'], ['Mida teha, kui leiad tänavalt rahakoti?', 'a2b1-008'], 'Kas sul on kunagi poes või kohvikus midagi valesti läinud?']),
-      B.text('029_d_hook', 'Kui midagi läheb valesti', 'Vale roog, vale arve, hiline kuller, katkine kaup — see juhtub igaühega. Selles tunnis õpid kaebama viisakalt ja selgelt ning saad teada, millised õigused on tarbijal Eestis ja kust saab abi. Kõigepealt kuulad, kuidas Markus ja Anna lahendavad probleemi Kaneelis, ja proovid kohe ise kaevata. Tunni lõpus lahendad suurema probleemi: Helgi viimase õhtu toidutellimuse.'),
-      tag(B.listening('029_d_cafe', 'Kaneelis läks midagi valesti.', 'Kuula vestlust kaks korda. Kirjuta lünka, mis läks valesti ja mida Jaan selle parandamiseks teeb.', [
+      station(teach(tag(purpose(half(B.speaking('029_d_story', 'Kas midagi on valesti läinud?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kas sulle on kunagi toodud vale toit või vale kaup? Mida sa tegid?',
+        'Ütle ilma märkmeteta üks lause: mida sinu kodus sel nädalal ära visati?',
+      ], [60, 90])), 'Sinu enda kogemus on tänase tunni algus: lõpus kirjutad firmale, mis valesti läks.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris juhtumist (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida firma sulle ütles?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('029_d_vocab', 'Tunni sõnad.', ['tellimus — заказ', 'kuller — курьер', 'klienditeenindus — служба поддержки', 'kaebus — жалоба', 'hilinema — опаздывать', 'raha tagasi — возврат денег', 'allahindlus — скидка', 'vabandama — извиняться', 'kinnitus — подтверждение', 'arvustus — отзыв'], '2')), { topic: ['klienditeenindus', 'allahindlus', 'kaebus', 'arvustus'] }), 2, 17),
+      tag(purpose(why(ownText(twice(half(B.listening('029_d_call', 'Kõne klienditeenindusse.', 'Loe enne laused läbi. Siis kuula kaks korda ja kirjuta igasse lünka üks sõna.', [
+        'Teenindaja: Kiire Kõht, klienditeenindus, tere!',
+        'Klient: Tere! Minu nimi on Maie Kask. Ma tellisin eile õhtul teie kaudu süüa. Tellimuse number on kaks neli üks seitse.',
+        'Teenindaja: Jah, näen. Mis juhtus?',
+        'Klient: Ma tellisin kaks pitsat ja salati. Kuller tõi ainult ühe pitsa. Salatit ma üldse ei saanud.',
+        'Teenindaja: Vabandust! Kas toit tuli õigel ajal?',
+        'Klient: Kahjuks ei tulnud. Me ootasime poolteist tundi ja pitsa oli külm. Lapsed sõid selle siiski ära, sest nad olid väga näljased.',
+        'Teenindaja: Mul on väga kahju. Mida te sooviksite?',
+        'Klient: Ma sooviksin raha tagasi pitsa ja salati eest, mida me ei saanud.',
+        'Teenindaja: Selge. Raha tuleb teie kaardile kolme tööpäeva jooksul. Ja teie järgmine tellimus on kümme protsenti odavam.',
+        'Klient: Aitäh, see sobib. Kas te saaksite mulle selle kinnituse ka e-kirjaga saata?',
+        'Teenindaja: Jah, saadan kohe. Head päeva!',
+        'Klient: Aitäh, head päeva!',
+      ], [
+        'Klient tellis kaks pitsat ja [salati].',
+        'Kuller tõi ainult [ühe] pitsa.',
+        'Salatit klient üldse ei [saanud].',
+        'Nad ootasid toitu poolteist [tundi].',
+        'Pitsa oli [külm], aga lapsed sõid selle ära.',
+        'Klient soovib [raha] tagasi selle eest, mida ta ei saanud.',
+        'Raha tuleb kaardile kolme [tööpäeva] jooksul.',
+        'Järgmine tellimus on kümme [protsenti] odavam.',
+      ], 'g_read')))), [
+        'Klient: „Ma tellisin kaks pitsat ja salati.”',
+        'Klient: „Kuller tõi ainult ühe pitsa.”',
+        'Klient: „Salatit ma üldse ei saanud.”',
+        'Klient: „Me ootasime poolteist tundi.”',
+        'Klient: „pitsa oli külm. Lapsed sõid selle siiski ära”.',
+        'Klient: „Ma sooviksin raha tagasi pitsa ja salati eest, mida me ei saanud.”',
+        'Teenindaja: „Raha tuleb teie kaardile kolme tööpäeva jooksul.”',
+        'Teenindaja: „teie järgmine tellimus on kümme protsenti odavam”.',
+      ]), 'Enne kui sa ise kirjutad, kuuled, kuidas klient rahulikult ja viisakalt kaebab.'), { task: 'L07' }),
+      teach(tag(purpose(half(B.speaking('029_d_retell', 'Mis juhtus? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mida klient tellis ja mida ta sai?',
+        'Mis veel valesti läks?',
+        'Mida klient palus?',
+        'Mida firma pakkus?',
+        'Kas see lahendus on sinu meelest õiglane? Kas sa kirjutaksid pärast sellist õhtut arvustuse? Miks?',
+      ], [60, 90], '', 'g_read')), 'Ütled, mis valesti läks ja kuidas see lahendati.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Kuller tõi kaks pitsat”) ja õpilane parandab sind kõne järgi.'),
+      hide(B.review('029_d_review', [['Mida Markus lõunaks lõpuks sõi? Kasuta täissihitist või osastavat.', 'a2b1-028'], ['Mida teha, kui leiad tänavalt rahakoti?', 'a2b1-008'], 'Kas sul on kunagi poes või kohvikus midagi valesti läinud?']), V5_DRILL),
+      hide(B.text('029_d_hook', 'Kui midagi läheb valesti', 'Vale roog, vale arve, hiline kuller, katkine kaup — see juhtub igaühega. Selles tunnis õpid kaebama viisakalt ja selgelt ning saad teada, millised õigused on tarbijal Eestis ja kust saab abi. Kõigepealt kuulad, kuidas Markus ja Anna lahendavad probleemi Kaneelis, ja proovid kohe ise kaevata. Tunni lõpus lahendad suurema probleemi: Helgi viimase õhtu toidutellimuse.'), V5_CUT),
+      hide(tag(B.listening('029_d_cafe', 'Kaneelis läks midagi valesti.', 'Kuula vestlust kaks korda. Kirjuta lünka, mis läks valesti ja mida Jaan selle parandamiseks teeb.', [
         'Jaan: Palun, teie tellimus: burger ja salat. Head isu!',
         'Markus: Vabandust, Jaan, aga see ei ole see, mida ma tellisin.',
         'Jaan: Oi! Mis viga on?',
@@ -683,25 +1056,17 @@ export const LESSONS = withShapes({
         'Kastme toob Jaan [eraldi].',
         'Ootamise eest saavad nad tasuta [kohvi].',
         'Anna arvates on Jaani teenindus kiire ja [sõbralik].',
-      ]), { task: 'L06' }),
-      teach(tag(B.rolecards('029_d_try', 'Proovi kohe: kaebus kohvikus.', 'A on klient, kelle toit on vale, B on ettekandja. Lahendage probleem kahe minutiga.',
+      ]), { task: 'L06' }), V5_CUT),
+      hide(teach(tag(B.rolecards('029_d_try', 'Proovi kohe: kaebus kohvikus.', 'A on klient, kelle toit on vale, B on ettekandja. Lahendage probleem kahe minutiga.',
         'Sa tellisid kalasupi ja kohvi, aga said seenesupi ja tee. Sul on kiire. Ütle viisakalt, mis on valesti, ja palu lahendust.',
         'Sa oled ettekandja. Köögis oli täna palju tellimusi. Vabanda, paku lahendust ja küsi, kas klient soovib veel midagi.',
         ['Vabandust, aga…', 'Ma tellisin…', 'Kas te saaksite…?'], ['Oi, vabandust!', 'Ma toon kohe…', 'Kas soovite veel midagi?']), { task: 'S10' }),
-      'Üks-ühele: proovi enne reeglit. Õpetaja on ettekandja ega paku lahendust ise — õpilane peab seda paluma. Õpetaja kirjutab üles kaks lauset, mida tunnis hiljem parandada.'),
-      tag(B.vocab('029_d_vocab', 'Tunni sõnad.', ['probleem — проблема', 'viga — ошибка', 'vabandama — извиняться', 'kaebus — жалоба', 'lahendus — решение', 'vahetama — менять', 'nõudma — требовать', 'hilinema — опаздывать', 'tellimus — заказ', 'kuller — курьер', 'arvustus — отзыв', 'allahindlus — скидка']), { topic: ['kaebus', 'arvustus'] }),
-      B.notice('029_d_notice', 'Märka: viisakas kaebus neljas sammus', [
-        '1. Pöördumine: **Vabandust, …** · **Tere! Mul on üks probleem.**',
-        '2. Probleem: **Ma tellisin** supi, **aga sain** salati. · Arvel on kaks mahla, **aga me jõime ainult ühe**.',
-        '3. Palve: **Kas te saaksite** burgeri ära vahetada? · **Ma sooviksin**, et…',
-        '4. Lõpp: **Aitäh, et aitasite!** · **Loodan, et järgmine kord…**',
-        'Sihitis: tellisin **supi** (terve asi), aga **ei saanud suppi** (eitus → osastav).',
-      ], 'full'),
-      B.categorize('029_d_tone', 'Viisakas või liiga terav?', 'Kuidas klient kaebab? Pane laused kahte veergu: viisakas või liiga terav.', [
+      'Üks-ühele: proovi enne reeglit. Õpetaja on ettekandja ega paku lahendust ise — õpilane peab seda paluma. Õpetaja kirjutab üles kaks lauset, mida tunnis hiljem parandada.'), V5_CUT),
+      hide(B.categorize('029_d_tone', 'Viisakas või liiga terav?', 'Kuidas klient kaebab? Pane laused kahte veergu: viisakas või liiga terav.', [
         ['viisakas', ['Vabandust, mul on üks probleem.', 'Kas te saaksite selle ära vahetada?', 'Ma tellisin kala, aga sain kana.', 'Kas te võiksite arve üle vaadata?', 'Aitäh, et lahendasite nii kiiresti.', 'Ma sooviksin raha tagasi saada.', 'Loodan, et järgmine kord läheb paremini.']],
         ['liiga terav', ['See toit on täiesti vale!', 'Te ei oska üldse tööd teha.', 'Tooge kohe uus burger!', 'Ma ei maksa siin mitte midagi.', 'Miks te ei kuula, mida ma ütlen?', 'Siia ma enam kunagi ei tule!', 'Kus on mu toit? Ma ootan juba tund aega!']],
-      ], 'full', 'g_vocab'),
-      tag(B.reading('029_d_signs', 'Teated kohvikus ja kulleri kodulehel.', 'Loe teateid. Vasta küsimustele: mida klient peab tegema, kui midagi on valesti?', 'Kui midagi on valesti', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.reading('029_d_signs', 'Teated kohvikus ja kulleri kodulehel.', 'Loe teateid. Vasta küsimustele: mida klient peab tegema, kui midagi on valesti?', 'Kui midagi on valesti', [
         'A. Kohvik Kaneel: Kui toit ei vasta tellimusele, öelge seda kohe teenindajale. Vahetame roa tasuta ja kiiresti. Kui toit on juba söödud, ei saa me seda enam vahetada.',
         '',
         'B. Kohvik Kaneel: Allergia korral küsige teenindajalt koostisosade nimekirja. Menüüs on allergeenid märgitud tähtedega roa nime järel. Kokk võib paljud road teha ka ilma piima, munade või pähkliteta.',
@@ -722,14 +1087,44 @@ export const LESSONS = withShapes({
         ['Millal saab Kiire Kõhu klienditeenindusse helistada?', 'iga päev kella 10–22|iga päev 10–22'],
         ['Mida on vaja, et poes rikutud toode tagastada?', 'tšekki|tšekk'],
         ['Miks on hea teha kohe foto, kui tellimuses on viga?', 'siis saab raha tagasi|see on tõend'],
-      ]), { task: 'R07' }),
-      B.know('029_d_know', [
+      ]), { task: 'R07' }), V5_CUT),
+      hide(B.know('029_d_know', [
         'Kui sa ei tea, mida poelt, kohvikult või firmalt nõuda võid, küsi nõu Tarbijakaitse ja Tehnilise Järelevalve Ametilt. Tarbijate nõuandetelefon on 620 1707 ja sinna saab helistada tööpäeviti kella 10–15. Küsimuse võib saata ka ameti e-teeninduse kaudu, e-postiga või tavapostiga.',
-      ], 'Eesti.ee / Tarbijakaitse ja Tehnilise Järelevalve Amet, „Pretensioon kauplejale”', 'Kas teadsid? Kust saab tarbija nõu'),
-      tag(B.letter('029_d_polite', 'Markuse sõnum viisakamaks.', 'Õhtul kirjutas Markus kohvikule: „Teie kohvikus on kõik valesti! Tellisin burgeri ilma sibulata, sain sibulaga. Friikartuleid ei olnud. Arvel oli mahl, mida me ei joonud. Ma ei tule enam kunagi!” Sellisele sõnumile ei taha keegi vastata. Kirjuta see ümber viisakalt ja teie-vormis; kõik faktid peavad alles jääma.', 'Tere, kohvik Kaneel!', 'Lugupidamisega, Markus', [70, 90]), { task: 'W12' }),
+      ], 'Eesti.ee / Tarbijakaitse ja Tehnilise Järelevalve Amet, „Pretensioon kauplejale”', 'Kas teadsid? Kust saab tarbija nõu'), V5_CUT),
+      hide(tag(B.letter('029_d_polite', 'Markuse sõnum viisakamaks.', 'Õhtul kirjutas Markus kohvikule: „Teie kohvikus on kõik valesti! Tellisin burgeri ilma sibulata, sain sibulaga. Friikartuleid ei olnud. Arvel oli mahl, mida me ei joonud. Ma ei tule enam kunagi!” Sellisele sõnumile ei taha keegi vastata. Kirjuta see ümber viisakalt ja teie-vormis; kõik faktid peavad alles jääma.', 'Tere, kohvik Kaneel!', 'Lugupidamisega, Markus', [70, 90]), { task: 'W12' }), V5_CUT),
     ],
     practice: [
-      B.choice('029_p_best', 'Viisakas klient.', 'Mida ütleb viisakas klient? Vali iga olukorra jaoks kõige sobivam lause.', [
+      station(B.notice('029_d_notice', 'Märka: viisakas kaebus neljas sammus', [
+        '1. Tervita ja ütle, kes sa oled: **Tere! Minu nimi on …, tellimuse number on …**',
+        '2. Probleem, rahulikult: **Ma tellisin kaks pitsat** (arv + osastav), **aga sain ainult ühe pitsa** (täissihitis). **Salatit ma ei saanud** (eitus + osastav).',
+        '3. Palve: **Ma sooviksin** raha tagasi … · **Kas te saaksite** … saata? · **Palun** …',
+        '4. Tänu ja lõpp: **Aitäh! Ootan teie vastust.** · Mitte „Te tegite kõik valesti!”, vaid „**Kahjuks** läks midagi valesti.”',
+      ], 'full'), 3, 15),
+      teach(tag(purpose(why(B.adsmatch('029_p_where', 'Eksaminurk: mida ma võin nõuda? (Harno B1 lugemine 1)', 'Leia igale olukorrale sobiv teade ja kirjuta selle täht. Üks teade võib sobida mitmele.', [
+        ['Toidukuller', 'Kui tellimus hilineb üle 30 minuti, on kohaletoomine tasuta. Puuduva toidu eest maksame raha tagasi.'],
+        ['Kohvik', 'Kas sinu roog ei ole see, mida tellisid? Ütle kohe teenindajale, toome uue.'],
+        ['Kodukaupade pood', 'Katkise kauba vahetame või maksame raha tagasi. Võta kaasa tšekk.'],
+        ['Restoran', 'Broneeringu saab tasuta tühistada üks päev ette. Hiljem maksad 10 eurot inimese kohta.'],
+        ['Tarbijanõustamine', 'Kui firma ei vasta sinu kaebusele kahe nädala jooksul, helista meile. Nõu on tasuta.'],
+        ['Pagariäri', 'Tordi saab tellida kolm päeva ette. Kui tort ei ole valmis, saad järgmise tordi poole hinnaga.'],
+      ], [
+        ['Kuller tõi toidu tund hiljem.', 'A'],
+        ['Kohvikus toodi sulle kala, aga sa tellisid kana.', 'B'],
+        ['Uus veekeetja ei tööta.', 'C'],
+        ['Sa ei saa homme õhtul restorani tulla.', 'D'],
+        ['Firma ei ole sinu kirjale kolm nädalat vastanud.', 'E'],
+        ['Sünnipäeva tort ei olnud õigel ajal valmis.', 'F'],
+      ], 'g_read'), [
+        'Toidukuller: „Kui tellimus hilineb üle 30 minuti, on kohaletoomine tasuta.”',
+        'Kohvik: „Ütle kohe teenindajale, toome uue.”',
+        'Kodukaupade pood: „Katkise kauba vahetame …”',
+        'Restoran: „Broneeringu saab tasuta tühistada üks päev ette.”',
+        'Tarbijanõustamine: „Kui firma ei vasta … kahe nädala jooksul, helista meile.”',
+        'Pagariäri: „Kui tort ei ole valmis, saad järgmise tordi poole hinnaga.”',
+      ]), 'Enne kui sa kaebad, tead, mida sa võid nõuda. Eksamil (Harno B1 lugemine 1) on sama ülesanne.'), { task: 'R01', harno: 'R1' }),
+      'Eksaminurk (Harno B1 lugemine 1, ~8 min), formaati tutvustatakse siin. Strateegia: 1) loe kõigepealt olukorrad ja jooni alla võtmesõna (hiljem, katkine, ei vasta); 2) otsi teatest sama mõte teiste sõnadega (tund hiljem → hilineb üle 30 minuti); 3) üks teade võib sobida mitmele. Üks-ühele: esimese olukorra lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise. Pärast küsi: mida sa nende teadete järgi oma kaebuses nõuad?'),
+      tag(purpose(B.writing('029_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset ühest korrast, kui sinu tellimus, ost või teenus läks valesti: mida sa tellisid, mida said ja mida palusid. Ühenda laused sõnadega aga ja sest.', [5, 7]), 'Oma laused on sinu kaebuse materjal.'), { task: 'W09' }),
+      hide(B.choice('029_p_best', 'Viisakas klient.', 'Mida ütleb viisakas klient? Vali iga olukorra jaoks kõige sobivam lause.', [
         ['Ettekandja tõi vale supi.', 'Vabandust, ma tellisin tomatisupi, mitte seenesupi.', 'See supp on täiesti vale, viige see ära!', 'Miks te kunagi õiget suppi ei too?'],
         ['Arvel on üks kohv liiga palju.', 'Vabandust, kas te saaksite arve üle vaadata?', 'Te tahate mind petta, see arve on vale!', 'Ma ei maksa sellist arvet mitte kunagi.'],
         ['Kuller hilineb juba tund aega.', 'Tere, minu tellimus on tund aega hiljaks jäänud.', 'Kus on mu toit? Ma olen väga vihane!', 'Teie firma on maailma halvim firma.'],
@@ -740,8 +1135,8 @@ export const LESSONS = withShapes({
         ['Sa ei ole kindel, kas toidus on pähkleid.', 'Kas te saaksite köögist küsida, kas selles on pähkleid?', 'Selles on kindlasti pähkleid, eks?', 'Pähklid ei ole minu probleem.'],
         ['Teenindaja ei saa probleemi kohe lahendada.', 'Kas ma võiksin oma numbri jätta, et te helistaksite?', 'Siis ma ootan siin, kuni te lahendate.', 'Hea küll, siis pole midagi teha.'],
         ['Probleem on lahendatud.', 'Aitäh, et lahendasite selle nii kiiresti!', 'Lõpuks ometi, see võttis liiga kaua.', 'Järgmine kord tehke kohe õigesti.'],
-      ], 'full', 'g_notice'),
-      tag(B.bankText('029_p_reviews', 'Arvustused kohvikust.', 'Vali pangast igasse lünka sõna, mis sobib nii sisu kui vormiga. Pangas on kaks lisasõna.', 'Kohvik Kaneel — klientide arvamused', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(tag(B.bankText('029_p_reviews', 'Arvustused kohvikust.', 'Vali pangast igasse lünka sõna, mis sobib nii sisu kui vormiga. Pangas on kaks lisasõna.', 'Kohvik Kaneel — klientide arvamused', [
         'Helen, 5 tärni: Käisin Kaneelis lõunal ja tellisin päevapraadi. Toit oli maitsev ja [[portsjon]] oli suur. Ettekandja oli väga [[sõbralik]] ja soovitas meile õunamahla.',
         '',
         'Ain, 3 tärni: Kohvik on hubane, aga lõuna ajal on seal liiga palju [[inimesi]]. Ootasin oma suppi kakskümmend minutit. Ettekandja [[vabandas]] ja tõi mulle tasuta kohvi.',
@@ -749,12 +1144,12 @@ export const LESSONS = withShapes({
         'Markus, 4 tärni: Mul on piimaallergia ja ma pean alati küsima toidu [[koostise]] kohta. Täna sain kõigepealt vale burgeri, aga ettekandja [[vahetas]] selle kiiresti ära. Ka [[arve]] parandati kohe. Viga võib juhtuda, tähtis on [[lahendus]].',
         '',
         'Kärt, 5 tärni: Siin on linna parimad kaneelirullid! Need on alati [[värsked]], sest neid küpsetatakse igal hommikul. Kohvikus on ka lastenurk, nii et siia on hea tulla [[peredega]].',
-      ], ['kaebus', 'hilines']), { task: 'R04' }),
-      B.translation('029_p_ru', 'Tõlgi kaebuse laused.', 'Tõlgi laused eesti keelde. Kirjuta nii, nagu kirjutaks viisakas klient.', [
+      ], ['kaebus', 'hilines']), { task: 'R04' }), V5_CUT),
+      hide(B.translation('029_p_ru', 'Tõlgi kaebuse laused.', 'Tõlgi laused eesti keelde. Kirjuta nii, nagu kirjutaks viisakas klient.', [
         'Извините, я заказывал суп, а получил салат.', 'Не могли бы вы проверить счёт?', 'В счёте один сок лишний.', 'Курьер опоздал на полтора часа.', 'Суп был холодный, а одного блюда не было.',
         'Я хотел бы получить деньги обратно.', 'Я отправлю вам фото заказа.', 'Спасибо, что вы так быстро решили проблему.', 'Скидка в десять процентов мне не подходит.', 'Надеюсь получить ваш ответ до пятницы.',
-      ]),
-      tag(B.transformation('029_p_join', 'Kaks lauset üheks.', 'Ühenda kaks lauset antud sõnaga. Nii saab kaebusest sidus tekst.', [
+      ]), V5_DRILL),
+      hide(tag(B.transformation('029_p_join', 'Kaks lauset üheks.', 'Ühenda kaks lauset antud sõnaga. Nii saab kaebusest sidus tekst.', [
         ['Ma tellisin burgeri ilma sibulata. Burgeris oli sibul.', 'aga', 'Ma tellisin burgeri ilma sibulata, aga burgeris oli sibul.'],
         ['Supp oli külm. Kuller hilines poolteist tundi.', 'sest', 'Supp oli külm, sest kuller hilines poolteist tundi.'],
         ['Kuller hilines üle tunni. Firma peab kohaletoomise raha tagasi maksma.', 'kuna', 'Kuna kuller hilines üle tunni, peab firma kohaletoomise raha tagasi maksma.'],
@@ -765,8 +1160,8 @@ export const LESSONS = withShapes({
         ['Ma helistasin klienditeenindusse. Keegi ei vastanud.', 'kuid', 'Ma helistasin klienditeenindusse, kuid keegi ei vastanud.'],
         ['Teenindus oli kiire. Toit oli maitsev.', 'ning', 'Teenindus oli kiire ning toit oli maitsev.'],
         ['Kas te saaksite mulle helistada? Probleem on lahendatud.', 'kui', 'Kas te saaksite mulle helistada, kui probleem on lahendatud?'],
-      ]), { task: 'W09' }),
-      tag(B.reading('029_p_three', 'Kolm arvustust.', 'Loe kolme arvustust. Leia igale sobiv pealkiri ja vasta küsimustele oma sõnadega.', 'Kiire Kõht — mida kliendid kirjutavad?', [
+      ]), { task: 'W09' }), V5_DRILL),
+      hide(tag(B.reading('029_p_three', 'Kolm arvustust.', 'Loe kolme arvustust. Leia igale sobiv pealkiri ja vasta küsimustele oma sõnadega.', 'Kiire Kõht — mida kliendid kirjutavad?', [
         'A. Tellisin reede õhtul pitsa ja salati. Lubatud aeg oli kell seitse, aga kuller tuli alles veerand üheksa. Pitsa oli külm ja salat soe. Helistasin klienditeenindusse ja sain järgmise tellimuse pealt 15% allahindlust. Teenindaja oli viisakas, aga allahindlus ei teinud minu õhtut paremaks. Sõin lõpuks külmkapist võileiba ja olin päris pahane. Järgmine kord tellin ise poest.',
         '',
         'B. Olen tellinud Kiire Kõhust juba kaks aastat. Toit tuleb tavaliselt õigel ajal ja on soe. Eelmisel nädalal puudus kotist magustoit. Saatsin foto ja raha tuli kahe päeva pärast tagasi. Mulle helistati isegi ja küsiti, kas kõik on korras. Väga korralik firma, soovitan kõigile!',
@@ -781,15 +1176,15 @@ export const LESSONS = withShapes({
         ['Miks C-kirjutaja enam lastele toitu ei telli?', 'salatis olid pähklid, kuigi ta palus ilma|see oli ohtlik tütrele'],
         ['Kas A-kirjutaja oli lahendusega rahul? Miks?', 'ei, allahindlus ei teinud õhtut paremaks'],
         ['Kumma arvustuse põhjal sa firmat usaldaksid ja miks?', ''],
-      ]), { task: 'R09' }),
-      tag(B.text('029_p_rights', 'Artikkel: kui teenus või kaup ei vasta lubatule', [
+      ]), { task: 'R09' }), V5_CUT),
+      hide(tag(B.text('029_p_rights', 'Artikkel: kui teenus või kaup ei vasta lubatule', [
         'Igaühega juhtub: toit tuuakse hilja, kaup on katki või teenus ei ole see, mille eest maksti. Eestis on tarbijal sellisel juhul selged õigused. Kõigepealt tuleb pöörduda kaupleja või teenusepakkuja poole, näiteks poe, kohviku või kullerfirma poole.',
         'Kaebuse ehk pretensiooni võib kirjutada vabas vormis. Kirjuta sinna oma nimi ja kontaktandmed, kuupäev, mis oli valesti ja millist lahendust sa soovid. Lisa ostutšekk, tellimuse kinnitus või muu dokument, mis näitab, et sa tegid ostu. Kui suulisele kaebusele ei reageerita, esita kaebus kirjalikult.',
         'Kaupleja peab kaebuse vastu võtma ja vastama sulle kirjalikult 15 päeva jooksul. Teenuse kohta võib pretensiooni esitada kahe aasta jooksul alates teenuse saamisest, aga probleemist tasub rääkida kohe.',
         'Kui kaupleja ei vasta või te ei jõua kokkuleppele, võib pöörduda tarbijavaidluste komisjoni poole. Komisjonis on vaidluse lahendamine tasuta nii tarbijale kui ka ettevõttele ja tulemuse saab tavaliselt 90 päeva jooksul. Kui sa ei ole oma õigustes kindel, võid enne küsida nõu tarbijanõustajalt.',
         'Allikas: Eesti.ee / Tarbijakaitse ja Tehnilise Järelevalve Amet, „Pretensioon kauplejale”; Tarbijakaitse ja Tehnilise Järelevalve Ameti koduleht, tarbija pretensioon.',
-      ].join('\n\n')), { voice: 'article' }),
-      tag(B.match('029_p_rightsq', 'Mida artikkel ütleb?', 'Loe artiklit. Ühenda lause algus ja lõpp nii, nagu artiklis kirjas.', [
+      ].join('\n\n')), { voice: 'article' }), V5_CUT),
+      hide(tag(B.match('029_p_rightsq', 'Mida artikkel ütleb?', 'Loe artiklit. Ühenda lause algus ja lõpp nii, nagu artiklis kirjas.', [
         ['Kõigepealt pöördu', 'kaupleja või teenusepakkuja poole.'],
         ['Kaebuse võib kirjutada', 'vabas vormis.'],
         ['Kaebusesse kirjuta ka lahendus,', 'mida sa soovid.'],
@@ -800,13 +1195,29 @@ export const LESSONS = withShapes({
         ['Kui te ei jõua kokkuleppele,', 'pöördu tarbijavaidluste komisjoni poole.'],
         ['Komisjonis on vaidluse lahendamine', 'tasuta.'],
         ['Kui sa ei ole oma õigustes kindel,', 'küsi nõu tarbijanõustajalt.'],
-      ], 'full', 'g_read'), { task: 'R14' }),
-      teach(tag(B.speaking('029_p_helgi', 'Arutelu: arvustused ja kaebused.', 'Arutage paaris. Vasta igale küsimusele 3–4 lausega, too näide oma elust ja küsi, mida paariline arvab.', ['Kas sa loed enne tellimist internetist arvustusi? Kas sa usaldad neid?', 'Kumb on parem: kaevata kohe kohapeal või kirjutada pärast arvustus internetti? Miks?', 'Kas sa oled kunagi Eestis kaevanud? Mis juhtus?', 'Kas sinu kodumaal kaevatakse sagedamini või harvemini kui Eestis? Miks see nii on?', 'Mida peaks firma sinu arvates tegema, kui ta saab halva arvustuse?'], [90, 150], ['Minu meelest…, sest…', 'Kord juhtus mul…', 'Minu kodumaal…, aga Eestis…']), { task: 'S13', fluency: true }),
-        'Üks-ühele: õpetaja on paariline ja ütleb vahel vastupidise arvamuse („Arvustus internetis on kõige parem kaebus!”). Õpilane põhjendab ja võrdleb Eestit oma kodumaaga.'),
+      ], 'full', 'g_read'), { task: 'R14' }), V5_DRILL),
+      hide(teach(tag(B.speaking('029_p_helgi', 'Arutelu: arvustused ja kaebused.', 'Arutage paaris. Vasta igale küsimusele 3–4 lausega, too näide oma elust ja küsi, mida paariline arvab.', ['Kas sa loed enne tellimist internetist arvustusi? Kas sa usaldad neid?', 'Kumb on parem: kaevata kohe kohapeal või kirjutada pärast arvustus internetti? Miks?', 'Kas sa oled kunagi Eestis kaevanud? Mis juhtus?', 'Kas sinu kodumaal kaevatakse sagedamini või harvemini kui Eestis? Miks see nii on?', 'Mida peaks firma sinu arvates tegema, kui ta saab halva arvustuse?'], [90, 150], ['Minu meelest…, sest…', 'Kord juhtus mul…', 'Minu kodumaal…, aga Eestis…']), { task: 'S13', fluency: true }),
+        'Üks-ühele: õpetaja on paariline ja ütleb vahel vastupidise arvamuse („Arvustus internetis on kõige parem kaebus!”). Õpilane põhjendab ja võrdleb Eestit oma kodumaaga.'), V5_CUT),
     ],
     transfer: [
-      B.text('029_t_sit', 'Helgi viimane õhtu', 'Neljapäeval on Helgi viimane õhtu Tallinnas. Sofia tellis Kiire Kõhust õhtusöögi neljale: Helgile, Viktorile, Jaanile ja endale. Toit tuli poolteist tundi hiljem, supid olid külmad ja üks roog puudus. Loe tellimuse kinnitust, helista klienditeenindusse ja vasta firma kirjale.'),
-      tag(B.reading('029_t_order', 'Tellimuse kinnitus ja tingimused.', 'Loe kinnitust ja tingimusi. Vasta küsimustele: mida Sofia võib firmalt nõuda ja miks?', 'Kiire Kõht — tellimus nr 4471', [
+      station(teach(tag(purpose(rows(B.examWriting('029_t_reply', 'Kaebus firmale: mis läks valesti?', 'Sinu toidutellimus läks valesti. Kirjuta firmale 50–80 sõna (pilt üleval või oma päris kogemus). Algus ja lõpp on sinu oma.', 'kaebus', {
+        points: ['mida sa tellisid ja mida said', 'mis veel valesti läks', 'mida sa firmalt soovid'],
+        words: [50, 80],
+      }), 6), 'Firma saab aru, mis juhtus, ja teab, mida sa soovid.'), { task: 'W08', main: true, level: 4 }),
+      'Õpilane kirjutab tunnis 12–15 minutit ilma abita, siis loeb paarilisele ette; paariline on klienditeenindaja: ütleb suuliselt, mida firma pakub (raha tagasi, uus kohaletoomine, allahindlus), ja õpilane otsustab, kas see sobib. Teine katse: õpilane teeb ühe lause viisakamaks (Kahjuks …, Ma sooviksin …) ja lisab ühe palve. Parandatud versioon on kodutöö. Kontrolli: neli sammu, arv + osastav (kaks pitsat), täissihitis või eitus + osastav (sain ühe pitsa, salatit ei saanud), viisakas -ksin.'), 4, 25, { final: 'complain' }),
+      tag(exitCheck(why(purpose(B.gaps('029_t_exit', 'Kontrolli end: kolm vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Ma tellisin kolm [pitsat] (pitsa).',
+        'Ma ei saanud [mahla] (mahl).',
+        'Ma [sooviksin] (soovima) raha tagasi.',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kaebuse vormid on käes.'), ['arv + ainsuse osastav: kolm pitsat.', 'eitus → osastav: mahla.', 'viisakas: soovin → sooviksin.'])), {}),
+      purpose(B.selfcheck('029_t_self', ['Ma kaeban viisakalt nelja sammuga.', 'Ma ütlen, mida tellisin ja mida sain: kaks pitsat, ühe pitsa, ei saanud salatit.', 'Ma saan aru klienditeeninduse kõnest.', 'Ma kirjutan firmale 50–80-sõnalise kaebuse ja ütlen, mida soovin.'], 'Kaebus saadetud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(half(B.speaking('029_t_rec', 'Kodus: häälsõnum klienditeenindusse.', 'Sa helistasid firmasse, aga keegi ei vastanud. Salvesta 60–90-sekundiline häälsõnum.', [
+        'Kes sa oled ja mis on sinu tellimus?',
+        'Mis valesti läks ja mida sa soovid?',
+      ], [60, 90])), 'Õpetaja ütleb, kas neli sammu ja kaebuse vormid tulid õigesti.')), { task: 'S15', fluency: true }),
+      half(homework('029_t_homework', ['1. Paranda kaebus ja saada see õpetajale.', '2. Salvesta häälsõnum (ülesanne kõrval).', `3. ${WORDS_HOME}`, NO_RECORDING])),
+      hide(B.text('029_t_sit', 'Helgi viimane õhtu', 'Neljapäeval on Helgi viimane õhtu Tallinnas. Sofia tellis Kiire Kõhust õhtusöögi neljale: Helgile, Viktorile, Jaanile ja endale. Toit tuli poolteist tundi hiljem, supid olid külmad ja üks roog puudus. Loe tellimuse kinnitust, helista klienditeenindusse ja vasta firma kirjale.'), V5_CUT),
+      hide(tag(B.reading('029_t_order', 'Tellimuse kinnitus ja tingimused.', 'Loe kinnitust ja tingimusi. Vasta küsimustele: mida Sofia võib firmalt nõuda ja miks?', 'Kiire Kõht — tellimus nr 4471', [
         'Tellija: Sofia Mets, Kalamaja. Tellimus tehtud neljapäeval kell 17.40. Lubatud kohaletoomise aeg: kell 18.30.',
         '',
         'Tellitud toidud: kaks seenesuppi (6 € tükk), üks ahjukala kartulitega (15 €), üks kana riisiga (13 €) ja üks köögiviljaroog (12 €).',
@@ -827,35 +1238,107 @@ export const LESSONS = withShapes({
         ['Mida peab Sofia kindlasti 24 tunni jooksul tegema?', 'saatma foto|saatma fotod'],
         ['Mida võib Sofia küsida külma supi eest? Kas see on kindel?', 'hüvitist, aga see ei ole kindel'],
         ['Mida sina firmalt nõuaksid ja miks?', ''],
-      ]), { task: 'R08', level: 3 }),
-      teach(tag(B.phoneCards('029_t_call', 'Eksaminurk: kõne klienditeenindusse (Harno B1 rääkimine 2)', 'A helistab Kiire Kõhu klienditeenindusse, B vastab. Tehke kõne kaks korda, teisel korral kiiremini.', 'Neljapäeva õhtul kell 20.10 helistab Sofia Kiire Kõhu klienditeenindusse.', ['Helistaja (Sofia)', [
+      ]), { task: 'R08', level: 3 }), V5_CUT),
+      hide(teach(tag(B.phoneCards('029_t_call', 'Eksaminurk: kõne klienditeenindusse (Harno B1 rääkimine 2)', 'A helistab Kiire Kõhu klienditeenindusse, B vastab. Tehke kõne kaks korda, teisel korral kiiremini.', 'Neljapäeva õhtul kell 20.10 helistab Sofia Kiire Kõhu klienditeenindusse.', ['Helistaja (Sofia)', [
         'Ütle oma nimi ja tellimuse number 4471.', 'Seleta, mis läks valesti: aeg, külm supp, puuduv roog, puuduv kook.', 'Küsi, kas saad kohaletoomise raha tagasi.', 'Küsi, mida pead tegema, et raha tagasi saada.', 'Küsi, millal raha tuleb.',
       ]], ['Klienditeenindaja', [
         'Vabanda ja küsi tellimuse numbrit.', 'Hilinemine üle tunni: kohaletoomine (4 €) makstakse tagasi.', 'Puuduvad tooted: saatke foto 24 tunni jooksul.', 'Külm toit: otsuse teeb juht homme.', 'Raha tuleb tagasi viie tööpäeva jooksul.',
       ]]), { harno: 'S2', fluency: true, main: true }),
-      'Eksaminurk (Harno B1 rääkimine 2, telefonikõne, ~8 min): õpilane näeb ainult oma kaarti. Üks-ühele: õpetaja on klienditeenindaja; teisel korral vahetage kaardid ja õpilane vastab, kiiremini. Hinda: kas kõik viis küsimust said küsitud ja vastatud.'),
-      B.rubricSpeaking('029_t_rubric_s', 'Hindamine: telefonikõne klienditeenindusse (20 punkti).'),
-      B.examWriting('029_t_reply', 'Vastus Kiire Kõhule.', 'Firma pakkus ainult allahindlust. Kirjuta vastus 80–100 sõnaga: kirjelda probleemi ja ütle, mida soovid.', 'vastus', {
-        situation: 'Firma vastas Sofia kõnele e-kirjaga: „Vabandame hilinemise pärast. Pakume teile järgmise tellimuse pealt 10% allahindlust.” Sofia arvates on see liiga vähe.',
-        points: ['mis tellimusega juhtus (aeg, toit)', 'miks 10% allahindlus ei sobi', 'mida sa tingimuste järgi soovid (summa)', 'mida sa kirjale lisad (foto)', 'viisakas lõpp: millal ootad vastust'],
-        words: [80, 100], opening: 'Tere, Kiire Kõhu klienditeenindus!', closing: 'Lugupidamisega, Sofia Mets',
-      }),
-      teach(tag(B.speaking('029_t_rec', 'Kodus: häälsõnum klienditeenindusse.', 'Sa helistasid, aga keegi ei vastanud. Jäta häälsõnum (umbes 1 minut): kes sa oled, mis tellimusega juhtus ja mida sa soovid. Salvesta.', ['Kes sa oled ja mis on tellimuse number?', 'Millal sa tellisid?', 'Mis oli valesti?', 'Mida sa soovid: uut toitu või raha tagasi?', 'Kuidas sinuga ühendust saab?'], [60, 120], ['Tere! Minu nimi on…', 'Ma tellisin…, aga…', 'Palun…']), { task: 'S15', level: 3 }),
-        'Kodune häälsõnum. Tunnis helistab õpetaja teeninduse nimel tagasi.'),
-      tag(B.writing('029_t_final', 'Parem versioon.', 'Loe oma vastust nagu firma töötaja. Märgi hindamisjuhendi järgi, mis puudub, ja kirjuta parem versioon.', [9, 11], ['tellisin', 'aga', 'sooviksin', 'tagasi'], 3), { task: 'W10' }),
-      B.rubricW2('029_t_rubric', 'Hindamine: vastus firmale (12 punkti).'),
-      B.selfcheck('029_t_self', ['Ma kaeban viisakalt nelja sammuga.', 'Ma leian tingimustest, mida võin nõuda.', 'Ma helistan klienditeenindusse ja küsin vajaliku info.', 'Ma kirjutan firmale selge ja viisaka vastuse.'], 'Kui midagi läheb valesti'),
+      'Eksaminurk (Harno B1 rääkimine 2, telefonikõne, ~8 min): õpilane näeb ainult oma kaarti. Üks-ühele: õpetaja on klienditeenindaja; teisel korral vahetage kaardid ja õpilane vastab, kiiremini. Hinda: kas kõik viis küsimust said küsitud ja vastatud.'), V5_CUT),
+      hide(B.rubricSpeaking('029_t_rubric_s', 'Hindamine: telefonikõne klienditeenindusse (20 punkti).'), V5_CUT),
+      hide(tag(B.writing('029_t_final', 'Parem versioon.', 'Loe oma vastust nagu firma töötaja. Märgi hindamisjuhendi järgi, mis puudub, ja kirjuta parem versioon.', [9, 11], ['tellisin', 'aga', 'sooviksin', 'tagasi'], 3), { task: 'W10' }), V5_CUT),
+      hide(B.rubricW2('029_t_rubric', 'Hindamine: vastus firmale (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 030 control 6 on one sheet
   'a2b1-030': {
-    title: 'Eksam 6 — toit ja teenindus',
+    title: 'Kontroll 6: toit ja teenindus',
+    format: 'exam',
     assessment: true,
-    canDo: 'Ma sooritan mooduli eksami Harno A2 vormis koos B1 ülesannetega: loen, kuulan, kirjutan ja räägin toidu ja teeninduse teemal; eesmärk on vähemalt 80 % igas osas.',
+    canDo: 'Ma saan aru toidu ja teeninduse kuulutustest ja lühikesest tekstist, räägin ilma abita ühest söögikorrast, tellin telefonis toitu ja kirjutan lühikese sõnumi.',
     discover: [
-      B.text('030_d_intro', 'Mooduli eksam', 'Selles tunnis teed mooduli 6 eksami. Lugemine (45 min) ja kuulamine (umbes 30 min) on Harno A2 vormis, igas osas on ka B1 ülesanded. Kirjutamine (35 min) ja rääkimine (umbes 15 min) on B1 vormis. Eesmärk: vähemalt 80 % igas osas. Kõigepealt kordad mooduli sõnu ja vorme ning loed, kuidas Helgi nädal lõppes.'),
-      B.vocab('030_d_vocab', 'Mooduli võtmesõnad.', ['kogus — количество', 'pakk — пачка', 'purk — банка', 'päevapraad — блюдо дня', 'broneerima — бронировать', 'koostis — состав', 'valmis — готов', 'ära sööma — съесть', 'kaebus — жалоба', 'nõudma — требовать', 'kuller — курьер', 'arvustus — отзыв']),
-      B.choice('030_d_quiz', 'Mooduli viktoriin.', 'Mida sa mooduli lugudest mäletad? Vali igale küsimusele õige vastus.', [
+      half(B.text('030_d_intro', 'Kontroll 6', `See on mooduli 6 kontroll Harno A2 eksami vormis: lugemine 15 minutit, rääkimine 15 minutit ja kirjutamine 15 minutit, ilma sõnaraamatuta. Rääkimise esimene ülesanne on paralleelne tunni 26 külma stardiga: lõpus võrdled. ${THRESHOLDS}`)),
+      half(B.examPart('030_p_rpart', 'R', { part: 'Lugemine', minutes: 15, points: 16, tasks: 2, target: 60, note: `Loe iga juhis enne teksti läbi. ${THRESHOLDS}` })),
+      tag(why(B.adsmatch('030_p_r1', 'Lugemine 1. Kuulutused.', 'Loe olukordi ja kuulutusi. Kirjuta olukorra juurde sobiva kuulutuse täht. Üks kuulutus võib sobida mitmele.', [
+        ['Restoran Kask', 'Kohalik toit ja suur saal. Lastele on oma menüü, kõik lasteroad on pähkliteta. Laua saab broneerida telefonis.'],
+        ['Kohvik Lusikas', 'Päevapraad tööpäeviti kell 11–15, hind 8 eurot. Pühapäeval on kohvik suletud.'],
+        ['Peolaud', 'Toome peotoidu koju või kontorisse kuni sajale inimesele. Ka taimetoit. Tellimus vähemalt kolm päeva ette.'],
+        ['Kokakool', 'Laupäeval õpime tegema leiba ja suppi. Kursus on täiskasvanutele, toiduained on hinnas.'],
+        ['Turu talupood', 'Talunike piim, juust ja munad. Tellimuse saab ette teha telefonis ja võtta poest valmis kotiga.'],
+        ['Jagamiskapp', 'Too toitu, mida sa ise ära ei söö, ja võta, mida vajad. Ainult kinnises pakendis toit.'],
+      ], [
+        ['Üks ema otsib kohta, kus tema laps saab ohutult süüa, sest lapsel on pähkliallergia.', 'A'],
+        ['Kolleegid tahavad kolmapäeval kesklinnas odavalt lõunat süüa.', 'B'],
+        ['Firma korraldab kontoris peo neljakümnele inimesele.', 'C'],
+        ['Noormees tahab õppida ise leiba tegema.', 'D'],
+        ['Vanaema tahab talupiima ette tellida ja hiljem kotiga ära viia.', 'E'],
+        ['Pärast pidu jäi kodus üle kaks kinnist pakki jogurtit.', 'F'],
+        ['Pere tahab laupäeva õhtul suure seltskonnaga välja sööma minna.', 'A'],
+        ['Üks naine tahab sünnipäevaks koju taimetoitu tellida.', 'C'],
+      ]), [
+        'Restoran Kask: „kõik lasteroad on pähkliteta”.',
+        'Kohvik Lusikas: „Päevapraad tööpäeviti …, hind 8 eurot.”',
+        'Peolaud: „kuni sajale inimesele”, ka kontorisse.',
+        'Kokakool: „õpime tegema leiba ja suppi”.',
+        'Turu talupood: „Tellimuse saab ette teha … ja võtta poest valmis kotiga.”',
+        'Jagamiskapp: „Too toitu, mida sa ise ära ei söö … Ainult kinnises pakendis.”',
+        'Restoran Kask: „suur saal”, laua saab broneerida telefonis.',
+        'Peolaud: „Toome peotoidu koju … Ka taimetoit.”',
+      ]), { harno: 'R1', task: 'R01' }),
+      tag(why(B.reading('030_p_r3text', 'Lugemine 2. Teade maja koduleheküljel.', 'Loe teadet. Kirjuta iga lause järele: õige, vale või ei selgu.', 'Meie maja jagamiskapp', [
+        'Hea naaber! Eelmisel kuul panime maja esimesele korrusele jagamiskapi. Sinna võib tuua toitu, mida sa ise ära ei söö. Sobivad näiteks leib, küpsised, konservid või jogurt kinnises pakendis. Kapist võib võtta igaüks, kellel on toitu vaja.',
+        '',
+        'Esimesel nädalal tõid naabrid kappi palju toitu. Kõige rohkem toodi leiba ja puuvilju. Kõik see leidis kiiresti uue omaniku. Kahjuks pandi kappi ka lahtist suppi ja vana juustu. Need pidime ära viskama.',
+        '',
+        'Palun ära too kappi toitu, mis on avatud või juba vana. Kirjuta pakendile kuupäev. Kapi lähedal on vihik: kirjuta sinna, mida tõid.',
+        '',
+        'Kapp on lahti iga päev kella seitsmest hommikul kümneni õhtul. Öösel on maja uks lukus. Kui sul on küsimusi, kirjuta maja vanemale e-kiri. Aitäh, et sa ei raiska toitu!',
+        '',
+        'Allikas: KeeleSepa õppetekst.',
+      ], [
+        ['Jagamiskapp on maja esimesel korrusel.', 'õige'],
+        ['Kappi võib tuua ainult leiba.', 'vale'],
+        ['Esimesel nädalal toodi kõige rohkem leiba ja puuvilju.', 'õige'],
+        ['Lahtine supp jäi kappi järgmise nädalani.', 'vale'],
+        ['Pakendile tuleb kirjutada kuupäev.', 'õige'],
+        ['Vihikusse kirjutatakse, mida keegi tõi.', 'õige'],
+        ['Kapp on lahti ka öösel.', 'vale'],
+        ['Maja vanem elab esimesel korrusel.', 'ei selgu'],
+      ]), [
+        'Esimene lõik: „panime maja esimesele korrusele jagamiskapi”.',
+        'Esimene lõik: „leib, küpsised, konservid või jogurt” — mitte ainult leib.',
+        'Teine lõik: „Kõige rohkem toodi leiba ja puuvilju.”',
+        'Teine lõik: „Need pidime ära viskama.”',
+        'Kolmas lõik: „Kirjuta pakendile kuupäev.”',
+        'Kolmas lõik: „kirjuta sinna, mida tõid”.',
+        'Neljas lõik: „Öösel on maja uks lukus.”',
+        'Tekstis ei ole kirjas, kus maja vanem elab.',
+      ]), { task: 'R06' }),
+      half(B.examPart('030_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Ülesanne 1 on ilma abita, ülesanne 2 on telefonikõne.' })),
+      teach(tag(half(B.speaking('030_t_s1', 'Rääkimine 1. Üks söögikord, mida ma mäletan.', 'Räägi 60–90 sekundit ilma abita ja ilma märkmeteta.', [
+        'Üks söögikord, mida sa mäletad (pidu, restoran, pühad): kus, mida te ostsite või tellisite ja kui palju, mis läks hästi või valesti?',
+      ], [60, 90])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 26 külm start): sama hindamine, uus teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: kogus + osastav, arv + ainsuse osastav, täis- ja osasihitis, viisakas -ksin) ja võrdle tunni 26 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.rolecards('030_t_order', 'Rääkimine 2. Helista kohvikusse.', 'Kolleegil on reedel sünnipäev. Telli kohvikust kontorisse kooki ja jooke kaheksale inimesele.',
+        'Sina helistad. Eesmärk: tellimus, mis sobib kõigile (üks kolleeg ei söö piimatooteid), hind ja kohaletoomise aeg.',
+        'Sina oled kohviku teenindaja. Vasta ja küsi, mis nimele tellimus kirja panna.',
+        [], []), { harno: 'S2' }),
+      'Õpetaja on teenindaja ja küsib kolm küsimust, üks neist ootamatu („Reedel kella kümneni me kahjuks ei jõua. Kas kell üksteist sobiks?”). Punktid 0–5: palub ja küsib viisakalt (sooviksin, kas … sobiks) 0–2, reageerib ootamatule küsimusele 0–1, kogus + osastav (kaheksale inimesele, kaks kooki, liiter mahla) 0–1, kordab kokkuleppe üle 0–1.'),
+      half(B.examPart('030_t_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks sõnum, 50–70 sõna, kõigist neljast punktist.' })),
+      tag(teach(half(B.examWriting('030_t_w1', 'Kirjutamine. Sõnum naabrile.', 'Kirjuta naabrile sõnum 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'sõnum', {
+        situation: 'Sinu naaber on haige. Sa käisid tema eest poes ja panid toidu tema ukse taha.',
+        points: ['mida sa ostsid ja kui palju', 'mida sa ei saanud osta ja miks', 'kui palju see maksis', 'mida sa saad veel teha'],
+        words: [50, 70], opening: 'Tere!',
+      })), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (kogus + osastav, arv + ainsuse osastav, täissihitis ja eitus + osastav, viisakas -ksin).'), { harno: 'W1b' }),
+      teach(half(B.table('030_t_profile', 'Minu tulemus.', 'Arvuta iga osa punktid ja protsent. Võrdle rääkimist tunni 26 külma stardiga.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Lugemine (16 punkti) |  |  | ',
+        'Rääkimine (10 punkti) |  |  | ',
+        'Kirjutamine (8 punkti) |  |  | ',
+        'Rääkimine ilma abita (tund 26 → tund 30) |  |  | ',
+      ])), 'Õpetajale: viimane rida on tunni 26 külma stardi ja selle tunni rääkimise 1 võrdlus (kolm märget). Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (lugemine → tund 26 või 28, rääkimine → tunnid 27 ja 28, kirjutamine → tund 26 või 29).'),
+      hide(B.vocab('030_d_vocab', 'Mooduli võtmesõnad.', ['kogus — количество', 'pakk — пачка', 'purk — банка', 'päevapraad — блюдо дня', 'broneerima — бронировать', 'koostis — состав', 'valmis — готов', 'ära sööma — съесть', 'kaebus — жалоба', 'nõudma — требовать', 'kuller — курьер', 'arvustus — отзыв']), V5_CUT),
+      hide(B.choice('030_d_quiz', 'Mooduli viktoriin.', 'Mida sa mooduli lugudest mäletad? Vali igale küsimusele õige vastus.', [
         ['Mida müüb Viktor Nõmme turul?', 'õunu, mune ja mett', 'kala ja leiba', 'juustu ja piima'],
         ['Kellel on mooduli tegelastest pähkliallergia?', 'Oskaril', 'Markusel', 'Mial'],
         ['Mis on Kaneelis lõunamenüü hind?', 'üksteist eurot', 'kaheksa eurot', 'kakskümmend eurot'],
@@ -866,8 +1349,8 @@ export const LESSONS = withShapes({
         ['Mis sobib lausesse: Kuller ei toonud …', 'õunakooki', 'õunakoogi', 'õunakook'],
         ['Mis sobib lausesse: Palun mulle kaks pakki …', 'võid', 'või', 'võisid'],
         ['Kui palju hilines Kiire Kõhu kuller?', 'poolteist tundi', 'pool tundi', 'kaks tundi'],
-      ], 'full', 'g_notice'),
-      B.reading('030_d_letter', 'Helgi kiri.', 'Loe, kuidas Helgi nädal lõppes. Vasta küsimustele lühidalt ja oma sõnadega.', 'Kallis Sofia!', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.reading('030_d_letter', 'Helgi kiri.', 'Loe, kuidas Helgi nädal lõppes. Vasta küsimustele lühidalt ja oma sõnadega.', 'Kallis Sofia!', [
         'Olen jälle Tartus ja mu korter tundub pärast sinu Kalamaja maja väga vaikne. Aitäh selle toreda nädala eest! Ma sõin rohkem kui muidu terve kuu jooksul.',
         '',
         'Kõige rohkem meeldis mulle pühapäevane lõuna. Kaheksa inimest ühe laua taga ja keegi ei jäänud näljaseks! Minu õunakook Viktori õuntest söödi viimase tükini ära. Tiina küsis veel retsepti.',
@@ -886,12 +1369,12 @@ export const LESSONS = withShapes({
         ['Mis juhtus, kui Helgi tegi naabritele Anna salatit?', 'ta tegi liiga palju kastet|kastet jäi üle'],
         ['Mida sai Sofia Kiire Kõhult?', '23 eurot ja kinkekaardi|raha tagasi ja kinkekaardi'],
         ['Miks ütleb Helgi, et Sofia on „tõeline eestlane”?', 'ta kaebas viisakalt ja sai raha tagasi'],
-      ]),
-      B.categorize('030_d_sort', 'Mooduli sõnad.', 'Kuhu sõna kuulub: turule, kohvikusse, kööki või kaebuse juurde? Sorteeri.', [
+      ]), V5_CUT),
+      hide(B.categorize('030_d_sort', 'Mooduli sõnad.', 'Kuhu sõna kuulub: turule, kohvikusse, kööki või kaebuse juurde? Sorteeri.', [
         ['turul ja poes', ['kilo', 'purk', 'karp', 'ostunimekiri']], ['kohvikus', ['päevapraad', 'ettekandja', 'arve', 'jootraha']],
         ['köögis', ['kaste', 'retsept', 'keetma', 'lõikama']], ['kaebus', ['hüvitis', 'kuller', 'hilinema', 'vahetama']],
-      ], 'full', 'g_vocab'),
-      B.transformation('030_d_trans', 'Ütle eitavalt.', 'Kirjuta lause eitavalt. Mõtle, mis juhtub sihitisega pärast sõna „ei”.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.transformation('030_d_trans', 'Ütle eitavalt.', 'Kirjuta lause eitavalt. Mõtle, mis juhtub sihitisega pärast sõna „ei”.', [
         ['Jaan tõi poest kaks pakki võid.', 'ei', 'Jaan ei toonud poest kahte pakki võid.'],
         ['Helgi sõi kogu supi ära.', 'ei', 'Helgi ei söönud kogu suppi ära.'],
         ['Sofia broneeris reedeks laua seitsmele.', 'ei', 'Sofia ei broneerinud reedeks lauda seitsmele.'],
@@ -902,8 +1385,8 @@ export const LESSONS = withShapes({
         ['Ma maksan restoranis arve kaardiga.', 'ei', 'Ma ei maksa restoranis arvet kaardiga.'],
         ['Oskar jõi pärast jalgpalli mahla.', 'ei', 'Oskar ei joonud pärast jalgpalli mahla.'],
         ['Tiina võttis moosipurgi kaasa.', 'ei', 'Tiina ei võtnud moosipurki kaasa.'],
-      ], 'full', 'g_notice'),
-      B.errorfix('030_d_fix', 'Eksamitööde vead.', 'Need laused on õpilaste eksamitöödest. Leia igas lauses viga ja kirjuta lause õigesti.', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.errorfix('030_d_fix', 'Eksamitööde vead.', 'Need laused on õpilaste eksamitöödest. Leia igas lauses viga ja kirjuta lause õigesti.', [
         ['Palun liiter piim ja kaks leiba.', 'Palun liiter piima ja kaks leiba.'],
         ['Ma tellisin supp, aga sain salati.', 'Ma tellisin supi, aga sain salati.'],
         ['Kas sa ostsid kolm tomatid?', 'Kas sa ostsid kolm tomatit?'],
@@ -914,9 +1397,9 @@ export const LESSONS = withShapes({
         ['Joogiks ma võtan õunamahla.', 'Joogiks võtan ma õunamahla.|Joogiks võtan õunamahla.'],
         ['Ma ootan teie vastus reedeni.', 'Ma ootan teie vastust reedeni.'],
         ['Viktor müüb turul kümme purki mesi.', 'Viktor müüb turul kümme purki mett.'],
-      ]),
-      B.writing('030_d_write', 'Minu toidunädal.', 'Kirjuta 8–10 lauset: mida sa sel nädalal ostsid, kus sõid ja mis läks hästi või valesti.', [8, 10], ['kilo', 'sõin ära', 'tellisin', 'ei ostnud'], 3),
-      // own instruction: B.examiner's fixed wording repeats a2b1-010's (final shape V7 strips the quoted topic)
+      ]), V5_DRILL),
+      hide(B.writing('030_d_write', 'Minu toidunädal.', 'Kirjuta 8–10 lauset: mida sa sel nädalal ostsid, kus sõid ja mis läks hästi või valesti.', [8, 10], ['kilo', 'sõin ära', 'tellisin', 'ei ostnud'], 3), V5_CUT),
+      hide(// own instruction: B.examiner's fixed wording repeats a2b1-010's (final shape V7 strips the quoted topic)
       teach(((b) => ({ ...b, data: { ...b.data, instruction: 'Eksamineerija küsib nagu suulise eksami esimeses osas. Vasta igale küsimusele kahe kuni nelja lausega ja too põhjus või näide.' } }))(B.examiner('030_d_warm', 'toit ja söögikohad', [
         'Mida sa tavaliselt hommikuks sööd?',
         'Kas sa teed meelsasti ise süüa? Miks?',
@@ -926,59 +1409,26 @@ export const LESSONS = withShapes({
         'Kas toitu peaks rohkem koju tellima või ise tegema? Põhjenda.',
         'Mida sa teed, kui restoranis või poes läheb midagi valesti?',
       ])),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt.'),
+        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt.'), V5_CUT),
     ],
     practice: [
-      B.examPart('030_p_rpart', 'R', { minutes: 45, points: 38, tasks: 4, note: 'Lugemisosa: kaks A2 ülesannet ja kaks B1 ülesannet. Lugege iga ülesande juhis enne teksti läbi.' }),
-      tag(B.adsmatch('030_p_r1', 'Lugemine 1. Kuulutused.', 'Lugege olukordi ja kuulutusi. Kirjutage iga olukorra juurde sobiva kuulutuse täht; üks kuulutus võib sobida mitmele.', [
-        ['Restoran Aed', 'Kohalik toit ja suur aed. Lastemenüü iga päev, kõik lasteroad pähkliteta. Reede õhtuti kalaõhtu. Laud tuleb broneerida vähemalt päev ette.'],
-        ['Kohvik Kaneel', 'Lõunamenüü tööpäeviti 11–15, hind 11 €. Värsked kaneelirullid igal hommikul. Pühapäeval suletud.'],
-        ['Toitlustus Pidulaud', 'Toome peotoidu koju või kontorisse kuni sajale inimesele. Taime-, piimata ja gluteenivaba toit. Tellimus vähemalt kolm päeva ette.'],
-        ['Kokakool Maitse', 'Laupäeviti kokakursused täiskasvanutele, pühapäeviti lastele. Õpime tegema leiba, suppi ja kooke. Hind koos toiduainetega 45 €.'],
-        ['Jagamiskapp Kalamajas', 'Too toitu, mida sa ise ära ei söö, ja võta, mida vajad. Ainult pakendis ja kuupäevaga toit. Avatud ööpäev läbi.'],
-        ['Nõmme turu talupood', 'Talunike piim, juust, munad ja liha. Avatud T–L 9–17. Tellimuse saab ette panna telefonil ja võtta poest valmis kotiga.'],
-      ], [
-        ['Mia tahab õppida koos teiste lastega pannkooke tegema.', 'D'],
-        ['Sofial jäi pärast pidu üle kaks pakki kinnist jogurtit.', 'E'],
-        ['Liis korraldab kontoris peo 40 inimesele, kolm neist on taimetoitlased.', 'C'],
-        ['Viktor tahab talupiima ja juustu ette tellida ning hiljem kotiga ära viia.', 'F'],
-        ['Helgi tahab kolmapäeval kesklinnas odavalt lõunat süüa.', 'B'],
-        ['Kadri otsib reede õhtuks kohta, kus Oskar saab ohutult süüa.', 'A'],
-        ['Anna tahab õppida ise leiba küpsetama.', 'D'],
-        ['Markus tahab tellida sünnipäevaks koju piimata toitu.', 'C'],
-        ['Tiina tahab öösel kella kahe ajal kappi leiba viia.', 'E'],
-        ['Sofia tahab perega reede õhtul kala süüa.', 'A'],
-      ]), { harno: 'R1' }),
-      B.profiles('030_p_r2', 'Lugemine 2. Kolm inimest, kolm lõunat.', 'Lugege kolme inimese kaarti. Täiendage laused kaardil oleva info põhjal.', [
+      hide(B.profiles('030_p_r2', 'Lugemine 2. Kolm inimest, kolm lõunat.', 'Lugege kolme inimese kaarti. Täiendage laused kaardil oleva info põhjal.', [
         ['Maarika, 34', ['raamatupidaja, töötab kesklinnas', 'sööb lõunat alati kontoris', 'toob toidu karbiga kodust', 'ei joo kohvi, ainult teed', 'reedel läheb kolleegidega kohvikusse'],
           ['Maarika töötab [kesklinnas].', 'Lõunaks toob ta toidu [kodust].', 'Kohvi asemel joob ta [teed].', 'Reedel sööb ta [kohvikus].']],
         ['Heino, 61', ['bussijuht, töötab vahetustega', 'sööb sageli bensiinijaamas', 'tahab süüa tervislikumalt', 'õpib naise käest süüa tegema', 'armastab hernesuppi'],
           ['Heino on [bussijuht].', 'Ta sööb sageli [bensiinijaamas].', 'Nüüd tahab ta süüa [tervislikumalt].', 'Tema lemmiktoit on [hernesupp].']],
         ['Daniel, 19', ['üliõpilane, elab ühiselamus', 'teeb süüa koos toakaaslastega', 'toidule kulub 40 eurot nädalas', 'ostab õhtul poest soodsat saia', 'ei söö liha'],
           ['Daniel elab [ühiselamus].', 'Ta teeb süüa koos [toakaaslastega].', 'Toidule kulub tal nädalas [40|nelikümmend] eurot.', 'Daniel ei söö [liha].']],
-      ], '3'),
-      B.reading('030_p_r3text', 'Lugemine 3. Artikkel.', 'Lugege artikkel läbi. Küsimused on järgmises ülesandes.', 'Kalamaja jagamiskapp: toit ei lähe raisku', [
-        'Pool aastat tagasi pani Kalamaja selts raamatukogu ukse kõrvale vana külmkapi. Sellest sai jagamiskapp: sinna võib igaüks tuua toitu, mida ta ise ära ei söö, ja võtta, mida tal vaja on. Raha ei küsi keegi.',
-        '',
-        'Idee tuli seltsi esimehelt Tõnis Rebaselt. „Nägin, kui palju toitu meie majade prügikastidesse jõuab. Iga päev visati ära leiba, piima ja köögivilju, mis olid veel täiesti head,” räägib ta.',
-        '',
-        'Kappi tohib panna ainult pakendis toitu, millel on kuupäev. Kodus tehtud suppi või salatit sinna panna ei tohi. Kord päevas kontrollib üks vabatahtlik, et kapis ei oleks vana toitu.',
-        '',
-        'Esimestel nädalatel oli kapp sageli tühi. Nüüd toovad toitu ka kaks lähedal asuvat kohvikut ja üks pagariäri. Igal õhtul pärast kella kuut on kapis värsket saia ja pirukaid.',
-        '',
-        'Kapist võtavad toitu väga erinevad inimesed: üliõpilased, pensionärid ja pered. „Mõni arvab, et kapp on ainult vaestele. See ei ole õige. Kapp on kõigile, kes ei taha toitu raisata,” ütleb Rebane.',
-        '',
-        'Selts loodab, et järgmisel aastal tuleb Tallinnasse veel viis jagamiskappi.',
-      ], []),
-      tag(B.choice('030_p_r3', 'Lugemine 3. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus.', [
+      ], '3'), V5_CUT),
+      hide(tag(B.choice('030_p_r3', 'Lugemine 3. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus.', [
         ['Kus asub Kalamaja jagamiskapp?', 'raamatukogu ukse kõrval', 'seltsi esimehe kodus', 'kohviku köögis'],
         ['Miks tekkis idee teha jagamiskapp?', 'palju head toitu visati ära', 'raamatukogul oli vana külmkapp', 'kohvikud palusid abi'],
         ['Mida ei tohi kappi panna?', 'kodus tehtud suppi', 'pakendis piima', 'kuupäevaga saia'],
         ['Kes kontrollib, et kapis ei oleks vana toitu?', 'vabatahtlik', 'raamatukogu töötaja', 'pagariäri müüja'],
         ['Mis on muutunud pärast esimesi nädalaid?', 'kapis on rohkem toitu', 'kapp on sageli tühi', 'kapp on öösel kinni'],
         ['Mida arvab Tõnis Rebane kapi kasutajatest?', 'kapp on kõigile', 'kapp on ainult vaestele', 'kapp on ainult peredele'],
-      ]), { harno: 'R2' }),
-      tag(B.cloze('030_p_r4', 'Lugemine 4. Kiri sõbrale.', 'Lugege Sofia kirja. Valige igasse lünka sõna, mis sobib lause vormi ja mõttega.', 'Tere, Kati!', [
+      ]), { harno: 'R2' }), V5_CUT),
+      hide(tag(B.cloze('030_p_r4', 'Lugemine 4. Kiri sõbrale.', 'Lugege Sofia kirja. Valige igasse lünka sõna, mis sobib lause vormi ja mõttega.', 'Tere, Kati!', [
         'Ema oli eelmisel nädalal {*minu|mina|minul} juures Tallinnas. Me tegime koos palju, aga kõige rohkem me {*sõime|sööme|sööma}.',
         '',
         'Pühapäeval tuli meile kaheksa {*inimest|inimesed|inimese}. Ema küpsetas Viktori õuntest {*koogi|kooki|kook} ja see söödi kohe ära.',
@@ -988,9 +1438,9 @@ export const LESSONS = withShapes({
         'Alguses pakkusid nad ainult allahindlust, aga ma ei {*olnud|ole|oli} sellega nõus. Lõpuks said nad mu kirjast aru ja maksid raha {*tagasi|tagasist|tagant}.',
         '',
         'Ema ütleb, et ma kaeban nüüd nagu {*eestlane|eestlast|eestlasena}. Ma arvan, et see on kompliment! Kas sa tuled {*suvel|suvi|suveks} külla? Kallistan, Sofia',
-      ]), { harno: 'R3a' }),
-      B.examPart('030_p_lpart', 'L', { minutes: 30, points: 31, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne kuulamist lugege küsimused läbi.' }),
-      tag(B.examListen('030_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake seitset lühikest teksti. Iga tekst kõlab kaks korda. Valige õige vastus.', 'choice', [
+      ]), { harno: 'R3a' }), V5_CUT),
+      hide(B.examPart('030_p_lpart', 'L', { minutes: 30, points: 31, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne kuulamist lugege küsimused läbi.' }), V5_CUT),
+      hide(tag(B.examListen('030_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake seitset lühikest teksti. Iga tekst kõlab kaks korda. Valige õige vastus.', 'choice', [
         'Esimene tekst. Head kliendid! Täna on kõik kohalikud õunad poole hinnaga. Pakkumine kehtib poe sulgemiseni.',
         'Teine tekst. Tere, siin restoran Aed. Teie laud on homme kell seitse. Palun tulge viis minutit varem.',
         'Kolmas tekst. Ema, ma olen turul. Tilli ei ole, kas ma võtan peterselli?',
@@ -1006,8 +1456,8 @@ export const LESSONS = withShapes({
         ['Mida kuller palub?', 'et klient tuleks alla', 'et klient helistaks hiljem', 'et klient avaks akna'],
         ['Miks pood täna varem suleb?', 'remondi tõttu', 'püha tõttu', 'haiguse tõttu'],
         ['Kus on Markuse kook?', 'sinises karbis külmkapis', 'punases karbis laual', 'kotis Anna laua all'],
-      ]), { harno: 'L1' }),
-      tag(B.listening('030_p_l2', 'Kuulamine 2. Telefonisõnum.', 'Kuulake toitlustusfirma sõnumit kaks korda. Kirjutage igasse lünka üks või kaks sõna või number.', [
+      ]), { harno: 'L1' }), V5_CUT),
+      hide(tag(B.listening('030_p_l2', 'Kuulamine 2. Telefonisõnum.', 'Kuulake toitlustusfirma sõnumit kaks korda. Kirjutage igasse lünka üks või kaks sõna või number.', [
         'Liina: Tere, Sofia! Siin Liina toitlustusfirmast Pidulaud. Helistan teie kontoripeo tellimuse pärast.',
         'Liina: Te tellisite toitu neljakümnele inimesele reedeks kella neljaks.',
         'Liina: Teil on kolm taimetoitlast ja üks inimene, kes ei tohi piima. Kõik see on meil kirjas.',
@@ -1019,8 +1469,8 @@ export const LESSONS = withShapes({
       ], [
         'Toitlustusfirma nimi on [Pidulaud].', 'Pidu on [reedel].', 'Toitu on vaja [neljakümnele|40] inimesele.', 'Taimetoitlasi on [kolm|3].',
         'Firma saab toidu tuua kell pool neli või kell [viis|5].', 'Toit maksab inimese kohta [kaksteist|12] eurot.', 'Laudlinad peab Sofia võtma [ise].', 'Vastus tuleb anda [kolmapäeva] õhtuks.',
-      ]), { task: 'L03', harno: 'L3a' }),
-      tag(B.examListen('030_p_l3', 'Kuulamine 3. Intervjuu turul.', 'Kuulake intervjuud turumüüjaga. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
+      ]), { task: 'L03', harno: 'L3a' }), V5_CUT),
+      hide(tag(B.examListen('030_p_l3', 'Kuulamine 3. Intervjuu turul.', 'Kuulake intervjuud turumüüjaga. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
         'Ülle: Tere, kuulajad! Oleme täna Nõmme turul. Minu kõrval on Viktor, kes müüb siin oma talu õunu ja mett. Tere, Viktor!',
         'Viktor: Tere! Tore, et raadio turule tuli.',
         'Ülle: Kui kaua te olete turul müünud?',
@@ -1043,8 +1493,8 @@ export const LESSONS = withShapes({
         ['Viktori arvates saab turul müüjaga rääkida.', true],
         ['Viktori munad on odavamad kui poes.', false],
         ['Viktor soovitab turule tulla pärast keskpäeva.', false],
-      ]), { harno: 'L4' }),
-      B.listening('030_p_l4', 'Kuulamine 4. Pikniku plaan.', 'Kuulake Mia ja isa vestlust. Kirjutage igasse lünka üks sõna või number.', [
+      ]), { harno: 'L4' }), V5_CUT),
+      hide(B.listening('030_p_l4', 'Kuulamine 4. Pikniku plaan.', 'Kuulake Mia ja isa vestlust. Kirjutage igasse lünka üks sõna või number.', [
         'Mia: Isa, kas me läheme laupäeval piknikule?',
         'Jaan: Läheme, kui ilm on ilus. Mõtlesin Kadrioru parki.',
         'Mia: Mida me sööme?',
@@ -1060,36 +1510,28 @@ export const LESSONS = withShapes({
       ], [
         'Pere läheb piknikule [laupäeval].', 'Piknik on Kadrioru [pargis].', 'Võileivad teeb [isa|Jaan].', 'Mia ei taha pirukaid [kapsaga].',
         'Oskarile tehakse kook ilma [pähkliteta].', 'Mahla ostetakse üks [liiter].', 'Pere läheb välja kell [üksteist|11].', 'Bussisõit kestab [kakskümmend|20] minutit.',
-      ]),
-      B.rubric('030_p_points', 'Minu punktid.', 'Kirjuta oma punktid osade kaupa ja võrdle eesmärgiga.', ['Lugemine 1–4: … / 38 (eesmärk 31)', 'Kuulamine 1–4: … / 31 (eesmärk 25)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']),
+      ]), V5_CUT),
+      hide(B.rubric('030_p_points', 'Minu punktid.', 'Kirjuta oma punktid osade kaupa ja võrdle eesmärgiga.', ['Lugemine 1–4: … / 38 (eesmärk 31)', 'Kuulamine 1–4: … / 31 (eesmärk 25)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']), V5_CUT),
     ],
     transfer: [
-      B.examPart('030_t_wpart', 'W', { minutes: 35, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest.' }),
-      tag(B.examWriting('030_t_w1', 'Kirjutamine 1. Sõnum naabrile.', 'Kirjutage naabrile sõnum umbes 50 sõnaga. Kirjutage kõigist neljast punktist.', 'teade', {
-        situation: 'Teie naaber Tiina on haige. Te käisite tema eest poes ja panite toidu tema ukse taha.',
-        points: ['mida te ostsite ja kui palju', 'kus toit praegu on', 'kui palju see maksis ja kuidas maksta', 'mida te saate veel teha'],
-        words: [40, 60], opening: 'Tere, Tiina!',
-      }), { harno: 'W1b' }),
-      B.rubricW1('030_t_rw1', ['mida ostsite', 'kus toit on', 'hind ja maksmine', 'muu abi']),
-      tag(B.examWriting('030_t_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Kirjutage kõigist neljast punktist.', 'jutt', {
+      hide(B.rubricW1('030_t_rw1', ['mida ostsite', 'kus toit on', 'hind ja maksmine', 'muu abi']), V5_CUT),
+      hide(tag(B.examWriting('030_t_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Kirjutage kõigist neljast punktist.', 'jutt', {
         situation: 'Kirjutage jutt pealkirjaga „Õhtusöök, mis läks teisiti”.',
         points: ['kus ja kellega te sõite', 'mis läks plaanist teisiti', 'mida te tegite', 'kuidas õhtu lõppes ja mis tunne teil oli'],
         words: [80, 100],
-      }), { harno: 'W2a' }),
-      B.rubricW2('030_t_rw2'),
-      B.examPart('030_t_spart', 'S', { minutes: 15, points: 20, tasks: 3, note: 'Rääkimine on paaris. Eksamineerija küsib, teie vastate.' }),
-      tag(B.speaking('030_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija esitab kolm küsimust. Vastake lühidalt, kahe-kolme lausega.', ['Kuidas teid kutsutakse ja kus te elate?', 'Millega te tegelete?', 'Mida te vabal ajal meelsasti teete?'], [70, 90]), { harno: 'S0' }),
-      tag(B.speaking('030_t_s1', 'Rääkimine 1. Teemaküsimused „Toit ja söögikohad”', 'Eksamineerija küsib, teie vastate. Põhjendage iga vastust või tooge näide.', ['Kus te tavaliselt süüa ostate? Miks just seal?', 'Kas te teete meelsasti süüa? Mida?', 'Milline on teie arvates hea kohvik?', 'Mida te teete, kui restoranis on teenindus halb?', 'Kas toitu tuleks rohkem koju tellida või ise teha? Miks?'], [90, 120]), { harno: 'S1a' }),
-      teach(tag(B.phoneCards('030_t_s2', 'Rääkimine 2. Telefonikõne toitlustusfirmasse.', 'A helistab toitlustusfirmasse ja tellib peole toitu, B vastab. Seejärel vahetage kaardid.', 'Te korraldate sõbra 30. sünnipäeva ja tellite toitu 20 inimesele.', ['Helistaja', [
+      }), { harno: 'W2a' }), V5_CUT),
+      hide(B.rubricW2('030_t_rw2'), V5_CUT),
+      hide(tag(B.speaking('030_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija esitab kolm küsimust. Vastake lühidalt, kahe-kolme lausega.', ['Kuidas teid kutsutakse ja kus te elate?', 'Millega te tegelete?', 'Mida te vabal ajal meelsasti teete?'], [70, 90]), { harno: 'S0' }), V5_CUT),
+      hide(teach(tag(B.phoneCards('030_t_s2', 'Rääkimine 2. Telefonikõne toitlustusfirmasse.', 'A helistab toitlustusfirmasse ja tellib peole toitu, B vastab. Seejärel vahetage kaardid.', 'Te korraldate sõbra 30. sünnipäeva ja tellite toitu 20 inimesele.', ['Helistaja', [
         'Tervitage ja öelge, miks helistate.', 'Öelge kuupäev, kellaaeg ja inimeste arv.', 'Küsige taimetoidu ja allergiate kohta.', 'Küsige hinda ja kuidas maksta.', 'Leppige kokku, millal toit tuuakse.',
       ]], ['Firma töötaja', [
         'Toit maksab 14 € inimese kohta.', 'Taimetoit ja piimata toit on olemas, pähkliallergia tuleb ette öelda.', 'Toome toidu tund enne pidu.', 'Maksta saab arvega viie päeva jooksul.', 'Küsige helistaja nime ja aadressi.',
       ]]), { harno: 'S2' }),
-      'Üks-ühele: õpetaja on firma töötaja (eksamineerija roll), siis vahetage. Hinda hindamisjuhendiga: kas kõik kaardi küsimused said küsitud ja vastatud.'),
-      B.rubricSpeaking('030_t_rs', 'Hindamine: rääkimine (20 punkti).'),
-      B.selfcheck('030_t_self', ['Ma saan aru toidu ja teeninduse teemalistest tekstidest.', 'Ma kasutan koguse ja eituse järel osastavat ning lõpetatud tegevuse puhul täissihitist.', 'Ma kirjutan sõnumi ja jutu kõigist punktidest.', 'Ma vastan teemaküsimustele ja teen telefonikõne.'], 'Moodul 6 tehtud'),
+      'Üks-ühele: õpetaja on firma töötaja (eksamineerija roll), siis vahetage. Hinda hindamisjuhendiga: kas kõik kaardi küsimused said küsitud ja vastatud.'), V5_CUT),
+      hide(B.rubricSpeaking('030_t_rs', 'Hindamine: rääkimine (20 punkti).'), V5_CUT),
+      hide(B.selfcheck('030_t_self', ['Ma saan aru toidu ja teeninduse teemalistest tekstidest.', 'Ma kasutan koguse ja eituse järel osastavat ning lõpetatud tegevuse puhul täissihitist.', 'Ma kirjutan sõnumi ja jutu kõigist punktidest.', 'Ma vastan teemaküsimustele ja teen telefonikõne.'], 'Moodul 6 tehtud'), V5_CUT),
     ],
   },
 }, {
-  'a2b1-026': 'LUGE R→W', 'a2b1-027': 'KUUL L→S', 'a2b1-028': 'AVAS L→W', 'a2b1-029': 'PROB R→S', 'a2b1-030': 'EKS',
+  'a2b1-026': 'LUGE R→W', 'a2b1-027': 'KUUL L→S', 'a2b1-028': 'RÄÄK R→S', 'a2b1-029': 'KIRJ L→W', 'a2b1-030': 'EKS',
 });

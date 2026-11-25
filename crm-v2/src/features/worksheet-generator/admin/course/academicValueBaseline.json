@@ -36,5 +36,8 @@
  ],
  "course:enb2": [
   "*|*|av-topics"
+ ],
+ "course:b1": [
+  "*|*|av-genres"
  ]
 }

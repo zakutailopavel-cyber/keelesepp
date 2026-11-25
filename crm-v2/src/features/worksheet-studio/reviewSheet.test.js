@@ -7,7 +7,10 @@ import { COURSE_MODULES, buildCourseSheet } from '../worksheet-generator/admin/c
 describe('Kordamisleht — a review sheet from the course tasks', () => {
   const entries = buildLibrary(COURSE_MODULES, buildCourseSheet);
 
-  it.each(['a2-005', 'a2-033', 'a2b1-020', 'b1b2-045', 'est-c1-010'])('%s: 40–50 min of the last five lessons, no constructor error', (lessonId) => {
+  // a2b1-040, not a2b1-020 / a2b1-030: B1 modules 4 (016–020) and 6 (026–030) are methodology v5 modules — lean lessons
+  // whose drills went to Harjuta (hidden blocks), so a review of their five lessons is ≈ 22–26 min (docs/PROJECT_STATE.md
+  // 2026-11-25, B1 modules 4 and 6)
+  it.each(['a2-005', 'a2-033', 'a2b1-040', 'b1b2-045', 'est-c1-010'])('%s: 40–50 min of the last five lessons, no constructor error', (lessonId) => {
     const doc = buildReviewSheet(entries, lessonId);
     const n = Number(lessonId.match(/(\d+)$/)[1]);
     const lessons = doc.meta.review.lessons.map((id) => Number(id.match(/(\d+)$/)[1]));
