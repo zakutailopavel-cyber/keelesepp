@@ -1,36 +1,41 @@
-// B2 course (B1 → B2 roadmap), module 8 „Reisimine ja kultuur” (b1b2-036…040), stage B1+ (roadmap levelStage).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–7. Module goal (the learner): „Ma oskan ise reisida ja külalist Eestis vastu võtta: planeerin
-// reisi oma rahaga, lahendan reisil tekkinud mure, saan aru kommetest ja soovitan kohta, mida tasub näha”; module product
-// „Minu soovitus külalisele” (039 Kasuta, the S1 one-minute talk in 040). Travel and culture from the learner's own angle:
-// his own weekend trip and budget, a cancelled flight and a late suitcase (EU rules), culture shock and customs between
-// him and his Estonian neighbours or colleagues, a museum, festival or song celebration he recommends to a guest. Not
-// repeated from earlier modules: the cancelled train and passenger rights (module 4), the bog hike (module 5), holiday
-// food (module 5), hobbies and the choir (module 4).
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 8).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   036 project „Nädalavahetus 200 euroga — kuhu sõidame?”            free time    final negotiate: the trip plan (S03)
-//   037 infogap „Lend tühistati, kohver hilines — mis sulle kuulub?”   money        final complain: the airline desk (W13 home)
-//   038 game    „Kingad jalast ja vaikus bussis — kas eestlane on kinnine?”  neighbours  final explain: a custom to a newcomer
-//   039 case    „Külaline tuleb suvel — kuhu sa ta viid?”               culture      final advise: „Minu soovitus külalisele”
-//   040 exam    Vahehindamine 2 (tunnid 21–40) in Harno B2 form + „Minu soovitus külalisele” as the S1 one-minute talk.
-// Grammar line (roadmap 036–039: plan and compromise, complaint with the conditional, careful generalisation, past
-// tenses + evaluation; docs/METHODOLOGY_STANDARD.md §5) by discovery and spiralled: relative clauses with the pronoun's
-// case — koht, kus …; linn, kuhu …; telk, mille …; sõber, kelle juures … (036; back in the 039 recommendation and 040);
-// the quotative in the past — lend olevat tühistatud, kohver olevat jäänud — and the polite demand (palun hüvitage,
-// tingiv: Kas oleks võimalik …?) (037, after module 7's present -vat in 032; back in 040); careful generalisation —
-// sageli, enamasti, minu kogemuses + V2, sõltub sellest, kas …, keda peetakse milleks (038; back in the 039 review and
-// 040); the past tenses in a story with evaluation — käisin / olen käinud / olin kuulnud, väärt, elamus, pettumus (039,
-// the roadmap's „Reisikogemus ja hinnang”; back in 040). The one long text of the module is the topic opener (036
-// station 2, ≈ 370 words, after a 10-minute hook and pre-taught words). The course's cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js and the archetypes (PROJ, KIRJ, RÄÄK, LUGE, EKS) with their exam
-// corners (036 R2b, 037 R3, 038 L4, 039 R4). The v2 storyline version (the Kase kool family club, the Setomaa bus, Anna
-// in Rome, Olena's jaanipäev, the culture evening „Kaks kodu”) is in git history before 2026-11-18.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B2 course (B1 → B2 roadmap), module 8 „Reisimine ja kultuur” (b1b2-036…040), stage B2-.
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, strictModulesV5.json) on the v3 station engine with the
+// v4 task formats (docs/COURSE_DESIGN_STATIONS.md §7), built like modules 1–7 (b2/module01.js … module07.js): one real
+// communicative outcome a lesson, ONE input, ≤ 4 / 4 / 5 blocks a sheet and ≤ 14 a lesson, a 75-min core in 4 stations.
+// Travel and culture from the learner's own angle: his own weekend trip and budget, a cancelled flight and a late
+// suitcase, customs and culture shock between him and his Estonian neighbours, a place he recommends to a guest.
+//   Avasta  (4): station 1 one statement to answer at once (036: the module's cold task, 2 minutes to think + 1 minute
+//                of speech), station 2 the lesson's words, one explanatory scheme and the ONE input — reading about
+//                430–460 words with 3 inference questions (036 the weekend budget, 038 customs and culture shock) or
+//                listening ~3.5 min with 2 voices and 10 items (037 passenger rights, 039 where to take a guest).
+//   Harjuta (4): station 3 the rule (the B1 form as a one-line review, then the B2 step), two form tasks of 9–10 items
+//                without a word bank (one of them a coherent text: a message to the travel group, a complaint, a
+//                newcomer's blog post, a forum review) and one register task (friend → guesthouse, call → complaint,
+//                angry post → calm reply, message → portal review).
+//   Kasuta  (5): station 4 the plan, the product (a deal with a travel companion, the airline desk, a debate with keyword
+//                cards, advice to a guest — each with hidden information), the home writing of ~140 or ~180 words with
+//                the 1-min voice message, the analytic Harno B2 rubric (a borderline sample in the teacher's note) and the
+//                exit „Ma oskan …” with three success criteria.
+//   036 project „Nädalavahetus 200 euroga — kuhu sõidame?”      freetime   reading „Kuhu kaob nädalavahetuse raha?”   relative clause on a whole thought
+//   037 infogap „Lend tühistati, kohver hilines …”             money      radio „Kui reis läheb untsu”, 2 voices     impersonal timeline of a complaint
+//   038 game    „Kingad jalast ja vaikus bussis …”             neighbours reading „Kas eestlane on tõesti kinnine?”  careful generalisation (kipuvad, näivad olevat)
+//   039 case    „Külaline tuleb suvel — kuhu sa ta viid?”      culture    radio „Kuhu viia külaline?”, 2 voices      time relations in a story
+//   040 exam    Module control: one sheet, 45 min, READING + SPEAKING (module 5 L + W, 6 R + S, 7 L + W): an opinion
+//                article (8 + 8 items), the parallel speaking task and the module product „Minu soovitus külalisele”.
+// Module requirements (v5 §2): cold task 036_d_cold (2 minutes to think, 1 minute, no phrases; module 7 measured
+// writing) ↔ parallel new task 040_t_cold (same conditions, new statement); a speech without phrases in every other
+// station 1 (037–039); hidden-information cards 036_t_deal, 037_t_desk, 038_t_debate, 039_t_advice, 040_t_guest
+// („Varjatud info:”); debate cards with 2–3 keywords an argument (038_t_debate); link task 039_t_product (a real museum or
+// event on Visit Estonia or its own page); one scheme a teaching lesson (036 mind, 037 flow, 038 compare, 039 formula);
+// texts are adapted learning texts without exact statistics („KeeleSepp õppetekst”, owner 2026-11-25); no story cast, no
+// dictation, no „Kas teadsid?”. Module 7 (032) already had olevat + -nud, module 5 the generalisation „sageli / minu
+// kogemuses” in its register tasks, module 2–3 the past tenses: each comes back here as the one-line review, the B2 step
+// is new.
+// Kept: lesson ids, titles, the four lesson topics and formats. Removed blocks stay in the file as hide(block, why)
+// (blocks.js) — the v4 lessons of 2026-11-18 are kept below as V4 and every block not on a v5 sheet is taken from there
+// with retire(): off every sheet, ids and learners' answers kept; their closed drills still feed the Harjuta practice
+// engine (practice/engine/extract.js) with their old explanations (OLD_WHY, the v4 EXPLAIN map).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -41,19 +46,53 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every v4 lesson (hidden in v5: the home task is the writing on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 8. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
 const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the home voice message of v5 (§3): one line at the end of the home writing (a learner who cannot record says it in class)
+const VOICE_HOME = 'Salvesta ka 1-minutiline häälsõnum samal teemal.';
 
-export const MODULE = { id: 'b1b2-module-08', course: 'b2', title: 'Reisimine ja kultuur', level: 'B1+', design: 'v3-stations', template: 'v4' };
+// why a block left the sheet (v5 §4)
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_DRILL = 'closed drill / exit gaps → Harjuta (v5 §4: drills off the lesson sheet)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home task is the writing on the sheet with its 1-min voice message (v5 §3)';
+const CUT_HOOK = 'v5: station 1 is one statement the learner answers at once (5 min); the hook text and the talk merged';
+const CUT_TALK = 'v5: a 2.5–3.5-min talk with phrases in station 1 (audit 2026-11-25: B2 talks 1 min); the cold task 036_d_cold takes its place';
+const CUT_STATS = 'exact statistics or prices (owner 2026-11-25: adapted texts, no exact numbers) and a second input';
+const CUT_TIP = '„Kas teadsid?” (v5 §4: cut unless the task uses it)';
+const CUT_SHORT = 'a short voice message below B2 as the input (audit 2026-11-25): replaced by the lesson\'s one input';
+const CUT_OLDTASK = 'v4 task replaced by the v5 task of the same station (new id, other block type)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, reading + speaking (v5 §5)';
 
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 1–7, 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (käänded, sõnajärg sidendi järel, kuigi-lause, tingiv kõneviis, olev ja saav kääne) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+// short: the one-line descriptors (the same four criteria), where the full ones would leave the self-check alone on a page
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = false) => {
+  const b = B.rubricW2(id, title);
+  return teach(purpose({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Analüütiline hindamisjuhend (Harno B2): neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Sama juhendiga kontrollid oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, 'Enne saatmist näed, mille eest hindaja punkte annab.'), sample);
+};
+// a home text is written at home: fewer lines on the sheet, so the sheet ends on a full page
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// a kept block with a changed field (instruction, title, questions …)
+const patch = (b, data) => ({ ...b, data: { ...b.data, ...data } });
 // an exam part header carries the goal of its part: b2/lessonGoals.test.js asks every non-text block of a B2 sheet for one
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
-export const LESSONS = withShapes({
+export const MODULE = { id: 'b1b2-module-08', course: 'b2', title: 'Reisimine ja kultuur', level: 'B2-', design: 'v3-stations', template: 'v4' };
+
+// the v4 lessons of 2026-11-18 (B1+ „task-based”): the source of every block that is not on a v5 sheet
+const V4 = {
   'b1b2-036': {
     title: 'Nädalavahetus 200 euroga — kuhu sõidame?',
     phases: grammar('Keel: kus-, kuhu-, mille- ja kelle-lause — koht, kus …; linn, kuhu …; telk, mille …; sõber, kelle juures …'),
@@ -701,14 +740,10 @@ export const LESSONS = withShapes({
       B.selfcheck('040_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, kokkuvõte 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 70 %, kirjutamises ja rääkimises vähemalt 60 %.', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Vahehindamine 2 läbitud'),
     ],
   },
-}, {
-  'b1b2-036': 'PROJ R→W', 'b1b2-037': 'KIRJ L→W', 'b1b2-038': 'RÄÄK L→S', 'b1b2-039': 'LUGE R→S', 'b1b2-040': 'EKS',
-});
+};
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the explanations of the v4 blocks (the v4 EXPLAIN map), kept for the Harjuta practice engine
+const OLD_WHY = {
   // 036
   '036_d_read': [
     '1. lõik: „jätavad eelarvest umbes 10 protsenti varuks”.',
@@ -908,3 +943,826 @@ export const EXPLAIN = {
     'Õige: „firma asub teises Euroopa Liidu riigis ja te olete talle juba kirjutanud”.',
   ],
 };
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id, reason) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module08: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reason);
+};
+
+export const LESSONS = withShapes({
+  'b1b2-036': {
+    title: 'Nädalavahetus 200 euroga — kuhu sõidame?',
+    phases: grammar('Kordamine: koht, kus …; linn, kuhu …; telk, mille … · B2: kõrvallause terve mõtte kohta (…, mis tähendab, et …; …, mistõttu …) ja kaassõnaga (mille eest, mille järel, mille puhul, kelle jaoks)'),
+    format: 'project',
+    topic: 'freetime',
+    canDo: 'Ma loen umbes 450-sõnalist artiklit nädalavahetuse reisi eelarvest ja järeldan autori hoiaku, lepin reisikaaslasega kokku plaani ja kompromissi ka siis, kui ta ütleb midagi ootamatut, ning kirjutan talle umbes 140-sõnalise kirja.',
+    teacherPage: {
+      goal: 'Холодная задача устно, статья о бюджете поездки (≈ 450 слов), придаточное ко всей мысли (mis tähendab, et; mistõttu), договорённость с попутчиком; дома письмо 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 10 трансформаций; договорённость без третьего препятствия.',
+      hook: '«Väide: kõige parem puhkus on see, mille jaoks ei pea kaugele sõitma.» Ученик 2 минуты думает (можно записать слова), потом говорит 1 минуту. Это холодная задача модуля (устно; модуль 7 мерил письмо): не помогайте, не давайте фраз, не исправляйте. Запишите заметки — в уроке 040 ученик говорит параллельную задачу в тех же условиях.',
+      plan: [
+        '0–5: станция 1 — холодная задача: 2 минуты подумать, 1 минута речи без помощи; заметки сохраните до 040',
+        '5–25: станция 2 — 10 слов (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин), картинка и схема «куда уходят деньги» по тексту (3 мин)',
+        '25–45: станция 3 — kus / kuhu / mille одной строкой, B2: придаточное ко всей мысли (mis tähendab, et; mistõttu) и с послелогом (mille eest, mille järel); 10 трансформаций, сообщение попутчикам с 9 пропусками без банка, регистр: сообщение другу → письмо в гостевой дом',
+        '45–70: станция 4 — план (3 мин), разговор с попутчиком со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо попутчику 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): план Б — в пятницу вечером объявили шторм, паромы могут не ходить; новая цель за 5 минут и отмена брони',
+      ],
+      sources: 'Статья «Kuhu kaob nädalavahetuse raha?» — учебный текст KeeleSepp, без точных цен и статистики. Общие факты: у RMK сотни бесплатных мест для костра и палатки (мусор забрать с собой); летом паром с машиной лучше бронировать заранее (praamid.ee), без брони — общая очередь. Попутчик и его карточка — учебная ситуация.',
+      groups: 'Холодная задача — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: пары «я — попутчик», карточку попутчика даёте вы; в 1:1 попутчик — вы.',
+      errors: [
+        '«Praam jäi ära, mis tähendab, et me ootasime» — можно, но чаще «…, mistõttu pidime ootama» (mistõttu = и поэтому; после него обычный порядок придаточного).',
+        '«Külalistemaja, mis eest me maksime» → «…, mille eest me maksime» (maksma mille eest — родительный + eest).',
+        '«Reis, millest järel …» → «Reis, mille järel …» (послелог järel требует родительного: mille).',
+        '«Ta ütles, et raha ei jätku mis tähendab …» → запятая перед mis: «…, mis tähendab, et …».',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по речи. Отметьте: позиция в первом предложении, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 040 ученик говорит параллельную задачу (040_t_cold), вы сравниваете.',
+        'kus / kuhu / mille (B1) — повтор одной строкой. Цель B2 — придаточное, которое относится не к слову, а ко всей мысли (…, mis tähendab, et …; …, mistõttu …), и mis / kes с послелогом (mille eest, mille järel, kelle jaoks). Это язык объяснения плана: что из чего следует.',
+        'Ученику без денег на поездку: «поездка в соседний город на день» или «если бы у тебя было 200 евро»; пенсионеру — с внуками; студенту — с другом. Цены не превращать в математику: важно, на что уходят деньги и где компромисс. Обратная связь, 2–3 цели: следствие через mis tähendab / mistõttu; компромисс с условием; спокойная реакция на неожиданное.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('036_d_cold', 'Külm algus: üks minut ilma abita.', 'Väide: „Kõige parem puhkus on see, mille jaoks ei pea kaugele sõitma.” Mõtle 2 minutit (märkmeid võib teha) ja räägi 1 minut: kas oled nõus? Valmis fraase ei ole.', [
+        'Kas oled väitega nõus, osaliselt nõus või ei ole nõus?',
+        'Mis on sinu peamine põhjus? Too üks näide oma elust.',
+        'Mida ütleks keegi, kes arvab teisiti, ja mida sina talle vastaksid?',
+      ], [60, 90]), 'Õpetaja paneb kirja, kuidas sa praegu räägid; mooduli kontrollis räägid samadel tingimustel uuest väitest ja võrdlete.'), { task: 'S16', fluency: true, harno: 'S1' }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, suuliselt (moodul 7 mõõtis kirjutamist, moodul 8 mõõdab rääkimist). Ära aita, ära anna fraase ega paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (seetõttu, samas …) ja 2–3 korduvat viga. Hoia märkmed alles: tunnis b1b2-040 räägib õppija paralleelse ülesande samades tingimustes (kontrolli rääkimise 1. osa) ja te võrdlete. Üks-ühele: sina oled kuulaja; pärast kõnet küsi ainult „Miks?”.')), 1, 5),
+      station(tag(B.vocab('036_d_vocab', 'Tunni sõnad.', ['eelarve — бюджет', 'majutus — проживание', 'ööbima — ночевать', 'broneerima — бронировать', 'praam — паром', 'telkimiskoht — место для палатки', 'varu — запас', 'kulu — расход', 'kompromiss — компромисс', 'loobuma (millest) — отказаться (от чего)']), { topic: ['eelarve', 'majutus', 'telkimiskoht'] }), 2, 20),
+      why(teach(tag(purpose(B.reading('036_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Kuhu kaob nädalavahetuse raha?', [
+        'Reede õhtul on plaan lihtne: kaks päeva, kaks inimest ja kakssada eurot. Pühapäeva õhtuks on rahakott aga tühi ja keegi ei mäleta täpselt, kuhu raha läks. Reisikonsultandid kuulevad seda lugu igal suvel. Nende sõnul ei kao raha suurte kulude peale, mida kõik oskavad ette näha, vaid väikeste peale, millele keegi ei mõelnud.',
+        'Suured kulud on sõit, ööbimine ja söök. Neid on lihtne võrrelda. Bussipilet on sageli odavam, kui see osta mõni nädal ette, ja kahe inimese peale võib auto tulla odavam kui buss, sest kütus jagub kahe vahel, bussipilet mitte. Külalistemaja, mille hinnas on hommikusöök, võib lõpuks olla odavam kui hotell, kus hommikusöögi eest tuleb eraldi maksta. Saarele sõitja peab mõtlema ka praamile. Suvel tasub autoga sõit ette broneerida, sest ilma broneeringuta auto jääb sadamas üldisesse järjekorda, mis tähendab, et ootamine võib kesta mitu tundi.',
+        'Väikesed kulud on salakavalamad. Parkimine kesklinnas, kohv bensiinijaamas, vihmakeep, mis jäi koju, ja jäätis lapsele, kellele oli lubatud „ainult üks”. Igaüks neist on väike, kuid kahe päeva peale kokku võivad need moodustada suure osa eelarvest. Seepärast soovitavad kogenud reisijad jätta umbes kümnendiku rahast varuks ja panna kõik kulud enne sõitu ühte tabelisse, mille järgi on hiljem lihtne vaadata, kus plaan ja tegelikkus lahku läksid. Eraldi teema on broneeringu tühistamine. Odavaim tuba on sageli see, mille hinda tagasi ei maksta, kui plaan muutub. Kui reisi aeg ei ole päris kindel, tasub maksta natuke rohkem toa eest, mille saab tasuta tühistada kuni päev enne saabumist, mis tähendab, et haige laps või halb ilmateade ei maksa sulle terve öö hinda.',
+        'Odavaim öö on sageli see, mille eest ei maksa keegi. Riigimetsa Majandamise Keskus ehk RMK haldab sadu lõkke- ja telkimiskohti, kus võib tasuta ööbida, kui viid prügi endaga kaasa. Telk ei sobi siiski kõigile. Kes kaks ööd halvasti magab, ei naudi ka kõige ilusamat matkarada, mistõttu mõni pere maksab hea meelega sooja toa eest. Konsultantide sõnul ei ole odav reis see, mis maksab kõige vähem, vaid see, mille järel ei ole kahju ühestki eurost.',
+        'Kõige raskem ei ole aga rahaga arvestamine, vaid kokkulepe. Üks tahab rannas lebada, teine muuseumi minna, kolmas üldse mitte autosse istuda. Kui igaüks ajab oma joont, kulub nädalavahetus vaidlemisele. Paremini toimib vana nipp: igaüks nimetab ühe asja, mis on talle tõesti tähtis, ja ühe, millest ta on valmis loobuma. Lastega peres tasub ka lapse soov kirja panna. Nii sünnib kompromiss, mille puhul keegi ei tunne end kaotajana.',
+        'Ja lõpuks ilm. Eesti suvi ei luba midagi kindlat, mistõttu heal plaanil on alati plaan B: muuseum, ujula või lihtsalt hubane kohvik, kus vihma ära oodata. Kes plaanile B enne sõitu mõtleb, ei pea seda vihmas ja halva tujuga välja mõtlema. Võib-olla on see kõige odavam nõuanne üldse — see ei maksa sentigi.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Mille peale kaob konsultantide sõnul nädalavahetuse raha?', 'väikeste kulude peale, millele keegi ei mõelnud'],
+        ['Miks võib külalistemaja tulla odavam kui hotell?', 'külalistemaja hinnas on hommikusöök, hotellis tuleb selle eest eraldi maksta'],
+        ['Mida tähendab suvel see, kui sõidad autoga praamile ilma broneeringuta?', 'auto jääb üldisesse järjekorda ja ootamine võib kesta mitu tundi'],
+        ['Mis tingimusel võib RMK telkimiskohas tasuta ööbida?', 'kui viid prügi endaga kaasa'],
+        ['Miks nimetab autor väikesi kulusid „salakavalamateks” kui suuri? Järelda.', 'neid ei märka, ükshaaval tunduvad tühised, aga kokku teevad suure osa eelarvest'],
+        ['Mida tahab autor öelda lausega, et odav reis on see, „mille järel ei ole kahju ühestki eurost”? Järelda.', 'odavust ei mõõdeta ainult summaga; raha peab kuluma millelegi, mis on seda väärt'],
+        ['Milline on autori hoiak kokkuleppe ja plaani B suhtes? Mida ta vihjab viimase lausega?', 'need on tähtsamad kui raha; hea ettevalmistus ei maksa midagi, aga päästab reisi'],
+      ]), 'Pärast lugemist tead, kuhu reisiraha kaob, ja oskad reisikaaslasega plaani põhjendada.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade, skeemi ja pildiga. Pärast lugemist küsi pildi järgi: kes neist kolmest mõtleb rahale ja milline on nende kompromiss? Seejärel lisab õpilane skeemi igale harule ühe mõtte tekstist. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst ilma täpsete hindadeta; kui keegi küsib praamipileti hinda, ütle: „Vaata praamid.ee lehelt.”'), [
+        '1. lõik: raha kaob „väikeste peale, millele keegi ei mõelnud”.',
+        '2. lõik: külalistemaja, „mille hinnas on hommikusöök”; hotellis „tuleb eraldi maksta”.',
+        '2. lõik: auto „jääb sadamas üldisesse järjekorda, mis tähendab, et ootamine võib kesta mitu tundi”.',
+        '4. lõik: „kui viid prügi endaga kaasa”.',
+        'Järeldus 3. lõigust: „Igaüks neist on väike, kuid kahe päeva peale kokku võivad need moodustada suure osa eelarvest.”',
+        'Järeldus 4. lõigust: odav reis „ei ole see, mis maksab kõige vähem” — loeb, kas raha oli seda väärt.',
+        'Järeldus 5. ja 6. lõigust: „Kõige raskem ei ole aga rahaga arvestamine, vaid kokkulepe”; plaan B „ei maksa sentigi”.',
+      ]),
+      purpose(B.diagram('036_d_scheme', 'mind', { title: 'Skeem: kuhu kaob nädalavahetuse raha?', instruction: 'Pärast lugemist lisa igale harule üks mõte tekstist: mis on seal suur kulu ja kus saab kokku hoida? Siis märgi oma reisi kõige suurem kulu.', center: 'Kaks päeva, kaks inimest', nodes: 'Sõit\n- buss, auto või praam\n- pilet varakult\nÖöbimine\n- külalistemaja, telk\n- hommikusöök hinnas?\nVäikesed kulud\n- parkimine, kohv, jäätis\n- varu umbes kümnendik\nKokkulepe\n- mis on mulle tähtis\n- millest loobun' }, 'full', 'g_read'), 'Skeem aitab sul tekstist leida, kus raha kaob ja kus sünnib kompromiss.'),
+      retire('036_d_hook', CUT_HOOK),
+      retire('036_d_talk', CUT_TALK),
+      retire('036_d_open', CUT_STATS),
+      retire('036_d_read', CUT_STATS),
+    ],
+    practice: [
+      station(teach(B.notice('036_p_notice', 'Märka: mis tähendab, et …; mille järel …', [
+        'Artiklist: auto jääb üldisesse järjekorda, **mis tähendab, et** ootamine võib kesta tunde · halvasti magab, **mistõttu** mõni pere maksab sooja toa eest · reis, **mille järel** ei ole kahju · kompromiss, **mille puhul** keegi ei tunne end kaotajana',
+        'Kordamine (B1): kõrvallause täpsustab nimisõna — linn, **kuhu** sõidame · koht, **kus** ööbime · telk, **mille** naaber laenas · sõber, **kelle juures** ööbime. Ees on koma.',
+        'B2: kõrvallause terve mõtte kohta — Praam jäi ära, **mis** tähendab, et … · Bussid olid täis, **mistõttu** võtsime auto. · Ta unustas telgi, **mille üle** me hiljem naersime. Nii näitad, mis millest järeldub.',
+        'B2: mis ja kes kaassõnaga — omastav + kaassõna: majutus, **mille eest** maksime · reis, **mille järel** … · kokkulepe, **mille puhul** … · laps, **kelle jaoks** plaan tehti · inimene, **kellega koos** …',
+      ], 'full'), 'Kordamine ühe minutiga (kus, kuhu, mille). Siis B2 samm: kõrvallause, mis käib terve eelneva mõtte kohta, ja mis/kes koos kaassõnaga. Lase õpilasel leida artiklist kolm sellist lauset (mis tähendab, et …; mistõttu …; mille järel …) ja öelda, mille kohta kõrvallause käib.'), 3, 20),
+      why(purpose(B.transformation('036_p_notes', 'Ühenda kaks mõtet.', 'Tee kahest lausest üks. Kasuta antud sõnu. Mõtle: kas kõrvallause käib ühe sõna või terve mõtte kohta? Panka ei ole.', [
+        ['Praam oli täis. Me pidime kolm tundi ootama.', 'mistõttu', 'Praam oli täis, mistõttu pidime kolm tundi ootama.|Praam oli täis, mistõttu me pidime kolm tundi ootama.'],
+        ['Hotell ei võtnud koeri vastu. See tähendas, et pidime otsima uue koha.', 'mis tähendas, et', 'Hotell ei võtnud koeri vastu, mis tähendas, et pidime otsima uue koha.|Hotell ei võtnud koeri vastu, mis tähendas, et me pidime uue koha otsima.'],
+        ['Me maksime külalistemaja eest. Selles oli saun.', 'mille eest', 'Külalistemajas, mille eest me maksime, oli saun.|Külalistemajas, mille eest maksime, oli saun.'],
+        ['Matk oli kaksteist kilomeetrit pikk. Pärast seda olid kõik väsinud.', 'mille järel', 'Matk oli kaksteist kilomeetrit pikk, mille järel olid kõik väsinud.|Matk oli kaksteist kilomeetrit pikk, mille järel kõik olid väsinud.'],
+        ['Plaan tehti vanaema jaoks. Vanaema ei saa kaua kõndida.', 'kelle jaoks', 'Vanaema, kelle jaoks plaan tehti, ei saa kaua kõndida.'],
+        ['Õde unustas magamiskoti koju. Me naersime selle üle terve õhtu.', 'mille üle', 'Õde unustas magamiskoti koju, mille üle me naersime terve õhtu.|Õde unustas magamiskoti koju, mille üle naersime terve õhtu.'],
+        ['Meil on kokkulepe. Selle puhul ei tunne keegi end kaotajana.', 'kokkulepe, mille puhul', 'Meil on kokkulepe, mille puhul ei tunne keegi end kaotajana.|Meil on kokkulepe, mille puhul keegi ei tunne end kaotajana.'],
+        ['Vihma sadas kaks päeva. Seetõttu veetsime aega muuseumis.', 'mistõttu', 'Vihma sadas kaks päeva, mistõttu veetsime aega muuseumis.|Vihma sadas kaks päeva, mistõttu me veetsime aega muuseumis.'],
+
+
+      ], 'full', 'g_notice'), 'Ühe lausega näitad, mis millest järeldub; nii saab reisikaaslane plaanist kohe aru.'), [
+        'Tagajärg tervele mõttele → mistõttu (koma ees).',
+        'Järeldus tervest mõttest → …, mis tähendas, et …',
+        'maksma mille eest → omastav + eest: mille eest.',
+        'Pärast matka → omastav + järel: mille järel.',
+        'tegema kelle jaoks → omastav + jaoks: kelle jaoks.',
+        'naerma mille üle → omastav + üle: mille üle (käib terve mõtte kohta).',
+        'Kokkuleppe puhul → omastav + puhul: mille puhul.',
+        'Vihm → tagajärg: mistõttu.',
+      ]),
+      why(purpose(B.formtext('036_p_plan', 'Sõnum reisigrupile: meie plaan.', 'Üks reisikaaslane kirjutab teistele, mis on kokku lepitud. Kirjuta lünka üks sobiv sõna. Sulgudes on vihje. Panka ei ole.', 'Nädalavahetus Saaremaal — lõplik plaan', [
+        'Tere, kallid kaasreisijad!',
+        '',
+        'Lõpuks on plaan valmis. Sõidame laupäeva hommikul autoga Virtsu, [kust] (koht, kust praam läheb) praam viib meid Muhusse. Broneerisin praami juba ette, [mis] (terve eelmine mõte) tähendab, et me ei pea sadamas järjekorras ootama.',
+        '',
+        'Ööbime väikeses külalistemajas, [mille] (külalistemaja; omastav) hinnas on ka hommikusöök. Telgi jätsime koju, sest Tiiu selg valutab, [mistõttu] (tagajärg tervele mõttele) otsustasime sooja toa kasuks.',
+        '',
+        'Igaüks valis ühe tegevuse, [millest] (millest ta ei loobu) ta ei loobu: Tiiu linnuse, Marko ranna ja mina matka. Lapsed, [kelle] (lapsed; omastav) jaoks plaan tegelikult tehti, tahavad lihtsalt ujuda.',
+        '',
+        'Kokku läheb meil umbes 180 eurot, [mille] (summa; omastav) sisse on arvestatud ka kütus. Ülejäänud raha jätame varuks, [sest] (põhjus) midagi läheb alati teisiti.',
+        '',
+        'Kohtumiseni!',
+      ]), 'Samamoodi kirjutad kodus oma reisikaaslasele: iga otsus koos põhjuse või tagajärjega.'), [
+        'Koht, kust praam läheb → kust.',
+        'Kõrvallause tervele mõttele → mis tähendab, et …',
+        'Hinnas on → omastav: mille hinnas.',
+        'Tagajärg → mistõttu.',
+        'loobuma millest → millest.',
+        'kelle jaoks → omastav + jaoks.',
+        'Summa sisse → mille sisse.',
+        'Põhjus → sest.',
+      ]),
+      why(purpose(tag(B.table('036_p_register', 'Sõber või külalistemaja?', 'Vasakul on sõnum sõbrale. Paremas veerus on sama mõte kirjas külalistemaja perenaisele. Kirjuta lünka puuduv sõna.', 'Sõbrale, Külalistemajale', [
+        'Kas teil on vaba tuba 12.–13. juulil? Meid on kaks. | Sooviksin [broneerida] toa kahele inimesele 12.–13. juuliks.',
+        'Kas hommikusöök on hinnas? | Kas hommikusöök on [hinna] sees?',
+        'Meil on koer kaasas, kas see on okei? | Kas koeraga [tohib] teie juures ööbida?',
+        'Me jõuame alles õhtul, umbes kümne paiku. | Saabume [hilja], umbes kell kümme õhtul.',
+        'Kas auto saab kuskile panna? | Kas teie juures on [parkimise] võimalus?',
+        'Kirjuta mulle, palju see kokku maksab. | Palun andke teada, kui palju [maksab] majutus kokku.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sama küsimus kõlab kirjas, mida loeb võõras inimene.'), [
+        'Kas on vaba tuba → sooviksin broneerida.',
+        'Hinnas → hinna sees.',
+        'On okei → tohib.',
+        'Alles õhtul → hilja.',
+        'Auto panna → parkimise võimalus.',
+        'Palju maksab → kui palju maksab.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('036_t_plan', 'Reisiplaan: kokkulepe (3 minutit).', 'Sina ja sinu reisikaaslane (sõber, abikaasa, laps või õde) planeerite nädalavahetust; raha on kahe peale umbes 200 eurot. Kirjuta märksõnad. Edukriteeriumid: 1) pakud välja sihtkoha, sõidu ja ööbimise ning põhjendad iga otsust; 2) nimetad, mis on sulle tähtis ja millest oled valmis loobuma; 3) lepite kokku ühe plaani ja ütlete selle 30 sekundiga kokku.', ['Minu ettepanek: kuhu, millega, kus ööbime:', 'Mis on mulle tähtis ja miks:', 'Millest olen valmis loobuma:', 'Plaan B (ilm, raha, aeg):'], 1), 'Plaan aitab sul pakkuda ja järele anda nii, et kumbki ei tunne end kaotajana.'), 4, 25, { final: 'negotiate' }),
+      teach(tag(purpose(B.rolecards('036_t_deal', 'Leppige kokku (6–8 minutit).', 'Räägi oma reisikaaslasega ja leppige kokku üks plaan: kuhu, millega, kus ööbite ja kui palju see maksab. Reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord: planeerite nädalavahetust; raha on kahe peale umbes 200 eurot.\nSinu eesmärk: üks plaan, millega te mõlemad olete nõus, ja vähemalt üks kompromiss.\nPiirang: reisikaaslane tahab midagi muud kui sina.',
+        'Reisikaaslase kaart on õpetajal: tema soovid, tema raha ja üks uudis, mida sa veel ei tea.',
+        ['Ma pakun, et …, mis tähendab, et …', 'Ma olen nõus …, kui sina …'], ['Aga mina tahaksin …', 'See on liiga kallis, sest …']), 'Tulemus: teie ühine plaan (sihtkoht, sõit, ööbimine, summa) ja kompromiss; selle järgi kirjutad kodus kirja.'), { task: 'S03', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled reisikaaslane. Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Telgis ma ei maga, mu selg valutab.” 2) „Ma tahaksin näha vähemalt ühte muuseumi.” Varjatud info (ütle pärast teist takistust): „Ah jaa, mul on tegelikult ainult 80 eurot ja laupäeva õhtul kell kuus on mu õe sünnipäev — pean siis kodus olema.” Õpilane peab plaani muutma: lühem sõit, ühe öö asemel päevareis või sünnipäeva järel sõit, raha jagamine. Õnnestunud, kui õpilane põhjendab vähemalt kolme otsust, kasutab vähemalt kaks kõrvallauset tervele mõttele või kaassõnaga (mis tähendab, et …; mistõttu …; mille eest …), pakub kompromissi tingimusega („Olen nõus …, kui …”) ja te ütlete lõpus plaani 30 sekundiga. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('036_t_mail', 'Kodus: kiri reisikaaslasele (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Pärast vestlust palus reisikaaslane, et paneksid kokkulepitud plaani kirja: ta tahab teada, mida kaasa võtta ja kui palju raha vaja on.',
+        points: ['kuhu, millega ja kus te ööbite ning miks just nii', 'mis on teie kompromiss', 'kui palju kõik umbes maksab ja kui palju jääb varuks', 'plaan B, kui midagi läheb teisiti'],
+        words: [130, 150],
+      }), 'Reisikaaslane loeb kirja ja teab täpselt, mida kaasa võtta ja kui palju raha vaja on.'), 6)), { task: 'W13', main: true, harno: 'W1' }),
+      writingRubric('036_t_rubric', 'Hindamisjuhend: kiri reisikaaslasele (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Me sõidame Saaremaale. Me ööbime külalistemajas, mis eest me maksame 70 eurot. Praam on täis, mis tähendab me peame ootama. Sina tahtsid muuseumi, ma tahtsin randa. Kokku on 150 eurot. Võta kaasa vihmakeep. Kohtumiseni!” Hinnang: ülesanne 2 (plaan ja summa on olemas, kuid kompromissi ei sõnastata ja plaani B ei ole), ülesehitus 2 (järjekord on selge, kuid lõike ja sidendeid peaaegu ei ole), sõnavara 2 („me” ja „on” korduvad; puuduvad varu, broneerima, loobuma), grammatika 1 („mis eest” → mille eest; „mis tähendab me peame” → …, mis tähendab, et peame …; põhjendus puudub). Kui õppija sõnastab kompromissi, lisab plaani B ja parandab kõrvallaused, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('036_t_self', ['Ma loen artiklit reisi eelarvest ja järeldan autori hoiaku.', 'Ma näitan, mis millest järeldub: …, mis tähendab, et …; mistõttu …; mille eest …', 'Ma lepin reisikaaslasega kokku plaani ja kompromissi ning reageerin ootamatule uudisele.'], 'Plaan valmis', 'Ma oskan reisi kokku leppida'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('036_t_cards', CUT_STATS),
+      retire('036_t_budget', CUT_DRILL),
+      retire('036_t_more', CUT_EXTRA),
+      retire('036_t_exit', CUT_DRILL),
+      retire('036_t_letter', CUT_OLDTASK),
+      retire('036_t_home', CUT_HOME),
+      retire('036_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-037': {
+    title: 'Lend tühistati, kohver hilines — mis sulle kuulub?',
+    phases: grammar('Kordamine: olevat tühistatud, olevat jäänud (tund 32) · B2: umbisikuline ajajoon kaebuses — tühistati / on tühistatud / oli juba tühistatud / ei olnud teatatud; vastuväide faktiga: kuigi väideti, et …, selgus, et …'),
+    format: 'infogap',
+    topic: 'money',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest reisija õigustest ja järeldan nõustaja hoiaku, räägin lennufirma teenindajaga ja nõuan viisakalt, mis mulle kuulub, ka siis, kui ta pakub midagi muud, ning kirjutan umbes 140-sõnalise kaebuse.',
+    teacherPage: {
+      goal: 'Радио о правах пассажира (2 голоса, 3,5 мин), безличный залог на линии времени жалобы, разговор у стойки со скрытой информацией; дома жалоба 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 предложений; разговор у стойки без третьего препятствия.',
+      hook: '«Väide: kes ostab kõige odavama pileti, ei tohi hiljem kurta.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — о поездке, которая пошла не так (рейс, автобус, бронь). Не исправляйте; отметьте, знает ли ученик, что ему положено, — ответ даст радио.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о неудачной поездке, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «пять шагов» и картинка (3 мин), радио дважды (8 мин), 10 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — olevat + -tud одной строкой, B2: безличный залог на линии времени жалобы и «kuigi väideti, et …, selgus, et …»; 10 предложений, жалоба с 10 пропусками без банка, регистр: звонок подруге → жалоба',
+        '45–70: станция 4 — план (3 мин), разговор у стойки со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: жалоба 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): квартира в Риге не как на фото — звонок в службу платформы, договориться о решении до вечера',
+      ],
+      sources: 'Радио «Kui reis läheb untsu» — учебный текст KeeleSepp (ведущий Margus и консультант Helen вымышлены), упрощённо. Основа: Регламент ЕС 261/2004 (europa.eu «Lennureisijate õigused»): при отмене — новый рейс или деньги, еда и при необходимости гостиница; компенсация от 250 до 600 € в зависимости от расстояния, если сообщили менее чем за 14 дней или опоздание на место ≥ 3 часа; при чрезвычайных обстоятельствах компенсации нет, забота остаётся; нехватка экипажа обычно не чрезвычайное обстоятельство; багаж: акт в аэропорту сразу, расходы за задержку — письменно в течение 21 дня, повреждение — 7 дней. Сначала письменная жалоба компании, потом TTJA / комиссия по потребительским спорам, при фирме из другой страны ЕС — Европейский потребительский центр (бесплатно). Не обещайте ученику денег: решает компания или комиссия.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: один — пассажир, другой — сотрудник с вашей карточкой; потом смена (багаж). В 1:1 сотрудник — вы.',
+      errors: [
+        '«Lend tühistas» → «Lend tühistati» (отменили — безличное: -ti / -di).',
+        '«Lend oli tühistanud» → «Lend oli (juba) tühistatud» (давнопрошедшее безличное: oli + -tud).',
+        '«Meile ei teatatud» — верно; «Meile ei olnud teatatud» — к моменту, когда мы пришли, ещё не сообщили (oli + -tud, отрицание ei olnud + -tud).',
+        '«Kuigi väideti, et oli torm, aga selgus …» → «Kuigi väideti, et …, selgus, et …» (после kuigi без aga).',
+      ],
+      notes: [
+        'Формат — информационный пробел: у ученика его ситуация и то, что он услышал по радио; у вас — настоящая причина отмены и предложение ваучера. Ученику, который не летает: автобус в Ригу или бронь жилья; пенсионеру — поездка к родственникам; маме — с ребёнком (еда и гостиница особенно важны).',
+        'olevat + -tud (модуль 7, 032) — повтор одной строкой. Цель B2 — точная линия времени в жалобе: что сделали (tühistati), что уже было сделано к моменту (oli tühistatud), чего не сделали (ei olnud teatatud), что утверждали (väideti / olevat) и что выяснилось (selgus, et). Права пассажира поезда были в модуле 4 — здесь самолёт и багаж.',
+        'Обратная связь, 2–3 цели: безличное в нужном времени; факт против утверждения; вежливое, но твёрдое требование с суммой и сроком. Во время разговора не перебивать, 3 замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('037_d_talk', 'Väide: kes ostab kõige odavama pileti, ei tohi hiljem kurta.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: üks reis, mis läks teisiti, kui plaanisid (lend, buss, majutus), ja mida sa siis tegid.', [
+        'Väide: „Kes ostab kõige odavama pileti, ei tohi hiljem kurta.” Kas oled nõus? Miks?',
+        'Mis läks sinu reisil teisiti, kui plaanisid? Mida sa tegid?',
+        'Kas sa teadsid, mis sulle kuulub? Kust sa seda teada said?',
+      ], [60, 90]), 'Sinu enda lugu näitab, mida sa juba oskad nõuda ja mida veel mitte.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe looga. Ära paranda ega ütle, mis õppijale kuulus — vastuse annab raadio. Pane kirja, mida õppija ise oma õigustest teab; see tuleb jaamas 4 tagasi. Kui õppija ei ole lennanud: „Kas sinu buss, rong või broneering on kunagi ära jäänud?”')), 1, 5),
+      station(tag(B.vocab('037_d_vocab', 'Tunni sõnad.', ['tühistama — отменять', 'hilinema — опаздывать', 'hüvitis — компенсация', 'pagas — багаж', 'kviitung — чек', 'nõudma — требовать', 'erakorraline — чрезвычайный', 'kahjuakt — акт о повреждении', 'kaebus — жалоба', 'tähtaeg — срок']), { topic: ['hüvitis', 'pagas', 'kaebus', 'kahjuakt'] }), 2, 20),
+      purpose(B.diagram('037_d_scheme', 'flow', { title: 'Skeem: lend jäi ära — viis sammu.', instruction: 'Vaata skeemi enne kuulamist. Kuulates märgi iga sammu juurde, mida nõustaja selle kohta ütleb ja mille eest ta hoiatab.', nodes: 'Lennujaamas: küsi põhjust ja kirjuta üles, mida öeldi\nVali: uus lend või raha tagasi; söök ja vajadusel hotell\nKohver: täida kahjuakt kohe, kulud kirjalikult tähtajaks\nKaebus firmale kirjalikult: kuupäevad, summad, kviitungid\nVastust ei tule? Tarbijavaidluste komisjon või Euroopa Tarbijakeskus' }, 'full', 'g_read'), 'Skeem näitab, mis järjekorras oma õigusi nõuda.'),
+      why(teach(tag(purpose(B.examListen('037_d_radio', 'Kuulamine: raadiosaade „Kui reis läheb untsu”.', 'Raadiosaates räägib saatejuht tarbijanõustajaga sellest, mis reisijale kuulub, kui lend jääb ära või kohver hilineb. Loe enne küsimused läbi. Kuula saadet kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Margus: Tere! Saates „Kui reis läheb untsu” räägime täna sellest, mida teha, kui lennujaama tablool on sinu lennu juures sõna „tühistatud”. Stuudios on tarbijanõustaja Helen. Helen, mis on esimene asi, mida reisija peaks tegema?',
+        'Helen: Tere! Esimene asi on rahuneda ja kirja panna, mida teile öeldakse. Kes ütles, mis kell ja mis põhjusel lend tühistati. Hiljem on see väga tähtis, sest suuline lubadus kaob, aga märkmed jäävad.',
+        'Margus: Mis reisijale kohe kuulub?',
+        'Helen: Lennufirma peab pakkuma valikut: kas uus lend esimesel võimalusel või raha tagasi. Ootamise ajal kuuluvad reisijale söök ja jook ning vajaduse korral ka hotell ja sõit hotelli. See kehtib alati, ka siis, kui põhjus oli torm.',
+        'Margus: Aga raha, see kuulus hüvitis?',
+        'Helen: Hüvitis on teine asi. Seda makstakse siis, kui lennust teatati vähem kui kaks nädalat ette või kui jõudsite sihtkohta vähemalt kolm tundi hiljem. Summa sõltub lennu pikkusest, lühikesel lennul on see umbes kakssada viiskümmend eurot. Aga kui põhjus oli tõesti erakorraline, näiteks torm või streik lennujaamas, siis hüvitist ei maksta.',
+        'Margus: Ja kas reisija saab seda kontrollida?',
+        'Helen: Sageli saab. Paljud firmad ütlevad kõigepealt, et põhjus oli ilm. Vaadake, kas teised lennufirmad samal ajal lendasid. Kui teised lennukid tõusid õhku ja ainult teie lend tühistati, siis oli põhjus tõenäoliselt mujal. Näiteks see, et meeskonnas ei olnud piisavalt inimesi, ei ole erakorraline asjaolu. See on firma enda mure.',
+        'Margus: Aga kui lendu ei tühistata, vaid see lihtsalt hilineb mitu tundi?',
+        'Helen: Siis kehtib sama loogika. Kui jõuate sihtkohta vähemalt kolm tundi hiljem, võib teile kuuluda samasugune hüvitis nagu tühistamise korral. Oluline on see, millal te tegelikult kohale jõudsite, mitte see, millal lennuk õhku tõusis. Seepärast pange kirja ka saabumise kellaaeg.',
+        'Margus: Mõnikord pakutakse raha asemel kinkekaarti järgmiseks lennuks.',
+        'Helen: Jah, ja paljud võtavad selle kohe vastu, sest on väsinud. Kinkekaart ei ole halb, kui te niikuinii lendate selle firmaga uuesti. Aga teil on õigus küsida raha. Kinkekaardi peate vastu võtma ainult siis, kui ise nõustute.',
+        'Margus: Räägime kohvrist. Mida teha, kui kohver ei tulnud kaasa?',
+        'Helen: Minge kohe lennujaamas pagasiletti ja täitke kahjuakt. Seda ei tohi jätta homseks. Hilinenud kohvri tõttu tehtud kulud, näiteks hambahari, riided ja laadija, tuleb firmale kirjalikult esitada kolme nädala jooksul. Kui kohver on katki, on tähtaeg ainult nädal. Hoidke kõik kviitungid alles.',
+        'Margus: Ja kui firma ei vasta?',
+        'Helen: Kaebus peab olema kirjalik, telefonikõne ei jää kuhugi alles. Kui vastust ei tule või see ei rahulda, võib pöörduda tarbijavaidluste komisjoni. Kui firma asub teises Euroopa Liidu riigis, aitab Euroopa Tarbijakeskus tasuta. Ma ütlen alati: viisakas, aga kindel kiri koos kuupäevade ja kviitungitega teeb rohkem kui kümme vihast kõnet.',
+        'Margus: Aitäh, Helen!',
+      ], [
+        ['Miks soovitab Helen kohe kirja panna, mida lennujaamas öeldi?', 'suuline lubadus kaob, märkmed jäävad', 'muidu ei saa uut lendu', 'lennufirma nõuab seda'],
+        ['Mida peab lennufirma reisijale pakkuma, kui lend tühistati?', 'uue lennu või raha tagasi', 'ainult uue lennu järgmisel nädalal', 'kinkekaardi järgmiseks lennuks'],
+        ['Millal kuuluvad reisijale söök ja vajaduse korral hotell?', 'alati, ka tormi korral', 'ainult siis, kui põhjus oli tehniline', 'ainult pikal lennul'],
+        ['Millal hüvitist ei maksta?', 'kui põhjus oli tõesti erakorraline', 'kui reisija jõudis kohale kolm tundi hiljem', 'kui lennust teatati päev ette'],
+        ['Mis ei ole Heleni sõnul erakorraline asjaolu?', 'meeskonnas ei olnud piisavalt inimesi', 'torm', 'streik lennujaamas'],
+        ['Mida peab reisija tegema, kui kohver ei tulnud kaasa?', 'täitma kohe lennujaamas kahjuakti', 'ootama kolm päeva', 'helistama firmale järgmisel nädalal'],
+        ['Mis on tähtaeg, kui kohver on katki?', 'üks nädal', 'kolm nädalat', 'kaks kuud'],
+        ['Mida tahab Helen öelda, kui soovitab vaadata, kas teised lennufirmad samal ajal lendasid?', 'nii saab kontrollida, kas „ilm” oli tõeline põhjus', 'teise firmaga on alati odavam', 'reisija peaks kohe teise firma pileti ostma'],
+        ['Mida võib järeldada Heleni sõnadest kinkekaardi kohta?', 'see on reisija valik, mitte kohustus', 'kinkekaart on alati parem kui raha', 'kinkekaarti ei tohi kunagi vastu võtta'],
+        ['Milline on Heleni hoiak, kui ta ütleb, et kiri teeb rohkem kui „kümme vihast kõnet”?', 'rahulik ja tõenditega kaebus on kõige mõjusam', 'helistamine on keelatud', 'lennufirmad ei loe kunagi kirju'],
+      ], 'g_read'), 'Kuuled, mis sulle kuulub ja kuidas seda nõuda; kohe kasutad seda lennufirma letis.'), { voice: 'interview', task: 'L02', harno: 'L3' }),
+      'Kuulamine, 20 minutit koos sõnade, skeemi ja pildiga (umbes 3,5 minutit, kaks korda). Enne kuulamist küsi: mis sulle sinu arvates kuulub, kui lend jääb ära? Õpilane loeb küsimused ja joonib alla võtmesõnad. Pärast: õpilane ütleb skeemi iga sammu kohta nõustaja nõuande. Küsimused 8–10 on järeldusküsimused (nõustaja hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud; reeglid on lihtsustatud — täpsed reeglid on õpetaja lehel.'), [
+        'Helen: „suuline lubadus kaob, aga märkmed jäävad”.',
+        'Helen: „kas uus lend esimesel võimalusel või raha tagasi”.',
+        'Helen: söök, jook ja vajaduse korral hotell — „See kehtib alati, ka siis, kui põhjus oli torm.”',
+        'Helen: „kui põhjus oli tõesti erakorraline … siis hüvitist ei maksta”.',
+        'Helen: meeskonna puudus „ei ole erakorraline asjaolu”.',
+        'Helen: „Minge kohe lennujaamas pagasiletti ja täitke kahjuakt.”',
+        'Helen: „Kui kohver on katki, on tähtaeg ainult nädal.”',
+        'Järeldus: kui teised lendasid, „siis oli põhjus tõenäoliselt mujal”.',
+        'Järeldus: kinkekaart tuleb vastu võtta „ainult siis, kui ise nõustute”.',
+        'Järeldus: „viisakas, aga kindel kiri koos kuupäevade ja kviitungitega”.',
+      ]),
+      retire('037_d_hook', CUT_HOOK),
+      retire('037_d_voice', CUT_SHORT),
+    ],
+    practice: [
+      station(teach(B.notice('037_p_notice', 'Märka: mis tehti ja mis oli juba tehtud?', [
+        'Saatest ja kaebustest: lend **tühistati** · ainult teie lend **tühistati** · teile **öeldakse** · hüvitist **ei maksta** · Kui me lennujaama jõudsime, **oli** lend juba **tühistatud**, kuid meile **ei olnud** sellest **teatatud**.',
+        'Kordamine (B1): keegi väitis, sina ei kinnita — lend **olevat tühistatud**, kohver **olevat jäänud** Riiga (tund 32).',
+        'B2: umbisikuline ajajoonel — olevik **tühistatakse** · lihtminevik **tühistati** · täisminevik **on tühistatud** (tulemus kehtib praegu) · enneminevik **oli (juba) tühistatud** (enne teist sündmust) · eitus **ei tühistatud / ei ole tühistatud / ei olnud tühistatud**.',
+        'B2: väide ja fakt ühes lauses — **Kuigi väideti, et** põhjus oli torm, **selgus** hiljem, **et** teised lennukid lendasid. · **Meile öeldi, et** …, **tegelikult aga** … (kuigi-lause järel ei ole „aga”).',
+        'Kaebuses: kuupäev ja fakt (umbisikuline) → mida väideti → mis selgus → mida nõuad ja mis tähtajaks.',
+      ], 'full'), 'Kordamine ühe minutiga (olevat tühistatud). Siis B2 samm: kaebuse ajajoon umbisikulises — mis tehti, mis oli juba tehtud, millest ei olnud teatatud. Lase õpilasel joonistada lauale ajajoon ja panna sellele saate kolm sündmust.'), 3, 20),
+      why(purpose(B.gaps('037_p_forms', 'Kaebuse ajajoon.', 'Kirjuta lünka sulgudes oleva tegusõna umbisikuline vorm, mis sobib ajajoonele. Panka ei ole.', [
+        'Meie lend Berliini [tühistati] 12. märtsil kell 17.30. (tühistama; lihtminevik)',
+        'Kui me lennujaama jõudsime, oli lend juba [tühistatud]. (tühistama; enneminevik)',
+        'Meile ei olnud sellest e-kirjaga [teatatud]. (teatama; enneminevik, eitus)',
+        'Lennujaamas [öeldi], et põhjus oli torm. (ütlema; lihtminevik)',
+        'Kuigi [väideti], et ilm oli halb, lendasid teised lennukid tavaliselt. (väitma; lihtminevik)',
+        'Hiljem [selgus], et meeskonnas ei olnud piisavalt inimesi. (selguma; lihtminevik)',
+        'Mulle [pakuti] raha asemel kinkekaarti. (pakkuma; lihtminevik)',
+        'Minu kohvrit ei ole siiani [leitud]. (leidma; täisminevik, eitus)',
+        'Kahjuakt [täideti] lennujaamas kohe pärast saabumist. (täitma; lihtminevik)',
+        'Hotelli kulu ei ole mulle veel [hüvitatud]. (hüvitama; täisminevik, eitus)',
+      ], '', 'full', 'g_notice'), 'Õige vorm näitab lugejale täpselt, mis juhtus enne ja mis pärast.'), [
+        'Lihtminevik, tegija pole oluline: tühistati.',
+        'Enne kohalejõudmist: oli + -tud → oli tühistatud.',
+        'Eitus enneminevikus: ei olnud + -tud → teatatud.',
+        'Lihtminevik: öeldi.',
+        'Kuigi + lihtminevik: väideti (kuigi-lause järel ei ole „aga”).',
+        'Mis hiljem välja tuli: selgus.',
+        'Lihtminevik: pakuti.',
+        'Tulemus kehtib praegu, eitus: ei ole leitud.',
+        'Lihtminevik: täideti.',
+        'Tulemus praegu, eitus: ei ole hüvitatud.',
+      ]),
+      why(purpose(B.formtext('037_p_complaint', 'Kaebus lennufirmale.', 'Reisija kirjutab lennufirmale kaebuse. Kirjuta lünka üks sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Kaebus: tühistatud lend Tallinn–Berliin, broneering KX4F2L', [
+        'Lugupeetud klienditeenindus!',
+        '',
+        '12. märtsil [tühistati] (tühistama; umbisikuline, minevik) minu lend Tallinnast Berliini, mis pidi väljuma kell 18.40. Kui ma lennujaama jõudsin, oli lend juba tühistatud, kuid mulle ei olnud sellest [teatatud] (teatama; enneminevik, eitus).',
+        '',
+        'Teie teenindaja sõnul [olevat] (olema; kaudne) põhjus olnud torm. [Kuigi] (vastuväide) seda väideti, lendasid teised lennufirmad samal ajal tavaliselt. Hiljem [selgus] (selguma; minevik), et meeskonnas ei olnud piisavalt inimesi, mis ei ole erakorraline asjaolu.',
+        '',
+        'Pidin ööbima hotellis, mille eest maksin 90 eurot. Minu kohver jõudis kohale alles kaks päeva hiljem; kahjuakt [täideti] (täitma; umbisikuline, minevik) lennujaamas kohe.',
+        '',
+        'Palun [hüvitage] (hüvitama; viisakas nõue, teie) mulle hotelli kulu ja kohvri hilinemise tõttu tehtud kulud, kokku 135 eurot. Lisaks palun maksta lennureisijate õiguste järgi ette nähtud [hüvitis] (raha; nimetav). Kinkekaarti ma vastu ei võta.',
+        '',
+        'Kviitungid on [lisatud] (lisama; tulemus kehtib). Ootan teie vastust kahe nädala jooksul. Vastuse puudumisel [pöördun] (pöörduma; mina) tarbijavaidluste komisjoni.',
+        '',
+        'Lugupidamisega\nreisija',
+      ]), 'Samamoodi kirjutad kodus oma kaebuse: fakt, väide, tõend ja nõue tähtajaga.'), [
+        'Fakt minevikus, tegija pole oluline: tühistati.',
+        'Enne kohalejõudmist, eitus: ei olnud teatatud.',
+        'Teise väide: olevat (olnud).',
+        'Vastuväide faktiga: Kuigi seda väideti, …',
+        'Mis hiljem välja tuli: selgus.',
+        'Fakt minevikus: täideti.',
+        'Viisakas nõue: hüvitage.',
+        'Lause alus: hüvitis (nimetav).',
+        'Tulemus kehtib: on lisatud.',
+        'Tulevane samm: pöördun.',
+      ]),
+      why(purpose(tag(B.table('037_p_register', 'Kõne sõbrale või kaebus?', 'Vasakul on see, mida reisija ütles telefonis sõbrale. Paremas veerus on sama mõte kaebuses lennufirmale. Kirjuta lünka puuduv sõna.', 'Sõbrale, Kaebuses', [
+        'Nad lihtsalt tühistasid meie lennu! | Minu lend [tühistati] 12. märtsil.',
+        'Keegi ei öelnud meile midagi. | Mulle ei olnud tühistamisest [teatatud].',
+        'Nad ajasid kõik tormi kaela. | Teie teenindaja [väitel] oli põhjus torm.',
+        'Aga teised lennukid ju lendasid! | Samal ajal [lendasid] teised lennufirmad tavaliselt.',
+        'Ööbisin hotellis, maksin ise 90 eurot. | Hotelli [kulu] oli 90 eurot; kviitung on lisatud.',
+        'Ma tahan oma raha tagasi! | Palun [hüvitage] mulle tehtud kulud.',
+        'Mingit kinkekaarti mul vaja ei ole. | Kinkekaardi asemel [soovin] raha.',
+        'Kui nad ei vasta, siis ma kaeban. | Vastuse [puudumisel] pöördun tarbijavaidluste komisjoni.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas vihane kõne muutub kirjaks, millele firma peab vastama.'), [
+        'Nad tühistasid → umbisikuline: tühistati.',
+        'Keegi ei öelnud → ei olnud teatatud.',
+        'Ajasid kaela → teie teenindaja väitel.',
+        'Ju lendasid → fakt: lendasid.',
+        'Maksin ise → hotelli kulu.',
+        'Tahan raha → palun hüvitage.',
+        'Vaja ei ole → soovin raha.',
+        'Kui ei vasta → vastuse puudumisel.',
+      ]),
+      retire('037_p_letter', 'cloze with four options (a word bank) → B2 gaps without a bank (v5 G4); 037_p_complaint takes its place'),
+      retire('037_p_know', CUT_TIP),
+    ],
+    transfer: [
+      station(purpose(B.planning('037_t_plan', 'Lennufirma letis: plaan (3 minutit).', 'Sinu lend Tallinnast Berliini tühistati päev enne väljumist. Ööbisid hotellis ja kohver jõudis kohale kaks päeva hiljem. Kirjuta märksõnad. Edukriteeriumid: 1) ütled ajajoone täpselt (mis tehti, mis oli juba tehtud, millest ei teatatud); 2) kahtled väites faktiga (kuigi väideti, et …, …); 3) nõuad viisakalt, aga kindlalt summat ja tähtaega ning tead lõpuks järgmist sammu.', ['Mis juhtus ja millal (ajajoon):', 'Mida mulle väideti ja mida ma ise nägin:', 'Mida ma nõuan (summa, kviitungid):', 'Mida teen, kui teenindaja pakub midagi muud:'], 1), 'Plaan aitab sul rääkida rahulikult ja faktidega, mitte vihaselt.'), 4, 25, { final: 'complain' }),
+      teach(tag(purpose(B.rolecards('037_t_desk', 'Lennufirma letis (6–8 minutit).', 'Räägi teenindajaga, saa teada tühistamise tegelik põhjus ja nõua viisakalt, mis sulle kuulub. Reageeri, kui ta pakub midagi, mida sa ei oodanud.',
+        'Olukord: sinu lend Tallinn–Berliin tühistati päev enne väljumist. Ööbisid hotellis (90 €). Kohver jõudis kohale kaks päeva hiljem; ostsid hambaharja, laadija ja riideid 45 euro eest.\nSinu eesmärk: tead tühistamise põhjust ja oled kokku leppinud, mida firma maksab.\nPiirang: teenindajal on oma info, mida ta kohe ei ütle.',
+        'Teenindaja kaart on õpetajal: tühistamise põhjus, firma pakkumine ja üks asjaolu, mida sa ei tea.',
+        ['Kuigi mulle öeldi, et …, …', 'Palun hüvitage mulle …'], ['Kahjuks …', 'Me võime pakkuda …']), 'Tulemus: sa tead, mida firma maksab, ja sinu kaebuse plaan on valmis.'), { task: 'S09', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled lennufirma teenindaja. Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Põhjus oli torm, kahjuks hüvitist ei ole.” 2) „Me võime pakkuda 100-eurose kinkekaardi järgmiseks lennuks.” Varjatud info (ütle pärast teist takistust, kui õpilane kahtleb põhjuses): „Hm … süsteemis on tegelikult kirjas, et puudu oli kaks meeskonnaliiget. Aga kohvri kulude kohta: kas teil on kahjuakt? Ilma selleta ma kulusid vastu võtta ei saa.” Õpilane peab reageerima: viitama faktile (teised lennukid lendasid), ütlema, et kahjuakt täideti kohe, keelduma viisakalt kinkekaardist või küsima raha ning küsima, kuhu ja mis tähtajaks kirjalik kaebus saata. Õnnestunud, kui õpilane ütleb ajajoone vähemalt kolme umbisikulise vormiga (tühistati, oli tühistatud, ei olnud teatatud), kasutab vastuväidet „Kuigi …, …”, nimetab summad ja teab järgmist sammu. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('037_t_mail', 'Kodus: kaebus (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. Kui sa ei lenda, kirjuta bussifirmale või majutuse platvormile. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Teenindaja palus saata kaebuse kirjalikult firma klienditeenindusse. Kirjuta oma loo järgi: lend, buss või majutus, mis läks teisiti.',
+        points: ['mis juhtus ja millal (kuupäev, broneering, ajajoon)', 'mida väideti ja mis tegelikult selgus', 'mida sa nõuad (summa, kulud, tõendid)', 'tähtaeg ja mida teed, kui vastust ei tule'],
+        words: [130, 150],
+      }), 'Firma loeb sinu kaebust ja peab sellele vastama.'), 6)), { task: 'W13', main: true, harno: 'W1' }),
+      writingRubric('037_t_rubric', 'Hindamisjuhend: kaebus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Minu lend tühistas 12. märtsil. Teie inimene ütles torm, aga see ei ole tõsi. Ma maksin hotell 90 eurot. Ma tahan raha tagasi! Ja kohver tuli hilja. Kui te ei maksa, ma kaeban. Kõike head.” Hinnang: ülesanne 2 (fakt ja nõue on olemas, kuid summa kokku, tõendid ja tähtaeg puuduvad), ülesehitus 2 (järjekord on selge, lõike ja sidendeid peaaegu ei ole), sõnavara 2 („tahan” ja „ütles” korduvad; puuduvad hüvitis, kviitung, kahjuakt; „Kõike head” ei sobi kaebusse), grammatika 1 („lend tühistas” → tühistati; „ütles torm” → ütles, et põhjus oli torm; „maksin hotell” → hotelli eest; „ma kaeban” → pöördun …; enneminevikku ei ole). Kui õppija lisab summad, tõendid ja tähtaja ning parandab umbisikulised vormid, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('037_t_self', ['Ma saan saatest aru, mis reisijale kuulub, ja järeldan nõustaja hoiaku.', 'Ma ütlen kaebuse ajajoone umbisikulises: tühistati, oli juba tühistatud, ei olnud teatatud; kuigi väideti, et …', 'Ma nõuan teenindajalt viisakalt oma õigusi ja reageerin uuele pakkumisele.'], 'Õigus nõutud', 'Ma oskan oma õigusi nõuda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('037_t_rights', CUT_INPUT),
+      retire('037_t_more', CUT_EXTRA),
+      retire('037_t_exit', CUT_DRILL),
+      retire('037_t_complaint', CUT_OLDTASK),
+      retire('037_t_home', CUT_HOME),
+      retire('037_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-038': {
+    title: 'Kingad jalast ja vaikus bussis — kas eestlane on tõesti kinnine?',
+    phases: grammar('Kordamine: sageli, minu kogemuses + tegusõna teisel kohal, peetakse milleks · B2: ettevaatlik üldistus — kipuvad + da, näivad / tunduvad olevat, pigem … kui …, reeglina, teatud määral, ei saa öelda, et kõik …'),
+    format: 'game',
+    topic: 'neighbours',
+    canDo: 'Ma loen umbes 450-sõnalist artiklit kommetest ja kultuurišokist ning järeldan autori hoiaku, arutlen märksõnakaartidega, kas uustulnuk peab kohanema, ja vastan ka siis, kui partner toob uue asjaolu, ning kirjutan umbes 180-sõnalise arutluse.',
+    teacherPage: {
+      goal: 'Игра «правда или миф?», статья об обычаях (≈ 450 слов), осторожное обобщение (kipuvad, näivad olevat), дискуссия по карточкам; дома рассуждение 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: игра — три утверждения (3 мин); статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 9 трансформаций; дискуссия — по одному аргументу с примером.',
+      hook: '«Правда, миф или „зависит“? 1) В гостях в Эстонии снимают обувь. 2) Эстонец никогда не разговаривает в автобусе. 3) Приглашение в сауну — знак доверия.» Очко за ответ, ещё одно за причину. Потом ученик минуту рассказывает, что его удивило в Эстонии или за границей. Ответа не давайте — его даст статья.',
+      plan: [
+        '0–5: станция 1 — игра «Õige või müüt?» и одна минута о своём удивлении, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «одно поведение — два прочтения» и картинка (3 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — sageli / minu kogemuses / peetakse одной строкой, B2: kipuvad + da, näivad olevat, pigem … kui, reeglina; 9 трансформаций, пост новичка с 10 пропусками без банка, регистр: злой пост → спокойный ответ',
+        '45–70: станция 4 — план аргументов (3 мин), дискуссия по карточкам до 4 минут со скрытой информацией, разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …» + итог очков; домашнее задание: рассуждение 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ученик объясняет новому коллеге четыре ситуации (обувь, обед в тишине, сауна, опоздание) — по 2 очка за осторожное обобщение с примером',
+      ],
+      sources: 'Статья «Kas eestlane on tõesti kinnine?» — учебный текст KeeleSepp (люди вымышлены), без статистики. Общие представления: фазы культурного шока (медовый месяц, кризис, привыкание, адаптация) — модель К. Оберга (1960), обратный шок при возвращении; уличную обувь дома и в гостях обычно снимают; приглашение в сауну часто — знак доверия; вырусский обычай дымной сауны — в списке нематериального наследия ЮНЕСКО. Всё это частые обычаи, не правило для всех — это и есть тема урока.',
+      groups: 'Игра — все сразу, вы ведёте счёт. Статья — каждый сам, вопросы на вывод сравнивают в паре. Дискуссия: две стороны (карточки A и B); в 1:1 вы берёте сторону, которую ученик не выбрал.',
+      errors: [
+        '«Eestlased kipuvad olla vaiksed» → «… kipuvad olema vaiksed» (kipuma + ma-tegevusnimi).',
+        '«Nad näivad on kinnised» → «Nad näivad olevat kinnised» (näima / tunduma + olevat).',
+        '«Eestlased on pigem vaiksed nagu kinnised» → «… pigem vaiksed kui kinnised» (pigem … kui).',
+        '«Minu kogemuses eestlased on abivalmid» → «Minu kogemuses on eestlased abivalmid» (глагол вторым).',
+      ],
+      notes: [
+        'Формат — игра с очками: крючок, вопросы к статье (кто больше угадал в прогнозе) и дискуссия. Не оценивайте культуры как «лучше / хуже»; цель — осторожное обобщение и пример из своей жизни. Ученику без эстонских соседей: коллеги, учителя ребёнка, врач, продавцы.',
+        'sageli, minu kogemuses, peetakse milleks (B1+) — повтор одной строкой. Цель B2 — оттенки уверенности: kipuvad + ma (склонны), näivad / tunduvad olevat (кажется), pigem … kui (скорее … чем), reeglina / teatud määral. Это язык дискуссии, в которой никто не обижен.',
+        'Тема чувствительная: если ученик говорит «эстонцы нас не любят», не спорьте и не соглашайтесь — попросите конкретный случай и осторожную формулировку. Обратная связь, 2–3 цели: аргумент + пример; одна осторожная формулировка B2; ответ на новую информацию. Во время дискуссии не перебивать, 3 замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('038_d_talk', 'Mäng: õige, müüt või sõltub?', 'Kolm väidet: 1) Eestis võetakse külas kingad jalast. 2) Eestlane ei räägi bussis kunagi. 3) Saunakutse on usalduse märk. Ütle iga väite kohta kohe: õige, müüt või sõltub — ja miks (punkt vastuse ja punkt põhjuse eest). Siis räägi umbes minut: mis sind Eestis või välismaal üllatas.', [
+        'Õige, müüt või sõltub? Miks?',
+        'Mis sind Eestis või välismaal esimesel aastal kõige rohkem üllatas? Too näide.',
+        'Kas sa said hiljem aru, miks inimesed nii tegid?',
+      ], [60, 90]), 'Sinu kogemus on mängu esimene kaart; pärast artiklit näed, kas sinu vastused pidasid paika.'), { task: 'S14', fluency: true }),
+      'Mäng: punkt vastuse ja punkt põhjuse eest; ära ütle õiget vastust — selle annab artikkel. Üks-ühele: vasta ka ise ühe looga. Ära paranda ega vaidle; pane kirja, kas õpilane üldistab („kõik eestlased …”) — see tuleb jaamas 3 tagasi. Kui õpilane elab Eestis kaua: „Mida sa seletaksid inimesele, kes kolis Eestisse eile?”')), 1, 5),
+      station(tag(B.vocab('038_d_vocab', 'Tunni sõnad.', ['komme — обычай', 'kultuurišokk — культурный шок', 'kohanema — приспосабливаться', 'harjuma — привыкать', 'üldistus — обобщение', 'kinnine — замкнутый', 'viisakas — вежливый', 'solvuma — обижаться', 'uustulnuk — новичок', 'usaldus — доверие']), { topic: ['komme', 'kohanema', 'üldistus', 'kultuurišokk', 'uustulnuk'] }), 2, 20),
+      purpose(B.diagram('038_d_scheme', 'compare', { title: 'Skeem: üks käitumine, kaks tõlgendust.', instruction: 'Vaata skeemi enne lugemist. Lugedes leia tekstist, kuidas autor iga käitumist teisiti seletab, ja lisa paremale poolele üks oma näide.', left: 'Uustulnuk arvab esimesel talvel', right: 'Mida see sageli tegelikult tähendab', leftItems: 'bussis on vaikne — inimesed on ebasõbralikud\nkolleeg ei küsi mu pere kohta — ma ei huvita teda\nkingad tuleb jalast võtta — mind ei usaldata', rightItems: 'vaikus — teise inimese ruumi austamine\nei küsi — ei taha liiga isiklik olla\nkingad jalast — kodu puhtus, tavaline komme' }, 'full', 'g_read'), 'Skeem aitab sul näha, et sama tegu võib eri kultuuris tähendada eri asja.'),
+      why(teach(tag(purpose(B.reading('038_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Kas eestlane on tõesti kinnine?', [
+        'Kui küsida Eestisse kolinud inimeselt, milline on eestlane, kuuleb sageli sama vastust: vaikne, kinnine, natuke külm. Peaaegu sama sageli lisab ta aga kohe: „Kuid kui sa ta kord tundma õpid, on ta kõige kindlam sõber.” Kumb on siis tõsi? Võib-olla mõlemad — ja võib-olla ei kumbki.',
+        'Paljud uustulnukad kirjeldavad oma esimest aastat sarnaselt. Esimestel kuudel tundub kõik huvitav: vanalinn, metsad, see, et asjad toimivad. Siis tuleb talv. Bussis on vaikne, kolleegid ei küsi pere kohta ja keegi ei kutsu külla. Paljud hakkavad mõtlema, et nad ei meeldi kellelegi. Uurijad nimetavad seda kultuurišoki kriisiks. See ei ole haigus ega nõrkus, vaid tavaline etapp, mis enamasti läheb mõne kuu pärast üle. Kriisile järgnevad harjumine ja lõpuks kohanemine.',
+        'Kriisi ajal kipume tegema kiireid järeldusi. Vaikus bussis näib olevat ebaviisakus, kuigi paljude eestlaste jaoks on see pigem viisakus kui külmus: nad ei taha teise inimese ruumi tungida. Kolleeg, kes ei küsi pere kohta, ei pruugi olla ükskõikne; ta võib arvata, et see oleks liiga isiklik. Ka kingad, mis külas jalast võetakse, ei ole umbusalduse märk, vaid tavaline komme, mis on seotud kodu puhtuse ja pika pori-aastaajaga. Teine asi, mis uustulnukaid üllatab, on aeg. Kokkulepitud ajast peetakse tööl ja külaskäigul reeglina kinni ning kümneminutiline hilinemine ilma sõnumita võib kolleegi pahandada. Teisalt ei oodata külaskäigul pikka lauakõnet ega tuhandet viisakusväljendit: lühike „aitäh, oli tore” on täiesti piisav. See, mis ühes kultuuris tundub kuiv, on teises lihtsalt otsekohene.',
+        'Samas oleks vale väita, et kõik eestlased on ühesugused. Linnas ja maal, nooremate ja vanemate seas, Tallinnas ja Võrumaal on kombed teatud määral erinevad. Ka „kinnisuse” mõõt sõltub sellest, kellega võrrelda. Lõunamaalt tulnud inimesele tunduvad eestlased vaiksed, Soomest tulnule aga sageli täiesti tavalised. Ka keel mängib oma osa: kes räägib eesti keelt kas või natuke, sellega räägitakse sageli soojemalt, sest pingutust märgatakse ja hinnatakse. Üldistus ütleb seega rohkem võrdleja kui võrreldava kohta.',
+        'Huvitav on ka vastupidine kogemus. Eestlane, kes on aastaid elanud lõunamaal, võib koju tulles tunda, et tema oma rahvas on külm. Seda nimetatakse vastupidiseks kultuurišokiks. Kodu ei ole muutunud — muutunud on tema pilk. Selline kogemus näitab hästi, et „külm” ja „soe” ei ole rahva omadused, vaid võrdluse tulemus.',
+        'Mida siis uustulnuk teha saab? Esiteks: ära tee ühe kogemuse põhjal järeldust kogu rahva kohta. Teiseks: küsi. Kui sa ei tea, kas kingad tuleb jalast võtta, vaata, mida teeb pererahvas, või küsi lihtsalt. Eestlane vastab küsimusele reeglina meelsasti ja põhjalikult, isegi kui ta ise vestlust ei alusta. Kolmandaks: võta vastu kutse, kui see tuleb. Saunakutse, mida peetakse usalduse märgiks, võib tulla alles teisel talvel, kuid see on seda väärt, et oodata. Ja neljandaks: ära unusta oma kombeid. Kohanemine ei tähenda iseenda kaotamist.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Mida lisab Eestisse kolinud inimene sageli pärast sõnu „vaikne, kinnine”?', 'et tundma õpitud eestlane on kõige kindlam sõber'],
+        ['Mis juhtub paljude uustulnukatega esimesel talvel?', 'bussis on vaikne, kolleegid ei küsi, keegi ei kutsu külla; nad arvavad, et nad ei meeldi kellelegi (kriis)'],
+        ['Mida tähendab vaikus bussis paljude eestlaste jaoks?', 'pigem viisakust: nad ei taha teise inimese ruumi tungida'],
+        ['Mida soovitab autor uustulnukale teha?', 'mitte teha järeldust ühe kogemuse põhjal, küsida, võtta kutse vastu ja mitte unustada oma kombeid'],
+        ['Miks kirjutab autor, et üldistus ütleb „rohkem võrdleja kui võrreldava kohta”? Järelda.', 'see, kas eestlane tundub vaikne, sõltub sellest, kust inimene tuli ja millega ta võrdleb'],
+        ['Mida tahab autor näidata vastupidise kultuurišoki näitega? Järelda.', 'et „külm” ja „soe” ei ole rahva omadused, vaid sõltuvad vaatajast ja võrdlusest'],
+        ['Milline on autori hoiak kohanemise suhtes? Mida ta vihjab viimase lausega?', 'kohaneda tasub, kuid oma kombeid ei pea kaotama; kohanemine ei ole enda unustamine'],
+      ]), 'Pärast lugemist on sul arutelu jaoks näited ja teadmine, et kultuurišokk on tavaline.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade, skeemi ja pildiga. Enne lugemist küsi pildi järgi: miks on samad inimesed bussis vaiksed ja köögis jutukad? Pärast: õpilane lisab skeemi paremale poolele ühe oma näite. Mängupunkt igale õigele prognoosile tunni alguse mängust. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst.'), [
+        '1. lõik: „Kuid kui sa ta kord tundma õpid, on ta kõige kindlam sõber.”',
+        '2. lõik: „Bussis on vaikne, kolleegid ei küsi pere kohta ja keegi ei kutsu külla.” — kultuurišoki kriis.',
+        '3. lõik: vaikus on „pigem viisakus kui külmus”.',
+        '6. lõik: neli nõuannet — ära tee järeldust ühe kogemuse põhjal, küsi, võta kutse vastu, ära unusta oma kombeid.',
+        'Järeldus 4. lõigust: „Lõunamaalt tulnud inimesele tunduvad eestlased vaiksed, Soomest tulnule … tavalised.”',
+        'Järeldus 5. lõigust: „„külm” ja „soe” ei ole rahva omadused, vaid võrdluse tulemus”.',
+        'Järeldus 6. lõigust: „Kohanemine ei tähenda iseenda kaotamist.”',
+      ]),
+      retire('038_d_hook', CUT_HOOK),
+      retire('038_d_radio', 'v5 alternates the input (036 reading, 037 listening, 038 reading); the 105-s radio was below the B2 listening length (audit 2026-11-25)'),
+      retire('038_d_know', CUT_TIP),
+    ],
+    practice: [
+      station(teach(B.notice('038_p_notice', 'Märka: kui kindlalt ma seda ütlen?', [
+        'Artiklist: kriisi ajal **kipume** tegema kiireid järeldusi · vaikus **näib olevat** ebaviisakus · see on **pigem** viisakus **kui** külmus · kombed on **teatud määral** erinevad · eestlane vastab **reeglina** meelsasti · **oleks vale väita, et kõik** …',
+        'Kordamine (B1): pehmenda — **sageli, enamasti, paljud** (mitte kõik) · **Minu kogemuses on** … (tegusõna teisel kohal) · eestlasi **peetakse** kinnisteks (pidama milleks).',
+        'B2: kalduvus — **kipuma** + ma-tegevusnimi: Uustulnukad **kipuvad** üldistama. · mulje — **näima / tunduma** + **olevat**: Eestlased **näivad olevat** kinnised. (Kas nad on? Ei tea.)',
+        'B2: täpsusta — **pigem** … **kui** … (pigem vaikne kui külm) · **reeglina** (tavaliselt, mitte alati) · **teatud määral** (osaliselt) · **Ei saa öelda, et kõik** … / **Oleks vale väita, et** …',
+      ], 'full'), 'Kordamine ühe minutiga (sageli, minu kogemuses, peetakse). Siis B2 samm: kuidas öelda, et midagi on tavaline, aga mitte alati. Lase õpilasel leida artiklist kolm ettevaatlikku lauset ja öelda, kui kindel iga lause on (on → paljud → näivad olevat → kipuvad).'), 3, 20),
+      why(purpose(B.transformation('038_p_soft', 'Ütle ettevaatlikumalt.', 'Uus kolleeg räägib kommetest liiga kindlalt. Ütle iga mõte ettevaatlikumalt antud sõnadega. Panka ei ole.', [
+        ['Eestlased on alati vaiksed, kui nad bussis või poes võõrastega kokku puutuvad.', 'kipuvad', 'Eestlased kipuvad olema vaiksed, kui nad bussis või poes võõrastega kokku puutuvad.|Eestlased kipuvad vaiksed olema, kui nad bussis või poes võõrastega kokku puutuvad.'],
+        ['Minu uued kolleegid on kinnised ega räägi lõunasöögi ajal peaaegu üldse. (See on sinu mulje.)', 'näivad olevat', 'Minu uued kolleegid näivad olevat kinnised ega räägi lõunasöögi ajal peaaegu üldse.|Uued kolleegid näivad olevat kinnised ega räägi lõunasöögi ajal peaaegu üldse.'],
+        ['Vaikus bussis on külmus ja näitab, et inimesed ei taha suhelda.', 'pigem … kui', 'Vaikus bussis on pigem viisakus kui külmus.|Vaikus bussis on pigem austus kui külmus.'],
+        ['Eestlane vastab võõra küsimusele alati meelsasti ja põhjalikult.', 'reeglina', 'Eestlane vastab võõra küsimusele reeglina meelsasti ja põhjalikult.|Reeglina vastab eestlane võõra küsimusele meelsasti ja põhjalikult.'],
+        ['Kõik eestlased käivad laupäeviti saunas ja kutsuvad sinna ka sõpru.', 'oleks vale väita, et', 'Oleks vale väita, et kõik eestlased käivad laupäeviti saunas ja kutsuvad sinna ka sõpru.'],
+        ['Uustulnukad teevad esimesel talvel ühe kogemuse põhjal kiireid järeldusi.', 'kipuvad', 'Uustulnukad kipuvad esimesel talvel ühe kogemuse põhjal kiireid järeldusi tegema.|Uustulnukad kipuvad tegema esimesel talvel ühe kogemuse põhjal kiireid järeldusi.|Esimesel talvel kipuvad uustulnukad ühe kogemuse põhjal kiireid järeldusi tegema.'],
+        ['Eestlased olid külmad ja ükskõiksed. (Nii tundus see mulle esimesel talvel.)', 'tundusid olevat', 'Esimesel talvel tundusid eestlased mulle olevat külmad ja ükskõiksed.|Eestlased tundusid mulle esimesel talvel olevat külmad ja ükskõiksed.|Eestlased tundusid olevat külmad ja ükskõiksed.'],
+        ['Kõik minu maja naabrid on abivalmid ja aitavad alati, kui midagi küsida. (Sinu kogemus.)', 'minu kogemuses', 'Minu kogemuses on maja naabrid abivalmid ja aitavad, kui midagi küsida.|Minu kogemuses on minu maja naabrid abivalmid ja aitavad alati, kui midagi küsida.|Minu kogemuses on naabrid abivalmid ja aitavad, kui midagi küsida.'],
+      ], 'full', 'g_notice'), 'Ettevaatlik lause aitab rääkida kommetest nii, et keegi ei solvu.'), [
+        'Alati → kalduvus: kipuvad + ma-tegevusnimi (olema).',
+        'Sinu mulje → näivad olevat.',
+        'Vastandus → pigem viisakus kui külmus.',
+        'Alati → reeglina (tavaliselt).',
+        'Kõik → oleks vale väita, et …',
+        'Kalduvus → kipuvad tegema.',
+        'Mulje minevikus → tundusid olevat.',
+        'Minu kogemuses + tegusõna teisel kohal: on naabrid.',
+      ]),
+      why(tag(purpose(B.formtext('038_p_post', 'Uustulnuka blogi: minu esimene talv.', 'Eestisse kolinud inimene kirjutab blogisse. Kirjuta lünka üks sobiv sõna. Sulgudes on vihje. Panka ei ole.', 'Kas eestlased on tõesti külmad?', [
+        'Kui ma eelmisel sügisel Tartusse kolisin, [tundusid] (tunduma; minevik, nemad) eestlased mulle olevat väga kinnised. Bussis oli vaikne.',
+        '',
+        'Nüüd saan aru, et uustulnukad [kipuvad] (kipuma; nemad) tegema kiireid järeldusi. Vaikus ei ole minu arvates külmus, vaid [pigem] (vastandus) viisakus. Eestlased näivad [olevat] (olema; mulje) hästi tähelepanelikud, kui neilt midagi küsida.',
+        '',
+        'Muidugi ei [saa] (saama; eitus) öelda, et kõik on ühesugused. Kombed on [teatud] (osaliselt: … määral) määral erinevad.',
+        '',
+        'Külas võetakse [reeglina] (tavaliselt, mitte alati) kingad jalast. Minu kogemuses on eestlased väga abivalmid.',
+        '',
+        'Teisel talvel kutsus kolleeg mind sauna, [mida] (saunakutset; osastav) peetakse usalduse märgiks. Soovitan teistele uustulnukatele: ärge tehke ühe kogemuse põhjal järeldust ja küsige julgelt.',
+      ]), 'Samamoodi kirjutad kodus arutluse: ettevaatlikult ja näitega.'), { task: 'R03', harno: 'R3' }), [
+        'Mulje minevikus: tundusid (olevat).',
+        'Kalduvus: kipuvad + ma.',
+        'Vastandus: pigem … (kui).',
+        'Mulje: näivad olevat.',
+        'Ei saa öelda, et kõik …',
+        'Osaliselt: teatud määral.',
+        'Tavaliselt: reeglina.',
+        'Saunakutset (osastav) peetakse milleks → mida.',
+      ]),
+      why(purpose(tag(B.table('038_p_register', 'Vihane postitus või rahulik vastus?', 'Vasakul on vihane postitus foorumis. Paremas veerus on rahulik ja ettevaatlik vastus samal teemal. Kirjuta lünka puuduv sõna.', 'Vihane postitus, Rahulik vastus', [
+        'Eestlased on kõik külmad! | Eestlased [näivad] alguses olevat külmad, kuid see muutub.',
+        'Bussis ei räägi KEEGI kunagi. | Bussis räägitakse võõrastega [harva].',
+        'Mu kolleegid ei huvitu minust üldse. | Kolleegid [kipuvad] isiklikke küsimusi vältima.',
+        'Siin ei kutsuta kunagi külla. | Külla [kutsutakse] sageli alles siis, kui ollakse paremini tuttavad.',
+        'Kõik vihkavad uustulnukaid. | Oleks [vale] väita, et uustulnukaid ei taheta.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas oma kogemusest rääkida nii, et sind kuulatakse, mitte ei vaielda vastu.'), [
+        'Kõik on → mulje: näivad olevat.',
+        'Keegi kunagi → harva.',
+        'Ei huvitu → kalduvus: kipuvad vältima.',
+        'Kunagi → umbisikuline + millal: kutsutakse.',
+        'Kõik vihkavad → oleks vale väita, et …',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('038_t_plan', 'Arutelu: argumentide plaan (3 minutit).', 'Teema: kas uustulnuk peab kohalike kommetega kohanema? Vali pool: poolt või vastu. Kirjuta märksõnad. Edukriteeriumid: 1) kaks argumenti, igaühel näide artiklist või oma elust; 2) vähemalt kaks ettevaatlikku üldistust (kipuvad, näivad olevat, pigem … kui, reeglina); 3) vastad partneri argumendile ja jõuate lõpus ühise seisukohani või ütled selgelt, milles jäite eri meelt.', ['Minu pool ja esimene lause (30 sekundit):', 'Argument 1 ja näide:', 'Argument 2 ja näide:', 'Mida vastan, kui partner ütleb …:'], 1), 'Plaan aitab sul rääkida argumentidega, mitte ainult tundega.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.rolecards('038_t_debate', 'Arutelu märksõnakaartidega (kuni 4 minutit).', 'Öelge kõigepealt kumbki 30 sekundiga oma arvamus. Siis arutage kaartide ja oma näidetega. Reageeri, kui partner toob uue asjaolu. Lõpus jõudke ühise seisukohani või öelge, milles jäite eri meelt.',
+        'Kaart A (poolt): märksõnad, ehita neist ise argument ja too näide. 1) töö ja sõbrad — lihtsam; 2) kombed — austus; 3) lapsed — kool, kiirem.',
+        'Kaart B (vastu): märksõnad, ehita neist ise argument ja too näide. 1) identiteet — oma keel; 2) mitu rahvust — rikkus; 3) kohanemine — mitte kaotamine.',
+        ['Minu arvates …', 'Uustulnukad kipuvad …'], ['Ma ei ole päris nõus, sest …', 'Kas võiksime kokku leppida, et …?']), 'Tulemus: selge seisukoht kahe argumendi ja näitega ning kokkulepe või ausalt nimetatud lahkarvamus.'), { task: 'S17', main: true, level: 4, harno: 'S2' }),
+      'Õpetaja võtab poole, mida õppija ei valinud. Kuula 30 sekundit vahele segamata, siis arutle. Varjatud info (ütle arutelu keskel): „Mul on oma lugu: mu õepoeg tuli Eestisse kümneaastasena, rääkis koolis ainult eesti keelt ja nüüd, viisteist aastat hiljem, ei oska ta enam oma vanaemaga rääkida.” Õppija peab reageerima: küsima täpsustust, kaaluma uut asjaolu ja muutma oma seisukohta või pakkuma kompromissi (näiteks: kohaneda avalikus elus, hoida keelt ja kombeid kodus). Õnnestunud, kui õppija toob kaks argumenti näitega, kasutab vähemalt kaks ettevaatlikku üldistust (kipuvad, näivad olevat, pigem … kui, reeglina), vastab partneri argumendile ja jõuate kokkuleppele või nimetab selgelt, mis jäi lahti. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('038_t_essay', 'Kodus: arutlus (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pealkirja ja algust ei anta. ${VOICE_HOME}`, 'vastus', {
+        situation: 'Kursuse ajaveebis on teema „Kas uustulnuk peab kohalike kommetega kohanema?”. Kirjuta oma arutlus, mida loevad ka teised kursuslased.',
+        points: ['sinu seisukoht ja kui kindel sa oled', 'kaks argumenti, igaühel näide (artiklist või elust)', 'vastaspoole argument ja sinu vastus', 'järeldus: milles tasub kohaneda ja mida hoida'],
+        words: [170, 190],
+      }), 'Kursuslased loevad sinu arutlust ja kommenteerivad; see on ka B2-eksami arutluse harjutus.'), 6)), { task: 'W14', main: true, level: 4 }),
+      writingRubric('038_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Minu arvates peab uustulnuk kohanema. Kõik eestlased on vaiksed ja meie peame ka olema vaiksed. Eestlased kipuvad olla kinnised. Kingad tuleb jalast võtta. Aga oma keelt ei pea unustama. Kokkuvõttes on see raske küsimus.” Hinnang: ülesanne 2 (seisukoht ja vastaspool on olemas, kuid argumentidel pole näidet ja järeldus ei ütle, milles kohaneda), ülesehitus 2 (lõike ei ole, sidendeid on vähe), sõnavara 2 („vaiksed” kordub; puuduvad komme, kultuurišokk, identiteet), grammatika 1 („kõik eestlased on” — liiga kindel üldistus; „kipuvad olla” → kipuvad olema; „Aga” lause alguses kordub). Kui õppija lisab näited ja pehmendab üldistused (kipuvad olema, näivad olevat, pigem … kui), saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('038_t_self', ['Ma loen artiklit kommetest ja kultuurišokist ning järeldan autori hoiaku.', 'Ma üldistan ettevaatlikult: kipuvad olema, näivad olevat, pigem … kui …, reeglina, teatud määral.', 'Ma kaitsen arutelus oma seisukohta ja reageerin uuele asjaolule.'], 'Arutelu peetud', 'Ma oskan kommetest arutleda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('038_t_cards', CUT_INPUT),
+      retire('038_t_explain', 'v4 product (explain four customs, phrases given) → the debate with keyword cards 038_t_debate; the explanation game is in the teacher plan („Kui aega jääb”)'),
+      retire('038_t_more', CUT_OLDTASK),
+      retire('038_t_exit', CUT_DRILL),
+      retire('038_t_letter', CUT_OLDTASK),
+      retire('038_t_home', CUT_HOME),
+      retire('038_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-039': {
+    title: 'Külaline tuleb suvel — kuhu sa ta viid?',
+    phases: grammar('Kordamine: käisin / olen käinud / olin kuulnud · B2: ajasuhted loos — selleks ajaks, kui …, oli juba …; alles siis, kui …; niipea kui …; pärast seda, kui …; enne kui …'),
+    format: 'case',
+    topic: 'culture',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest selle kohta, kuhu Eestis külaline viia, ja järeldan giidi hoiaku, leian päris lehelt sündmuse või muuseumi, soovitan seda külalisele ka siis, kui tema plaan muutub, ning kirjutan reisifoorumisse umbes 180-sõnalise soovituse.',
+    teacherPage: {
+      goal: 'Радио «Куда повести гостя?» (2 голоса, 3 мин), связи времени в рассказе, реальное событие с сайта (задание-связь), совет гостю; дома отзыв 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и утверждения 1–7; станция 3 — правило и 10 предложений; совет без третьего препятствия, сайт — дома.',
+      hook: '«Väide: külalisele tuleb näidata seda, mida turistid näevad — vanalinna ja kuulsaid kohti.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — о месте, куда он сам водил гостя или куда его водили. Не исправляйте; отметьте прошедшие времена — это тема станции 3.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своём госте, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), радио дважды (8 мин), 10 утверждений верно / неверно, из них 3 на вывод (7 мин), картинка и формула «хороший совет» по радио (3 мин)',
+        '25–45: станция 3 — käisin / olen käinud / olin käinud одной строкой, B2: selleks ajaks, kui; alles siis, kui; niipea kui; pärast seda, kui; 10 предложений, отзыв на форуме с 9 пропусками без банка, регистр: сообщение другу → отзыв на портале',
+        '45–70: станция 4 — реальное событие или музей с сайта (5 мин), совет гостю по телефону со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: отзыв на форуме 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): у кассы музея — семейный билет, экскурсия на нужном языке, камера хранения (вы — кассир, цены придуманные)',
+      ],
+      sources: 'Радио «Kuhu viia külaline?» — учебный текст KeeleSepp (ведущий Tõnu и гид Merike вымышлены), без точных чисел и дат. Общие факты: певческий праздник — раз в несколько лет на Певческом поле в Таллине, билеты на большой концерт раскупают заранее; Ночь музеев — каждый май, музеи открыты до позднего вечера; Eesti Rahva Muuseum в Тарту; Lennusadam — морской музей в старом ангаре гидросамолётов с подводной лодкой; фольклорный фестиваль в Вильянди летом многолюден. Ссылки задания-связи: https://www.visitestonia.com/et и собственная страница музея или фестиваля (страницы при подготовке не открывались; это главный сайт Visit Estonia). Цены и даты ученик берёт сам с сайта.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: каждый находит своё событие на сайте; один — гость с вашей карточкой, другой советует; потом смена. В 1:1 гость — вы.',
+      errors: [
+        '«Selleks ajaks, kui me jõudsime, piletid said otsa» → «…, olid piletid juba otsa saanud» (раньше другого прошлого — давнопрошедшее, и глагол сразу после придаточного).',
+        '«Alles siis, kui ma kuulsin koori, ma sain aru» → «Alles siis, kui kuulsin koori, sain ma aru» (после придаточного глагол первым).',
+        '«Niipea kui me tuleme, me helistame» → «Niipea kui jõuame, helistame» (порядок: придаточное, потом глагол).',
+        '«Pärast kui ma käisin» → «Pärast seda, kui käisin …» / «Pärast käiku …».',
+      ],
+      notes: [
+        'Формат — реальный случай: гость с ребёнком, без машины и с небольшим бюджетом. Ученик выбирает и советует, а не перечисляет всё подряд. Ученику, который мало ходит в музеи: «место, которое ты знаешь лучше всего» — свой город, парк, рынок, Нарвский замок.',
+        'Задание-связь: ученик открывает настоящий сайт (Visit Estonia или сайт музея / фестиваля) и берёт оттуда название, дату, цену и как добраться. Не копировать текст сайта — записать своими словами. Если в классе нет интернета, это делается дома до разговора, а в уроке — по памяти.',
+        'Прошедшие времена (B1) — повтор одной строкой. Цель B2 — связать события во времени (что было раньше чего): это язык рассказа-отзыва и совета «из опыта». Обратная связь, 2–3 цели: временная связка + давнопрошедшее; совет с учётом желаний гостя; оценка с причиной.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('039_d_talk', 'Väide: külalisele tuleb näidata seda, mida kõik turistid näevad.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: kuhu sa viisid oma külalise või kuhu sind viidi ja mis jäi meelde.', [
+        'Väide: „Külalisele tuleb näidata seda, mida kõik turistid näevad — vanalinna ja kuulsaid kohti.” Kas oled nõus? Miks?',
+        'Kuhu sa viisid oma külalise või kuhu sind viidi? Mis jäi meelde?',
+        'Mis oli elamus ja mis pettumus?',
+      ], [60, 90]), 'Sinu kogemus annab soovitusele esimese näite.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe looga. Ära paranda; pane kirja, milliseid mineviku vorme õppija kasutab ja kas ta ütleb, mis juhtus enne mida (see tuleb jaamas 3 tagasi). Kui õppija ei ole kedagi võõrustanud: „Kuhu sa viiksid sõbra, kes tuleb sinu linna esimest korda?”')), 1, 5),
+      station(tag(B.vocab('039_d_vocab', 'Tunni sõnad.', ['elamus — впечатление', 'pettumus — разочарование', 'väärt — стоящий', 'soovitama — советовать', 'giid — гид', 'näitus — выставка', 'rahvarohke — многолюдный', 'külastama — посещать', 'külaline — гость', 'eelistus — предпочтение']), { topic: ['elamus', 'soovitama', 'külaline'] }), 2, 20),
+      why(teach(tag(purpose(B.examListen('039_d_radio', 'Kuulamine: raadiosaade „Kuhu viia külaline?”.', 'Saatejuht räägib giidiga, kuhu Eestis külaline viia. Loe väited läbi, kuula kaks korda ja otsusta: õige või vale.', 'truefalse', [
+        'Tõnu: Tere! Suvi on külaliste aeg. Sugulased ja sõbrad tulevad Eestisse ja võõrustaja küsib endalt: kuhu ma nad viin? Stuudios on giid Merike, kes on kakskümmend aastat külalisi Eestis ringi juhtinud. Merike, mis on kõige sagedasem viga?',
+        'Merike: Tere! Kõige sagedasem viga on see, et tahetakse näidata kõike. Kolme päevaga Tallinn, Tartu, Saaremaa ja veel raba ka. Selleks ajaks, kui külaline koju sõidab, on ta nii väsinud, et ei mäleta midagi peale bussiakna. Minu nõuanne: küsi enne, mida külaline armastab, ja vali üks või kaks asja.',
+        'Tõnu: Mida sina ise soovitad?',
+        'Merike: Oleneb külalisest. Kui ta tuleb suvel ja satub laulupeo ajale, on see elamus, mida ei unusta. Aga piletid tuleb osta varakult. Mäletan, kuidas üks pere tuli Saksamaalt ja tahtis lauluväljakule minna. Niipea kui nad lennukilt maha tulid, hakkasid nad pileteid otsima — aga selleks ajaks olid suurkontserdi piletid juba ammu otsa saanud.',
+        'Tõnu: Mis siis sai?',
+        'Merike: Läksime rongkäiku vaatama, mis on tasuta. Ja alles siis, kui tuhanded inimesed rahvariietes mööda tänavat kõndisid ja laulsid, said nad aru, mis see pidu eestlastele tähendab. Pärast seda, kui olin neile seletanud laulva revolutsiooni lugu, nuttis pereema. Nii et pettumusest sai elamus.',
+        'Tõnu: Ja kui sajab vihma?',
+        'Merike: Siis muuseum. Eesti Rahva Muuseum Tartus sobib nii täiskasvanutele kui ka lastele. Lastega peredele soovitan Lennusadamat Tallinnas: seal on vana allveelaev, kuhu saab sisse minna. Ma pole veel näinud ühtegi last, kes oleks sealt igavusega lahkunud.',
+        'Tõnu: Kas suured festivalid ei ole pigem noortele?',
+        'Merike: Viljandi folk on väga rahvarohke ja lärmakas. Väikese lapsega ma sinna ei läheks, sest seal on lihtne üksteist kaotada. Aga kui külaline armastab muusikat ja ei karda rahvamassi, siis miks mitte. Rahulikuma elamuse annab väike külamuuseum, kus perenaine räägib ise oma vanaema lugu. Neid kohti ei leia ühestki reitingust — küsi kohalikelt.',
+        'Tõnu: Paljudel külalistel ei ole autot. Kas see on probleem?',
+        'Merike: Üldse mitte. Tallinnast Tartusse sõidab rong, mis on mugav, ja Tartus jõuab bussiga kõikjale. Saartega on keerulisem, sest pärast seda, kui praam on sadamasse jõudnud, peab bussi sageli ootama. Enne kui sõidad, vaata sõiduplaan üle. Ja niipea kui plaan on paigas, osta piletid ette, sest suvel on bussid täis.',
+        'Tõnu: Ja muuseumiöö?',
+        'Merike: Muuseumiöö on mais, nii et suvekülalisele see ei sobi. Kevadel on see aga suurepärane: muuseumid on lahti hilisõhtuni ja enamasti tasuta.',
+        'Tõnu: Üks nõuanne lõpetuseks?',
+        'Merike: Ära näita külalisele ainult seda, mida turistid näevad. Näita seda, mida sina armastad. Kui sa räägid kohast, kus oled ise õnnelik olnud, on see parem kui ükski reisijuht.',
+        'Tõnu: Aitäh, Merike!',
+      ], [
+        ['Merike arvates on kõige sagedasem viga see, et külalisele näidatakse liiga vähe.', false],
+        ['Merike soovitab enne küsida, mida külaline armastab, ja valida üks või kaks asja.', true],
+        ['Saksamaalt tulnud pere ostis laulupeo piletid varakult internetist.', false],
+        ['Pere vaatas lõpuks laulupeo rongkäiku, mis on tasuta.', true],
+        ['Lennusadamas saab minna vana allveelaeva sisse.', true],
+        ['Väikese lapsega soovitab Merike kindlasti minna Viljandi folgile.', false],
+        ['Muuseumiöö on hea valik ka suvel tulevale külalisele.', false],
+        ['Merike tahab öelda, et kiire ringsõit kõikjale annab külalisele vähe mälestusi.', true],
+        ['Saksa pere lugu näitab, et pettumusest võib saada elamus, kui keegi seletab, mida nähakse.', true],
+        ['Merike arvates on reitingutes olevad kohad alati paremad kui need, mida soovitavad kohalikud.', false],
+      ], 'g_read'), 'Kuuled, kuidas giid valib külalisele ühe koha ja plaani B; kohe teed sama oma külalisega.'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, 20 minutit koos sõnade, valemi ja pildiga (umbes 3 minutit, kaks korda). Enne kuulamist loeb õpilane väited ja joonib alla võtmesõnad. Pärast kuulamist küsi pildi järgi: kuidas kogemusest saab soovitus? Seejärel täidab õpilane valemi giidi näidetega. Väited 8–10 on järeldusväited (giidi hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Vale: viga on see, „et tahetakse näidata kõike”.',
+        'Õige: „küsi enne, mida külaline armastab, ja vali üks või kaks asja”.',
+        'Vale: piletid „olid … juba ammu otsa saanud”, kui pere hakkas otsima.',
+        'Õige: „Läksime rongkäiku vaatama, mis on tasuta.”',
+        'Õige: „vana allveelaev, kuhu saab sisse minna”.',
+        'Vale: „Väikese lapsega ma sinna ei läheks.”',
+        'Vale: „Muuseumiöö on mais, nii et suvekülalisele see ei sobi.”',
+        'Järeldus, õige: väsinud külaline „ei mäleta midagi peale bussiakna”.',
+        'Järeldus, õige: „Nii et pettumusest sai elamus.”',
+        'Järeldus, vale: parimaid kohti „ei leia ühestki reitingust — küsi kohalikelt”.',
+      ]),
+      purpose(B.diagram('039_d_scheme', 'formula', { title: 'Skeem: hea soovitus külalisele.', instruction: 'Pärast kuulamist kirjuta valemi iga rea juurde, mida giid selle kohta ütles. Siis mõtle oma külalisele: mis on tema soov?', nodes: 'Külalise soov | Mida ta armastab? Kellega ta tuleb? Kui palju on raha ja aega?\nÜks valik, mitte kõik | Üks koht või sündmus, mis sobib just talle\nMinu kogemus | Ma käisin seal …; selleks ajaks, kui jõudsime, oli …\nPlaan B | Kui sajab või on liiga rahvarohke, siis …' }, 'full', 'g_read'), 'Valem aitab sul anda nõu, mis sobib külalisele, mitte ainult sulle.'),
+      retire('039_d_hook', CUT_HOOK),
+      retire('039_d_story', 'second input: a sentence-bank story (Harno R4) — v5: one input a lesson, 039 is listening; the bank is not used for B2 gaps (G4)'),
+    ],
+    practice: [
+      station(teach(B.notice('039_p_notice', 'Märka: mis juhtus enne mida?', [
+        'Saatest: **Selleks ajaks, kui** külaline koju sõidab, **on** ta väsinud · **Niipea kui** nad lennukilt maha **tulid**, **hakkasid** nad otsima · **selleks ajaks olid** piletid juba **otsa saanud** · **Alles siis, kui** tuhanded inimesed **kõndisid**, **said** nad aru · **Pärast seda, kui olin** seletanud, **nuttis** pereema',
+        'Kordamine (B1): lihtminevik **käisin** (aeg on teada) · täisminevik **olen käinud** (kogemus praeguseni) · enneminevik **olin käinud** (enne teist minevikku).',
+        'B2: **selleks ajaks, kui** … → teises osas sageli enneminevik: Selleks ajaks, kui jõudsime, **olid** piletid **otsa saanud**. · **pärast seda, kui** + enneminevik: Pärast seda, kui **olin** seletanud, …',
+        'B2: **niipea kui** (kohe pärast) · **alles siis, kui** (mitte varem) · **enne kui** + tavaline minevik: Enne kui **läksime**, ostsime piletid. · kõrvallause järel tuleb tegusõna kohe: …, **said** nad aru.',
+        'Soovitus kogemusest: Ma **käisin** seal …; **selleks ajaks, kui** …; **alles siis, kui** … sain aru, et see on **külastamist väärt**.',
+      ], 'full'), 'Kordamine ühe minutiga (käisin, olen käinud, olin käinud). Siis B2 samm: sidesõnad, mis näitavad, mis juhtus enne mida. Lase õpilasel joonistada Saksa pere loo ajajoon ja panna sellele neli sündmust.'), 3, 20),
+      why(purpose(B.gaps('039_p_museum', 'Mis juhtus enne mida?', 'Kirjuta lünka sulgudes oleva tegusõna sobiv mineviku vorm. Mõtle: kas see juhtus enne teist sündmust? Panka ei ole.', [
+        'Selleks ajaks, kui me muuseumisse jõudsime, oli ringkäik juba [alanud]. (algama)',
+        'Niipea kui uksed avati, [jooksid] lapsed otse allveelaeva juurde. (jooksma)',
+        'Alles siis, kui giid oli loo ära rääkinud, [saime] me aru, miks see koht on tähtis. (saama)',
+        'Pärast seda, kui olime terve päeva kõndinud, [jäid] lapsed bussis kohe magama. (jääma)',
+        'Enne kui me festivalile läksime, [olime] lugenud, et seal on väga rahvarohke. (olema; enneminevik)',
+        'Selleks ajaks, kui külaline koju sõitis, oli ta Eestisse [armunud]. (armuma)',
+        'Ma [olen käinud] laulupeol juba kolm korda ja lähen kindlasti uuesti. (käima; kogemus praeguseni)',
+        'Eelmisel suvel [käisime] perega Viljandis. (käima; aeg on teada)',
+        'Pärast seda, kui ma olin [näinud] rongkäiku, ei pidanud ma laulupidu enam igavaks. (nägema)',
+        'Me ei teadnud, et muuseum oli esmaspäeviti [suletud]. (sulgema; umbisikuline)',
+      ], '', 'full', 'g_notice'), 'Õige vorm teeb loo selgeks: lugeja teab, mis juhtus enne ja mis pärast.'), [
+        'Enne kohalejõudmist: oli + -nud → alanud.',
+        'Kohe pärast: niipea kui … → lihtminevik: jooksid.',
+        'Alles siis, kui … → lihtminevik, tegusõna kohe: saime.',
+        'Pärast seda, kui olime … → lihtminevik: jäid.',
+        'Enne festivali: enneminevik → olime lugenud.',
+        'Selleks ajaks, kui … → enneminevik: oli armunud.',
+        'Kogemus praeguseni: olen käinud.',
+        'Aeg on teada: käisime.',
+        'Pärast seda, kui + enneminevik: olin näinud.',
+        'Seisund minevikus, umbisikuline: oli suletud.',
+      ]),
+      why(purpose(B.formtext('039_p_review', 'Arvustus reisifoorumis.', 'Reisija kirjutab foorumisse arvustuse. Kirjuta lünka üks sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Lennusadam vihmase ilmaga — soovitan!', [
+        'Käisime augustis Tallinnas koos õe ja tema kümneaastase pojaga. Plaan oli minna randa, kuid niipea [kui] (sidesõna) hommikul ärkasime, hakkas vihma sadama.',
+        '',
+        'Õde oli Lennusadamast juba varem [kuulnud] (kuulma; enneminevik), nii et otsustasime minna sinna. Selleks ajaks, kui jõudsime, [oli] (olema; enneminevik) kassa ees juba pikk järjekord, sest vihmaga tulid kõik muuseumi.',
+        '',
+        'Poiss jooksis otse allveelaeva juurde. Alles [siis] (sidesõna osa), kui olime laeva sees käinud, mõistsin, kui kitsas seal oli. Pärast seda, kui giid oli meile loo [rääkinud] (rääkima; enneminevik), vaatasime kõike hoopis teise pilguga.',
+        '',
+        'Elamus oli suurem, kui olin oodanud. Ainus [pettumus] (pettuma → nimisõna) oli kohvik, kus oli kallis ja rahvarohke. Enne kui sinna [lähete] (minema; teie, olevik), võtke kaasa võileivad.',
+        '',
+        'Kokkuvõttes on see muuseum külastamist [väärt] (väärt), eriti lastega. Ma olen seal nüüd [käinud] (käima; täisminevik) kaks korda ja soovitan seda kõigile, kes otsivad plaani B vihmase päeva jaoks.',
+      ]), 'Samamoodi kirjutad kodus oma soovituse: kogemus ajajoonel ja põhjendatud hinnang.'), [
+        'Kohe pärast → niipea kui.',
+        'Enne teist minevikku: oli kuulnud.',
+        'Selleks ajaks, kui … → oli (juba) järjekord.',
+        'Alles siis, kui …',
+        'Pärast seda, kui + enneminevik: oli rääkinud.',
+        'Hinnang nimisõnaga: pettumus.',
+        'Enne kui + olevik: lähete.',
+        'külastamist väärt.',
+        'Kogemus praeguseni: olen käinud.',
+      ]),
+      why(purpose(tag(B.table('039_p_register', 'Sõnum sõbrale või arvustus?', 'Vasakul on sõnum sõbrale. Paremas veerus on sama mõte arvustuses reisiportaalis. Kirjuta lünka puuduv sõna.', 'Sõbrale, Arvustuses', [
+        'Oli super!!! | Külastus oli tõeline [elamus].',
+        'Kohvik oli täiesti nõme. | Ainus [pettumus] oli kallis ja rahvarohke kohvik.',
+        'Mine kindlasti! | Muuseum on külastamist [väärt].',
+        'Kui tulime, olid piletid läinud. | Selleks ajaks, kui jõudsime, olid piletid [otsa] saanud.',
+        'Lapsel ei olnud hetkekski igav. | Muuseum [sobib] hästi lastega peredele.',
+        'Võta söök kaasa. | [Soovitan] võtta kaasa võileivad.',
+        'Vihmaga on seal puupüsti rahvast. | Vihmase ilmaga on muuseum väga [rahvarohke].',
+        'Lähen kindla peale tagasi. | Kavatsen sinna kindlasti [tagasi] minna.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas vaimustus muutub arvustuseks, mida võõras inimene usaldab.'), [
+        'Super → elamus.',
+        'Nõme → pettumus.',
+        'Mine kindlasti → külastamist väärt.',
+        'Piletid läinud → otsa saanud (enneminevik).',
+        'Ei olnud igav → sobib lastega peredele.',
+        'Võta kaasa → soovitan võtta.',
+        'Puupüsti rahvast → rahvarohke.',
+        'Lähen tagasi → kavatsen tagasi minna.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('039_t_product', 'Minu soovitus külalisele: päris sündmus (5 minutit).', 'Sinu külaline tuleb lapsega kolmeks päevaks; autot ei ole, raha on vähe. Vali päris muuseum või sündmus: Visit Estonia (https://www.visitestonia.com/et) või koha oma koduleht. Kirjuta märksõnad oma sõnadega. Edukriteeriumid: 1) koht on päris (aeg, hind, kuidas jõuab); 2) põhjendad valikut ja räägid oma kogemusest (selleks ajaks, kui …); 3) sul on plaan B.', ['Koht või sündmus ja leht, kust selle leidsin:', 'Millal, kui palju maksab ja kuidas sinna jõuab:', 'Miks see sobib just talle; minu kogemus:', 'Plaan B (vihm, liiga rahvarohke, laps väsib):'], 1), 'Kaart jääb sulle: selle järgi soovitad kohe külalisele ja räägid mooduli kontrollis oma soovitusest.'), 4, 25, { final: 'advise' }),
+      teach(tag(purpose(B.rolecards('039_t_advice', 'Soovitus külalisele telefonis (6–8 minutit).', 'Helista oma külalisele, soovita üks koht või sündmus oma kaardi järgi, räägi oma kogemusest ja vasta tema kahtlustele. Reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord: sinu sõber või sugulane tuleb kolmeks päevaks Eestisse koos lapsega ja ootab sinu soovitust.\nSinu eesmärk: külaline teab, kuhu ja millal minna, kuidas sinna jõuab ja miks see neile sobib, ning tal on plaan B.\nPiirang: soovita ainult seda, mis sobib tema soovide, raha ja ajaga.',
+        'Külalise kaart on õpetajal: tema kahtlused ja üks asjaolu, mida sa veel ei tea.',
+        ['Ma soovitan …, sest …', 'Kui ma seal käisin, …'], ['Aga kas see ei ole …?', 'Kuidas me sinna jõuame?']), 'Tulemus: külaline teab, kuhu ta lapsega läheb, ja tal on plaan B.'), { task: 'S11', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled külaline. Ütle ainult seda, mida küsitakse. Kahtlused ükshaaval: 1) „Kas see ei ole lapsele igav?” 2) „Kas sa oled seal ise käinud? Kuidas oli?” Varjatud info (ütle pärast teist kahtlust): „Ah jaa, ma unustasin öelda — me jõuame alles neljapäeva õhtul ja pühapäeva hommikul on juba lend. Ja laps jääb bussis kergesti merehaigeks, pikk sõit ei sobi.” Õpilane peab plaani muutma: lähem koht või lühem sõit, õige päev ja kellaaeg, plaan B. Õnnestunud, kui õpilane soovitab ühe koha põhjusega, nimetab päris info oma kaardilt (aeg, hind, kuidas jõuab), räägib oma kogemusest vähemalt ühe ajasidesõnaga (selleks ajaks, kui …; alles siis, kui …; niipea kui …) ja annab plaani B. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('039_t_forum', 'Kodus: soovitus reisifoorumis (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pealkirja ja algust ei anta. ${VOICE_HOME}`, 'vastus', {
+        situation: 'Reisifoorumis küsib keegi: „Tulen suvel lapsega kolmeks päevaks Eestisse. Kuhu minna, kui autot ei ole?” Vasta oma kogemuse põhjal.',
+        points: ['üks koht või sündmus ja miks see sobib lapsega perele', 'sinu oma kogemus seal (mis juhtus enne mida)', 'üks elamus ja üks pettumus või hoiatus', 'kuidas sinna jõuab ja plaan B'],
+        words: [170, 190],
+      }), 'Sinu soovitust loevad inimesed, kes otsustavad, kuhu oma vaba päev minna.'), 3)), { task: 'W14', main: true, level: 4 }),
+      writingRubric('039_t_rubric', 'Hindamisjuhend: soovitus foorumis (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma soovitan Lennusadam. See on väga hea. Me käisime seal, kui me tulime, piletid said otsa. Siis me ootasime. Lapsele meeldis. Seal on allveelaev. Kohvik oli halb. Minge bussiga. Seal on väga hea.” Hinnang: ülesanne 2 (koht, kogemus ja sõit on olemas, kuid plaani B ei ole ja ei selgu, miks see sobib lapsega perele), ülesehitus 2 (laused on järjekorras, lõike ja sidendeid peaaegu ei ole), sõnavara 2 („hea” kordub; puuduvad elamus, külastamist väärt, rahvarohke), grammatika 1 („soovitan Lennusadam” → Lennusadamat; „kui me tulime, piletid said otsa” → selleks ajaks, kui jõudsime, olid piletid otsa saanud; enneminevikku ei ole). Kui õppija lisab plaani B ja põhjenduse ning parandab ajasuhted, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('039_t_self', ['Ma saan saatest aru ja järeldan giidi hoiaku.', 'Ma ütlen, mis juhtus enne mida: selleks ajaks, kui …; alles siis, kui …', 'Ma soovitan külalisele päris sündmust ja muudan plaani, kui vaja.'], 'Soovitus antud', 'Ma oskan külalisele kohta soovitada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('039_t_voice', CUT_SHORT),
+      retire('039_t_cards', CUT_INPUT),
+      retire('039_t_more', CUT_EXTRA),
+      retire('039_t_exit', CUT_DRILL),
+      retire('039_t_review', CUT_OLDTASK),
+      retire('039_t_home', CUT_HOME),
+      retire('039_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-040': {
+    title: 'Kontroll 8 — reisimine ja kultuur',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen eksami vormis umbes 550-sõnalist arvamusartiklit kodumaa reisidest ja lahendan selle ülesanded ning räägin pärast kahte minutit ettevalmistust ühe minuti ja soovitan külalisele kohta ka siis, kui tema plaan muutub; Harno lävi on 60 %.',
+    // Methodology v5 (2026-11-25): one sheet, 45 minutes, two skills — READING + SPEAKING (module 5 L + W, 6 R + S, 7 L + W).
+    // 040 is on the v5 mock-exam list (§5: B2 020/040/060/080/089/090); here it is a module control in the short form like
+    // 030, by the coordinator's decision of 2026-11-25 (the full B2 mock stays at 020 and 060). The reading part keeps the
+    // v4 article „Turist omal maal” without the statistics paragraph (owner 2026-11-25: adapted texts, no exact numbers),
+    // now with 8 questions (3 inference) and the paragraph task. The speaking part opens with the parallel new task of
+    // the module's cold task (036_d_cold): the same conditions (2 minutes to think, 1 minute, no phrases), a new statement;
+    // then the module product „Minu soovitus külalisele” (the card of 039_t_product) as a talk with the examiner as the
+    // guest, who holds hidden information. The old three sheets (28 blocks) stay hidden below.
+    discover: [
+      B.text('040_d_intro', 'Kontroll 8: lugemine ja rääkimine (45 minutit)', 'Kontrollis on kaks osaoskust. Lugemine (25 minutit): üks arvamusartikkel ja kaks ülesannet ilma sõnaraamatuta, 16 punkti. Rääkimine (umbes 15 minutit): üheminutiline sõnavõtt pärast kahte minutit ettevalmistust ja soovitus külalisele, 12 punkti. Kokku 28 punkti. Harno: sooritatud alates 60 % (vähemalt 17 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (20 punkti), meie tunnistus alates 80 % (23 punkti) — see on sisemine lävi.'),
+      PART('040_d_rpart', 'R', { minutes: 25, points: 16, tasks: 2, note: 'Artikkel umbes 550 sõna: osa 1 valikvastused (8 punkti), osa 2 väide ja lõik (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      why(B.reading('040_d_read', 'Lugemine: arvamusartikkel.', 'Loe arvamusartiklit (umbes 10 minutit) ja mõtle soojendusküsimusele. Seejärel tee osad 1 ja 2. Sõnaraamatut ei kasutata.', 'Turist omal maal', [
+        '(A) Kui küsin sõpradelt, kus nad viimati puhkasid, kuulen kõige sagedamini Türgi, Egiptuse või Hispaania nime. Eestist räägitakse harvem, justkui oleks see koht, kus elatakse ja töötatakse, aga mitte koht, kus puhatakse. Ma mõistan seda: talv on pikk ja päike on meil kallis kaup. Minu kogemuses jäävad aga kõige kauemaks meelde just need reisid, mis algasid kodu lähedalt. Seepärast tahan seista turisti eest, kes avastab omaenda maad.',
+        '(B) Ma ei ole selle mõttega üksi. Külalistemajade pidajad räägivad, et viimastel aastatel on kodumaiseid puhkajaid rohkem kui varem. Huvitav on ka see, kuhu inimesed sõidavad. Välisturistid jäävad enamasti pealinna, eestlased aga jagunevad palju ühtlasemalt: Pärnumaale, Tartumaale, saartele ja väikestesse kohtadesse, mida välismaalane ei pruugi kunagi näha. Mõni pererahvas ütleb, et kodumaine külaline küsib rohkem ja kiirustab vähem, sest ta ei pea kogu maad kolme päevaga ära nägema.',
+        '(C) Kõige sagedamini kuulen vastuväidet, et Eestis puhata on kallis. Nädalavahetus Saaremaal maksvat sama palju kui odav lend lõunamaale. Kui aga kõik kulud kokku arvutada, on pilt teine: sõit lennujaama, pagasi lisatasu, söök lennujaamas ja hotell, mis on alati kaugemal, kui pildil tundus. Kodus Eestis ei maksa keegi kohvri eest lisatasu, ilusa ilmaga võib ööbida ka telgis ja eelarvesse jääb raha varuks. Eesti suvi on lühike, mistõttu paljud külalistemajad pakuvad kevadel ja sügisel soodsamaid hindu. Lisaks ei pea kodus kartma, et lend tühistatakse ja puhkus algab lennujaama ootesaalis.',
+        '(D) Teine põhjus on mõte, et oma maad tunneme niigi. Kas tõesti? Elasin Tallinnas kakskümmend aastat, enne kui jõudsin esimest korda Kihnu saarele. Olin saarest lugenud ainult kooliõpikust ja arvasin, et tean kõike. Esimene päev saarel oli aga nagu välisreis: teistsugune murre, teistsugused kombed ja inimesed, kes ei kiirustanud kuhugi. Sama tunde sain hiljem Setomaal ja Mulgimaal, kus iga küla tundus olevat omaette maailm. Mõistsin, et olin oma maad tundnud ainult kaardi järgi.',
+        '(E) Kolmas põhjus on ilm. Eesti suvi ei luba kunagi midagi kindlat ja see hirmutab paljusid. Heal reisiplaanil on aga alati plaan B. Vihmase ilmaga saab minna muuseumi, ja neid on Eestis palju: suurtest, nagu Eesti Rahva Muuseum Tartus, kuni väikeste külamuuseumideni, kus perenaine räägib ise oma vanaema lugu. Pealegi on muuseum vihmasel päeval sageli pooltühi, nii et giid jõuab rääkida ka seda, mida ta rahvarohkel päeval ei jõuaks. Ka vihmane päev metsas võib olla ilus, kui sul on hea jope.',
+        '(F) Mida siis teha? Esiteks võiks iga pere proovida ühte Eesti reisi igal aastaajal. Teiseks tasub küsida soovitust kohalikelt, mitte ainult internetist: parimad kohad ei ole tihti üheski reitingus. Kolmandaks soovitan ööbida väikestes külalistemajades, kus pererahvas teab rohkem kui ükski reisijuht. Nii jõuab raha ka kohaliku pereni, mitte ainult suure hotelliketini. Neljandaks võtke kaasa lapsed. Kes on lapsena käinud laulupeol või metsamatkal, see tuleb sinna ka täiskasvanuna tagasi ja toob omakorda kaasa oma lapsed.',
+        '(G) Ma ei väida, et välismaale ei tasu sõita. Reis võõrasse kultuuri õpetab palju, ka seda, kuidas oma kodu teise pilguga näha. Turist omal maal võidab aga kaks korda: ta puhkab ja õpib samal ajal oma kodu tundma. Kui me räägiksime Eesti reisidest sama uhkelt kui lõunamaa puhkusest, näeksid ka meie lapsed, et ilus maailm algab kodu lähedalt. Võib-olla ongi parim aasta selline, kus sõidad kord kaugele ja kord lähedale.',
+        'Allikas: KeeleSepp õppetekst (autori arvamus).',
+      ].join('\n\n'), [['Soojenduseks (punkte ei anta): mida tahab autor öelda pealkirjaga „Turist omal maal”? Kuhu sina viiksid Eestis turisti, kes on siin esimest korda?']]), [
+        '(G) lõik: „Turist omal maal võidab aga kaks korda” — oma maad tasub avastada nagu turist.',
+      ]),
+      why(tag(B.choice('040_d_mc', 'Osa 1: vali õige vastus (8 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
+        ['Miks räägitakse autori arvates Eestist kui puhkusekohast harvem?', 'Eestit nähakse elamise, mitte puhkamise kohana.', 'Eestis ei ole huvitavaid kohti.', 'Eestis on reisimine liiga keeruline.', 'Eestlased ei puhka kunagi.'],
+        ['Mida ütleb lõik B Eesti puhkajate kohta?', 'Nad sõidavad eri paikadesse ühtlasemalt kui välisturistid.', 'Nad jäävad enamasti pealinna.', 'Neid on vähem kui varem.', 'Nad ööbivad ainult suurtes hotellides.'],
+        ['Milline kulu jääb autori sõnul reisil Eestis tavaliselt ära?', 'pagasi lisatasu', 'majutus', 'söök', 'sõit sihtkohta'],
+        ['Miks oli esimene päev Kihnus autori jaoks nagu välisreis?', 'Murre ja kombed olid teistsugused.', 'Saarel räägiti ainult inglise keelt.', 'Sinna sai ainult lennukiga.', 'Seal oli väga palju turiste.'],
+        ['Mida soovitab autor vihmase ilma puhuks?', 'minna muuseumi', 'jääda koju', 'sõita lõunamaale', 'oodata päikest telgis'],
+        ['Mida tahab autor öelda lausega „Mõistsin, et olin oma maad tundnud ainult kaardi järgi”?', 'Raamatust saadud teadmine ei asenda oma kogemust.', 'Ta ei osanud kaarti lugeda.', 'Kihnu ei ole Eesti kaardil.', 'Ta reisis alati ilma kaardita.'],
+        ['Miks soovitab autor ööbida väikestes külalistemajades? Järelda.', 'Pererahvas teab paiku hästi ja raha jõuab kohaliku pereni.', 'Need on alati kõige odavamad.', 'Suurtes hotellides ei ole vabu tube.', 'Külalistemajades ei pea broneerima.'],
+        ['Milline on autori hoiak välismaale reisimise suhtes?', 'Ka välisreis on väärt, kuid kodumaa reis annab rohkem, kui arvatakse.', 'Välismaale ei tasu kunagi sõita.', 'Välisreis on alati odavam kui reis Eestis.', 'Autor ei ole kunagi välismaal käinud.'],
+      ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }), [
+        '(A) lõik: Eesti on koht, „kus elatakse ja töötatakse, aga mitte koht, kus puhatakse”.',
+        '(B) lõik: „eestlased aga jagunevad palju ühtlasemalt”.',
+        '(C) lõik: „Kodus Eestis ei maksa keegi kohvri eest lisatasu.”',
+        '(D) lõik: „teistsugune murre, teistsugused kombed”.',
+        '(E) lõik: „Vihmase ilmaga saab minna muuseumi.”',
+        'Järeldus (D) lõigust: ta „olin saarest lugenud ainult kooliõpikust”, kuid päris saar oli teine.',
+        'Järeldus (F) lõigust: „pererahvas teab rohkem kui ükski reisijuht … raha jõuab ka kohaliku pereni”.',
+        'Järeldus (G) lõigust: „Ma ei väida, et välismaale ei tasu sõita … Turist omal maal võidab aga kaks korda.”',
+      ]),
+      why(tag(B.table('040_d_para', 'Osa 2: väide ja lõik (8 punkti).', 'Leia iga väite 1–8 jaoks artikli lõik (A–G), kus see mõte on. Ühte lõiku sobib kaks väidet.', 'Väide, Lõik', [
+        '1. Autor mõistab, miks paljud puhkavad lõunamaal. | [A]',
+        '2. Välismaalased ja kodumaised puhkajad valivad eri paiku. | [B]',
+        '3. Odav lennupilet ei tähenda veel odavat reisi. | [C]',
+        '4. Autor avastas osa oma maast alles täiskasvanuna. | [D]',
+        '5. Halb ilm ei pea reisi ära rikkuma. | [E]',
+        '6. Kohalikud teavad häid kohti, mida reitingud ei näita. | [F]',
+        '7. Lapsepõlve reisid mõjutavad täiskasvanu valikuid. | [F]',
+        '8. Ka välisreisil on oma väärtus. | [G]',
+      ], 'g_read'), { task: 'R14', harno: 'R2a' }), [
+        '(A): „Ma mõistan seda: talv on pikk.”',
+        '(B): välisturistid „jäävad enamasti pealinna”, eestlased „jagunevad palju ühtlasemalt”.',
+        '(C): kulud „kokku arvutada, on pilt teine”.',
+        '(D): „Elasin Tallinnas kakskümmend aastat, enne kui jõudsin …”',
+        '(E): „Heal reisiplaanil on aga alati plaan B.”',
+        '(F): „parimad kohad ei ole tihti üheski reitingus”.',
+        '(F): „Kes on lapsena käinud …, see tuleb sinna ka täiskasvanuna tagasi.”',
+        '(G): „Reis võõrasse kultuuri õpetab palju.”',
+      ]),
+      PART('040_t_spart', 'S', { minutes: 15, points: 12, tasks: 2, note: 'Sõnavõtt (2 minutit ettevalmistust, 1 minut kõnet) ja soovitus külalisele (kuni 4 minutit): 4 kriteeriumi × 0–3 = 12 toorpunkti. Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      teach(tag(patch(B.examiner('040_t_cold', 'reisimine ja kultuur', [
+        'Mis on sinu jaoks reisil kõige olulisem: koht, inimesed või hind?',
+        'Kas sa reisid pigem plaaniga või ilma? Miks?',
+        'Mida teed, kui reisil läheb midagi valesti?',
+        'Mis komme sind Eestis või välismaal üllatas? Mida see tähendas?',
+        'Kas turist peaks kohalikke kombeid ette uurima? Miks?',
+        'Mis koha Eestis sa soovitaksid inimesele, kes ei armasta rahvamassi?',
+      ], 'B2', [60, 180]), { instruction: 'Väide: „Kallis reis ei ole alati parem reis.” Sul on kaks minutit mõtlemiseks, siis räägi minut: kas oled nõus? Fraase ei anta. Seejärel vasta eksamineerijale.' }), { task: 'S16', harno: 'S1' }),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-036 (2 minutit mõtlemiseks, 1 minut kõneks, fraase ei ole), uus väide. Võrdle külma alguse märkmetega: seisukoht esimeses lauses, põhjus ja näide, vastuargument, sidendid, korduvad vead. Ütle õppijale üks konkreetne areng ja üks järgmine samm. Pärast kõnet küsi 2–3 küsimust nimekirjast (kuni 4 minutit) ja esita ühele vastusele vastuargument, millele õpilane viisakalt vastab.'),
+      teach(tag(B.rolecards('040_t_guest', 'Rääkimine 2: soovitus külalisele (kuni 4 minutit).', 'Eksamineerija on sinu külaline, kes tuleb suvel kolmeks päevaks Eestisse. Soovita talle üks koht või sündmus (võid kasutada tunni 39 kaarti), räägi oma kogemusest ja anna plaan B. Reageeri, kui külaline ütleb midagi, mida sa ei teadnud.',
+        'Olukord: sinu külaline tuleb suvel kolmeks päevaks Eestisse ja küsib nõu.\nSinu eesmärk: külaline teab, kuhu minna, millal, kuidas sinna jõuab ja miks see talle sobib; tal on plaan B.\nPiirang: soovita ainult seda, mis sobib tema soovide ja rahaga.',
+        'Külalise kaart on eksamineerijal: tema soovid ja üks asjaolu, mida sa veel ei tea.',
+        ['Ma soovitan …, sest …', 'Kui ma seal käisin, …'], ['Aga kas …?', 'Mis siis, kui …?']), { task: 'S11', harno: 'S2' }),
+      'Eksamineerija on külaline: armastab muusikat ja ajalugu, raha on vähe, autot ei ole. Küsi kaks küsimust: „Kuidas ma sinna jõuan?” ja „Kas sa oled ise seal käinud?” Varjatud info (ütle teise vastuse järel): „Ah jaa — mu ema tuleb ka kaasa ja ta ei saa kaua kõndida ega trepist üles minna.” Õppija peab soovitust muutma või täpsustama (lühem tee, istekohad, lift, plaan B). Hinda: soovitus on põhjendatud ja sobib külalisele, oma kogemus ajasidesõnaga (selleks ajaks, kui …; alles siis, kui …), reageerib uuele asjaolule, plaan B.'),
+      B.rubric('040_t_rubric', 'Rääkimise punktid ja kontrolli tulemus.', 'Eksamineerija hindab rääkimist neljas osas, igaüks 0–3 punkti; seejärel liidetakse kõik punktid kokku.', [
+        'Sõnavõtt (seisukoht, põhjus näitega, vastuargument) … / 3 · soovitus (sobib külalisele, oma kogemus, reageerib uuele asjaolule, plaan B) … / 3',
+        'Sõnavara (täpne, reisi- ja kultuurisõnad, sidendid) … / 3 · grammatika ja ladusus (kõrvallaused, umbisikuline, ettevaatlik üldistus, ajasuhted; vead ei sega mõistmist) … / 3',
+        'Lugemine … / 16 · rääkimine … / 12 · kokku … / 28. Harno: sooritatud alates 60 % (17/28) ja ükski osa ei ole 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (20/28), tunnistus alates 80 % (23/28) — sisemine lävi.',
+      ]),
+      retire('040_d_how', CUT_CONTROL),
+      retire('040_d_vocab', CUT_CONTROL),
+      retire('040_d_cloze', CUT_CONTROL),
+      retire('040_d_bank', CUT_CONTROL),
+    ],
+    practice: [
+      retire('040_p_how', CUT_CONTROL),
+      retire('040_p_kpart', CUT_CONTROL),
+      retire('040_p_fix', CUT_CONTROL),
+      retire('040_p_trans', CUT_CONTROL),
+      retire('040_p_lpart', CUT_CONTROL),
+      retire('040_p_notes', CUT_CONTROL),
+      retire('040_p_listen', CUT_CONTROL),
+      retire('040_p_tf', CUT_CONTROL),
+      retire('040_p_self', CUT_CONTROL),
+    ],
+    transfer: [
+      retire('040_t_situation', CUT_CONTROL),
+      retire('040_t_product', 'the module product is the talk 040_t_guest (the card of 039_t_product; v5 §5: one sheet, reading + speaking)'),
+      retire('040_t_wpart', CUT_CONTROL),
+      retire('040_t_letter', CUT_CONTROL),
+      retire('040_t_chart', CUT_STATS),
+      retire('040_t_summary', CUT_CONTROL),
+      retire('040_t_present', 'speaking 1 is now the parallel new task 040_t_cold (same conditions as the cold task 036_d_cold, no phrases)'),
+      retire('040_t_debate', CUT_CONTROL),
+      retire('040_t_self', CUT_CONTROL),
+    ],
+  },
+}, {
+  'b1b2-036': 'PROJ R→S', 'b1b2-037': 'KIRJ L→W', 'b1b2-038': 'LUGE R→W', 'b1b2-039': 'KUUL L→S', 'b1b2-040': 'EKS',
+});
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};

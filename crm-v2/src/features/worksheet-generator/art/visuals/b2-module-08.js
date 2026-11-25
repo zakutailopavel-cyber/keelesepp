@@ -13,26 +13,12 @@ export default [
     scene: "Kolm inimest planeerivad köögilaua ääres reisi. Üks võrdleb eelarvet, teine näitab matkarada ja kolmas majutust; laua keskel on lihtne kaart, mille üks marsruut ühendab linna, ranna ja metsa. Kõrval on hallid bussi, praami ja majutuse sümbolid.",
     accent: "the chosen route connecting city, beach and forest",
     text: [],
-    place: "036_d_read",
+    // 2026-11-25 (v5): after the article, before the scheme „kuhu kaob raha” that sums it up (page fill ≥ 70 %)
+    place: "036_d_scheme",
     learningJob: "võrrelda sihtkohta, transporti, majutust ja hinda ning leppida kokku ühine plaan",
     alt: "Kolm inimest panevad köögilaua ääres kaardi järgi kokku reisi marsruudi ja eelarve.",
     caption: "Pilt 1. Ühine reisiplaan sünnib kompromissist.",
     prompts: ["Mida need kolm inimest köögilaua ääres planeerivad?", "Kes neist mõtleb rahale, kes majutusele ja kes matkale? Mis on nende kompromiss?", "Kes sinu peres või sõprade seas reisi planeerib ja kes maksab?"],
-  },
-  {
-    id: "b1b2-037-kasuta-1",
-    phase: "transfer",
-    format: "scene",
-    cast: ["Anna", "Liis"],
-    // 2026-11-18 (v4): the same picture (a rented flat that is not as described), now beside the extension role-play
-    scene: "Üürikorteris helistab naine broneerimisplatvormi klienditeenindusse. Tema kõrval on näha kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget. Telefoni kõrval on klienditeenindaja ekraanil lahenduskaart.",
-    accent: "the customer-guarantee solution card",
-    text: [],
-    place: "037_t_more",
-    learningJob: "kirjeldada majutuse probleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
-    alt: "Naine teatab telefonis räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
-    caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
-    prompts: ["Millised kolm probleemi on sellel üürikorteril?", "Mida peaks naine enne kõnet tegema, et tal oleks tõend?", "Mida ütleksid sina omanikule, kui majutus ei vasta kirjeldusele?"],
   },
   {
     id: "b1b2-038-avasta-1",
@@ -43,7 +29,7 @@ export default [
     scene: "Kaks kõrvutist igapäevaolukorda samade inimestega: vasakul istuvad nad bussis vaikselt ja jätavad teineteisele ruumi, paremal vestlevad nad kodusel külaskäigul avatult kohvilaua ääres. Keskel on kaart, mis seob vaikuse austuse, mitte ebasõbralikkusega.",
     accent: "the context-switch card between the two situations",
     text: [],
-    place: "038_d_radio",
+    place: "038_d_text",
     learningJob: "võrrelda sama inimese käitumist eri olukordades ja öelda üldistus ettevaatlikult",
     alt: "Samad kaks inimest istuvad vaikselt bussis ja vestlevad avatult külaskäigul.",
     caption: "Pilt 1. Vaikus bussis, jutt köögis.",
@@ -51,6 +37,8 @@ export default [
   },
   {
     id: "b1b2-039-avasta-1",
+    // 2026-11-25 (v5): the picture (a travel experience joined into a balanced review) stands after the radio show, before
+    // the formula „hea soovitus” that sums up the guide's advice
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Jaan"],
@@ -58,7 +46,7 @@ export default [
     scene: "Kaks inimest kirjutavad reisiportaalile arvustust. Laual on kolm halli fotokaarti praamisõidust, jalgratastest ja perekodust; iga kaardi juurest viib joon keskse hinnangukaardi juurde, kus pluss ja miinus on tasakaalus.",
     accent: "the balanced travel-review card",
     text: [],
-    place: "039_d_story",
+    place: "039_d_scheme",
     learningJob: "siduda reisi sündmused põhjendatud hinnanguga ja teha sellest soovitus",
     alt: "Kaks inimest seovad kolm reisimälestust tasakaalustatud hinnanguga.",
     caption: "Pilt 1. Hea soovitus ühendab kogemuse ja hinnangu.",
@@ -73,9 +61,32 @@ export default [
     scene: "Keelekursuse vahehindamise järel koostavad kaks õppijat kordamisplaani. Õpitee tahvlil on neli peatust ilma tekstita: argumenteerimise kõnemull, tööelu portfell, hariduse raamat ja reisimise kohver. Üks märgib ebakindla koha, teine aitab valida järgmise sammu.",
     accent: "the personalized four-stop revision route",
     text: [],
-    learningJob: "seostada vahehindamise tulemused nelja teemaga ja valida, mida korrata",
+    // 2026-11-25 (v5): the control is one sheet (reading + speaking); the picture opens the speaking part
+    place: "040_t_spart",
+    learningJob: "seostada kontrolli tulemused mooduli teemadega ja valida, mida korrata",
     alt: "Kaks õppijat koostavad nelja teema põhjal kordamisplaani.",
-    caption: "Pilt 1. Tunnid 21–40: arvamus, töö, haridus, reisimine.",
+    caption: "Pilt 1. Mida ma oskan ja mida kordan?",
     prompts: ["Milliseid teemasid näitavad õpitee neli peatust?", "Milline neist teemadest on sinu jaoks kõige kindlam ja milline kõige ebakindlam?", "Mida sa kordad enne järgmist moodulit?"],
+  },
+];
+
+// Retired from the sheets in the methodology v5 rewrite (2026-11-25): the rented-flat role-play (037_t_more) it stood
+// beside left the sheet, and on Harjuta it left a page half empty (page fill ≥ 70 %); the file stays in
+// public/textbook-art/ and can return when a lesson needs it.
+export const RETIRED = [
+  {
+    id: "b1b2-037-kasuta-1",
+    phase: "transfer",
+    format: "scene",
+    cast: ["Anna", "Liis"],
+    // 2026-11-18 (v4): the same picture (a rented flat that is not as described), now beside the extension role-play
+    scene: "Üürikorteris helistab naine broneerimisplatvormi klienditeenindusse. Tema kõrval on näha kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget. Telefoni kõrval on klienditeenindaja ekraanil lahenduskaart.",
+    accent: "the customer-guarantee solution card",
+    text: [],
+    place: "037_t_more",
+    learningJob: "kirjeldada majutuse probleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
+    alt: "Naine teatab telefonis räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
+    caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
+    prompts: ["Millised kolm probleemi on sellel üürikorteril?", "Mida peaks naine enne kõnet tegema, et tal oleks tõend?", "Mida ütleksid sina omanikule, kui majutus ei vasta kirjeldusele?"],
   },
 ];
