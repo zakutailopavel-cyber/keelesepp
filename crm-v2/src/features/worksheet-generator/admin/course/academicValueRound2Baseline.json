@@ -111,6 +111,10 @@
  "b1b2-module-03": [
   "*|*|av-kasuta2"
  ],
+ "b1b2-module-04": [
+  "*|*|av-kasuta2",
+  "*|*|av-kasuta2"
+ ],
  "b1b2-module-17": [
   "*|*|av-kasuta2",
   "b1b2-082|*|av-boltedon"
@@ -118,5 +122,8 @@
  "b1b2-module-18": [
   "*|*|av-kasuta2",
   "b1b2-086|*|av-boltedon"
+ ],
+ "course:b2": [
+  "*|*|av-thinkvary"
  ]
 }
