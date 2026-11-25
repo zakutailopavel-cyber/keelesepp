@@ -1,17 +1,16 @@
 // Visual briefs of a2b1 module 01 (methodology v5 rewrite 2026-11-25: the cast stays in the drawings, captions, alt texts and
-// questions name no cast character — the module does not use the continuing story; 005's picture is on its one control sheet); images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
+// questions name no cast character — the module does not use the continuing story; the two controls (001, 005) are one sheet each without a picture: their briefs point at a phase they do not have, so the pictures stay for the textbook only); images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
 // Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
 export default [
   {
     id: "a2b1-001-avasta-1",
-    phase: "discover",
+    phase: "practice",
     format: "scene",
     cast: ["Anna"],
     scene: "Tallinna korteri argihommiku kolm järjestikust hetke: Anna ärkab, joob hommikusöögi juures vett ning võtab seejärel koti ja mantli, et bussiga kontorisse minna.",
     accent: "Anna's top",
     text: [],
     learningJob: "toetada sõnumit õpetajale: õppija näeb tavalise tööpäeva hommikut ja kirjutab siis endast ja oma päevast",
-    place: "001_t_note",
     alt: "Naine ärkab, joob hommikusöögi juures vett ning võtab koti ja mantli, et bussiga tööle minna.",
     caption: "Pilt 1. Tavalise tööpäeva hommik.",
     prompts: ["Mida see inimene enne tööd teeb?", "Kuidas sinu tavaline päev algab?", "Mis on sinu päevas teisiti?"],
@@ -25,7 +24,7 @@ export default [
     accent: "Anna's top",
     text: [],
     learningJob: "seostada hilinemine järgmise korra plaaniga: kellaajad ja tegevused enne sõnumi kirjutamist",
-    place: "002_t_msg",
+    place: "002_t_home",
     alt: "Naine vaatab kolme kellaga päevaplaani ja seab tegevused õigesse järjekorda.",
     caption: "Pilt 1. Homne päev on planeeritud, et mitte hiljaks jääda.",
     prompts: ["Mis kell on sellel inimesel homme tähtis kohtumine?", "Mida ta teeb, et homme hiljaks ei jääks?", "Mida sina järgmisel korral teisiti teed?"],
@@ -60,14 +59,13 @@ export default [
   },
   {
     id: "a2b1-005-kasuta-1",
-    phase: "discover",
+    phase: "practice",
     format: "scene",
     cast: ["Anna", "Viktor"],
     scene: "Anna ja Viktor seisavad tühja nädalakalendri ees; Anna näitab sobivat kohtumisaega, Viktor vaatab kella ja selgitab, miks varasem aeg ei sobi.",
     accent: "the selected calendar cell",
     text: [],
     learningJob: "toetada kontrolli kirja ettepanekut: sobiva kohtumisaja leidmine kalendrist",
-    place: "005_t_mail",
     alt: "Naine pakub kalendris kohtumisaega ja vanem mees vaatab oma käekella.",
     caption: "Pilt 1. Sobiva aja otsimine.",
     prompts: ["Mis aega naine pakub?", "Miks mees kella vaatab?", "Millal sina järgmisel nädalal vaba oled?"],

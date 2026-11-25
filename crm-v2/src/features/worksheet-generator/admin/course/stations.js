@@ -19,7 +19,7 @@ export { EXIT_ITEMS, EXTENSION_MINUTES, FINAL_KINDS, exitCheck, extension, fallb
 export { isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 
 export const ST = Object.freeze({
-  stations: [4, 6], minutes: [8, 15], v5Minutes: [5, 25], blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
+  stations: [4, 6], minutes: [8, 15], v5Minutes: [5, 25], v5TextWords: 150, blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
   items: STATION_ITEMS, purposeWords: 6,
   // design v4 „task-based” (§7, owner 2026-11-17): exactly 4 stations, ≤ 75 station minutes of a 90-min lesson (room for the
   // hook, the exit check and slack), one exit check (2–3 items) + one self-check on Kasuta
@@ -164,7 +164,9 @@ export function lessonStationProblems(lessonId, phases) {
     if (closed.length > 1) add(s.phase, 'st-closed', `jaam ${s.n}: ${closed.length} suletud ülesannet (${closed.map((b) => b.id).join(', ')}; kuni 1 ühe sisendi kohta)`);
     for (const b of s.blocks) {
       if (b.data?.opener) continue; // the module's front page (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2) is its own genre
-      if (TEXT_INPUT.includes(b.type) && inputWords(b) > ST.textWords) add(s.phase, 'st-input', `${b.id}: tekst ${inputWords(b)} sõna (kuni ${ST.textWords})`);
+      // methodology v5: the lesson's one text keeps the stage's ceiling (methodV5.js G3, A2: 150 words)
+      const textMax = v5 ? ST.v5TextWords : ST.textWords;
+      if (TEXT_INPUT.includes(b.type) && inputWords(b) > textMax) add(s.phase, 'st-input', `${b.id}: tekst ${inputWords(b)} sõna (kuni ${textMax})`);
       if (AUDIO_INPUT.includes(b.type) && inputWords(b) > ST.audioWords) add(s.phase, 'st-input', `${b.id}: helitekst ${inputWords(b)} sõna (kuni ${ST.audioWords}, ≈ 2,5 min)`);
       if (b.type === 'dialogue') {
         const n = (b.data?.lines || []).length;
