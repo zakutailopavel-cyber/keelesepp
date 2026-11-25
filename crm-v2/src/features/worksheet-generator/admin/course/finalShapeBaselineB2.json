@@ -53,6 +53,37 @@
   "b1b2-009|practice|V2",
   "b1b2-009|transfer|V2"
  ],
+ "b1b2-module-03": [
+  "*|*|V14-known",
+  "*|*|V3-distinct",
+  "*|*|V3-min-S16",
+  "*|*|V3-skill-L",
+  "*|*|V3-skill-R",
+  "*|*|V4-id-G02",
+  "*|*|V4-id-W11",
+  "*|*|V4-id-W12",
+  "*|*|V4-max-G02",
+  "*|*|V4-max-G03",
+  "*|*|V4-max-G05",
+  "*|*|V4-max-S13",
+  "*|*|V4-max-W11",
+  "*|*|V4-max-W12",
+  "b1b2-011|*|V11-fluency",
+  "b1b2-011|*|V12-washback",
+  "b1b2-011|practice|V1-phase",
+  "b1b2-011|practice|V2",
+  "b1b2-011|transfer|V2",
+  "b1b2-012|*|V11-fluency",
+  "b1b2-012|*|V12-washback",
+  "b1b2-012|transfer|V2",
+  "b1b2-013|*|V11-fluency",
+  "b1b2-013|*|V12-washback",
+  "b1b2-013|discover|V2",
+  "b1b2-013|transfer|V2",
+  "b1b2-014|*|V11-fluency",
+  "b1b2-014|practice|V2",
+  "b1b2-014|transfer|V2"
+ ],
  "b1b2-module-17": [
   "*|*|V14-topic",
   "*|*|V3-skill-L",
@@ -137,7 +168,9 @@
   "b1b2-088|practice|V2"
  ],
  "course": [
+  "*|*|V6-corner-L1",
   "*|*|V6-corner-R4",
-  "*|*|V6-exam-L2"
+  "*|*|V6-exam-L2",
+  "*|*|V6-total-L1"
  ]
 }

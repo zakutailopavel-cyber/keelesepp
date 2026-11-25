@@ -52,7 +52,10 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
       const first = stations(id)[0];
       const n = first.blocks.reduce((sum, b) => sum + words(material(b)), 0);
       expect(n, `${id} station 1: ${n} words`).toBeLessThanOrEqual(80);
-      expect(first.blocks.some((b) => RESPONSE.includes(b.type)), `${id} station 1 needs a speaking task, a vote or a game`).toBe(true);
+      // methodology v5 (§2.3): the module's cold task may be a 5-minute writing without help (B2 module 3 alternates the
+      // skill with module 2's spoken cold task), so in a v5 module a writing task is a learner response too
+      const response = isMethodV5(mod) ? [...RESPONSE, 'writing'] : RESPONSE;
+      expect(first.blocks.some((b) => response.includes(b.type)), `${id} station 1 needs a speaking task, a vote or a game`).toBe(true);
     }
   });
 
