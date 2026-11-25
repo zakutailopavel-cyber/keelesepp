@@ -87,11 +87,14 @@ export function sheetProblems(doc) {
   const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
   const maxOwn = isTheory(doc) ? V3.theoryBlocks : V3.blocks[1];
-  if (v3 ? own < V3.blocks[0] || own > maxOwn : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (${isTheory(doc) ? 'teooria' : 'v3'}: ${V3.blocks[0]}–${maxOwn})` : `${n} plokki (lubatud 6–18)` });
+  // methodology v5 (meta.methodV5, strictModulesV5.json): the lesson budget (methodV5.js G1) replaces the block count
+  // and the 40–55 min per sheet
+  const v5 = Boolean(doc.meta?.methodV5);
+  if (!v5 && (v3 ? own < V3.blocks[0] || own > maxOwn : n < 6 || n > 18)) out.push({ code: 'length', text: v3 ? `${own} plokki (${isTheory(doc) ? 'teooria' : 'v3'}: ${V3.blocks[0]}–${maxOwn})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
   // an exam lesson's sheet is the exam part itself (Harno's written part takes 2–3 hours): no upper bound there
   const maxMinutes = doc.meta?.assessment ? Infinity : SHEET_MINUTES.max;
-  if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > maxMinutes)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
+  if (!v5 && !doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > maxMinutes)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
   const minTypes = v3 ? V3.types : 5;
   if (typeSet(doc).size < minTypes) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt ${minTypes})` });
   const last = doc.blocks[doc.blocks.length - 1]?.type;

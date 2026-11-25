@@ -18,6 +18,11 @@ export const why = (block, lines) => ({ ...block, data: { ...block.data, explain
 // of a pair or group task — the teacher is the partner. Shown in the teacher's key only.
 export const teach = (block, note) => ({ ...block, data: { ...block.data, teacher: note } });
 
+// a block a rewrite takes off the lesson (docs/METHODOLOGY_B1_B2_V5.md §4: „removed blocks are hidden, not deleted”):
+// the block stays in the module file with its id, so the learners' saved answers keep their key; the sheet builder
+// (courseSheet.js visibleBlocks) leaves it out of every sheet, gate and count. `why` says where it went (Harjuta, cut).
+export const hide = (block, why = '') => ({ ...block, hidden: true, ...(why ? { hiddenWhy: String(why) } : {}) });
+
 // Didactic tags of a task (docs/COURSE_FINAL_SHAPE_B1.md §3, §9; checked by worksheet-studio/didactics/finalShape.js):
 //   task     catalogue id (R01…G13); without it the block type's default applies (taskCatalogue.js DEFAULT_TASK)
 //   harno    the Harno B1 format the task practises in exam form (R1, R2, R3a, R3b, R4, L1, L2, L3a, L3b, L4, W1a, W1b,

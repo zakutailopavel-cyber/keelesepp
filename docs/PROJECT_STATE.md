@@ -1,3 +1,12 @@
+## 2026-11-25 — B1/B2 kursuse väravad v5 „tunni eelarve” (agent/b1b2-gates-v5)
+
+- Main: b6414d4 (2026-11-25). Haru tehtud `agent/b1b2-method-v5` (b3ffd7c, METHODOLOGY_B1_B2_V5.md) peale; draft-PR „Course gates v5 for B1/B2 (lesson budget)”. Kursuse sisu ei muudetud, deploy'd ega production'i kirjutusi pole.
+- Uus: `admin/course/methodV5.js` (väravad G1–G13, aruanne), `methodV5.test.js`, `strictModulesV5.json` (`{ "b1": [], "b2": [] }` — tühi; vana `strictModules.json` on teine värav ja jäi puutumata), `tools/course-audit/method-v5.mjs` (`npm run course:method-v5 -- --course b1 --module 1`).
+- G2: nimekirjas mooduli lehtedel `meta.methodV5`; `quality.js` ei rakenda neile 40–55 min ja 6–18/5–9 plokki, `depth.js` ei rakenda ≥ 25 min drille ega ≥ 2 täislauseülesannet. Uus `hide(block, why)` (blocks.js): `hidden: true` plokk jääb faili (id alles), aga ei ole üheski lehes ega värava loendis.
+- Kontrollid: `npx vitest run src/features/worksheet-generator` 89 faili läbi (1 skip), `npx vitest run src/features/worksheet-studio` 95 läbi; eslint muudetud failidel 0 viga. Proovina a2b1-module-01 nimekirjas: v5 test kukub ainult v5 rikkumiste tõttu, teised testid läbi.
+- Praegu (aruanne): B1 moodul 1 — 90 rikkumist (tunnis 26 plokki / ≈ 130 min, kontrollis 3 lehte ja 34–36 plokki), B2 moodul 17 — 66 (tunnis 21–22 plokki / ≈ 135–140 min, kontroll 085 37 plokki).
+- Piirangud: B2 järeldusküsimused leitakse sõnade järgi, kahte häält ei kontrollita; aja hinnang `timeEstimate.js` järgi; finalShape V-reeglid ja jaamade reeglid (B2 moodulid 1–16) võivad v5 eelarvega vastuolus olla — vaata, kui moodul lülitatakse sisse.
+- Järgmine samm: sisuagent kirjutab B1 mooduli 1 ümber v5 järgi, lisab `"a2b1-module-01"` `strictModulesV5.json`-i `b1` nimekirja ja kontrollib `method-v5.mjs` + vitest'iga.
 ## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)
 
 - #1304 reeglid ei mahtunud: Firestore „Total size of compiled executables must be smaller than 256000 bytes” (+348 B). Minimaalne versioon: text-võtmetes `fills`; `whiteboardElementUpdateValid` lubab muutust, kus muutuvad ainult `fills` + meta. Avaldatud Rules API kaudu 2026-11-24 23:32 UTC, live = repo.
