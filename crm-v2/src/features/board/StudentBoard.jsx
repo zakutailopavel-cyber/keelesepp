@@ -22,6 +22,8 @@ import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
 import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
 import { selectionText } from './selectionText.js';
 import { isWorksheetPage } from './lessonBoards.js';
+import BlankFillText from './BlankFillText.jsx';
+import { fillPatch, fillable } from './blankFill.js';
 import './board.css';
 
 // „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
@@ -293,6 +295,10 @@ export default function StudentBoard({
   // a worksheet fits by the sheet itself, not by drawings far beside it (owner 2026-10-10: the sheet was tiny for the student)
   const sheetFit = (width) => fitSheet({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, width, { insetRight });
   const fail = (message) => (nextError) => setError(nextError?.message || message);
+  // an answer typed into a gap of the teacher's text (blankFill.js): only that gap is written, not the teacher's text,
+  // and it is no step of „Võta tagasi”
+  const saveFill = (element) => (gap, value) => service.update(studentId, pageId, element, fillPatch(gap, value), user)
+    .catch(fail('Vastust ei saanud salvestada.'));
   const local = (event) => {
     const rect = svgRef.current.getBoundingClientRect();
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
@@ -1272,8 +1278,12 @@ export default function StudentBoard({
       const isNote = element.type === 'note';
       const runs = isNote ? null : spansOf(element);
       const rich = runs && runs.some((span) => Object.keys(span).length > 1);
-      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={isNote ? element.h : Math.max(element.h, textBox(element.text || '', element.fontSize || 18, 60, { width: element.w }).h)} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) openEditor(element); }}>
-        <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{rich
+      // a text with answer boxes has taller lines (board.css .has-gaps)
+      const gaps = fillable(element);
+      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={isNote ? element.h : Math.max(element.h, textBox(element.text || '', element.fontSize || 18, 60, { width: element.w }).h) * (gaps ? 1.35 : 1)} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) openEditor(element); }}>
+        <div data-element-id={element.id} className={isNote ? 'sb-note' : `sb-text${gaps ? ' has-gaps' : ''}`} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{gaps
+          ? <BlankFillText element={element} onSave={saveFill(element)} />
+          : rich
           ? runs.map((span, index) => <span key={index} data-element-id={element.id} style={spanCss(span, element.fontSize || 18)}>{span.t}</span>)
           : element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
       </foreignObject>;
@@ -1379,8 +1389,9 @@ export default function StudentBoard({
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onDragOver={mediaDragOver} onDrop={mediaDrop}
-    onPointerDownCapture={(event) => { if (!mediaDown(event)) { sheetPointerDown(event); navDown(event); } }} onPointerMove={stageMarquee} onPointerUp={stageMarquee} onPointerCancel={stageMarquee} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
+    onPointerDownCapture={(event) => { if (event.target?.closest?.('.sb-gap')) return; if (!mediaDown(event)) { sheetPointerDown(event); navDown(event); } }} onPointerMove={stageMarquee} onPointerUp={stageMarquee} onPointerCancel={stageMarquee} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
     {room ? null : boardToggle}
+    {!staff && elements.some(fillable) ? <p className="sb-fill-hint" role="note">Kirjuta vastused kastidesse · Впиши ответы</p> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }} onMouseUp={checkSelection} onTouchEnd={checkSelection}>
       <BoardBookmarkContext.Provider value={sheetBookmarks}>{activeSheet.content}</BoardBookmarkContext.Provider>
     </div> : null}

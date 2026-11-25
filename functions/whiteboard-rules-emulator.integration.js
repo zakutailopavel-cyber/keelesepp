@@ -257,6 +257,21 @@ test("everything the teacher draws or writes carries the teacher mark and is saf
   assert.equal((await commit(ctx.teacherToken, [{ delete: documentName(`${base}/t-note`) }])).status, 200);
 });
 
+test("the student types answers into the gaps of the teacher's text, but cannot change the text itself (2026-11-25)", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const base = `whiteboards/${ctx.studentId}/elements`;
+  const task = { type: "text", x: 10, y: 10, w: 640, h: 200, text: "1. Ma ostsin uue ____ (jope).", color: "#1C2B3A", fontSize: 18, byStaff: true };
+  assert.equal((await commit(ctx.teacherToken, [createElement(`${base}/t-task`, ctx.teacherUid, task)])).status, 200);
+  const filled = await commit(ctx.studentToken, [updateElement(`${base}/t-task`, ctx.studentUid, { ...task, fills: { 0: "jope" } })]);
+  assert.equal(filled.status, 200, JSON.stringify(filled.body));
+  assert.equal((await commit(ctx.studentToken, [updateElement(`${base}/t-task`, ctx.studentUid, { ...task, text: "muudetud", fills: { 0: "jope" } })])).status, 403, "the text stays the teacher's");
+  assert.equal((await commit(ctx.studentToken, [updateElement(`${base}/t-task`, ctx.studentUid, { ...task, x: 300, fills: { 0: "jope" } })])).status, 403, "no moving it");
+  const studentText = { type: "text", x: 10, y: 300, w: 200, h: 40, text: "minu ____", color: "#1C2B3A", fontSize: 18 };
+  assert.equal((await commit(ctx.studentToken, [createElement(`${base}/s-text`, ctx.studentUid, studentText)])).status, 200);
+  assert.equal((await commit(ctx.teacherToken, [updateElement(`${base}/t-task`, ctx.teacherUid, { ...task, fills: { 0: "jopet" } })])).status, 200, "the teacher may correct an answer");
+});
+
 test("nobody writes to a completed lesson snapshot", async () => {
   requireSafeEmulatorEnvironment();
   const ctx = await seed();

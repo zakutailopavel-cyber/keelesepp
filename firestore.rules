@@ -3868,7 +3868,7 @@ service cloud.firestore {
         && (
           data.type != 'text'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'spans', 'color', 'fontSize', 'fontFamily', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'spans', 'color', 'fontSize', 'fontFamily', 'fills', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             // rich text (2026-11-04): styled runs of `text`; the client checks each run
             && (!('spans' in data) || (data.spans is list && data.spans.size() <= 400))
             && data.x is number && data.y is number
@@ -4024,7 +4024,7 @@ service cloud.firestore {
         && after.type == before.type
         && after.get('byStaff', false) == before.get('byStaff', false)
         && after.get('byStudent', false) == before.get('byStudent', false)
-        && (staff || ((!(before.type in ['image', 'pdf']) || before.get('byStudent', false) == true) && before.get('byStaff', false) != true))
+        && (staff || ((!(before.type in ['image', 'pdf']) || before.get('byStudent', false) == true) && before.get('byStaff', false) != true) || after.diff(before).affectedKeys().hasOnly(['fills', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision']))
         && (
           !(after.type in ['image', 'pdf'])
           || (

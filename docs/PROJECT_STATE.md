@@ -7,6 +7,18 @@
 - Praegu (aruanne): B1 moodul 1 — 90 rikkumist (tunnis 26 plokki / ≈ 130 min, kontrollis 3 lehte ja 34–36 plokki), B2 moodul 17 — 66 (tunnis 21–22 plokki / ≈ 135–140 min, kontroll 085 37 plokki).
 - Piirangud: B2 järeldusküsimused leitakse sõnade järgi, kahte häält ei kontrollita; aja hinnang `timeEstimate.js` järgi; finalShape V-reeglid ja jaamade reeglid (B2 moodulid 1–16) võivad v5 eelarvega vastuolus olla — vaata, kui moodul lülitatakse sisse.
 - Järgmine samm: sisuagent kirjutab B1 mooduli 1 ümber v5 järgi, lisab `"a2b1-module-01"` `strictModulesV5.json`-i `b1` nimekirja ja kontrollib `method-v5.mjs` + vitest'iga.
+## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)
+
+- #1304 reeglid ei mahtunud: Firestore „Total size of compiled executables must be smaller than 256000 bytes” (+348 B). Minimaalne versioon: text-võtmetes `fills`; `whiteboardElementUpdateValid` lubab muutust, kus muutuvad ainult `fills` + meta. Avaldatud Rules API kaudu 2026-11-24 23:32 UTC, live = repo.
+- **Risk:** reeglid on 256 kB piiril — iga uus reegel vajab kokkuhoidu mujal.
+
+## 2026-11-25 — Tahvel: lüngad õpetaja tekstis (agent/board-fill-blanks)
+
+- Omanik: õpilane ei saanud õpetaja teksti lünki täita (Anastasiia L., „Õpetaja teksti saab muuta ainult õpetaja”).
+- Õpetaja tekstis (byStaff text) saab iga ≥3 punkti / alakriipsu / „…” õpilase jaoks kastiks (`board/blankFill.js`, `BlankFillText.jsx`). Vastused: sama elemendi väli `fills` ({"0": "jope"}), kirjutatakse üks lünk korraga (`fills.N`). Õpetaja tekst jääb muutmatuks. Enter → järgmine kast. Vihje „Kirjuta vastused kastidesse” all.
+- Reeglid: text-elemendil lubatud `fills` (map ≤ 200); `whiteboardFillOnly` — mitte-staff tohib byStaff-tekstil muuta ainult `fills` + meta. Emulaatoritest whiteboard-rules-emulator.integration.js.
+- Kontrollid: vitest board + live-classroom läbi; eslint 0 viga; emulaator CI-s.
+- Väljalase: ENNE `firebase deploy --only firestore:rules`, siis sait.
 
 ## 2026-11-25 — Avaleht selgemaks, vorm sama (agent/home-clearer)
 
