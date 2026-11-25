@@ -2699,10 +2699,20 @@
     "seconds": 69.1,
     "hash": "1907e96197d917bd8193d0028c4efef30bcb1493"
   },
+  "b1b2-017:017_d_listen": {
+    "src": "/audio/b1b2-017/017_d_listen.mp3",
+    "seconds": 201.9,
+    "hash": "92aa4ad3bc83f23001857e7e9fe9c5cd3644e916"
+  },
   "b1b2-018:018_d_radio": {
     "src": "/audio/b1b2-018/018_d_radio.mp3",
     "seconds": 81,
     "hash": "33ed3ce63cc48b22a0e367b0fd7a91868fac71dd"
+  },
+  "b1b2-019:019_d_listen": {
+    "src": "/audio/b1b2-019/019_d_listen.mp3",
+    "seconds": 190,
+    "hash": "3780095afdcb7cffa76f96ff6f92a69670379329"
   },
   "b1b2-019:019_d_voice": {
     "src": "/audio/b1b2-019/019_d_voice.mp3",
@@ -2724,6 +2734,11 @@
     "seconds": 62.3,
     "hash": "f9438ce1856c256d7fc07c0756611fec7ac76d51"
   },
+  "b1b2-022:022_d_listen": {
+    "src": "/audio/b1b2-022/022_d_listen.mp3",
+    "seconds": 196.5,
+    "hash": "a33a970903dc856db5f874ffbd693d8efb91bb24"
+  },
   "b1b2-022:022_d_radio": {
     "src": "/audio/b1b2-022/022_d_radio.mp3",
     "seconds": 79,
@@ -2733,6 +2748,11 @@
     "src": "/audio/b1b2-023/023_t_voice.mp3",
     "seconds": 49.8,
     "hash": "254dae62b9942b21bc2b07310903d16594b35336"
+  },
+  "b1b2-024:024_d_listen": {
+    "src": "/audio/b1b2-024/024_d_listen.mp3",
+    "seconds": 206.2,
+    "hash": "cbc03c5e942c59a60eaa6f8bd0d8460702f53f24"
   },
   "b1b2-024:024_d_radio": {
     "src": "/audio/b1b2-024/024_d_radio.mp3",
@@ -2749,6 +2769,11 @@
     "seconds": 50.7,
     "hash": "a21517257845ce068799f1d41ab955cb33924c6b"
   },
+  "b1b2-026:026_d_listen": {
+    "src": "/audio/b1b2-026/026_d_listen.mp3",
+    "seconds": 193.4,
+    "hash": "2a3c4ca5841aef1ce931dcb82ee744d0bff32fc1"
+  },
   "b1b2-026:026_p_paths": {
     "src": "/audio/b1b2-026/026_p_paths.mp3",
     "seconds": 48.7,
@@ -2758,6 +2783,11 @@
     "src": "/audio/b1b2-027/027_d_radio.mp3",
     "seconds": 105.7,
     "hash": "e412199b58b589bb3a0702bd678d51ab02d4eca9"
+  },
+  "b1b2-028:028_d_listen": {
+    "src": "/audio/b1b2-028/028_d_listen.mp3",
+    "seconds": 202.9,
+    "hash": "67a14f712b08871bac68fdc3a5f221f9c4744500"
   },
   "b1b2-029:029_d_baker": {
     "src": "/audio/b1b2-029/029_d_baker.mp3",

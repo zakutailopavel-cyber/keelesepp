@@ -1,32 +1,34 @@
 // B2 course (B1 → B2 roadmap), module 5 „Arvamus ja põhjendamine” (b1b2-021…025), stage B2-.
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–4. Module goal (the learner): „Ma oskan oma arvamust öelda, põhjendada ja teise arvamusega
-// viisakalt arvestada”; module product „Minu seisukoht” (025 Kasuta, the S1 one-minute talk).
-// The topic is opinion and argument on real, current and non-divisive Estonian questions of the learner's own life: the
-// clock change, the Christmas or New Year tree, a child's screen time, the daily trip to work or school.
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner answers in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 5).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   021 facts    „Kas kella keeramine lõpeb kunagi?”                   health   final present: a 1-minute radio answer (S16)
-//   022 debate   „Päris kuusk või kunstkuusk?”                         nature   final decide: a debate with a vote (S17)
-//   023 case     „Mitu tundi ekraani on lapsele liiga palju?”          family   final negotiate: three family rules (S17)
-//   024 project  „Auto, buss või jalgsi: mis sinu teekond tegelikult maksab?”  money  final plan: my trip card (W15 home)
-//   025 exam     Kontroll 5 in Harno B2 form + „Minu seisukoht” as the S1 one-minute talk.
-// Grammar line (B12H, roadmap module 5) by discovery and spiralled: certainty and hedging — kindlasti, ilmselt,
-// tõenäoliselt, võib-olla, vaevalt (no second negation), ma kahtlen, kas …, fact vs opinion (021; again 023 know box,
-// 025); argument connectors with the verb second — esiteks, pealegi, näiteks, seega, järelikult, kokkuvõttes; sest / kuna
-// keep the order (022; again 024, 025); concession and softening — kuigi …, (on) siiski / ometi without „aga”, olen
-// osaliselt nõus, ma pakuksin, kas poleks parem, kas me võiksime (023; again 024 exam cards, 025); comparison — võrreldes
-// + -ga, erinevalt + -st, seevastu, mida … seda, keskvõrre + kui, eelis / puudus (024; previewed in 023, again 025).
-// The one long text of the module's teaching lessons is the topic opener (021 station 2, ≈ 340 words, after a 15-minute
-// hook and pre-taught words). The course's cast is not used.
-// Kept: lesson ids and the goal keys g_vocab / g_read / g_notice / g_use (g_listen added like module 4). The v2 storyline
-// version (the debate club, the Kalamaja tram) is in git history before 2026-11-18; the v3 file is in
-// archive/v3/b2/module05.js, the v1 file in archive/v1/b2/module05.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, strictModulesV5.json) on the v3 station engine with the
+// v4 task formats (docs/COURSE_DESIGN_STATIONS.md §7), built like modules 1–4 (b2/module01.js … module04.js): one real
+// communicative outcome a lesson, ONE input, ≤ 4 / 4 / 5 blocks a sheet and ≤ 14 a lesson, a 75-min core in 4 stations.
+//   Avasta  (4): station 1 one statement to answer at once (021: the module's cold task, a 5-minute opinion in writing
+//                without help), station 2 the lesson's words, one explanatory scheme and the ONE input — reading about
+//                480 words with 3 inference questions (021, 023) or listening ~3.5 min with 2 voices and 10 items (022, 024).
+//   Harjuta (4): station 3 the rule (the B1 form as a one-line review, then the B2 step), two form tasks of 9–10 items
+//                without a word bank (one of them a coherent text) and one register task (a slogan → a weighed sentence,
+//                speech → writing, sharp → polite, talk → proposal).
+//   Kasuta  (5): station 4 the plan, the product (a radio interview, a debate with keyword cards, a family council, a talk
+//                with a doubter — each with hidden information), the home writing of ~140 or ~180 words with the 1-min
+//                voice message, the analytic Harno B2 rubric (a borderline sample in the teacher's note) and the exit
+//                „Ma oskan …” with three success criteria.
+//   021 facts    „Kas kella keeramine lõpeb kunagi?”      health   reading „Tund aega, mille üle vaieldakse”   source and certainty
+//   022 debate   „Päris kuusk või kunstkuusk?”            nature   radio debate „Kaks häält”, 2 voices          building an argument
+//   023 case     „Mitu tundi ekraani on lapsele …?”       family   reading „Ekraan ei ole vaenlane …”           conceding and refuting
+//   024 project  „Auto, buss või jalgsi …?”               money    radio talk with a mobility researcher        comparing options and data
+//   025 exam     Module control: one sheet, 45 min, listening + writing (module 1 R + S, 2 L + S, 3 R + W, 4 the mock).
+// Module requirements (v5 §2): cold task 021_d_cold (a 5-min opinion in writing, no phrases, no opening; module 4 measured
+// speech) ↔ parallel new task 025_t_cold (same conditions, new statement); a speech without phrases in every other
+// station 1 (022–024); hidden-information cards 021_t_interview, 022_t_debate, 023_t_council, 024_t_explain („Varjatud
+// info:”); link task 024_t_plan (the learner's own trip on peatus.ee); one scheme a teaching lesson (021 flow, 022 flow,
+// 023 formula, 024 compare); debate cards with 2–3 keywords (022_t_debate); the pictures (art/visuals/b2-module-05.js)
+// stand before the input; texts are adapted learning texts without exact statistics („KeeleSepp õppetekst”, owner
+// 2026-11-25); no story cast (the family chat with names left), no dictation, no „Kas teadsid?”.
+// Kept: lesson ids, the four lesson topics and formats, the goal keys g_read / g_notice / g_use (b2/lessonGoals.js).
+// Removed blocks stay in the file as hide(block, why) (blocks.js): off every sheet, ids and learners' answers kept; their
+// closed drills still feed the Harjuta practice engine (practice/engine/extract.js), with their old explanations.
+// The v4 file of 2026-11-18 is in git history (before this commit); the v3 file is in archive/v3/b2/module05.js.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -37,669 +39,57 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every lesson (v4; hidden in v5: the home task is the writing on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 5. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
 const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the home voice message of v5 (§3): one line at the end of the home writing (a learner who cannot record says it in class)
+const VOICE_HOME = 'Salvesta ka 1-minutiline häälsõnum samal teemal.';
 
-export const MODULE = { id: 'b1b2-module-05', course: 'b2', title: 'Arvamus ja põhjendamine', level: 'B2-', design: 'v3-stations', template: 'v4' };
+// why a block left the sheet (v5 §4)
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_DRILL = 'closed drill / exit gaps → Harjuta (v5 §4: drills off the lesson sheet)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home task is the writing on the sheet with its 1-min voice message (v5 §3)';
+const CUT_HOOK = 'v5: station 1 is one statement the learner answers at once (5 min); the hook text and the talk merged';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) and a second input';
+const CUT_TIP = '„Kas teadsid?” (v5 §4: cut unless the task uses it)';
+const CUT_SHORT = 'a short clip or text below B2 as the input (audit 2026-11-25): replaced by the lesson\'s one input';
+const CUT_OLDTASK = 'v4 task replaced by the v5 task of the same station (new id, other block type)';
+const CUT_CAST = 'a family story with names (owner 2026-11-17: B1/B2 not on one storyline) and below B2 as the input (90 words)';
+const CUT_ESSAY = 'home essay without a source and without a rubric (audit 2026-11-25): now 022_t_arutlus with the radio debate as its source and the analytic rubric';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, listening + writing (v5 §5)';
 
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 1–4, 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (käänded, sõnajärg sidendi järel, kuigi-lause, tingiv kõneviis, võrdlus) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+// short: the one-line descriptors (the same four criteria), where the full ones would leave the self-check alone on a page
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = false) => {
+  const b = B.rubricW2(id, title);
+  return teach(purpose({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Analüütiline hindamisjuhend (Harno B2): neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Sama juhendiga kontrollid oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, 'Enne saatmist näed, mille eest hindaja punkte annab.'), sample);
+};
+// a home text is written at home: fewer lines on the sheet, so the sheet ends on a full page
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// a kept block with a changed field (instruction, title …)
+const patch = (b, data) => ({ ...b, data: { ...b.data, ...data } });
+// the control's recordings, locked as at Harno: the interview twice, the four short notices once (a 51-s clip)
+const twice = (b) => ({ ...b, data: { ...b.data, plays: 2, lockPlays: true } });
+const once = (b) => ({ ...b, data: { ...b.data, plays: 1, lockPlays: true } });
 // an exam part header carries the goal of its part: b2/lessonGoals.test.js asks every non-text block of a B2 sheet for one
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
-export const LESSONS = withShapes({
-  'b1b2-021': {
-    title: 'Kas kella keeramine lõpeb kunagi?',
-    phases: grammar('Keel: kui kindel ma olen — kindlasti, ilmselt, tõenäoliselt, võib-olla, vaevalt; mulle tundub; ma kahtlen, kas …'),
-    format: 'facts',
-    topic: 'health',
-    canDo: 'Ma eristan tekstis fakti, arvamust ja ennustust ning räägin raadioküsitluses 1 minuti, mida arvan kella keeramisest: näitan, kui kindel ma olen (kindlasti, ilmselt, vaevalt), ja toon kaks põhjust.',
-    teacherPage: {
-      goal: 'Ученик отличает факт от мнения и прогноза в тексте о переводе часов, выражает степень уверенности (kindlasti, ilmselt, vaevalt, ma kahtlen, kas) и говорит 1 минуту своё мнение для радиоопроса.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б (устал или слабый): крючок и голосование; станция 2 — только слова и абзацы 2–3 текста, остальное дома; станция 3 — шкала уверенности и 4 ответа; станция 4 — опрос один раз и ответ радио без вопросов журналиста.',
-      hook: '«В последнее воскресенье октября часы перевели на час назад. Ты заметил? Как ты спал? Голосуем: отменить перевод часов — да, нет, всё равно?» Проголосуйте сами первым одной фразой («Ma olen kindlasti poolt, sest …»), потом ученик. Первые 5 минут не исправлять.',
-      plan: [
-        '0–4: крючок — голосование «kas kella keeramine tuleks lõpetada?» и одна фраза о своём сне',
-        '4–15: станция 1 — разговор: сон после перевода часов, смена, ребёнок, утро или вечер',
-        '15–30: станция 2 — слова (2 мин), прогноз «Почему часы до сих пор переводят?», текст темы, 7 высказываний: факт, мнение или прогноз',
-        '30–42: станция 3 — заметить в тексте → шкала уверенности → ответить другу так уверенно, как позволяют факты → 4 своих прогноза',
-        '42–57: станция 4 — радиоопрос (4 голоса): кто что думает и насколько уверен; свой ответ радио 1–2 минуты',
-        '57–69: «Kui aega jääb» — мини-дебаты: летнее или зимнее время навсегда?',
-        '69–76: проверка на выходе, «Ma oskan …», разбор 3 ошибок',
-        '76–83: домашнее задание: комментарий 120–150 слов, запись 1 минуты, слова',
-        '83–90: запас',
-      ],
-      sources: 'Текст станции 2: Еврокомиссия (публичный опрос 2018: 4,6 млн ответов, 84 % за отмену перевода часов), Европарламент (26.03.2019: 410 за, 192 против), ERR (2018: правительство и комиссия Рийгикогу по делам ЕС за отмену и постоянное летнее время; 28.05.2026: министры Балтии за летнее время, Финляндия — за зимнее, решения в ближайшее время не ждут; исследования связывают перевод часов с риском инфаркта, недосыпом и худшей концентрацией), ERR, «Ratas: kellakeeramise lõpetamist tuleb tõsiselt kaaluda» (2018) и timeanddate.com (Эстония не переводила часы в 2000–2001, вернула летнее время в 2002). Радиоопрос — учебный сценарий.',
-      groups: 'Голосование — все сразу, руки. Станция 1 — в парах. Опрос — каждый сам, сверка в паре. Ответ радио: один — журналист с вашими двумя вопросами, другой отвечает; в 1:1 журналист — вы.',
-      errors: [
-        '«Vaevalt see ei juhtu» → «Vaevalt see juhtub» (vaevalt уже отрицание; второе «ei» меняет смысл).',
-        '«Võib olla jääb suveaeg» в значении «может быть» → «Võib-olla jääb suveaeg» (наречие пишется через дефис).',
-        '«Ma kahtlen, et …» → «Ma kahtlen, kas …» (после kahtlema — kas).',
-        '«Mulle tundub, et 84 % on poolt» → факт не «кажется»: «Küsitluse järgi …», «ERR-i andmetel …»; мнение — «mulle tundub, minu arvates».',
-      ],
-      notes: [
-        'Формат — анализ фактов: в тексте смешаны факты, мнения и прогнозы. Ночная смена: в ночь перевода часов смена длится на час дольше или короче — это главный аргумент уставшего ученика. Маме: режим сна ребёнка. Пенсионеру: часы в доме, лекарства по времени. Студенту: светлые вечера после лекций.',
-        'Многие ученики помнят, что в России перевод часов отменили в 2011 году, а в 2014 году перешли на постоянное зимнее время: спросите «Kas see oli sinu arvates hea otsus?» — личный опыт сильнее любого текста.',
-        'Обратная связь, 2–3 цели: слово уверенности соответствует фактам; vaevalt без второго отрицания; факт с источником, мнение — с «minu arvates / mulle tundub». На станции 3 сначала подсказка («Kui kindel sa tegelikult oled?»), рекаст — только если ученик не исправил сам.',
-      ],
-    },
-    discover: [
-      station(B.text('021_d_hook', 'Kell keerati tagasi', 'Oktoobri viimasel pühapäeval keerati kella tund aega tagasi. Kas märkasid? Kuidas sa sel nädalal magasid? Hääleta: kas kella keeramine tuleks lõpetada — jah, ei või ükskõik? Ütle ka, kui kindel sa oled.'), 1, 15),
-      inLesson(teach(tag(purpose(B.speaking('021_d_talk', 'Minu uni ja kellaaeg.', 'Vasta igale küsimusele ja too üks näide oma elust.', [
-        'Kas sinu uni märkab kella keeramist?',
-        'Kellele on see kõige raskem: lapsele, vahetustega töötajale või eakale? Miks?',
-        'Kumb meeldib sulle rohkem: pikk suveõhtu või valge talvehommik?',
-      ], [150, 210], ['Mulle tundub, et …', 'Ma olen kindel, et …', 'Ma ei ole kindel, kas …']), 'Sinu kogemus annab tunni küsimusele esimese näite.'), { task: 'S02', fluency: true }),
-      'Üks-ühele: hääletage mõlemad ja rääkige ka ise lühidalt oma unest. Ära paranda; lõpus ütle üks sõna, mida õpilane vajas ja ei teadnud. Kui õpilane töötab öösiti: „Mis juhtus sinu vahetusega sel ööl, kui kella keerati?”')),
-      station(tag(B.vocab('021_d_vocab', 'Enne lugemist: sõnad.', ['kella keerama — переводить часы', 'suveaeg — летнее время', 'uni — сон', 'fakt — факт', 'kindlasti — непременно', 'ilmselt — по-видимому', 'tõenäoliselt — вероятно', 'vaevalt — вряд ли', 'kahtlema — сомневаться', 'ennustama — предсказывать']), { topic: ['kella keerama', 'suveaeg'] }), 2, 15),
-      B.topicOpener('021_d_open', 'Moodul 5. Kas kella keeramine lõpeb?', [
-        'Kaks korda aastas keerame kella: märtsi viimasel pühapäeval tund aega edasi ja oktoobri viimasel pühapäeval tund aega tagasi. Suveaeg annab pikad heledad õhtud, talveaeg ehk tavaline aeg valgemad hommikud. Paljud ei märka muutust üldse, teised magavad pärast seda terve nädala halvasti. Kõige raskem on see väikestele lastele, kes ei tea kellast midagi, ja inimestele, kes töötavad vahetustega: öine vahetus on sel ööl tund aega pikem või lühem. Uuringud seostavad kella keeramist unepuuduse, halvema keskendumise ja isegi suurema infarktiriskiga, sest see segab meie ööpäevarütmi ehk keha sisemist kella.',
-        'Euroopa Liit on kella keeramise lõpetamist arutanud juba aastaid. 2018. aastal vastas Euroopa Komisjoni küsitlusele 4,6 miljonit inimest ja 84 protsenti neist soovis kella keeramise lõpetada. Euroopa Parlament hääletas 2019. aasta märtsis samuti lõpetamise poolt. Otsust ei ole aga siiani tehtud, sest riigid ei suuda kokku leppida, kumb aeg jääb: suve- või talveaeg. Lõunas tahetakse pigem pikki suveõhtuid, põhjas valgeid talvehommikuid, ja keegi ei taha, et naabritega tekiks tunnine vahe.',
-        'Eesti on proovinud ka ilma kella keeramiseta elada. 2000. ja 2001. aastal kella ei keeratud, kuid 2002. aastal võeti suveaeg tagasi, sest erinev aeg naabritega tegi asjaajamise keeruliseks. Eesti valitsus toetab kella keeramise lõpetamist ja eelistab püsivat suveaega. Soome tahab aga jääda talveajale. Kuna Tallinn ja Helsingi on tihedalt seotud, ei taha Eesti Soomest erinevat aega. Ministrite sõnul ei ole lähiajal otsust oodata.',
-        'Mis saab edasi? Mõni ütleb, et kella keeramine kaob kindlasti, sest inimesed on sellest väsinud. Teised kahtlevad, kas kõik riigid kunagi kokku lepivad. Ilmselt keerame kella veel mõne aasta ja vaevalt see muutub enne, kui naabrid on ühel meelel. Tõenäoliselt jääb vaidlus ka pärast otsust: hommikuinimene tahab valgeid hommikuid, õhtuinimene pikki õhtuid. Ja võib-olla on just see kõige parem näide sellest, et ühel küsimusel võib olla mitu head vastust.',
-        'Selles moodulis õpid oma arvamust ütlema ja põhjendama: kui kindel sa oled, millised on sinu argumendid, kuidas viisakalt vastu vaielda ja kuidas kahte lahendust võrrelda. Teemad on päris Eesti vaidlused: kellaaeg, jõulukuusk, laste ekraaniaeg ja teekond tööle.',
-      ], 'Euroopa Komisjon, avalik konsultatsioon suveaja kohta (2018); Euroopa Parlament, hääletus 26.03.2019; ERR, „Komisjon: Eesti toetab kellakeeramise lõpetamist ja püsivat suveaega” (2018) ja „Kellakeeramise lõppu Eestis pole Soome pärast lähiajal näha” (28.05.2026); ERR, „Ratas: kellakeeramise lõpetamist tuleb tõsiselt kaaluda” (2018), Eesti aeg 2000–2002', [
-        'Kas sina hääletaksid suve- või talveaja poolt? Miks?',
-        'Mis sa arvad, miks ei ole riigid siiani kokku leppinud?',
-        'Kas sinu kodumaal keeratakse kella? Kas see on sinu arvates hea?',
-        'Kui kindel sa oled, et Eesti lõpetab kella keeramise kümne aasta jooksul?',
-      ]),
-      tag(purpose(B.categorize('021_d_kind', 'Fakt, arvamus või ennustus?', 'Loe iga lauset ja otsusta: kas see on kontrollitav fakt, kellegi arvamus või ennustus tuleviku kohta? Pane iga lause õigesse kasti.', [
-        ['Fakt', ['Euroopa Parlament hääletas 2019. aastal kella keeramise lõpetamise poolt.', '2000. ja 2001. aastal Eestis kella ei keeratud.', 'Komisjoni küsitluses soovis 84 protsenti vastanutest kella keeramise lõpetada.']],
-        ['Arvamus', ['Suveaeg on parem, sest pärast tööd on rohkem valget aega.', 'Kella keeramine on mõttetu vana harjumus.']],
-        ['Ennustus', ['Kella keeramine kaob kindlasti, sest inimesed on sellest väsinud.', 'Vaevalt see muutub enne, kui naabrid on ühel meelel.']],
-      ], 'full', 'g_read'),'Kui eristad fakti arvamusest, ei lase sa end uudistes ega vaidluses eksitada.'), { task: 'R13' }),
-    ],
-    practice: [
-      station(B.notice('021_p_notice', 'Märka: kui kindel kirjutaja on?', [
-        'Tekstist: kella keeramine kaob **kindlasti** · teised **kahtlevad, kas** kõik riigid kokku lepivad · **ilmselt** keerame kella veel mõne aasta · **vaevalt** see muutub · **tõenäoliselt** jääb vaidlus',
-        'Kindluse skaala: **kindlasti, kahtlemata** (100 %) → **ilmselt, tõenäoliselt** (umbes 80 %) → **võib-olla, vist** (50 %) → **vaevalt, ma kahtlen, kas …** (umbes 10 %) → **kindlasti mitte** (0 %).',
-        '**Vaevalt** on juba eitus: Vaevalt see **muutub**. (mitte: vaevalt see ei muutu)',
-        '**Ma kahtlen, kas** … : Ma kahtlen, **kas** riigid kokku lepivad. (mitte: kahtlen, et …)',
-        'Lause alguses tuleb tegusõna tavaliselt kohe järele: **Ilmselt keerame** kella veel. **Võib-olla jääb** suveaeg. **võib-olla** = может быть; **võib olla** = может быть чем-то: See **võib olla** hea mõte.',
-        'Fakt vajab allikat: **küsitluse järgi, ERR-i andmetel**. Arvamus: **minu arvates, mulle tundub, ma leian**.',
-      ], 'full'), 3, 12),
-      teach(tag(purpose(B.choice('021_p_sure', 'Sõber on liiga kindel.', 'Sõber kirjutab kõike väga kindlalt. Vali vastus, mis sobib faktidega ja on õiges vormis.', [
-        ['Fakt: riigid ei ole seitsme aastaga kokku leppinud. Sõber: „Järgmisel aastal enam kella ei keerata!”', 'Vaevalt lõpeb kella keeramine juba järgmisel aastal.', 'Kindlasti lõpeb kella keeramine järgmisel aastal.', 'Vaevalt ei lõpe kella keeramine järgmisel aastal.'],
-        ['Fakt: Eesti eelistab suveaega, Soome talveaega. Sõber: „Mis aeg meile lõpuks jääb?”', 'Ma ei ole kindel: võib-olla suveaeg, võib-olla talveaeg.', 'Kindlasti jääb meile talveaeg.', 'Võib olla jääb kindlasti suveaeg.'],
-        ['Fakt: 84 protsenti vastanutest soovis lõpetamist. Sõber: „Kella keeramine ei sega kedagi.”', 'Ilmselt segab see paljusid, sest enamik soovis lõpetamist.', 'Vaevalt on keegi kella keeramise vastu.', 'Ma kahtlen, kas keegi küsitlusele üldse vastas.'],
-        ['Fakt: uuringud seostavad kella keeramist unepuudusega. Sõber: „Uni ei muutu sellest üldse.”', 'Ma kahtlen, kas see on tõsi: uuringud näitavad muud.', 'Ma kahtlen, et see on tõsi: uuringud näitavad muud.', 'Kindlasti on sul õigus.'],
-        ['Fakt: 2000. ja 2001. aastal Eestis kella ei keeratud. Sõber: „Eestis on kella alati keeratud.”', 'Kindlasti mitte: 2000. ja 2001. aastal seda ei tehtud.', 'Ilmselt on sul õigus.', 'Vaevalt ei keeratud.'],
-        ['Sa ei tea, mida ministrid järgmisel aastal teevad. Sõber: „Järgmisel aastal tehakse otsus!”', 'Võib-olla räägitakse sellest jälle, aga ma ei ole kindel.', 'Kindlasti tehakse otsus järgmisel aastal.', 'Vaevalt ei räägita sellest.'],
-      ], 'full', 'g_notice'), 'Sõber saab vastuse, mis on täpselt nii kindel, kui faktid lubavad.'), { task: 'G13' }),
-      'Pärast iga vastust küsi: „Kui kindel sa tegelikult oled? Mis fakt seda näitab?” Kui õpilane valib kahekordse eituse (vaevalt ei …), ütle ainult: „Vaevalt on juba ei.”'),
-      tag(purpose(B.writing('021_p_mine', 'Minu ennustused.', 'Kirjuta 4 lauset: mis sinu elus või linnas järgmise viie aasta jooksul kindlasti, ilmselt, võib-olla ja vaevalt muutub. Pane tegusõna kindlussõna järele.', [4, 4], ['kindlasti', 'ilmselt', 'vaevalt'], 2, 'g_notice'), 'Sinu ennustused on esimesed laused sinu raadiovastuseks.'), { task: 'W02', level: 3 }),
-    ],
-    transfer: [
-      station(tag(purpose(B.examListen('021_t_radio', 'Raadio tänavaküsitlus.', 'Kuula kaks korda: mida arvab iga inimene ja kui kindel ta on?', 'choice', [
-        'Reporter: Tere! Pühapäeval keerati kella. Küsime möödujatelt: kas kella keeramine tuleks lõpetada?',
-        'Mees: Kindlasti! Töötan vahetustega ja eelmisel nädalal kestis minu öine vahetus tund aega kauem. Pärast seda olin kaks päeva nagu udus. Ma ei saa aru, miks me seda ikka veel teeme.',
-        'Naine: Mul on kaheaastane laps ja tema ei tea kellast midagi. Ta ärkab nüüd kell viis, mitte kell kuus. Ma arvan, et kella keeramine tuleks lõpetada, aga ilmselt läheb selleks veel aastaid.',
-        'Pensionär: Mina olen sellega harjunud, mulle on see ükskõik. Vaevalt see üldse muutub, sellest räägitakse juba kakskümmend aastat. Ma kahtlen, kas poliitikud kunagi kokku lepivad.',
-        'Üliõpilane: Mina hääletaksin suveaja poolt. Mulle meeldivad pikad õhtud, siis jõuan pärast loenguid veel õue. Võib-olla on talveaeg tervisele parem, aga ma ei ole selles kindel.',
-        'Reporter: Aitäh! Arvamusi on täpselt nii palju kui vastajaid.',
-      ], [
-        ['Kuidas mõjus kella keeramine vahetustega töötajale?', 'Tema öine vahetus oli tund aega pikem ja ta oli väsinud.', 'Ta ei märganud muutust üldse.', 'Ta jäi selle pärast tööle hiljaks.'],
-        ['Kui kindel on vahetustega töötaja, et kella keeramine tuleks lõpetada?', 'täiesti kindel', 'ei ole kindel', 'kahtleb selles'],
-        ['Mis muutus väikese lapse ema kodus pärast kella keeramist?', 'Laps ärkab tund aega varem.', 'Laps magab hommikul kauem.', 'Laps ei maga enam lõunaund.'],
-        ['Millal lõpeb ema arvates kella keeramine?', 'ilmselt alles mitme aasta pärast', 'kindlasti järgmisel aastal', 'mitte kunagi'],
-        ['Mida arvab pensionär poliitikute kokkuleppest?', 'Ta kahtleb, kas nad kunagi kokku lepivad.', 'Ta on kindel, et muutus tuleb kohe.', 'Ta tahab kindlasti talveaega.'],
-        ['Miks eelistab üliõpilane suveaega?', 'Ta jõuab pärast loenguid veel õue.', 'Talveaeg on tema arvates kindlasti tervisele halb.', 'Ta ärkab hommikul hea meelega vara.'],
-      ], 'g_read'), 'Kuuled, kuidas teised oma arvamust põhjendavad; kohe vastad raadiole ise.'), { voice: 'interview', task: 'L02' }), 4, 15, { final: 'present' }),
-      inLesson(teach(tag(purpose(B.speaking('021_t_say', 'Raadio küsib sinult.', 'Reporter peatab sind tänaval. Räägi 1–2 minutit: mida sa kella keeramisest arvad, kui kindel sa oled, kaks põhjust oma elust ja üks kahtlus. Siis vasta reporteri kahele küsimusele.', [
-        'Kas kella keeramine tuleks lõpetada? Kui kindel sa oled?',
-        'Millised kaks põhjust tulevad sinu elust?',
-        'Milles sa kahtled?',
-        'Kumb aeg peaks jääma: suve- või talveaeg?',
-      ], [120, 180], ['Ma olen kindlasti …', 'Ilmselt …', 'Ma kahtlen, kas …', 'Vaevalt …']), 'Tulemus: sinu arvamus on raadios selge — kuulaja teab, mida sa arvad, miks ja kui kindel sa oled.'), { task: 'S16', main: true, level: 4, harno: 'S1' }),
-      'Õpetaja on reporter. Kuula segamata, siis küsi kaks küsimust: 1) „Aga kui Soome jääb talveajale — kas siis ka?” 2) „Kust sa tead, et see on tervisele halb?” (õpilane peab eristama fakti ja arvamust). Õnnestunud, kui on selge seisukoht, vähemalt kolm erinevat kindlussõna (kindlasti, ilmselt, vaevalt, ma kahtlen, kas …), kaks põhjust oma elust ja üks fakt koos allikaga („küsitluse järgi …”).')),
-      extension(teach(tag(purpose(B.rolecards('021_t_more', 'Mini-väitlus: suveaeg või talveaeg igaveseks?', 'Vali pool ja veena teist: kumb aeg peaks Eestisse igaveseks jääma?',
-        'Sinu pool: püsiv suveaeg.\nArgumendid: pikad heledad õhtud; rohkem aega õues pärast tööd; Eesti valitsus eelistab seda.\nLisa üks näide oma elust.',
-        'Sinu pool: püsiv talveaeg.\nArgumendid: valged hommikud; uneuurijate arvates parem ööpäevarütmile; sama aeg Soomega.\nLisa üks näide oma elust.',
-        ['Ma olen kindel, et …', 'Ilmselt …', 'Sinu argument on hea, aga …'], ['Ma kahtlen, kas …', 'Vaevalt …', 'Tõenäoliselt …']), 'Kiire väitlus näitab, kas oskad oma kindlust ka vastase ees hoida.'), { task: 'S11', level: 4 }),
-      'Kui aega jääb (12 min). Õpilane valib poole, sina võtad teise. Kaks vooru: kumbki 1 minut argumente, siis 3 minutit vaba vaidlust. Takistus: „Soomega erinev aeg — kas see on sinu arvates probleem?” Õnnestunud, kui õpilane ütleb vähemalt ühe kahtluse (ma kahtlen, kas …) ja ühe ennustuse (ilmselt / vaevalt).'), 12),
-      tag(exitCheck(purpose(B.gaps('021_t_exit', 'Kontrolli end: kui kindel?', 'Kirjuta lünka kindlussõna: lause alguses on öeldud, kui kindel kõneleja on.', [
-        'Kindlus umbes 10 %: riigid ei ole seitsme aastaga kokku leppinud, nii et [vaevalt] tuleb otsus juba sel talvel.',
-        'Kindlus 100 %: küsitluse järgi soovis lõpetamist 84 protsenti vastanutest — see on [kindlasti|kahtlemata] suur enamus.',
-        'Kahtlus: ma [kahtlen], kas kõik Euroopa riigid kunagi sama kellaaja valivad.',
-      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas kindlussõnad on käes.')), {}),
-      purpose(B.selfcheck('021_t_self', ['Ma räägin, kuidas kella keeramine minu und ja päeva mõjutab.', 'Ma eristan tekstis fakti, arvamust ja ennustust.', 'Ma näitan sõnadega, kui kindel ma olen (kindlasti, ilmselt, vaevalt, ma kahtlen, kas …).', 'Ma ütlen raadiole 1–2 minutiga oma arvamuse ja kaks põhjust.'], 'Arvamus selge', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.writing('021_t_comment', 'Kodus: kommentaar uudise alla.', 'Kirjuta kodus 120–150 sõna uudisportaali kommentaariumisse: kas kella keeramine tuleks lõpetada ja kumb aeg peaks jääma. Too üks fakt koos allikaga, kaks põhjust oma elust ja näita, kui kindel sa oled.', [10, 14], ['kindlasti', 'ilmselt', 'vaevalt'], 2, 'g_use'), 'Teised lugejad näevad, et sinu arvamus põhineb faktidel, mitte ainult tundel.')), { task: 'W08', level: 3 }),
-      tag(homeTask(purpose(B.speaking('021_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks asi sinu linnas või elus, mis järgmise viie aasta jooksul kindlasti muutub, ja üks, mis vaevalt muutub.', [
-        'Mis kindlasti muutub ja miks sa selles kindel oled?',
-        'Mis vaevalt muutub ja miks?',
-      ], [60, 120]), 'Õpetaja kuulab sinu ennustused ja ütleb, kas kindlussõnad on õiges kohas.')), { task: 'S15' }),
-      homework('021_t_homework', ['1. Kommentaar uudise alla, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
-    ],
-  },
+export const MODULE = { id: 'b1b2-module-05', course: 'b2', title: 'Arvamus ja põhjendamine', level: 'B2-', design: 'v3-stations', template: 'v4' };
 
-  'b1b2-022': {
-    title: 'Päris kuusk või kunstkuusk?',
-    phases: grammar('Keel: argumendi ehitus — esiteks, pealegi, näiteks, seega, järelikult, kokkuvõttes; tegusõna teisel kohal'),
-    format: 'debate',
-    topic: 'nature',
-    canDo: 'Ma kuulan väitlust ja panen kirja argumendi osad, väitlen päris ja kunstkuuse üle ning kirjutan arutluse, kus argument on üles ehitatud nii: seisukoht → põhjus → näide → järeldus (esiteks, pealegi, seega).',
-    teacherPage: {
-      goal: 'Ученик слушает радиодебаты о ёлке, строит аргумент «позиция → причина → пример → вывод» со связками (esiteks, pealegi, seega) и глаголом вторым, спорит и голосует.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б: крючок и голосование; станция 2 — радио один раз и 4 первых пропуска; станция 3 — правило и 4 предложения; станция 4 — одна карточка-аргумент и голосование без второго раунда.',
-      hook: '«Декабрь почти здесь. У тебя дома будет ёлка — к Рождеству или к Новому году? Живая, искусственная или никакой? Поднимите руку и скажите одну причину.» Начните сами: «Meil on kunstkuusk, sest …». Уважительно к обеим традициям: у многих русскоязычных семей это новогодняя ёлка.',
-      plan: [
-        '0–4: крючок — голосование рукой и одна причина',
-        '4–10: станция 1 — разговор: ёлка в детстве и сейчас, кто дома решает',
-        '10–25: станция 2 — слова (2 мин), прогноз «Какая ёлка экологичнее?», радиодебаты дважды, мост аргументов: 8 пропусков',
-        '25–37: станция 3 — связки и порядок слов: заметить в радио → правило → другу связать мысли (6 предложений) → свой аргумент из 4 предложений',
-        '37–52: станция 4 — факты (график Carbon Trust и цены RMK) и 5 ответов противнику фактом, дебаты: два аргумента, вопрос противника, голосование; план рассуждения и 2 первых предложения',
-        '52–64: «Kui aega jääb» — мини-дебаты: запретить ли новогодний фейерверк?',
-        '64–72: проверка на выходе, «Ma oskan …», разбор 3 ошибок',
-        '72–80: домашнее задание: рассуждение 150–180 слов, запись 1 минуты, слова',
-        '80–90: запас',
-      ],
-      sources: 'График: Carbon Trust (Великобритания; BBC, 2016): искусственная ёлка 2 м ≈ 40 кг CO2-экв. (производство), живая ≈ 3,5 кг, если её сожгли или сделали щепу, ≈ 16 кг, если на свалке; искусственную стоит использовать около 10 лет. Цены: RMK, право рубки ели в гослесу (прайс от 07.11.2025: до 1 м — 3 €, 1,1–2 м — 8 €, 2,1–3 м — 13 €), продажа с конца ноября до конца года; ERR: на ёлочных базарах — от 15 €. Радиодебаты — учебный сценарий (Март и Кайди — вымышленные).',
-      groups: 'Голосование — все. Радио — каждый сам, сверка в паре. Дебаты: две команды по 1–2 человека, каждая со своей карточкой; вы — ведущий и судья голосования. В 1:1 противник — вы.',
-      errors: [
-        '«Esiteks, päris kuusk on …» → «Esiteks on päris kuusk …» (без запятой, глагол на втором месте).',
-        '«Seega me ostame kunstkuuse» → в письменном тексте «Seega ostame (me) kunstkuuse»: после связки в начале — глагол.',
-        '«Sest ta lõhnab hästi.» отдельным предложением → «…, sest ta lõhnab hästi» (sest и kuna не начинают ответ-предложение и не меняют порядок слов).',
-        '«Pealegi» в значении «но» → pealegi добавляет аргумент той же стороны; против — aga, kuid.',
-      ],
-      notes: [
-        'Формат — дебаты с голосованием: в конце каждый голосует и говорит, какой аргумент его убедил. Кто без ёлки: «Kas sinu peres on mõni teine traditsioon? Kumba kuuske sa sõbrale soovitaksid?» Маме: безопасность для малыша и кошки; пенсионеру: традиция и запах; студенту: цена и маленькая комната.',
-        'Обратная связь, 2–3 цели: глагол после связки; все четыре части аргумента; пример из жизни, а не «sest see on hea». Во время дебатов не перебивать, 3 замечания после голосования.',
-      ],
-    },
-    discover: [
-      // the hook is the talk's own first question (the lesson keeps 16 blocks)
-      station(inLesson(teach(tag(purpose(B.speaking('022_d_talk', 'Kuusk koju?', 'Detsember on peaaegu käes. Kas sinu kodus on jõulukuusk või uusaastakuusk? Päris, kunstlik või üldse mitte? Hääleta käega ja ütle üks põhjus. Siis vasta küsimustele.', [
-        'Milline kuusk oli sinu lapsepõlve kodus ja kes selle tõi?',
-        'Kes teie peres otsustab, milline kuusk tuleb?',
-        'Mis on sulle kuuse juures kõige tähtsam: lõhn, hind või mugavus?',
-      ], [150, 210], ['Meil on …, sest …', 'Esiteks …', 'Minu jaoks on kõige tähtsam …']), 'Sinu enda põhjused on tänase väitluse esimesed argumendid.'), { task: 'S11', fluency: true }),
-      'Üks-ühele: räägi ka ise oma pere kuusest. Ära paranda; kirjuta tahvlile õpilase kaks põhjust — need tulevad jaamas 4 tagasi.')), 1, 10),
-      station(tag(B.vocab('022_d_vocab', 'Enne kuulamist: sõnad.', ['päris kuusk — живая ёлка', 'kunstkuusk — искусственная ёлка', 'okkad — хвоя', 'lõhn — запах', 'traditsioon — традиция', 'jalajälg — (углеродный) след', 'prügila — свалка', 'otsustama — решать', 'argument — аргумент', 'järeldus — вывод']), { topic: ['kunstkuusk', 'jalajälg'] }), 2, 15),
-      tag(purpose(B.listening('022_d_radio', 'Raadioväitlus: kuusk metsast või poest?', 'Kuula kaks korda ja täida argumendisild: kirjuta lünka 1–2 sõna või arv.', [
-        'Saatejuht: Tere! Detsembris vaidlevad paljud pered sama küsimuse üle: kas tuua koju päris kuusk või panna üles kunstkuusk? Stuudios on metsandustudeng Mart ja disainipoe omanik Kaidi.',
-        'Mart: Mina olen päris kuuse poolt. Esiteks kasvab kuusk Eesti metsas, kunstkuusk aga tuuakse tavaliselt Aasiast. Pealegi on päris kuuse jalajälg väike, kui see tehakse pärast pühi hakkpuiduks. Näiteks saab riigimetsast kahemeetrise kuuse raieõiguse kaheksa euroga. Seega ei ole päris kuusk ka kallis.',
-        'Kaidi: Mina arvan teisiti. Hea kunstkuusk teenib perel kümme aastat või kauemgi. Esiteks ei pea igal aastal metsas ega kuuseturul käima. Teiseks ei kuku okkad põrandale ja väikese lapse või koera jaoks on see ohutum. Järelikult on kunstkuusk mugav ja pika aja peale ka mõistlik.',
-        'Mart: Aga kunstkuusk on plastist. Kui see visatakse ära juba kolme aasta pärast, on kahju loodusele suur.',
-        'Kaidi: Nõus. Seepärast tuleb osta kvaliteetne kuusk ja seda kaua kasutada. Kokkuvõttes oleneb kõik sellest, kui kaua sa oma kuuske kasutad.',
-        'Saatejuht: Aitäh! Kuulajad, hääletage meie kodulehel!',
-      ], [
-        'Mart on [päris kuuse] poolt.',
-        'Marti esimene põhjus: kuusk kasvab Eesti [metsas].',
-        'Kunstkuusk tuuakse Marti sõnul tavaliselt [Aasiast].',
-        'Päris kuuse jalajälg on väike, kui see tehakse pärast pühi [hakkpuiduks].',
-        'Marti näide: kahemeetrise kuuse raieõigus maksab riigimetsas [kaheksa|8] eurot.',
-        'Kaidi sõnul teenib hea kunstkuusk perel [kümme|10] aastat või kauem.',
-        'Kunstkuuse eelis on see, et [okkad] ei kuku põrandale.',
-        'Kaidi järeldus: kunstkuusk on [mugav] ja pika aja peale mõistlik.',
-      ], 'g_read'), 'Argumendisild näitab, millest koosneb tugev argument; kohe ehitad sama silla ise.'), { voice: 'interview', task: 'L04' }),
-    ],
-    practice: [
-      station(B.notice('022_p_notice', 'Märka: kuidas argument koos püsib?', [
-        'Raadiost: **Esiteks kasvab** kuusk Eesti metsas · **Pealegi on** päris kuuse jalajälg väike · **Näiteks saab** riigimetsast … · **Seega ei ole** päris kuusk kallis · **Järelikult on** kunstkuusk mugav',
-        'Argumendisild: **seisukoht** (Mina olen … poolt) → **põhjus** (esiteks, teiseks, pealegi, lisaks) → **näide** (näiteks, minu kogemuse põhjal) → **järeldus** (seega, järelikult, seetõttu, kokkuvõttes).',
-        'Kui sidesõna on lause alguses, tuleb tegusõna kohe järele: **Seega ei ole** see kallis. **Pealegi kukuvad** okkad maha. (Kõnes kuuled ka „Seega see ei ole …”, kirjas pane tegusõna teiseks.)',
-        '**sest** ja **kuna** sõnajärge ei muuda: …, **sest** kuusk **kasvab** Eestis. **Kuna** okkad **kukuvad**, valime kunstkuuse.',
-        '**pealegi** lisab sama poole argumendi; **aga, kuid** pööravad vastu.',
-      ], 'full'), 3, 12),
-      teach(tag(purpose(B.transformation('022_p_link', 'Sõber valmistub väitluseks.', 'Sõbra märkmetes on kaks mõtet. Kirjuta teine lause nii, et see algab antud sõnaga.', [
-        ['Päris kuusk lõhnab metsa järele. → Selle raieõigus on odav.', 'pealegi', 'Pealegi on selle raieõigus odav.|Pealegi on raieõigus odav.'],
-        ['Kunstkuusk teenib kümme aastat. → Igal aastal ei pea uut ostma.', 'seega', 'Seega ei pea igal aastal uut ostma.|Seega ei pea igal aastal uut kuuske ostma.|Seega ei pea me igal aastal uut ostma.'],
-        ['Päris kuuse okkad kukuvad. → Meil oli jaanuaris kogu põrand okkaid täis.', 'näiteks', 'Näiteks oli meil jaanuaris kogu põrand okkaid täis.|Näiteks oli jaanuaris meil kogu põrand okkaid täis.'],
-        ['Kunstkuusk on plastist. → See ei lagune looduses.', 'järelikult', 'Järelikult ei lagune see looduses.'],
-        ['Meie kassile meeldib kuuse otsa ronida. → Me valime väikese kunstkuuse.', 'seetõttu', 'Seetõttu valime me väikese kunstkuuse.|Seetõttu valime väikese kunstkuuse.'],
-        ['Mõlemal kuusel on head ja halvad küljed. → Kõik oleneb perest.', 'kokkuvõttes', 'Kokkuvõttes oleneb kõik perest.'],
-      ], 'full', 'g_notice'), 'Sõbra mõtted on seotud ja sõnajärg õige — tema argument kannab.'), { task: 'G05' }),
-      'Kui õpilane kirjutab „Seega see ei ole …”, ära paranda kohe: küsi „Mis sõna tuleb kirjas kohe sidesõna järel?”'),
-      tag(purpose(B.writing('022_p_bridge', 'Minu argument.', 'Ehita oma argument 4 lausega: seisukoht, põhjus (esiteks), näide (näiteks) ja järeldus (seega). Sidesõna järel pane tegusõna teisele kohale.', [4, 4], ['esiteks', 'näiteks', 'seega'], 3, 'g_notice'), 'Sinu neljast lausest saab väitluse esimene argument, mille ütled vastasele.'), { task: 'W11', level: 3 }),
-    ],
-    transfer: [
-      station(B.chart('022_t_facts', 'Kuuse jalajälg (kg CO₂ ekvivalenti, 2-meetrine kuusk)', { kind: 'bar', unit: 'kg', series: 'CO₂', rows: ['Kunstkuusk (valmistamine) | 40', 'Päris kuusk prügilas | 16', 'Päris kuusk hakkpuiduks või ahju | 3,5'], source: 'Carbon Trust (Suurbritannia), BBC, 2016' }), 4, 15, { final: 'decide' }),
-      B.know('022_t_know', ['Riigimetsast saab jõulukuuse raieõiguse (loa ise üks kuusk maha võtta) osta RMK kaudu novembri lõpust aasta lõpuni. 2025. aasta hinnad olid kuni meetrise kuuse eest 3 eurot, 1,1–2-meetrise eest 8 eurot ja 2,1–3-meetrise eest 13 eurot. Kuuse võib võtta ainult kaardil märgitud kohtadest, näiteks elektriliini alt. Kuuseturul maksab kuusk tavaliselt alates 15 eurost.'], 'RMK jõulukuuskede hinnakiri (07.11.2025); ERR', 'Kas teadsid? Kuusk riigimetsast'),
-      tag(purpose(B.table('022_t_evidence', 'Faktid väitluseks.', 'Vastane ütleb midagi. Leia joonisest või kastist fakt, millega vastata, ja kirjuta see lühidalt.', 'Vastane ütleb, Sinu fakt', [
-        '„Päris kuusk on kallis, see maksab vähemalt kakskümmend eurot.” | [3–13 eurot/raieõigus 3–13 eurot/8 eurot/riigimetsas 3–13 eurot/15 eurot/alates 15 eurost]',
-        '„Kunstkuusk on loodusele alati parem kui päris kuusk.” | [40 kg/kunstkuusk 40 kg/40 kg ja 3,5 kg/3,5 kg/3,5 ja 40 kg]',
-        '„Prügilasse viidud päris kuusk on sama halb kui kunstkuusk.” | [16 kg/16 ja 40 kg/16 kg ja 40 kg/40 ja 16 kg]',
-        '„Metsast võib kuuse võtta igalt poolt, kust tahad.” | [ainult kaardil märgitud kohtadest/kaardil märgitud kohtadest/elektriliini alt]',
-        '„Kuuse saab RMK-lt osta ainult jõululaupäeval.” | [novembri lõpust aasta lõpuni/novembri lõpust]',
-      ], 'g_read'), 'Fakt koos arvuga teeb sinu väitluse argumendi tugevaks.'), { task: 'R08' }),
-      inLesson(teach(tag(purpose(B.rolecards('022_t_debate', 'Väitlus: kumb kuusk sel aastal?', 'Vali pool ja räägi 2 minutit: kaks argumenti silla järgi (põhjus → näide → järeldus). Siis vasta vastase küsimusele ja hääletage.',
-        'Päris kuuse pool.\nFaktid: jalajälg hakkpuiduna 3,5 kg; raieõigus 3–13 eurot; Eesti metsast.\nLisa oma näide ja üks argument, mida faktides ei ole.',
-        'Kunstkuuse pool.\nFaktid: üks kuusk 10 aastat; okkad ei kuku; ohutum lapsele ja loomale.\nLisa oma näide ja üks argument, mida faktides ei ole.',
-        ['Esiteks …', 'Pealegi …', 'Näiteks …', 'Seega …'], ['Ma saan aru, aga …', 'Järelikult …', 'Kokkuvõttes …']), 'Tulemus: hääletus näitab, kumb argument oli tugevam — ja sinu pere saab sel aastal põhjendatud kuuseotsuse.'), { task: 'S17', level: 4 }),
-      'Õpetaja on vastane (õpilase valitud poole vastu). Kumbki räägib 2 minutit, siis küsib teiselt ühe küsimuse: „Mis on sinu näide?” või „Kust sa seda tead?”. Takistus kunstkuuse vastu: „Aga kui see läheb kolme aasta pärast prügilasse?”; päris kuuse vastu: „Aga okkad ja kass?” Lõpus hääletage ja öelge, milline argument veenis. Õnnestunud, kui õpilase argumendis on kõik neli osa, vähemalt kolm sidesõna ja tegusõna on sidesõna järel teisel kohal.')),
-      teach(tag(homeTask(purpose(B.writing('022_t_essay', 'Arutlus: päris kuusk või kunstkuusk? Tunnis plaan, kodus lõpp.', 'Tunnis: plaan ja kaks esimest lauset. Kodus 150–180 sõna: mõlema poole argumendid, igaühele näide, ja lõpus sinu järeldus. Kasuta sidesõnu esiteks, pealegi, näiteks, seega ja kokkuvõttes.', [12, 16], ['esiteks', 'pealegi', 'näiteks', 'seega', 'kokkuvõttes'], 4, 'g_use'), 'Sinu pere või sõbrad loevad arutlust ja teevad oma kuuseotsuse.')), { task: 'W14', main: true, harno: 'W2b' }),
-      'Kodutöö. Järgmises tunnis loe arutlus ette; õpetaja on „kahtleja” ja küsib ühe näite kohta: „Kas see on fakt või arvamus?” Tagasiside: argumendi neli osa, sidesõna järel tegusõna, iga poole näide, järeldus, mis tuleb argumentidest.'),
-      extension(teach(tag(purpose(B.speaking('022_t_more', 'Mini-väitlus: kas uusaasta ilutulestik tuleks keelata?', 'Vali pool ja too üks argument silla järgi: põhjus, näide ja järeldus.', [
-        'Kellele teeb ilutulestik rõõmu ja kellele mitte?',
-        'Mis on sinu kogemus aastavahetusel?',
-        'Mis oleks sinu ettepanek linnale?',
-      ], [120, 180], ['Esiteks …', 'Näiteks …', 'Seega …']), 'Kiire väitlus uuel teemal näitab, et argumendisild töötab igal pool.'), { task: 'S14', fluency: true }),
-      'Kui aega jääb (12 min). Argumendid, kui õpilasel neid napib: poolt — lemmikloomad kardavad, prügi tänaval, õnnetused; vastu — traditsioon, laste rõõm, üks kord aastas. Kumbki 1 minut, siis vaba vaidlus. Fakte ära lisa: siin harjutame argumendi ehitust, mitte seadust.'), 12),
-      tag(exitCheck(purpose(B.gaps('022_t_exit', 'Kontrolli end: sidesõna ja sõnajärg.', 'Kirjuta lünka sidesõna, mis sobib lause alguses nimetatud argumendi osaga. Vaata, mis sõna tuleb kohe pärast seda.', [
-        'Järeldus — meie korter on väike. [Seega|Järelikult|Seetõttu] sobib meile kõige paremini väike kuusk laual.',
-        'Veel üks põhjus — päris kuusk on pärit Eesti metsast. [Pealegi|Lisaks] lõhnab see terve kuu.',
-        'Näide — kunstkuuske saab kaua kasutada. [Näiteks] on meie oma juba kaksteist aastat vana.',
-      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas argumendi sidesõnad on käes.')), {}),
-      purpose(B.selfcheck('022_t_self', ['Ma räägin oma pere kuusetraditsioonist.', 'Ma panen kuuldud väitlusest kirja seisukoha, põhjuse, näite ja järelduse.', 'Ma seon argumendi sidesõnadega ja panen tegusõna teisele kohale (Seega ei ole …).', 'Ma väitlen ja hääletan põhjendatult.'], 'Argument kannab', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.speaking('022_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks argument sinu valitud kuuse poolt — põhjus, näide ja järeldus.', [
-        'Milline kuusk ja miks?',
-        'Mis on sinu näide ja mis sellest järeldub?',
-      ], [60, 120]), 'Õpetaja kuulab sinu argumenti ja ütleb, kas kõik neli osa on olemas.')), { task: 'S15' }),
-      homework('022_t_homework', ['1. Arutlus, 150–180 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
-    ],
-  },
-
-  'b1b2-023': {
-    title: 'Mitu tundi ekraani on lapsele liiga palju?',
-    phases: grammar('Keel: viisakas vastuväide — kuigi …, on siiski …; olen osaliselt nõus; ma pakuksin; kas poleks parem …?'),
-    format: 'case',
-    topic: 'family',
-    canDo: 'Ma loen pere vestlust laste ekraaniaja üle, vaidlen viisakalt vastu (kuigi …, siiski; olen osaliselt nõus) ja lepin pereliikmetega suuliselt kokku ühised ekraanireeglid (ma pakuksin, kas poleks parem …).',
-    teacherPage: {
-      goal: 'Ученик понимает семейный спор об экранном времени, возражает вежливо (kuigi …, siiski; olen osaliselt nõus) и договаривается о трёх правилах (ma pakuksin, kas poleks).',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б: крючок (угадать своё экранное время); станция 2 — чат и 3 первых вопроса; станция 3 — правило и 4 исправления; станция 4 — голосовое один раз, переговоры без письменного договора (3 правила устно).',
-      hook: '«Сколько часов в день ты смотришь в экран — телефон, компьютер, телевизор? Сначала угадай, потом посмотри в телефоне (Ekraaniaeg / Digital Wellbeing).» Покажите своё число первым. Ученик без смартфона угадывает про телевизор.',
-      plan: [
-        '0–4: крючок — угадать и проверить своё экранное время',
-        '4–10: станция 1 — разговор: экраны в моей семье, правила в детстве',
-        '10–25: станция 2 — слова (2 мин), семейный чат (бабушка, мама, папа, тётя), 6 вопросов: кто что думает и почему; «Kas teadsid?» о рекомендации ВОЗ',
-        '25–37: станция 3 — заметить в чате → правило kuigi / siiski / ometi и смягчение → исправить резкий ответ брата (6 предложений) → свой ответ бабушке',
-        '37–52: станция 4 — голосовое сестры, семейный совет: договориться о трёх правилах (учитель — бабушка), записать договорённость',
-        '52–64: «Kui aega jääb» — ролевая игра: телефон в спальне подростка ночью',
-        '64–72: проверка на выходе, «Ma oskan …», разбор 3 ошибок',
-        '72–80: домашнее задание: письмо сестре 120–150 слов, запись 1 минуты, слова',
-        '80–90: запас',
-      ],
-      sources: '«Kas teadsid?»: ВОЗ, рекомендации по физической активности, сидячему поведению и сну детей до 5 лет (24.04.2019): детям до 2 лет экранное время не рекомендуется, 2–4 года — не больше часа в день, меньше — лучше. Чат и голосовое — учебные тексты (семья вымышленная).',
-      groups: 'Станция 1 — в парах. Чат — каждый сам, сверка в паре. Семейный совет: 2–3 человека в разных ролях (мама, бабушка, папа) с вашими карточками, ученик ведёт; в 1:1 бабушка — вы.',
-      errors: [
-        '«Kuigi telefon on mugav, aga …» → «Kuigi telefon on mugav, on sellel siiski …» (kuigi без aga).',
-        '«Kuigi …, mul on vaja …» → «Kuigi …, on mul vaja …» (после придаточного главное предложение начинается с глагола).',
-        '«Ma pakuks», «kas me võiks» → «ma pakuksin», «kas me võiksime» (условное наклонение с личным окончанием).',
-        '«Sa ei saa aru!» → «Ma saan sinust aru, kuid …» (сначала признать мнение, потом возразить).',
-      ],
-      notes: [
-        'Формат — реальный случай: семья спорит, ученик помогает договориться. Без детей: тётя или дядя, крёстный, старший брат, сосед. Пенсионеру — роль бабушки меняется местами: он бабушка, вы — мама. Уставшему после смены — его собственный телефон вечером: «Kas sina jõuad ise ilma telefonita magama minna?».',
-        'Обратная связь, 2–3 цели: kuigi + siiski / ometi без «aga» и с глаголом в начале главного предложения; смягчение (pakuksin, kas poleks, võiksime); сначала признать мнение собеседника. В переговорах не перебивать, 3 замечания в конце.',
-      ],
-    },
-    discover: [
-      // the hook is the talk's own first question (the lesson keeps 16 blocks)
-      station(inLesson(teach(tag(purpose(B.speaking('023_d_talk', 'Arva ära: minu ekraaniaeg.', 'Mitu tundi päevas vaatad sina ekraani: telefoni, arvutit ja telerit kokku? Arva kõigepealt, siis vaata telefonist ekraaniaega. Kas number üllatas sind? Siis vasta küsimustele.', [
-        'Kes teie peres vaatab kõige rohkem ekraani ja mis on selle peamine põhjus?',
-        'Kas sinu lapsepõlves oli kodus ekraanireegleid ja kes need reeglid tegi?',
-        'Mis on sinu arvates ekraanil lapse jaoks head ja mis võib olla halb?',
-      ], [150, 210], ['Meie peres vaatab kõige rohkem ekraani …', 'Kuigi ekraan on mugav, on sellel siiski …', 'Minu arvates on lapse jaoks kõige tähtsam …']), 'Sinu pere kogemus on tunni juhtumi esimene näide.'), { task: 'S01', fluency: true }),
-      'Üks-ühele: näita oma ekraaniaega esimesena. Ära paranda; lõpus ütle üks lause, mida õpilane ütles kõige viisakamalt.')), 1, 10),
-      station(tag(B.vocab('023_d_vocab', 'Enne lugemist: sõnad.', ['ekraaniaeg — экранное время', 'nutiseade — смарт-устройство', 'multikas — мультик', 'reegel — правило', 'kokkulepe — договорённость', 'kuigi — хотя', 'siiski — всё же', 'ometi — тем не менее', 'osaliselt nõus — частично согласен', 'vaidlema — спорить']), { topic: ['ekraaniaeg', 'kokkulepe'] }), 2, 15),
-      // a family chat of four: a text with names (B.dialogue shows two speakers only)
-      B.text('023_d_chat', 'Pere vestlusgrupp: kas tahvel lauale?', '**Vanaema Galina:** Eile õhtusöögi ajal vaatas Miša jälle tahvlist multikaid. Kolmeaastane laps ei peaks ju ekraani vaatama!\n\n**Ema Olga:** Kuigi ma saan sinust aru, on mul siiski vaja vahel rahulikult süüa teha. Pool tundi multikaid ei ole maailma lõpp.\n\n**Isa Andres:** Olen osaliselt nõus. Pool tundi on okei, aga mitte söögilaua taga.\n\n**Tädi Kati:** Kas poleks mõistlikum leppida kokku kindlas ajas? Näiteks ainult pärast lõunaund.\n\n**Vanaema Galina:** Ja teie ise? Andres vaatab söögi ajal ometi uudiseid.\n\n**Isa Andres:** Õige. Ma pakuksin, et söögi ajal on telefonid ja tahvel kõik kapis.'),
-      tag(purpose(B.choice('023_d_who', 'Kes mida arvab?', 'Vali vestluse põhjal iga küsimuse juurde üks õige vastus neljast.', [
-        ['Mille üle on vanaema eile õhtul pere vestlusgrupis nii väga mures?', 'Kolmeaastane Miša vaatas õhtusöögi ajal jälle tahvlist multikaid.', 'Miša ei taha õhtul üldse süüa ega magama minna.', 'Ema vaatab ise liiga palju telefoni ja ei mängi lapsega.', 'Tädi on lubanud lapsele kingiks uue tahvli osta.'],
-        ['Miks lubab ema oma kolmeaastasel pojal õhtuti vahel multikaid vaadata?', 'Tal on vaja vahel rahulikult süüa teha.', 'Ta arvab, et multikad õpetavad lapsele kiiresti eesti keelt.', 'Vanaema palus tal lapsele iga õhtu multikaid näidata.', 'Lasteaias soovitati lapsele õhtuti ekraani näidata.'],
-        ['Millega on isa vanaema mõtetest nõus ja millega mitte?', 'Pool tundi on tema arvates okei, aga mitte söögilaua taga.', 'Ta on vanaemaga täiesti nõus, et ekraani ei tohi üldse olla.', 'Ta arvab, et laps võib vaadata nii palju, kui tahab.', 'Ta tahab, et laps vaataks multikaid ainult hommikul.'],
-        ['Mida pakub tädi Kati kogu perele, et vaidlus lõppeks?', 'Leppida kokku kindlas ajas, näiteks ainult pärast lõunaund.', 'Müüa tahvel ära ja osta lapsele raamatuid.', 'Lasta lapsel multikaid vaadata ainult vanaema juures.', 'Küsida enne otsust nõu lasteaiaõpetajalt.'],
-        ['Mida heidab vanaema vestluse lõpus lapse vanematele ette?', 'Isa vaatab ise söögi ajal uudiseid.', 'Ema ei tee õhtul piisavalt tervislikku toitu.', 'Vanemad ei luba vanaemal lapsega õues käia.', 'Tädi kingib lapsele liiga palju mänguasju.'],
-        ['Mis on isa ettepanek kogu perele vestluse kõige lõpus?', 'Söögi ajal on kõik telefonid ja tahvel kapis.', 'Laps vaatab ekraani ainult õhtul enne magamaminekut.', 'Ainult täiskasvanud võivad söögi ajal telefoni kasutada.', 'Iga pereliige otsustab oma ekraaniaja ise.'],
-      ], 'full', 'g_read'), 'Enne kui oma arvamuse ütled, tead täpselt, mida igaüks arvab ja miks.'), { task: 'R12' }),
-      B.know('023_d_know', ['Maailma Terviseorganisatsiooni (WHO) soovituse järgi ei ole alla kaheaastasele lapsele ekraaniaeg soovitatav. Kahe- kuni neljaaastase lapse ekraaniaeg võiks olla kõige rohkem üks tund päevas, ja mida vähem, seda parem. Ekraani asemel soovitab WHO liikumist, mängu ja ettelugemist.'], 'WHO, soovitused alla viieaastaste laste liikumise, istumise ja une kohta (24.04.2019)', 'Kas teadsid? WHO soovitus'),
-    ],
-    practice: [
-      station(B.notice('023_p_notice', 'Märka: kuidas vaielda nii, et tüli ei tule?', [
-        'Vestlusest: **Kuigi** ma saan sinust aru, **on** mul **siiski** vaja … · **Olen osaliselt nõus.** · **Kas poleks** mõistlikum …? · Andres vaatab **ometi** uudiseid · **Ma pakuksin**, et …',
-        '**kuigi** + kõrvallause, siis pealause, mis algab tegusõnaga: **Kuigi** pool tundi on lühike, **on see siiski** liiga palju. **aga** ei ole vaja (mitte: Kuigi …, aga …).',
-        '**siiski** ja **ometi** = всё же, тем не менее: Telefon on mugav. **Siiski ei peaks** see olema söögilaual.',
-        'Pehmenda tingiva kõneviisiga: ma **pakuksin**, et … · **kas poleks** parem …? · **kas me võiksime** …? · **oleks hea**, kui me **räägiksime** …',
-        'Kõigepealt tunnista teise arvamust: **Ma saan sinust aru, kuid** … · **Selles on sul õigus, samas** … · **Olen osaliselt nõus.**',
-      ], 'full'), 3, 12),
-      teach(tag(purpose(B.errorfix('023_p_fix', 'Vend kirjutab liiga teravalt.', 'Sinu vend tahab vanaemale vastata, aga igas reas on üks viga. Kirjuta rida õigesti ja viisakalt.', [
-        ['Kuigi sul on õigus, aga ema vajab ka puhkust.', 'Kuigi sul on õigus, vajab ema siiski ka puhkust.|Kuigi sul on õigus, vajab ema ka puhkust.|Kuigi sul on õigus, vajab ema ometi ka puhkust.'],
-        ['Kuigi multikad on lühikesed, need väsitavad last.', 'Kuigi multikad on lühikesed, väsitavad need last.|Kuigi multikad on lühikesed, väsitavad need siiski last.'],
-        ['Ma pakuks, et teeme nädalavahetusel ekraanivaba päeva.', 'Ma pakuksin, et teeme nädalavahetusel ekraanivaba päeva.|Pakuksin, et teeme nädalavahetusel ekraanivaba päeva.'],
-        ['Kas poleks parem, kui me räägime sellest enne koos?', 'Kas poleks parem, kui me räägiksime sellest enne koos?|Kas poleks parem, kui räägiksime sellest enne koos?'],
-        ['Ma olen osaline nõus, aga söögi ajal võiks telefon olla kapis.', 'Ma olen osaliselt nõus, aga söögi ajal võiks telefon olla kapis.|Olen osaliselt nõus, aga söögi ajal võiks telefon olla kapis.'],
-        ['Kas me võiks proovida üht nädalat ilma tahvlita?', 'Kas me võiksime proovida üht nädalat ilma tahvlita?|Kas me võiksime proovida ühte nädalat ilma tahvlita?|Kas võiksime proovida üht nädalat ilma tahvlita?'],
-      ], 'full', 'g_notice'), 'Vanaema loeb vastust ja tunneb, et teda kuulati — tüli ei tule.'), { task: 'G06' }),
-      'Paranduse järel küsi: „Kuidas vanaema seda lauset kuuleb: teravalt või viisakalt?” Kui õpilane jätab „kuigi … aga”, ütle ainult: „Kuigi juba ütleb aga.”'),
-      tag(purpose(B.writing('023_p_mine', 'Minu vastus vanaemale.', 'Kirjuta pere vestlusesse 3 lauset: tunnista vanaema mõtet, vaidle vastu kuigi-lausega ja tee pehme ettepanek (ma pakuksin / kas poleks parem).', [3, 3], ['kuigi', 'siiski', 'pakuksin'], 2, 'g_notice'), 'Sinu vastus aitab perel rahulikult edasi rääkida.'), { task: 'W12', level: 3 }),
-    ],
-    transfer: [
-      station(tag(purpose(B.listening('023_t_voice', 'Õe häälsõnum.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna või arv.', [
-        'Olga: Tere! Kas sul on hetk aega? Meie pere vestlusgrupis läks eile päris tuliseks. Ema arvab, et Miša ei tohi tahvlit üldse näha, Andres tahab söögi ajal uudiseid vaadata ja mina olen kahe tule vahel.',
-        'Ausalt öeldes vaatab Miša praegu ekraani umbes kaks tundi päevas: hommikul pool tundi, kui ma duši all käin, ja õhtul poolteist tundi, kui ma süüa teen. Ma tean, et WHO soovitab kõige rohkem ühe tunni. Aga kuidas ma siis süüa teen?',
-        'Pühapäeval tuleme kõik sinu juurde lõunale. Kas sa aitaksid meil kokku leppida? Sina oskad rahulikult rääkida ja sind kuulavad kõik. Mõtle palun välja kolm reeglit, mis sobiksid nii emale kui ka mulle. Aitäh, kallis!',
-      ], [
-        'Pere vestlusgrupis läks eile päris [tuliseks].',
-        'Olga tunneb, et ta on nagu kahe [tule] vahel.',
-        'Miša vaatab praegu ekraani umbes [kaks|2] tundi päevas.',
-        'Õhtul vaatab Miša ekraani poolteist tundi, kui ema [süüa] teeb.',
-        'Pühapäeval tuleb kogu pere sinu juurde [lõunale].',
-        'Olga palub sul välja mõelda [kolm|3] reeglit.',
-      ], 'g_read'), 'Märkmed näitavad, mis on õe tegelik mure ja mida sinult oodatakse.'), { task: 'L07' }), 4, 15, { final: 'negotiate' }),
-      inLesson(teach(tag(purpose(B.rolecards('023_t_council', 'Pere nõupidamine: kolm ekraanireeglit.', 'Sa juhid pere pühapäevast nõupidamist. Kuula teist, vaidle viisakalt vastu ja leppige kokku kolm reeglit.',
-        'Olukord: Miša (3) vaatab ekraani kaks tundi päevas; vanaema tahab null minutit, ema vähemalt pool tundi õhtul.\nSinu eesmärk: kolm reeglit, millega kõik on nõus (millal, kui kaua, kus mitte).\nPiirang: kasuta vähemalt kaks kuigi-lauset ja kaks pehmet ettepanekut.',
-        'Vanaema kaart on õpetajal: tema seisukoht, üks argument ja üks üllatus.',
-        ['Ma saan sinust aru, kuid …', 'Kuigi …, on siiski …', 'Ma pakuksin, et …', 'Kas poleks parem, kui …?'], ['Aga lapsele on see kahjulik!', 'Meie ajal …', 'Olgu, ma olen osaliselt nõus …']), 'Tulemus: sinu pere kolm ühist ekraanireeglit (millal, kui kaua, kus mitte), mida kõik on nõus pidama; need lähevad sinu kodusesse kirja Olgale.'), { task: 'S17', main: true, level: 4, harno: 'S2' }),
-      'Õpetaja kaart (vanaema; kui õpilane on ise vanavanem, vahetage rollid: tema on vanaema, sina Olga). Seisukoht: kolmeaastane ei peaks ekraani nägema. Argument: „Meie ajal mängisid lapsed õues.” Üllatus (ütle poole vestluse pealt): sa vaatad ise iga õhtu kaks sarja ja Miša istub sinu kõrval. Takistused ükshaaval: 1) „Pool tundi on ka liiga palju!” 2) „Multikad on vene või inglise keeles, laps ei õpi eesti keelt.” 3) „Kes siis reegleid kontrollib?” Õnnestunud, kui õpilane tunnistab vanaema mõtet, kasutab kaks kuigi-lauset ja kaks pehmet ettepanekut ning te lepite kokku kolm reeglit: aeg, kestus ja koht.')),
-      extension(teach(tag(purpose(B.speaking('023_t_more', 'Rollimäng: telefon öösel teismelise toas?', 'Õpetaja on 14-aastane, kes vaatab öösel telefoni ja on hommikul väsinud. Räägi temaga ja leppige kokku, kus telefon öösel on — ilma tülita.', [
-        'Mida sa temas mõistad ja ütled seda kõigepealt?',
-        'Mis on sinu ettepanek ja kuidas sa selle pehmelt ütled?',
-        'Mida teete, kui telefon on tema äratuskell?',
-      ], [120, 180], ['Kuigi ma saan aru, et …', 'Kas poleks parem …?', 'Ma pakuksin …']), 'Teismelisega räägid samamoodi kui vanaemaga: kõigepealt tunnista, siis paku.'), { task: 'S10', level: 4 }),
-      'Kui aega jääb (12 min). Sina oled 14-aastane. Argumendid: „Kõik mu sõbrad kirjutavad õhtul”, „Telefon on minu äratuskell”, „Sina vaatad ka voodis telefoni”. Pakkumine lõpus: telefon on öösel köögis, kui saan vana äratuskella. Õnnestunud, kui õpilane ei käsi, vaid pakub (kas poleks, ma pakuksin) ja kasutab ühe kuigi-lause.'), 12),
-      tag(exitCheck(purpose(B.gaps('023_t_exit', 'Kontrolli end: viisakas vastuväide.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
-        'Kuigi ma saan sinust aru, [olen] ma ekraaniaja koha pealt siiski teist meelt. (olema)',
-        'Ma [pakuksin], et pühapäeviti on meil terve päev ekraanivaba. (pakkuma)',
-        'Kas me [võiksime] proovida üht kuud ilma õhtuse teleta? (võima)',
-      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas kuigi-lause ja tingiv kõneviis on käes.')), {}),
-      purpose(B.selfcheck('023_t_self', ['Ma räägin, kuidas ekraane minu peres kasutatakse.', 'Ma saan pere vestlusest aru, kes mida arvab ja miks.', 'Ma vaidlen viisakalt vastu: kuigi …, siiski; olen osaliselt nõus.', 'Ma lepin pereliikmetega kokku ühised reeglid.'], 'Kokkulepe olemas', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.letter('023_t_letter', 'Kodus: kiri õele.', 'Kirjuta kodus Olgale (või sõbrale, kelle peres on sama mure) 140–160 sõna: millest sa aru said, millega sa ei ole nõus ja miks ning kolm reeglit, mida pakud. Kasuta sõnu kuigi ja siiski ning tingivat kõneviisi.', 'Kallis Olga!', 'Kallistan\n(sinu nimi)', [140, 160]), 'Olga saab sinu kirjast rahuliku plaani ja teab, et sa oled tema poolel, kuigi sa ei ole kõiges nõus.')), { task: 'W04', level: 3 }),
-      tag(homeTask(purpose(B.speaking('023_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks ekraanireegel, mida sa ise järgmisel nädalal proovid, ja miks — kuigi see on raske.', [
-        'Mis reegli sa endale võtad?',
-        'Miks on see raske ja miks sa seda siiski proovid?',
-      ], [60, 120]), 'Õpetaja kuulab sinu plaani ja küsib järgmises tunnis, kuidas läks.')), { task: 'S15' }),
-      homework('023_t_homework', ['1. Kiri õele, 140–160 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
-    ],
-  },
-
-  'b1b2-024': {
-    title: 'Auto, buss või jalgsi: mis sinu teekond tegelikult maksab?',
-    phases: grammar('Keel: võrdlemine — võrreldes bussiga, erinevalt autost, seevastu, mida kaugemal, seda kallim; eelis ja puudus'),
-    format: 'project',
-    topic: 'money',
-    canDo: 'Ma kuulan inimeste lugusid ja loen joonist, võrdlen oma teekonna kahte võimalust nelja kriteeriumi järgi (võrreldes …-ga, erinevalt …-st, seevastu, mida …, seda …) ja kirjutan andmete kokkuvõtte koos oma järeldusega.',
-    teacherPage: {
-      goal: 'Ученик читает статистику поездок на работу (2003 → 2023), сравнивает два варианта своего пути по 4 критериям (võrreldes, erinevalt, seevastu, mida … seda) и выбирает.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б: крючок — два числа своего пути; станция 2 — радио один раз и 4 пропуска; станция 3 — правило и 4 предложения; станция 4 — график и 2 вопроса, таблица сравнения и устное решение без вопросов скептика.',
-      hook: '«Как ты сегодня сюда добрался? Сколько минут и сколько примерно евро это стоило?» Запишите на доске свои два числа, потом числа ученика, и сравните одной фразой: «Võrreldes sinuga sõidan ma kauem».',
-      plan: [
-        '0–4: крючок — два числа своего пути на доске',
-        '4–10: станция 1 — таблица «мой путь вчера», сравнение с учителем',
-        '10–25: станция 2 — слова (2 мин), прогноз «Что выбирают люди: машину, автобус или ноги?», радио: три человека (Нарва, Тарту, Харьюмаа) дважды, 6 пропусков',
-        '25–37: станция 3 — сравнение: заметить в радио → правило → коллега сравнивает автобус и машину: 7 пропусков → 4 своих предложения-сравнения',
-        '37–52: станция 4 — график Статистикаамета 2003/2023 и 5 вопросов; проект «Minu teekond»: два варианта × 4 критерия, решение, объяснить учителю-скептику; план вывода и 2 первых предложения',
-        '52–64: «Kui aega jääb» — игра «Kumb võidab?»',
-        '64–72: проверка на выходе, «Ma oskan …», разбор 3 ошибок',
-        '72–80: домашнее задание: вывод по данным 150–180 слов, запись 1 минуты, слова',
-        '80–90: запас',
-      ],
-      sources: 'График: Statistikaamet, tööjõu-uuring (новость «Fewer and fewer people are commuting on foot and by public transport…», данные 2003 и 2023): на машине 25 % → 46,9 %, общественным транспортом 29,9 % → 17,8 %, пешком 27,3 % → 14,6 %; живущих ближе 2 км от работы — 32,2 % → 22,6 %. Истории трёх людей — учебные тексты; цены не выдумываем — ученик считает свои.',
-      groups: 'Таблица крючка — каждый сам, сравнение в паре. Радио — каждый сам, сверка в паре. Проект — каждый свой путь; в паре второй — «скептик» с вашими двумя вопросами. В 1:1 скептик — вы.',
-      errors: [
-        '«Võrreldes buss» → «Võrreldes bussiga» (võrreldes + -ga).',
-        '«Erinevalt autoga» → «Erinevalt autost» (erinevalt + -st).',
-        '«Mida kaugem, seda kallis» → «Mida kaugemal, seda kallim» (mida … seda — две сравнительные формы).',
-        '«Buss on odavam nagu auto» → «Buss on odavam kui auto» (сравнение — kui, не nagu).',
-      ],
-      notes: [
-        'Формат — мини-проект: продукт — карточка «Minu teekond» (два варианта, 4 критерия, решение). Кто не работает: путь в языковую школу, в магазин, к врачу или к внукам. Цены не выдумываем: ученик считает свои (литр топлива на своей заправке, билет в своём городе).',
-        'Обратная связь, 2–3 цели: падеж после võrreldes / erinevalt; mida … seda с двумя сравнительными; решение с причиной. На станции 3 сначала подсказка («Millega võrdled? Millest erineb?»), рекаст — только если ученик не исправил сам.',
-      ],
-    },
-    discover: [
-      // the hook is the table's own instruction (the lesson keeps 16 blocks)
-      station(teach(tag(purpose(B.table('024_d_trip', 'Kuidas sa siia tulid?', 'Kuidas sa täna siia tulid? (Kui tund on veebis: kuidas sa eile tööle, kooli või poodi läksid?) Mitu minutit see võttis ja umbes mitu eurot maksis? Kirjuta oma numbrid tabelisse ja võrdle õpetajaga ühe lausega.', 'Küsimus, Mina, Õpetaja', [
-        'Kuidas ma liikusin? |  | ',
-        'Mitu minutit see võttis? |  | ',
-        'Mitu eurot see umbes maksis? |  | ',
-        'Mis oli kõige mugavam või ebamugavam? |  | ',
-      ]), 'Sinu numbrid on tunni esimesed andmed: täna võrdled just nendega.'), { task: 'S09', fluency: true }),
-      'Täida ka oma veerg ja ütle esimesena: „Võrreldes sinuga sõidan ma …”. Siis küsi: „Kas sa oled selle teekonnaga rahul?” Ära paranda; kirjuta tahvlile õpilase kaks numbrit — need tulevad jaamas 4 tagasi.'), 1, 10),
-      station(tag(B.vocab('024_d_vocab', 'Enne kuulamist: sõnad.', ['teekond — путь', 'tööle sõitma — ездить на работу', 'kütus — топливо', 'ummik — пробка', 'parkimine — парковка', 'sõiduplaan — расписание', 'eelis — преимущество', 'puudus — недостаток', 'erinevalt — в отличие от', 'seevastu — напротив']), { topic: ['teekond', 'ummik', 'eelis'] }), 2, 15),
-      tag(purpose(B.listening('024_d_radio', 'Raadio: kolm teekonda.', 'Kuula kaks korda: mida iga inimene võrdleb ja mille kasuks ta otsustab? Kirjuta lünka 1–2 sõna või arv.', [
-        'Saatejuht: Kuidas teie tööle või kooli jõuate? Täna räägivad sellest kolm kuulajat.',
-        'Sergei: Elan Narvas ja töötan tehases kolme kilomeetri kaugusel. Varem sõitsin autoga, nüüd käin jalgsi või rattaga. Erinevalt autost ei pea ma kütuse ja parkimise peale mõtlema. Talvel on muidugi külm ja pime, seevastu suvel on teekond päeva parim osa.',
-        'Kertu: Õpin Tartus ja elan ühikas. Bussiga jõuan ülikooli viieteist minutiga, rattaga kümnega. Võrreldes bussiga on ratas kiirem ja tasuta, aga vihma käes jõuan loengusse märjana. Mida külmemaks läheb, seda sagedamini valin bussi.',
-        'Tõnu: Elan Sauel ja töötan Tallinna kesklinnas. Autoga võtab teekond hommikuses ummikus peaaegu tund aega, rongiga veerand tundi ja jalutuskäik jaama veel kümme minutit. Võrreldes autoga säästan rongiga palju raha. Seevastu pean elama sõiduplaani järgi: kui rong läks, siis läks.',
-        'Saatejuht: Kolm kuulajat, kolm valikut. Aga kuidas sina liigud?',
-      ], [
-        'Sergei tehas on tema kodust [kolme|3] kilomeetri kaugusel.',
-        'Erinevalt autost ei pea Sergei mõtlema kütuse ja [parkimise] peale.',
-        'Rattaga jõuab Kertu ülikooli [kümne|10] minutiga, bussiga viieteistkümnega.',
-        'Kui ilm läheb külmemaks, valib Kertu sagedamini [bussi].',
-        'Autoga võtab Tõnu teekond hommikuses [ummikus] peaaegu tund aega.',
-        'Rongi puudus on Tõnu jaoks see, et tuleb elada [sõiduplaani] järgi.',
-      ], 'g_read'), 'Kolm päris elu näidet näitavad, mida inimesed teekonna valikul võrdlevad.'), { voice: 'interview', task: 'L03' }),
-    ],
-    practice: [
-      station(B.notice('024_p_notice', 'Märka: kuidas kahte asja võrrelda?', [
-        'Raadiost: **Võrreldes bussiga** on ratas kiirem · **Erinevalt autost** ei pea ma kütuse peale mõtlema · **seevastu** suvel on teekond päeva parim osa · **Mida külmemaks** läheb, **seda sagedamini** valin bussi',
-        '**võrreldes** + kaasaütlev (-ga): võrreldes **autoga**, võrreldes **eelmise aastaga**',
-        '**erinevalt** + seestütlev (-st): erinevalt **bussist**, erinevalt **minust**',
-        '**seevastu** = напротив, teine pool: Auto on kiire. **Seevastu on** buss odav. (tegusõna kohe järel)',
-        '**mida** + keskvõrre …, **seda** + keskvõrre: **Mida** kaugemal elad, **seda** rohkem maksad.',
-        'Keskvõrre + **kui**: Rong on kiirem **kui** auto. **eelis** (+) ja **puudus** (−): Ratta eelis on hind, puudus on vihm.',
-      ], 'full'), 3, 12),
-      teach(tag(purpose(B.gaps('024_p_forms', 'Kolleeg kaalub: buss või auto?', 'Kolleeg võrdleb oma kaht teekonda. Kirjuta sulgudes olev sõna õiges vormis.', [
-        'Võrreldes [autoga] võtab bussisõit mul hommikul kakskümmend minutit rohkem aega. (auto)',
-        'Erinevalt [bussist] saan autoga lapse otse lasteaia ukse ette viia. (buss)',
-        'Auto on mugav, seevastu on bussipilet palju [odavam] kui kütus ja parkimine. (odav)',
-        'Mida varem ma kodust lahkun, seda [lühem] on hommikune ummik. (lühike)',
-        'Mida rohkem ma jalgsi käin, seda [paremini] ma öösel magan. (hästi)',
-        'Erinevalt minu [naabrist] ei ole mul talvel autole sooja garaaži. (naaber)',
-        'Võrreldes eelmise [aastaga] maksan kütuse eest nüüd rohkem. (aasta)',
-      ], '', 'full', 'g_notice'), 'Kolleeg näeb kahe võimaluse eeliseid ja puudusi ühe pilguga.'), { task: 'G02' }),
-      'Enne kontrolli küsi iga lünga juures: „Millega võrdled? Millest erineb?” Nii tuleb kääne õpilaselt, mitte sinult.'),
-      teach(tag(purpose(B.writing('024_p_mine', 'Minu kaks teekonda.', 'Kirjuta 4 lauset oma kahest päris teekonna võimalusest: üks võrreldes-lause, üks erinevalt-lause, üks seevastu-lause ja üks mida … seda-lause.', [4, 4], ['võrreldes', 'erinevalt', 'seevastu', 'mida'], 3, 'g_notice'), 'Sinu neli lauset on projekti „Minu teekond” mustand.'), { task: 'W03', level: 3 }),
-      'Loe laused ette ja loe kokku, mitu eri võrdlusvormi on õiged (eesmärk: neli). Paranda ainult üks viga: küsi „Millega võrdled? Millest erineb?”.'),
-    ],
-    transfer: [
-      station(B.chart('024_t_chart', 'Kuidas Eestis tööl käiakse (protsenti töötajatest)', { kind: 'bar', unit: '%', series: ['2003', '2023'], rows: ['Autoga | 25 | 46,9', 'Ühistranspordiga | 29,9 | 17,8', 'Jalgsi | 27,3 | 14,6'], source: 'Statistikaamet, tööjõu-uuring 2003 ja 2023' }), 4, 15, { final: 'plan' }),
-      tag(purpose(B.table('024_t_data', 'Mida joonis näitab?', 'Enne oma projekti vaata, kuidas Eesti liigub. Vasta joonise põhjal lühidalt.', 'Küsimus, Vastus', [
-        'Kas autoga tööl käijaid oli 2023. aastal rohkem või vähem kui 2003. aastal? | [rohkem/palju rohkem]',
-        'Kumb oli 2003. aastal populaarsem: ühistransport või auto? | [ühistransport]',
-        'Mitu protsenti töötajatest käis 2023. aastal tööl jalgsi? | [14,6/14,6 %/umbes 15]',
-        'Kumma osa langes kahekümne aastaga rohkem: jalgsi või ühistranspordiga käijate? | [jalgsi/jalgsi käijate]',
-        'Mitu korda rohkem inimesi käis 2023. aastal tööl autoga kui ühistranspordiga? | [umbes 2,5 korda/2,5 korda/kaks ja pool korda/üle kahe korra]',
-      ], 'g_read'), 'Arvud näitavad, kas sinu valik on Eestis tavaline või erand.'), { task: 'R15' }),
-      tag(purpose(B.table('024_t_project', 'Projekt: minu teekond.', 'Vali oma igapäevaseks teekonnaks kaks päris võimalust ja võrdle neid nelja kriteeriumi järgi. Märgi rea lõppu, kumb võidab.', 'Kriteerium, Võimalus 1, Võimalus 2, Kumb võidab?', [
-        'Aeg (minutit ühes suunas, ummik) |  |  | ',
-        'Raha (kütus, pilet, parkimine: eurot kuus) |  |  | ',
-        'Tervis ja liikumine |  |  | ',
-        'Mugavus (ilm, sõiduplaan, eelis ja puudus) |  |  | ',
-      ]), 'Tulemus: sinu kaart „Minu teekond”, mille järgi otsustad, kuidas järgmisel kuul liigud.'), { task: 'W01', level: 3 }),
-      inLesson(teach(tag(purpose(B.rolecards('024_t_explain', 'Seleta oma valikut kahtlejale.', 'Räägi 2–3 minutit: mida sa võrdlesid, mis on kummagi võimaluse eelis ja puudus ning mille kasuks sa otsustad. Siis vasta kahtleja kahele küsimusele.',
-        'Sina: oma projekti kaardiga.\nSinu eesmärk: kahtleja nõustub, et sinu valik on põhjendatud.\nKasuta vähemalt kolme kriteeriumi ja nelja võrdlusvormi.',
-        'Kahtleja kaart on õpetajal: tema kaks küsimust.',
-        ['Võrreldes …-ga …', 'Erinevalt …-st …', 'Seevastu …', 'Mida …, seda …', 'Seega valin …'], ['Aga talvel?', 'Kas sa arvestasid ka …?', 'Olgu, ma olen nõus, kuigi …']), 'Tulemus: sinu otsus on põhjendatud ja sa tead, mida järgmisel kuul proovid.'), { task: 'S12', level: 4 }),
-      'Õpetaja on kahtleja. Kuula segamata, siis küsi: 1) „Aga talvel? Kas sinu otsus jääb samaks?” 2) „Kas sa arvestasid ka parkimist või pileti hinda?” Õnnestunud, kui õpilane võrdleb vähemalt kolme kriteeriumi, kasutab võrreldes-, erinevalt- ja mida … seda-lauset õigesti ja teeb selge otsuse põhjusega.')),
-      teach(tag(homeTask(purpose(B.writing('024_t_summary', 'Andmed ja minu järeldus: tunnis plaan, kodus lõpp.', 'Tunnis: plaan ja kaks esimest lauset. Kodus 150–180 sõna: mida näitab Statistikaameti joonis (2003 ja 2023), mis võiks olla muutuse põhjus, kuidas sinu teekond sellega võrreldes on ja mida sa järgmisel kuul teisiti teed.', [12, 16], ['võrreldes', 'erinevalt', 'seevastu', 'mida'], 3, 'g_use'), 'Sinu kokkuvõte näitab, et oskad andmeid lugeda ja oma elu nendega võrrelda.')), { task: 'W15', main: true, harno: 'W2a' }),
-      'Kodutöö. Järgmises tunnis loe kokkuvõte ette; õpetaja küsib: „Kas see on joonisel või on see sinu arvamus?” Tagasiside: arvud õigesti (2003 → 2023), võrdlusvormid, põhjus kui oletus (ilmselt, võib-olla — tund 21), selge järeldus.'),
-      extension(teach(tag(purpose(B.speaking('024_t_more', 'Mäng: kumb võidab?', 'Õpetaja ütleb kaks asja. Sul on 30 sekundit: võrdle neid kahe lausega ja ütle, kumb võidab.', [
-        'Rong või buss Tallinnast Tartusse?',
-        'Elada tööle lähedal või looduse lähedal?',
-        'Oma auto või rendiauto kord kuus?',
-      ], [120, 180], ['Võrreldes …-ga …', 'Erinevalt …-st …', 'Mida …, seda …']), 'Kiire mäng harjutab võrdlust ilma ettevalmistuseta.'), { task: 'S05', fluency: true }),
-      'Kui aega jääb (12 min). Paarid: rong või buss Tartusse; elektriauto või bensiiniauto; elada linnas või maal; taksoäpp või oma auto; kõndida või sõita trammiga kaks peatust. Iga õige võrdlusvorm on punkt, otsus põhjusega veel üks punkt. Pärast viit paari vahetage rollid: õpilane annab ülesande.'), 12),
-      tag(exitCheck(purpose(B.gaps('024_t_exit', 'Kontrolli end: kolm võrdlust.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
-        'Erinevalt [rongist] sõidab buss ka meie külla. (rong)',
-        'Võrreldes eelmise [kuuga] kõnnin nüüd iga päev rohkem. (kuu)',
-        'Mida rohkem ma kõnnin, seda [vähem] ma väsinud olen. (vähe)',
-      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas võrdlusvormid on käes.')), {}),
-      purpose(B.selfcheck('024_t_self', ['Ma räägin oma teekonnast numbritega.', 'Ma saan aru inimeste lugudest ja joonisest ning võrdlen neid.', 'Ma võrdlen kahte asja: võrreldes …-ga, erinevalt …-st, seevastu, mida …, seda …', 'Ma teen põhjendatud plaani oma teekonna kohta.'], 'Teekond valitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.speaking('024_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: sinu teekond täna ja kümme aastat tagasi — mis on teisiti ja mis on parem?', [
-        'Kuidas sa kümme aastat tagasi liikusid?',
-        'Mis on võrreldes sellega teisiti ja kumb on parem?',
-      ], [60, 120]), 'Õpetaja kuulab sinu võrdlust ja ütleb, kas võrdlusvormid on õiged.')), { task: 'S15' }),
-      homework('024_t_homework', ['1. Andmete kokkuvõte ja järeldus, 150–180 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
-    ],
-  },
-
-  'b1b2-025': {
-    title: 'Kontroll 5 — minu seisukoht',
-    phases: {
-      discover: { label: '1 Lugemine', slot: 1, subtitle: 'Mooduli kontroll, 1. tund: lugemine (45 min).' },
-      practice: { label: '2 Kuulamine', slot: 2, subtitle: 'Mooduli kontroll, 1. tund: keeleosa ja kuulamine (45 min).' },
-      transfer: { label: '3 Kirjutamine ja rääkimine', slot: 3, subtitle: 'Mooduli kontroll, 2. tund: kirjutamine ja rääkimine (80 min).' },
-    },
-    format: 'exam',
-    assessment: true,
-    // v4: the exam sheets are timed by their Harno part headers (timeEstimate.js harnoTimedMinutes, §7.3), not by the
-    // block estimate
-    canDo: 'Ma lahendan Harno B2 vormis lugemis- ja kuulamisülesandeid arvamuste ja vaidluste teemal, kirjutan umbes 140-sõnalise poolametliku kirja ja 180-sõnalise arutluse ning räägin 1 minuti oma seisukohast; kasutan kindlussõnu, sidesõnu, kuigi-lauset ja võrdlust.',
-    // Kontroll 5 in Harno B2 form, written new (owner 2026-11-18): two 90-minute lessons — reading (Avasta, 45 min) and the
-    // module's language part + listening (Harjuta, 12 + 30 min); writing (60 min) and speaking with the module product
-    // (Kasuta, 15 + 5 min). Harno B2 gives R 70, L 40, W 80, S 20 min: every part here is a shorter version with the same
-    // task types (R1, R2a, R3, R4; L3 notes, L4; W1, W2b; S1, S2). Content: module 5 (certainty, argument connectors,
-    // concession and softening, comparison) inside real tasks: arguing online and at the kitchen table, a letter to the
-    // local paper about a cycle path, the clock change and RMK Christmas tree notices, a debate coach on the radio, a bus
-    // stop letter, the cycle path vs public transport essay, the learner's own position, the sports hall vs the library.
-    discover: [
-      B.tip('025_d_how', 'Mooduli kontroll: lugemine (eksami vormis, 45 minutit)', 'Mooduli kontroll kestab kaks tundi. Esimeses tunnis on lugemine ning keeleosa ja kuulamine, teises kirjutamine ja rääkimine. Lugemises on neli osa nagu Harno B2 eksamil, ainult lühemad. Tee kõik ilma sõnaraamatuta.', 'full'),
-      B.vocab('025_d_vocab', 'Tunnid 21–24: sõnad, mis aitavad', ['seisukoht — позиция', 'arvamus — мнение', 'argument — аргумент', 'järeldus — вывод', 'kahtlema — сомневаться', 'vaidlema — спорить', 'kompromiss — компромисс', 'eelis — преимущество', 'puudus — недостаток', 'võrdlema — сравнивать'], '2'),
-      PART('025_d_rpart', 'R', { minutes: 45, points: 30, tasks: 4, note: 'Lugemisosa on Harno B2 vormis, lühemana (eksamil 70 minutit): neli ülesannet, 30 punkti. Mooduli kontrolli eesmärk on vähemalt 24 punkti (80 %).' }),
-      B.reading('025_d_read', 'Lugemine 1: arvamusartikkel.', 'Loe artiklit vaidlemisest. Vasta kõigepealt kahele küsimusele, siis lahenda osad 1 ja 2.', 'Miks me kommentaariumis vaidleme halvemini kui köögilaua taga?', [
-        '(A) Igaüks meist on seda näinud. Uudise all on sada kommentaari ja juba kolmandas kirjutab keegi, et teised on rumalad. Kümnendas ei räägita enam uudisest, vaid sellest, kes on noor ja kes vana, kes elab linnas ja kes maal. Köögilaua taga vaidleme samade teemade üle palju rahulikumalt: kas kella keeramine tuleks lõpetada, milline kuusk tuua koju või kui kaua võib laps telefoni vaadata. Sama inimene, kes köögis kuulab ja küsib, võib kommentaariumis olla terav ja kiire. Miks see nii on? Minu arvates ei ole põhjus selles, et internetis kirjutavad halvemad inimesed. Põhjus on selles, kuidas vestlus on üles ehitatud.',
-        '(B) Esiteks ei näe me kommentaariumis teise inimese nägu. Köögis märkame kohe, kui sõber solvub või kui tal on raske. Siis muudame tooni, küsime üle või teeme nalja. Ekraanil seda märki ei ole. Pealegi kirjutame tihti kiiresti, telefonist ja poolel teel. Seega jääb lausest alles ainult kõige teravam osa: see, mis meid vihastas. Hiljem loeme oma kommentaari uuesti ja imestame, kes selle kirjutas.',
-        '(C) Teiseks ei kirjuta me kommentaariumis ainult teisele inimesele, vaid publikule. Köögis tahame sõbraga kokkuleppele jõuda või vähemalt teda mõista. Avalikus vaidluses tahame tihti hoopis võita ja näidata teistele, et meil on õigus. Kuigi selline vaidlus võib olla huvitav, ei muuda see kellegi arvamust. Vaevalt on keegi kunagi kirjutanud: „Aitäh, sa veensid mind, ma mõtlen nüüd teisiti.” Publiku ees on taganemine piinlik, köögis aga on see lihtsalt tark otsus.',
-        '(D) Kolmandaks on internetis kerge segi ajada fakti ja arvamust. Kui sõber ütleb köögis, et kella keeramine on tervisele kahjulik, küsime: „Kust sa seda tead?” Kommentaariumis küsitakse seda harva. Arvamus, mida korratakse sada korda, hakkab tunduma faktina. Erinevalt köögist ei ole seal kedagi, kes ütleks rahulikult: „Oota, kontrollime järele.” Nii võib vale arv jõuda tuhandete lugejateni, enne kui keegi märkab, et sellel puudub allikas.',
-        '(E) Kas see tähendab, et kommentaariumid tuleks sulgeda? Ma kahtlen, kas see aitaks. Paljud väljaanded on kommentaare juba piiranud või nõuavad sisselogimist, ometi kolib vaidlus lihtsalt sotsiaalmeediasse. Pealegi on avalik arutelu ühiskonnale vajalik: seal kuuleb ka neid, keda köögilaua taha ei kutsutud. Ilma selleta teaksime üksteise muredest palju vähem. Probleem ei ole seega selles, et inimesed vaidlevad, vaid selles, kuidas nad seda teevad, ja seda saab igaüks ise muuta.',
-        '(F) Ma pakuksin hoopis lihtsat reeglit, mida igaüks saab endale seada. Enne kui vajutad nuppu „saada”, loe oma kommentaar uuesti läbi ja küsi: kas ma ütleksin seda samamoodi inimesele, kes istub minu vastas? Kui ei, muuda üht sõna. Mida rahulikum on esimene lause, seda suurem on võimalus, et ka vastus on rahulik. Kahe minuti töö võib säästa terve õhtu pahameelt. Teine lihtne harjumus on alustada sellest, millega oled nõus. Lause „Selles on sul õigus, kuid …” ei tee sind nõrgemaks, vaid näitab, et sa kuulasid.',
-        '(G) Kokkuvõttes ei ole internet vaidlemist halvemaks teinud. See on lihtsalt näidanud, kui palju sõltub sellest, kas me näeme teist inimest. Köögilaua taga oskame vaielda nii, et pärast saab koos teed juua. Seda oskust tasub kaasa võtta ka ekraani taha, isegi kui kommentaari kirjutamine võtab siis paar minutit rohkem aega. Võib-olla ei veena me sellega kedagi, kuid vähemalt jääb vestlus inimlikuks. Ja kes teab, ehk loeb mõni vaikne lugeja just meie rahulikku kommentaari ning mõtleb oma arvamuse üle uuesti järele.',
-        'Allikas: autori arvamus.',
-      ].join('\n\n'), [['Milliseid kolme põhjust nimetab autor, miks me internetis halvemini vaidleme?', 'me ei näe teise nägu, kirjutame publikule ja ajame segi fakti ja arvamuse|ei näe nägu, kirjutame publikule, fakt ja arvamus lähevad segi'], ['Kas sina ütled internetis asju teisiti kui näost näkku? Too üks näide.']]),
-      tag(B.choice('025_d_mc', 'Osa 1: vali õige vastus (6 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
-        ['Mis juhtub autori sõnul kommentaariumis tihti juba alguses?', 'Keegi nimetab teisi rumalaks.', 'Kõik nõustuvad uudisega.', 'Toimetaja kustutab kommentaarid.', 'Inimesed kirjutavad pikki analüüse.'],
-        ['Miks muudame köögis vaidlemisel tooni?', 'Me näeme, et teine solvub või et tal on raske.', 'Köögis on vaiksem kui mujal.', 'Sõber on alati meiega nõus.', 'Köögis ei tohi vaielda.'],
-        ['Mis on autori arvates avaliku vaidluse eesmärk sageli?', 'võita ja näidata teistele, et meil on õigus', 'teist inimest paremini mõista', 'sõbraga kokkuleppele jõuda', 'uut teavet saada'],
-        ['Mida tahab autor öelda lausega „Oota, kontrollime järele”?', 'Köögis küsitakse fakti järele, kommentaariumis harva.', 'Kõik faktid internetis on valed.', 'Köögis ei räägita kunagi faktidest.', 'Toimetus peab kõik kommentaarid üle kontrollima.'],
-        ['Mida arvab autor kommentaariumide sulgemisest?', 'Ta kahtleb, kas see aitaks.', 'Ta on kindlasti selle poolt.', 'Ta arvab, et kõik väljaanded on seda juba teinud.', 'Ta soovitab sulgeda ka sotsiaalmeedia.'],
-        ['Mida soovitab autor igaühele?', 'lugeda kommentaar enne saatmist uuesti läbi', 'mitte kunagi kommenteerida', 'kirjutada ainult sisselogituna', 'vaielda ainult köögilaua taga'],
-      ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }),
-      tag(B.table('025_d_para', 'Osa 2: väide ja lõik (8 punkti).', 'Leia iga väite 1–8 jaoks artikli lõik (A–G), kus see mõte on. Ühte lõiku sobib kaks väidet.', 'Väide, Lõik', [
-        '1. Probleem ei ole inimestes, vaid vestluse ülesehituses. | [A]',
-        '2. Kiirustades jääb lausest alles kõige teravam osa. | [B]',
-        '3. Avalik vaidlus ei muuda tavaliselt kellegi arvamust. | [C]',
-        '4. Korduv arvamus võib hakata tunduma faktina. | [D]',
-        '5. Kommentaaride piiramine ei lõpeta vaidlust. | [E]',
-        '6. Avalikus arutelus kuuleb ka neid, keda muidu ei kuulataks. | [E]',
-        '7. Rahulik algus toob tõenäoliselt rahuliku vastuse. | [F]',
-        '8. Köögilaua oskus tasub kaasa võtta ka ekraani taha. | [G]',
-      ], 'g_read'), { task: 'R14', harno: 'R2a' }),
-      tag(B.formtext('025_d_cloze', 'Osa 3: pane sõna õigesse vormi (10 punkti).', 'Elanik kirjutab vallalehele uue rattatee kohta. Kirjuta sulgudes olev sõna lünka õiges vormis.', 'Lugejakiri: miks ma olen rattatee poolt', [
-        'Lugupeetud toimetus!',
-        'Lugesin teie lehest, et vald kaalub Pargi tänavale rattatee ehitamist. Olen [kindlasti] (kindel) selle poolt ja tahaksin selgitada, miks.',
-        'Esiteks [kasutavad] (kasutama) seda tänavat iga hommik sajad koolilapsed. Praegu ei ole seal isegi korralikku kõnniteed. Võrreldes [naabervallaga] (naabervald) on meil rattateid väga vähe. Erinevalt [linnast] (linn) ei sõida meil buss iga poole tunni tagant, nii et paljud pered sõidavad igale poole autoga.',
-        'Mõned naabrid kardavad, et uus tee võtab ära parkimiskohti. Kuigi ma saan sellest murest aru, on laste ohutus siiski [tähtsam] (tähtis). Mida [rohkem] (palju) lapsi rattaga kooli sõidab, seda [vähem] (vähe) autosid on hommikul kooli ees.',
-        'Ma [pakuksin|pakun] (pakkuma), et vald [korraldaks|korraldab] (korraldama) enne otsust avaliku arutelu. Vaevalt leiab rattatee kõigi toetuse, aga arutelul saavad kõik vähemalt oma mure välja öelda. Ootan arutelu [kuupäeva] (kuupäev) vallalehest.',
-        'Lugupidamisega\nPargi tänava elanik Igor Tamm',
-      ].join('\n\n'), 'g_notice'), { task: 'G03', harno: 'R3' }),
-      tag(B.insertion('025_d_bank', 'Osa 4: vali lause (6 punkti).', 'Loe Natalja lugu. Vali pangast igasse lünka sobiv lause; üks lause jääb üle.', 'Kuidas ma õppisin eesti keeles vaidlema', [
-        'Kui ma Eestisse kolisin, ei julgenud ma eesti keeles kunagi vastu vaielda. [[Kui kolleegid koosolekul midagi arutasid, noogutasin lihtsalt kaasa.]]',
-        'Ühel päeval muudeti minu tööaega minult küsimata. [[Olin nii pahane, et ei saanud öösel magada.]]',
-        'Järgmisel hommikul kirjutasin paberile kolm lauset. [[Esimene ütles, mida ma arvan, teine miks ja kolmas, mida ma pakun.]]',
-        'Koosolekul mu hääl värises, kuid lugesin oma laused ette. [[Juht kuulas ja küsis, kas ma oleksin kompromissiga nõus.]]',
-        'Lõpuks leppisime kokku, et uus graafik kehtib ainult kaks kuud. [[Pärast seda vaatame koos üle, kas see töötab.]]',
-        'Nüüd ma enam ei karda oma arvamust öelda. [[Tean, et viisakas vastuväide ei tee kedagi vaenlaseks.]]',
-      ], ['Seepärast otsustasin töökohta vahetada ja koosolekutel enam üldse mitte käia.']), { task: 'R16', harno: 'R4' }),
-      // a short productive answer to the article (B2-: the reading sheet is not only recognition)
-      tag(B.writing('025_d_reply', 'Lugemise lõpuks: vasta autorile (3–4 lauset).', 'Kas oled artikli autori reegliga „loe enne saatmist uuesti läbi” nõus? Kirjuta 3–4 lauset: tunnista üht autori mõtet, vaidle viisakalt vastu või toeta teda ja too üks näide oma elust.', [3, 4], ['kuigi', 'näiteks'], 1, 'g_read'), { task: 'W08' }),
-    ],
-    // the module's language part (outside Harno's parts, before the first header) and listening in Harno B2 form
-    practice: [
-      B.tip('025_p_how', 'Mooduli kontroll: keeleosa ja kuulamine (45 minutit)', 'Kuulamine on nagu Harno B2 eksamil, ainult lühem: teateid kuuled üks kord, intervjuud kaks korda ja kolmandat korda õige-vale väidete jaoks. Enne kuulamist on keeleosa: parandad päris kommentaare ja ütled mõtte teisiti.', 'full'),
-      B.tip('025_p_kpart', 'Keeleosa (12 minutit, 12 punkti)', 'Need on päris laused vaidlustest ja arutlustest nagu tundides 21–24. Paranda ja ütle teisiti nii, et lugeja saab sinust aru ja keegi ei solvu.', 'full'),
-      B.errorfix('025_p_fix', 'Keeleosa A: paranda enne saatmist (6 punkti).', 'Sõber palus sul oma kommentaarid üle vaadata. Igas reas on üks viga: kirjuta rida õigesti.', [
-        ['Vaevalt kella keeramine ei lõpe järgmisel aastal.', 'Vaevalt kella keeramine järgmisel aastal lõpeb.|Vaevalt lõpeb kella keeramine järgmisel aastal.'],
-        ['Ma kahtlen, et naabrid on rattateega nõus.', 'Ma kahtlen, kas naabrid on rattateega nõus.|Kahtlen, kas naabrid on rattateega nõus.'],
-        ['Esiteks, päris kuusk on pärit Eesti metsast.', 'Esiteks on päris kuusk pärit Eesti metsast.'],
-        ['Kuigi ekraan on mugav, aga väikesele lapsele on see liiga palju.', 'Kuigi ekraan on mugav, on see väikesele lapsele siiski liiga palju.|Kuigi ekraan on mugav, on see väikesele lapsele liiga palju.'],
-        ['Võrreldes bussi on rong palju kiirem.', 'Võrreldes bussiga on rong palju kiirem.'],
-        ['Erinevalt minu vennaga sõidan ma tööle rattaga.', 'Erinevalt minu vennast sõidan ma tööle rattaga.|Erinevalt vennast sõidan ma tööle rattaga.'],
-      ]),
-      B.transformation('025_p_trans', 'Keeleosa B: ütle teisiti (6 punkti).', 'Kirjuta sama mõte uuesti nii, et kasutad antud sõna või sõnu.', [
-        ['Ma ei usu, et vald selle tee sel aastal valmis ehitab.', 'vaevalt', 'Vaevalt vald selle tee sel aastal valmis ehitab.|Vaevalt ehitab vald selle tee sel aastal valmis.'],
-        ['Telefon on mugav, aga söögi ajal ei peaks see laual olema.', 'kuigi', 'Kuigi telefon on mugav, ei peaks see söögi ajal laual olema.|Kuigi telefon on mugav, ei peaks see siiski söögi ajal laual olema.'],
-        ['Buss on odavam. Auto on kiirem.', 'seevastu', 'Buss on odavam. Seevastu on auto kiirem.|Buss on odavam, seevastu on auto kiirem.'],
-        ['Kui elad kaugemal, maksad sõidu eest rohkem.', 'mida … seda', 'Mida kaugemal elad, seda rohkem maksad sõidu eest.|Mida kaugemal sa elad, seda rohkem sa sõidu eest maksad.|Mida kaugemal elad, seda rohkem sõidu eest maksad.|Mida kaugemal sa elad, seda rohkem maksad sõidu eest.'],
-        ['Lähme parem rongiga.', 'kas poleks', 'Kas poleks parem rongiga minna?|Kas poleks parem minna rongiga?|Kas poleks parem, kui läheksime rongiga?|Kas poleks parem, kui me läheksime rongiga?'],
-        ['Kunstkuusk teenib kümme aastat, nii et uut pole vaja osta.', 'seega', 'Kunstkuusk teenib kümme aastat. Seega ei ole vaja uut osta.|Kunstkuusk teenib kümme aastat, seega ei ole vaja uut osta.|Kunstkuusk teenib kümme aastat. Seega pole vaja uut osta.|Kunstkuusk teenib kümme aastat, seega pole vaja uut osta.'],
-      ]),
-      PART('025_p_lpart', 'L', { minutes: 35, points: 23, tasks: 3, note: 'Kuulamisosa on Harno B2 vormis, lühemana (eksamil 35–40 minutit, siin kolm ülesannet neljast): 23 punkti. Mooduli kontrolli eesmärk on vähemalt 19 punkti (80 %).' }),
-      B.listening('025_p_notes', 'Kuulamine 1: lühikesed teated (6 punkti).', 'Kuula nelja teadet, igaüht ainult üks kord. Kirjuta lünka 1–2 sõna või arv.', [
-        '1. Tähelepanu! Pühapäeva öösel keeratakse kella: kell neli keeratakse tund aega tagasi kella kolmele. Ärge unustage keerata ka seinakella ja auto kella.',
-        '2. Riigimetsast saab jõulukuuse raieõiguse osta veebist või mobiiliäpist alates novembri lõpust. Hind sõltub kuuse kõrgusest. Kuuse võib võtta ainult kaardil märgitud kohtadest.',
-        '3. Linnaraamatukogu väitlusõhtu teemal „Kas linn vajab rohkem rattateid?” toimub neljapäeval kell kuus õhtul. Osalemine on tasuta, kohti on nelikümmend.',
-        '4. Tähelepanu, bussisõitjad! Alates esmaspäevast sõidab liin number seitse tipptunnil iga kümne minuti tagant. Pärast kella kümmet õhtul väljub buss kord tunnis.',
-      ], [
-        'Pühapäeva öösel keeratakse kell neljalt tagasi kella [kolmele|3].',
-        'Jõulukuuse raieõiguse hind sõltub kuuse [kõrgusest].',
-        'Kuuse võib võtta ainult [kaardil] märgitud kohtadest.',
-        'Väitlusõhtul arutatakse, kas linn vajab rohkem [rattateid].',
-        'Raamatukogu väitlusõhtul on [nelikümmend|40] kohta.',
-        'Tipptunnil sõidab liin seitse iga [kümne|10] minuti tagant.',
-      ]),
-      tag(B.listening('025_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Kuula intervjuud kaks korda. Täida lausete lüngad 1–2 sõnaga.', [
-        'Saatejuht: Tere! Täna räägime vaidlemisest. Stuudios on väitlustreener Riina Põld. Riina, miks on vaidlemine nii raske?',
-        'Riina: Sest me ajame segi vaidluse ja tüli. Tülis tahame võita, vaidluses aga leida parima lahenduse. Kui see vahe on selge, läheb kõik kergemini.',
-        'Saatejuht: Kuidas head argumenti ära tunda?',
-        'Riina: Heal argumendil on neli osa: seisukoht, põhjus, näide ja järeldus. Kõige sagedamini jääb puudu näide. Ilma näiteta jääb argument õhku rippuma.',
-        'Saatejuht: Mida teha, kui vastane räägib väga enesekindlalt?',
-        'Riina: Enesekindlus ei ole veel tõend. Küsige rahulikult: „Kust te seda teate?” Tavaliselt selgub, et fakt on tegelikult arvamus.',
-        'Saatejuht: Kas vastuvaidlemine ei ole ebaviisakas?',
-        'Riina: Ei ole, kui alustate sellest, millega olete nõus. Näiteks: „Kuigi ma mõtlen teisiti, on teil õigus, et …” Siis kuulab teine teid palju meelsamini.',
-        'Saatejuht: Kas vaidlemist saab õppida ka täiskasvanuna?',
-        'Riina: Kindlasti! Meie õhtustes ringides on inimesi kahekümnest kaheksakümne aastani. Kõige vanem osaleja on pensionär, kes harjutab ringis keeleeksamiks.',
-        'Saatejuht: Mida soovitate kuulajatele?',
-        'Riina: Enne vastamist lugege mõttes kolmeni. Mida rahulikum on teie esimene lause, seda paremini teid kuulatakse.',
-        'Saatejuht: Aitäh, Riina!',
-      ], [
-        'Riina sõnul ajame sageli segi vaidluse ja [tüli].',
-        'Vaidluses tahame Riina sõnul leida parima [lahenduse].',
-        'Heal argumendil on [neli|4] osa.',
-        'Kõige sagedamini jääb argumendist puudu [näide].',
-        'Enesekindlus ei ole Riina sõnul veel [tõend].',
-        'Vastaselt tasub rahulikult küsida, kust ta seda [teab].',
-        'Vastuvaidlemist tasub alustada sellest, millega oled [nõus].',
-        'Riina ringides on inimesi kahekümnest [kaheksakümne|80] aastani.',
-        'Enne vastamist soovitab Riina lugeda mõttes [kolmeni|3].',
-      ]), { voice: 'interview', task: 'L04', harno: 'L3' }),
-      tag(B.truefalse('025_p_tf', 'Kuulamine 3: õige või vale? (8 punkti)', 'Kuula intervjuud kolmandat korda. Otsusta iga väite kohta: õige või vale.', [
-        ['Riina arvates on vaidlemine raske, sest inimestel ei ole piisavalt fakte.', false],
-        ['Heal argumendil on Riina sõnul kaks osa: seisukoht ja järeldus.', false],
-        ['Riina sõnul on argumendis kõige tähtsam leida vastase vead.', false],
-        ['Riina arvates tasub enesekindla kõneleja sõnu uskuda ilma küsimata.', false],
-        ['Riina näite järgi võib viisakas vastuväide alata sõnadega „Kuigi ma mõtlen teisiti …”.', true],
-        ['Riina õhtustes ringides käib väga eri vanuses inimesi.', true],
-        ['Kõige vanem ringi osaleja on pensionär, kes harjutab keeleeksamiks.', true],
-        ['Riina soovitab vastata vastasele kohe, et ta ei jõuaks edasi rääkida.', false],
-      ], 'full'), { task: 'L05', harno: 'L4' }),
-      B.rubric('025_p_self', 'Minu punktid.', 'Loe kokku oma punktid.', ['Lugemine: … / 30 punkti (osa 1 – 6, osa 2 – 8, osa 3 – 10, osa 4 – 6).', 'Kuulamine: … / 23 punkti (teated – 6, intervjuu – 9, õige/vale – 8).', 'Keeleosa: … / 12 punkti (paranda – 6, ütle teisiti – 6).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.']),
-    ],
-    // writing and speaking in Harno B2 form; the speaking talk is the module's product
-    transfer: [
-      B.text('025_t_situation', 'Mooduli kontroll: kirjutamine ja rääkimine (eksami vormis)', 'See leht on nagu Harno B2 eksami kirjutamise ja rääkimise osa, ainult lühem. Kirjutad linnavalitsusele kirja ja arutled selle üle, kuidas linnas liikuda. Sõnavõtus esitled mooduli tulemust: oma seisukohta ühes päris küsimuses, mille paned enne kirja kaardile „Minu seisukoht”.'),
-      // the module's product (docs/COURSE_DESIGN_STATIONS.md §7): the learner's own position, built from 021–024
-      B.planning('025_t_product', 'Mooduli tulemus: minu seisukoht.', 'Vali üks päris küsimus oma elust või linnast, mille üle inimesed vaidlevad (kellaaeg, kuusk, ekraan, teekond või oma teema), ja pane kirja oma seisukoht. Kasuta mooduli tundide tulemusi.', ['Küsimus ja minu seisukoht: kui kindel ma olen? (tund 21: kindlasti, ilmselt, vaevalt)', 'Kaks argumenti: põhjus, näide ja järeldus (tund 22: esiteks, pealegi, seega)', 'Teise poole argument ja minu viisakas vastus (tund 23: kuigi …, siiski)', 'Kahe lahenduse võrdlus ja minu ettepanek (tund 24: võrreldes, erinevalt, mida … seda)']),
-      PART('025_t_wpart', 'W', { minutes: 60, points: 25, tasks: 2, note: 'Kirjutamine on Harno B2 vormis, lühemana (eksamil 80 minutit). Kirja eest saab 10 ja arutluse eest 15 punkti; mooduli kontrolli eesmärk on vähemalt 20 punkti (80 %).' }),
-      tag(B.letter('025_t_letter', 'Kirjutamine 1: kiri linnavalitsusele (umbes 140 sõna).', 'Linn plaanib sulgeda sinu kodu lähedal oleva bussipeatuse, sest seda kasutab vähe inimesi. Kirjuta linnavalitsuse transpordiosakonnale: kes sa oled ja kuidas peatust kasutad, miks sa ei ole otsusega nõus, mida pakud ja mida küsid.', 'Lugupeetud transpordiosakond!', 'Lugupidamisega', [140, 160]), { task: 'W13', harno: 'W1' }),
-      tag(B.writing('025_t_essay', 'Kirjutamine 2: arutlus (umbes 180 sõna).', 'Teema: kas linn peaks rohkem raha panema rattateedele või ühistranspordile? Kirjuta arutlus: poolt- ja vastuargumendid, igaühele näide, ja lõpus oma järeldus.', [14, 18], ['ühelt poolt', 'teiselt poolt', 'näiteks', 'kokkuvõttes'], 4), { task: 'W14', harno: 'W2b' }),
-      PART('025_t_spart', 'S', { minutes: 15, points: 25, tasks: 2, note: 'Rääkimine on Harno B2 vormis, lühemana (eksamil 20 minutit). Sõnavõtu eest saab 10 ja arutelu eest 15 punkti; mooduli kontrolli eesmärk on vähemalt 20 punkti (80 %).' }),
-      tag(B.speaking('025_t_present', 'Rääkimine 1: sõnavõtt väitlusõhtul (1 minut).', 'Teemakaart: raamatukogu väitlusõhtul ütleb iga osaleja oma seisukoha. Mõtle 2 minutit oma kaardi „Minu seisukoht” järgi, räägi 1 minut, siis vasta paarilise küsimusele.', ['Mis on sinu küsimus ja seisukoht?', 'Kui kindel sa oled ja miks?', 'Millised on sinu kaks argumenti?', 'Mida ütleb teine pool ja mida sa talle vastad?', 'Kas arvamust on kergem muuta köögilaua taga või internetis? Miks?', 'Kas sinu arvates peaks rohkem inimesi avalikel aruteludel osalema? Miks?'], [90, 180], ['Minu seisukoht on …', 'Esiteks …, pealegi …', 'Kuigi …, on siiski …']), { task: 'S16', harno: 'S1' }),
-      tag(B.rolecards('025_t_debate', 'Rääkimine 2: arutelu argumendikaartidega.', 'Lugege oma kaarti ja öelge alguses oma arvamus. Arutage siis 4 minutit ja jõudke ühise seisukohani.',
-        'Kaart A. Teema: vallal on raha kas uueks spordihalliks või raamatukogu uuendamiseks. Sina oled spordihalli poolt. Argumendid: noored liiguvad vähe; talvel ei ole kuskil trenni teha; võistlused toovad valda külalisi. Lisa oma näide.',
-        'Kaart B. Teema: vallal on raha kas uueks spordihalliks või raamatukogu uuendamiseks. Sina oled raamatukogu poolt. Argumendid: sobib kõigile vanustele; noortel on vaja õppimiskohta ja eakatel kohtumiskohta; hoone on vana ja külm. Lisa oma näide ja esita üks täpsustav küsimus.',
-        ['Võrreldes raamatukoguga …', 'Esiteks …', 'Kas poleks mõistlik …?'], ['Kuigi …, on siiski …', 'Erinevalt spordihallist …', 'Olen osaliselt nõus …']), { task: 'S17', harno: 'S2' }),
-      B.rubric('025_t_rubric', 'Hindamine (Harno B2 vorm).', 'Märgi, mis on täidetud.', ['Kiri: kõik neli punkti, sobiv pöördumine ja toon, umbes 140 sõna (10 punkti).', 'Arutlus: poolt- ja vastuargumendid, näited ja järeldus, umbes 180 sõna (15 punkti).', 'Sõnavõtt: seisukoht ja kindlus, kaks argumenti, vastus teisele poolele 1 minutiga, vastus küsimusele (10 punkti).', 'Arutelu: põhjendasin, võrdlesin, vaidlesin viisakalt ja jõudsime kokkuleppele (15 punkti).']),
-      B.selfcheck('025_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne tööelu moodulit korrata.'], 'Moodul 5 tehtud'),
-    ],
-  },
-}, {
-  'b1b2-021': 'AVAS L→S', 'b1b2-022': 'KUUL L→W', 'b1b2-023': 'PROB R→S', 'b1b2-024': 'LUGU R→W', 'b1b2-025': 'EKS',
-});
-
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
-  // 021
+// the explanations of the hidden blocks (the v4 EXPLAIN map), kept for the Harjuta practice engine
+const OLD_WHY = {
   '021_d_kind': [
     'Toimunud sündmus, mida saab kontrollida (Euroopa Parlamendi hääletus 2019): fakt.',
     'Kontrollitav sündmus minevikus (2000–2001): fakt.',
@@ -730,7 +120,6 @@ export const EXPLAIN = {
     '84 % on fakt suure enamuse kohta → kindlasti.',
     'Kahtlus → ma kahtlen, kas …',
   ],
-  // 022
   '022_d_radio': [
     'Mart: „Mina olen päris kuuse poolt.” (seisukoht)',
     'Mart: „Esiteks kasvab kuusk Eesti metsas.” (põhjus)',
@@ -761,7 +150,6 @@ export const EXPLAIN = {
     'Lisa sama poole argument: pealegi (Pealegi lõhnab …).',
     'Konkreetne juhtum oma elust: näiteks (Näiteks on …).',
   ],
-  // 023
   '023_d_who': [
     'Vanaema: „Eile õhtusöögi ajal vaatas Miša jälle tahvlist multikaid.”',
     'Olga: „on mul siiski vaja vahel rahulikult süüa teha”.',
@@ -791,7 +179,6 @@ export const EXPLAIN = {
     'Tingiv kõneviis, mina-vorm: pakuksin.',
     'Tingiv kõneviis, meie-vorm: võiksime.',
   ],
-  // 024
   '024_d_radio': [
     'Sergei: „töötan tehases kolme kilomeetri kaugusel”.',
     'Sergei: „Erinevalt autost ei pea ma kütuse ja parkimise peale mõtlema.”',
@@ -821,7 +208,6 @@ export const EXPLAIN = {
     'võrreldes + kaasaütlev: eelmise kuuga.',
     'mida rohkem …, seda + keskvõrre: vähe → vähem.',
   ],
-  // 025
   '025_d_read': [
     'Lõigud B, C ja D: me ei näe teise nägu, kirjutame publikule ja ajame segi fakti ja arvamuse.',
     'Isiklik vastus: õige on iga konkreetne näide, kus on öeldud, mis olukord see oli ja mis oli teisiti.',
@@ -910,3 +296,1075 @@ export const EXPLAIN = {
     'Vale: ta soovitab enne vastamist lugeda mõttes kolmeni.',
   ],
 };
+export const LESSONS = withShapes({
+  'b1b2-021': {
+    title: 'Kas kella keeramine lõpeb kunagi?',
+    phases: grammar('Kordamine: kindlussõnad (ilmselt, võib-olla, vaevalt + jaatav tegusõna; ma kahtlen, kas …) · B2: allikas ja kindlus arutluses — uuringute järgi, mõne uuringu põhjal, näib, et …, on tõenäoline / vähetõenäoline, et …, pole välistatud, et …; kaudne kõneviis teise väite edasiandmisel (olevat, suurendavat)'),
+    format: 'facts',
+    topic: 'health',
+    canDo: 'Ma saan aru umbes 450-sõnalisest tekstist kella keeramise vaidlusest ja eristan fakti, arvamust ja ennustust, ütlen raadiointervjuus 1 minutiga oma seisukoha ning kirjutan uudise alla umbes 140-sõnalise kommentaari, kus näitan allikat ja seda, kui kindel ma olen.',
+    teacherPage: {
+      goal: 'Холодная задача письменно (5 мин без опор), текст о переводе часов: факт, мнение, прогноз; источник и уверенность; радиоинтервью со скрытой информацией; дома комментарий 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; текст — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 10 предложений; интервью без третьего вопроса.',
+      hook: '«Väide: kella keeramine tuleks lõpetada juba järgmisel aastal.» Ученик сразу пишет 5 минут 5–7 предложений: согласен ли он, причина и пример из жизни, что сказал бы несогласный. Это холодная задача модуля (письмо, модуль 4 мерил речь): не помогайте, фраз и начала не давайте, не исправляйте. Сохраните лист до урока 025 (контроль, письмо 1).',
+      plan: [
+        '0–5: станция 1 — холодная задача: 5 минут письменно, без помощи; лист сохраните до 025',
+        '5–25: станция 2 — 10 слов (2 мин), шкала уверенности и картинка (3 мин), текст «Tund aega, mille üle vaieldakse» (8 мин), 7 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — vaevalt / ma kahtlen, kas одной строкой, источник и осторожное утверждение (uuringute järgi, pole välistatud, -vat), 10 предложений, новость с 9 пропусками без банка, регистр: лозунг → взвешенное предложение',
+        '45–70: станция 4 — план (2 мин подготовки), радиоинтервью со скрытой информацией: 1 минута + 3 вопроса репортёра (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: комментарий 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): мини-дебаты «летнее или зимнее время навсегда?» — каждый 1 минута, потом 3 минуты свободно',
+      ],
+      sources: 'Текст — учебный KeeleSepp (адаптирован к B2, без точной статистики): общая картина спора в ЕС (опрос, голосование Европарламента, нет решения, какое время оставить), Эстония без перевода часов в 2000–2001 и возврат летнего времени в 2002, связь Таллин — Хельсинки. Исследования о сне и сердце — в общем виде, без цифр. Радиоинтервью — учебный сценарий.',
+      groups: 'Холодная задача — каждый сам. Текст — каждый сам, вопросы на вывод сравнивают в паре. Интервью: пары «гость — репортёр», карточку репортёра даёте вы; в 1:1 репортёр — вы.',
+      errors: [
+        '«Vaevalt see ei juhtu» → «Vaevalt see juhtub» (vaevalt уже отрицание; второе «ei» меняет смысл).',
+        '«Ma kahtlen, et …» → «Ma kahtlen, kas …» (после kahtlema — kas).',
+        '«Uuringute järgi kella keeramine segab …» → «Uuringute järgi segab kella keeramine …» (после вводного оборота глагол на втором месте).',
+        '«Kella keeramine olevat ohtlik» как своё мнение → -vat только для чужого утверждения, которое вы не подтверждаете («Naabri sõnul olevat …»); своё мнение — «minu arvates on …».',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по письму. Отметьте: позиция в первом предложении, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В уроке 025 ученик пишет параллельную задачу (письмо 1 контроля) в тех же условиях, вы сравниваете.',
+        'Kindlasti / ilmselt / vaevalt (B1) — повтор одной строкой. Цель B2 — честно показать, откуда знание и насколько оно надёжно: источник (uuringute järgi), осторожное утверждение (näib, et; pole välistatud, et) и чужое непроверенное утверждение в kaudne kõneviis (olevat). Это ядро B2-аргумента и критического чтения новостей.',
+        'Обратная связь, 2–3 цели: слово уверенности соответствует фактам; vaevalt без второго отрицания; факт с источником, мнение — с «minu arvates». В интервью не перебивайте, три замечания в конце.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.writing('021_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Kella keeramine tuleks lõpetada juba järgmisel aastal.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, üks põhjus ja näide oma elust ning mida ütleks keegi, kes arvab teisiti. Abifraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), 'Õpetaja paneb sinu teksti kõrvale: mooduli kontrollis kirjutad samadel tingimustel uuest väitest ja võrdled, mis on muutunud.'), { task: 'W14', level: 3 }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, kirjalikult (moodul 4 mõõtis rääkimist, moodul 5 mõõdab kirjutamist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (seetõttu, samas …), kas kirjutaja näitab, kui kindel ta on, ja 2–3 korduvat viga. Hoia leht alles: tunnis b1b2-025 kirjutab õppija paralleelse ülesande samades tingimustes (kontrolli kirjutamise 1. osa) ja te võrdlete.'), 1, 5),
+      station(tag(B.vocab('021_d_vocab', 'Tunni sõnad.', ['kella keerama — переводить часы', 'suveaeg — летнее время', 'uuring — исследование', 'allikas — источник', 'väidetavalt — якобы, как утверждают', 'tõenäoliselt — вероятно', 'välistama — исключать', 'kahtlema — сомневаться', 'ennustama — предсказывать', 'seisukoht — позиция']), { topic: ['kella keerama', 'suveaeg'] }), 2, 20),
+      purpose(B.diagram('021_d_scheme', 'flow', { title: 'Skeem: kui kindel on lause?', instruction: 'Vaata skeemi enne lugemist. Lugedes leia tekstist iga astme kohta üks lause ja ütle, kas see on fakt, arvamus või ennustus.', nodes: 'Fakt koos allikaga: Uuringute järgi …; Euroopa Parlament hääletas …\nPeaaegu kindel: kahtlemata, ilmselt, on tõenäoline, et …\nPooleldi: võib-olla, pole välistatud, et …\nVähe tõenäoline: vaevalt (+ jaatav tegusõna), ma kahtlen, kas …\nTeise väide, mida ma ei kinnita: ta väidab, et …; see olevat …' }, 'full', 'g_read'), 'Skeem aitab sul öelda täpselt nii kindlalt, kui faktid lubavad.'),
+      why(teach(tag(purpose(B.reading('021_d_text', 'Loe teksti.', 'Loe teksti (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Tund aega, mille üle vaieldakse', [
+        'Kaks korda aastas keerame kella: märtsi lõpus tund aega edasi ja oktoobri lõpus tund aega tagasi. Paljud ei pane seda tähelegi, teised magavad pärast seda terve nädala halvasti. Kõige raskem on see väikestele lastele, kes ei tea kellast midagi, ja inimestele, kes töötavad vahetustega: öine vahetus on sel ööl tund aega pikem või lühem. Uuringute järgi segab kella keeramine meie ööpäevarütmi ehk keha sisemist kella. Mõne uuringu põhjal juhtub pärast kevadist kella keeramist isegi rohkem infarkte, kuigi teadlased lisavad ettevaatlikult, et seos ei pruugi olla otsene. Võib-olla on põhjus hoopis selles, et inimesed magavad sel nädalal vähem ja on tööl stressis.',
+        'Euroopa Liidus on kella keeramise lõpetamist arutatud juba aastaid. Mõni aasta tagasi vastasid miljonid inimesed Euroopa Komisjoni küsitlusele ja suur enamik soovis kella keeramise lõpetada. Ka Euroopa Parlament hääletas lõpetamise poolt. Otsust ei ole aga siiani tehtud. Põhjus ei ole selles, et keegi tahaks kella keeramist alles hoida, vaid selles, et riigid ei suuda kokku leppida, kumb aeg jääb: suveaeg või talveaeg. Lõunas eelistatakse pikki heledaid õhtuid, põhjas valgemaid talvehommikuid. Kui iga riik valiks ise, võiks Euroopa kaardil tekkida palju erinevaid ajavööndeid, ja seda ei taha keegi.',
+        'Eesti on proovinud ka ilma kella keeramiseta elada. 2000. ja 2001. aastal kella ei keeratud, kuid 2002. aastal võeti suveaeg tagasi, sest naabritega erinev aeg tegi asjaajamise keeruliseks. Eesti eelistaks püsivat suveaega, Soome aga talveaega. Kuna Tallinn ja Helsingi on tihedalt seotud ja paljud inimesed sõidavad iga nädal üle lahe tööle, ei taha Eesti Soomest erinevat aega. Seega sõltub meie kell suuresti sellest, mida otsustavad naabrid.',
+        'Internetis on vaidlus kohati ootamatult tuline. Ühed kirjutavad, et kella keeramine on mõttetu vana harjumus, mis olevat kunagi välja mõeldud ainult tehaste jaoks. Teised väidavad, et pimedad talvehommikud oleksid püsiva suveaja korral palju hullemad, eriti koolilastele. Mõlemas väites on tõetera, kuid kommentaarides esitatakse arvamust sageli nagu fakti. Lause „kõik arstid on selle vastu” kõlab kindlalt, ometi ei ütle see, milliseid arste ja millist uuringut on mõeldud.',
+        'Mis saab edasi? Mõni poliitik ütleb, et kella keeramine kaob kindlasti, sest inimesed on sellest väsinud. Teised kahtlevad, kas kõik riigid kunagi kokku lepivad. Ilmselt keerame kella veel mõne aasta ja vaevalt see muutub enne, kui naabrid on ühel meelel. Pole siiski välistatud, et lõpuks teeb otsuse hoopis üks suur riik ja teised lihtsalt järgnevad. Tõenäoliselt jääb vaidlus ka pärast otsust: hommikuinimene tahab valgeid hommikuid, õhtuinimene pikki õhtuid.',
+        'Kella keeramise lugu õpetab midagi ka vaidlemise kohta. Tugev seisukoht ei tähenda, et oled kõiges kindel. Pigem vastupidi: kes ütleb ausalt, mida ta teab, mida ta arvab ja milles ta kahtleb, seda usutakse rohkem. Ühel küsimusel võib olla mitu head vastust, ja hea vaidleja näitab, millise vastuse poole tema kaldub ja miks.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Kellele on kella keeramine teksti järgi kõige raskem ja miks?', 'väikestele lastele (ei tea kellast) ja vahetustega töötajatele (öine vahetus on tund pikem või lühem)'],
+        ['Miks ei ole Euroopa Liit kella keeramist siiani lõpetanud?', 'riigid ei suuda kokku leppida, kas jääb suveaeg või talveaeg'],
+        ['Mis juhtus Eestis aastatel 2000–2002?', 'kaks aastat kella ei keeratud, 2002. aastal võeti suveaeg tagasi'],
+        ['Miks ei taha Eesti Soomest erinevat aega?', 'Tallinn ja Helsingi on tihedalt seotud, paljud sõidavad üle lahe tööle'],
+        ['Miks lisab autor 1. lõigus, et seos „ei pruugi olla otsene”? Mida ta sellega vihjab?', 'uuring näitab seost, mitte kindlat põhjust; liiga kindlalt ei tohi öelda'],
+        ['Mida tahab autor öelda näitega lausest „kõik arstid on selle vastu”?', 'arvamus esitatakse nagu fakt; allikat ei ole; kindel toon ei tõesta midagi'],
+        ['Milline vaidleja on autori arvates usutavam? Millest sa seda järeldad?', 'see, kes ütleb ausalt, mida ta teab, arvab ja milles kahtleb (6. lõik)'],
+      ]), 'Pärast lugemist eristad uudises fakti, arvamust ja ennustust ega lase end kindlal toonil eksitada.'), { task: 'R09', voice: 'article', harno: 'R2b' }),
+      'Lugemine, 20 minutit koos sõnade, skeemi ja pildiga. Enne lugemist küsi pildi järgi: miks on mees väsinud ja kui kindel oled? (ilmselt …, vaevalt …). Pärast: õpilane leiab skeemi igale astmele ühe lause tekstist ja ütleb, kas see on fakt, arvamus või ennustus. Küsimused 5–7 on järeldusküsimused (autori vihje ja hoiak): nõua põhjendust tekstist. Suuliselt lõpuks: kas sina usaldad rohkem kindlat või ettevaatlikku kõnelejat? Tekst on kohandatud õppetekst, täpseid arve pole.'), [
+        '1. lõik: „väikestele lastele, kes ei tea kellast midagi, ja inimestele, kes töötavad vahetustega”.',
+        '2. lõik: „riigid ei suuda kokku leppida, kumb aeg jääb: suveaeg või talveaeg”.',
+        '3. lõik: „2000. ja 2001. aastal kella ei keeratud, kuid 2002. aastal võeti suveaeg tagasi”.',
+        '3. lõik: „Tallinn ja Helsingi on tihedalt seotud ja paljud inimesed sõidavad … üle lahe tööle”.',
+        'Järeldus 1. lõigust: uuring näitab, et kaks asja käivad koos, aga mitte seda, et üks on teise põhjus — autor on ettevaatlik.',
+        'Järeldus 4. lõigust: lause „kõlab kindlalt, ometi ei ütle see, milliseid arste ja millist uuringut on mõeldud” — arvamus nagu fakt.',
+        'Järeldus 6. lõigust: „kes ütleb ausalt, mida ta teab, mida ta arvab ja milles ta kahtleb, seda usutakse rohkem”.',
+      ]),
+      hide(station(B.text('021_d_hook', 'Kell keerati tagasi', 'Oktoobri viimasel pühapäeval keerati kella tund aega tagasi. Kas märkasid? Kuidas sa sel nädalal magasid? Hääleta: kas kella keeramine tuleks lõpetada — jah, ei või ükskõik? Ütle ka, kui kindel sa oled.'), 1, 15), CUT_HOOK),
+      hide(inLesson(teach(tag(purpose(B.speaking('021_d_talk', 'Minu uni ja kellaaeg.', 'Vasta igale küsimusele ja too üks näide oma elust.', [
+        'Kas sinu uni märkab kella keeramist?',
+        'Kellele on see kõige raskem: lapsele, vahetustega töötajale või eakale? Miks?',
+        'Kumb meeldib sulle rohkem: pikk suveõhtu või valge talvehommik?',
+      ], [150, 210], ['Mulle tundub, et …', 'Ma olen kindel, et …', 'Ma ei ole kindel, kas …']), 'Sinu kogemus annab tunni küsimusele esimese näite.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: hääletage mõlemad ja rääkige ka ise lühidalt oma unest. Ära paranda; lõpus ütle üks sõna, mida õpilane vajas ja ei teadnud. Kui õpilane töötab öösiti: „Mis juhtus sinu vahetusega sel ööl, kui kella keerati?”')), 'v5: a 2.5–3.5-min talk with phrases; the cold task 021_d_cold (writing, no help) opens the lesson'),
+      hide(B.topicOpener('021_d_open', 'Moodul 5. Kas kella keeramine lõpeb?', [
+        'Kaks korda aastas keerame kella: märtsi viimasel pühapäeval tund aega edasi ja oktoobri viimasel pühapäeval tund aega tagasi. Suveaeg annab pikad heledad õhtud, talveaeg ehk tavaline aeg valgemad hommikud. Paljud ei märka muutust üldse, teised magavad pärast seda terve nädala halvasti. Kõige raskem on see väikestele lastele, kes ei tea kellast midagi, ja inimestele, kes töötavad vahetustega: öine vahetus on sel ööl tund aega pikem või lühem. Uuringud seostavad kella keeramist unepuuduse, halvema keskendumise ja isegi suurema infarktiriskiga, sest see segab meie ööpäevarütmi ehk keha sisemist kella.',
+        'Euroopa Liit on kella keeramise lõpetamist arutanud juba aastaid. 2018. aastal vastas Euroopa Komisjoni küsitlusele 4,6 miljonit inimest ja 84 protsenti neist soovis kella keeramise lõpetada. Euroopa Parlament hääletas 2019. aasta märtsis samuti lõpetamise poolt. Otsust ei ole aga siiani tehtud, sest riigid ei suuda kokku leppida, kumb aeg jääb: suve- või talveaeg. Lõunas tahetakse pigem pikki suveõhtuid, põhjas valgeid talvehommikuid, ja keegi ei taha, et naabritega tekiks tunnine vahe.',
+        'Eesti on proovinud ka ilma kella keeramiseta elada. 2000. ja 2001. aastal kella ei keeratud, kuid 2002. aastal võeti suveaeg tagasi, sest erinev aeg naabritega tegi asjaajamise keeruliseks. Eesti valitsus toetab kella keeramise lõpetamist ja eelistab püsivat suveaega. Soome tahab aga jääda talveajale. Kuna Tallinn ja Helsingi on tihedalt seotud, ei taha Eesti Soomest erinevat aega. Ministrite sõnul ei ole lähiajal otsust oodata.',
+        'Mis saab edasi? Mõni ütleb, et kella keeramine kaob kindlasti, sest inimesed on sellest väsinud. Teised kahtlevad, kas kõik riigid kunagi kokku lepivad. Ilmselt keerame kella veel mõne aasta ja vaevalt see muutub enne, kui naabrid on ühel meelel. Tõenäoliselt jääb vaidlus ka pärast otsust: hommikuinimene tahab valgeid hommikuid, õhtuinimene pikki õhtuid. Ja võib-olla on just see kõige parem näide sellest, et ühel küsimusel võib olla mitu head vastust.',
+        'Selles moodulis õpid oma arvamust ütlema ja põhjendama: kui kindel sa oled, millised on sinu argumendid, kuidas viisakalt vastu vaielda ja kuidas kahte lahendust võrrelda. Teemad on päris Eesti vaidlused: kellaaeg, jõulukuusk, laste ekraaniaeg ja teekond tööle.',
+      ], 'Euroopa Komisjon, avalik konsultatsioon suveaja kohta (2018); Euroopa Parlament, hääletus 26.03.2019; ERR, „Komisjon: Eesti toetab kellakeeramise lõpetamist ja püsivat suveaega” (2018) ja „Kellakeeramise lõppu Eestis pole Soome pärast lähiajal näha” (28.05.2026); ERR, „Ratas: kellakeeramise lõpetamist tuleb tõsiselt kaaluda” (2018), Eesti aeg 2000–2002', [
+        'Kas sina hääletaksid suve- või talveaja poolt? Miks?',
+        'Mis sa arvad, miks ei ole riigid siiani kokku leppinud?',
+        'Kas sinu kodumaal keeratakse kella? Kas see on sinu arvates hea?',
+        'Kui kindel sa oled, et Eesti lõpetab kella keeramise kümne aasta jooksul?',
+      ]), CUT_STATS),
+      hide(why(tag(purpose(B.categorize('021_d_kind', 'Fakt, arvamus või ennustus?', 'Loe iga lauset ja otsusta: kas see on kontrollitav fakt, kellegi arvamus või ennustus tuleviku kohta? Pane iga lause õigesse kasti.', [
+        ['Fakt', ['Euroopa Parlament hääletas 2019. aastal kella keeramise lõpetamise poolt.', '2000. ja 2001. aastal Eestis kella ei keeratud.', 'Komisjoni küsitluses soovis 84 protsenti vastanutest kella keeramise lõpetada.']],
+        ['Arvamus', ['Suveaeg on parem, sest pärast tööd on rohkem valget aega.', 'Kella keeramine on mõttetu vana harjumus.']],
+        ['Ennustus', ['Kella keeramine kaob kindlasti, sest inimesed on sellest väsinud.', 'Vaevalt see muutub enne, kui naabrid on ühel meelel.']],
+      ], 'full', 'g_read'),'Kui eristad fakti arvamusest, ei lase sa end uudistes ega vaidluses eksitada.'), { task: 'R13' }), OLD_WHY['021_d_kind']), CUT_DRILL),
+    ],
+    practice: [
+      station(teach(B.notice('021_p_notice', 'Märka: kust ma tean ja kui kindel ma olen?', [
+        'Tekstist: **Uuringute järgi segab** kella keeramine … · **Mõne uuringu põhjal juhtub** … · harjumus, mis **olevat** välja mõeldud tehaste jaoks · **Ilmselt keerame** kella veel … · **vaevalt** see **muutub** · **Pole siiski välistatud, et** …',
+        'Kordamine (B1): kindlussõna lause alguses + tegusõna: **Ilmselt keerame** … · **vaevalt** + jaatav tegusõna (Vaevalt see **muutub**.) · **ma kahtlen, kas** …',
+        'B2: **allikas** — uuringute **järgi**, ERR-i **andmetel**, arstide **sõnul**, mõne uuringu **põhjal**; tegusõna tuleb kohe järele: Uuringute järgi **segab** …',
+        'B2: **ettevaatlik väide** — **näib / tundub, et** …; **on tõenäoline / vähetõenäoline, et** …; **pole välistatud, et** …; **võib arvata, et** … · **kahtlemata** = kindlasti.',
+        'B2: **teise väide, mida sa ei kinnita** — kaudne kõneviis: -ma → **-vat**: olema → **olevat**, suurendama → **suurendavat**, ei aita → **ei aitavat**. Kommentaator väidab, et kella keeramine **olevat** mõttetu.',
+        'Oma arvamus: **minu arvates, ma leian, et** … — mitte „uuringute järgi”, kui uuringut ei ole.',
+      ], 'full'), 'Kordamine ühe minutiga (ilmselt keerame, vaevalt muutub, kahtlen, kas). Siis B2 samm: hea arutlus ütleb, kust teadmine tuleb ja kui kindel see on. Lase õpilasel leida tekstist kolm lauset: üks allikaga, üks ettevaatlik, üks -vat-vormiga, ja öelda iga kohta, miks kirjutaja nii valis.'), 3, 20),
+      why(purpose(B.gaps('021_p_forms', 'Kui kindel ja kust tead?', 'Kirjuta lünka üks sõna või vorm. Sulgudes on vihje: kui kindel lause on või mis vormi on vaja. Panka ei ole.', [
+        '[Vaevalt] lepivad kõik riigid järgmisel aastal kokku. (vähe tõenäoline)',
+        'Uuringute [järgi|põhjal] segab kella keeramine ööpäevarütmi. (allikas)',
+        'Naaber väidab, et kella keeramine [olevat] välja mõeldud tehaste jaoks. (olema; sa ei kinnita seda)',
+        'Pole [välistatud], et otsuse teeb lõpuks üks suur riik. (pooleldi kindel)',
+        'Ma kahtlen, [kas] Soome oma seisukohta kunagi muudab. (kahtlus)',
+        '[Ilmselt|Tõenäoliselt] keerame kella veel mõne aasta. (peaaegu kindel)',
+        'Kommentaatori sõnul [suurendavat] kella keeramine liiklusõnnetuste arvu. (suurendama; allikat ei ole)',
+        'Vaevalt see vaidlus pärast otsust [lõpeb]. (lõppema)',
+        'On [vähetõenäoline], et kõik riigid valivad sama aja juba sel aastal. (ametlikult: vaevalt)',
+        '[Kahtlemata|Kindlasti] on pikaajaline unepuudus tervisele halb. (täiesti kindel)',
+      ], '', 'full', 'g_notice'), 'Õige sõna näitab lugejale, mida sa tead ja mida ainult arvad.'), [
+        'Vähe tõenäoline → vaevalt; tegusõna jaatav: lepivad.',
+        'Allikas → uuringute järgi (või põhjal); tegusõna kohe järel: segab.',
+        'Teise väide, mida sa ei kinnita → kaudne kõneviis: olevat.',
+        'Pooleldi kindel → pole välistatud, et …',
+        'kahtlema → kas.',
+        'Peaaegu kindel → ilmselt või tõenäoliselt; tegusõna kohe järel: keerame.',
+        'Allikata väide → kaudne kõneviis: suurendama → suurendavat.',
+        'vaevalt on juba eitus → jaatav tegusõna: lõpeb (mitte: ei lõpe).',
+        'Vaevalt ametlikus arutluses → on vähetõenäoline, et …',
+        'Täiesti kindel → kahtlemata või kindlasti.',
+      ]),
+      why(purpose(B.formtext('021_p_news', 'Uudis: kas kell jääb seisma?', 'Loe lühiuudist ja kirjuta lünka sobiv sõna või vorm. Sulgudes on vihje. Mõtle: kas lause on fakt allikaga, ettevaatlik ennustus või teise inimese väide, mida uudis ei kinnita? Panka ei ole.', 'Kas kell jääb seisma?', [
+        'Euroopa Liidu ministrid arutasid eile jälle kella keeramist. Ministrite [sõnul] (allikas) ei ole otsust lähiajal oodata.',
+        '',
+        'Eesti valitsus eelistab endiselt püsivat suveaega, kuid Soome tahab jääda talveajale. [Vaevalt] (vähe tõenäoline) teeb Eesti otsuse Soomest eraldi, sest kahe pealinna vahel sõidab iga päev palju inimesi.',
+        '',
+        'Uneuurijate [arvates|sõnul|hinnangul] (allikas) oleks talveaeg tervisele parem. Mõned poliitikud [kahtlevad] (kahtlema), kas inimesed tahaksid talvel nii varajast pimedust.',
+        '',
+        'Sotsiaalmeedias levib väide, et kella keeramine [olevat] (olema; uudis seda ei kinnita) eriti ohtlik autojuhtidele. Ühe kommentaatori sõnul [juhtuvat] (juhtuma; allikat ei ole) esmaspäeval pärast kella keeramist rohkem õnnetusi. Uuringut ta ei nimeta.',
+        '',
+        'Ministri hinnangul on [tõenäoline] (peaaegu kindel), et arutelu jätkub ka järgmisel aastal. Pole siiski [välistatud] (pooleldi kindel), et mõni riik otsustab lõpuks ise.',
+        '',
+        'Kas kella keeramine kunagi lõpeb? Ajakirjaniku kommentaar: ma [kahtlen] (kahtlema), kas see juhtub enne, kui kõik naabrid on ühel meelel.',
+      ]), 'Sellise uudise loed ka päriselt; nüüd näed, kus on fakt ja kus kellegi väide.'), [
+        'Allikas → ministrite sõnul.',
+        'Vähe tõenäoline → vaevalt; järel jaatav tegusõna: teeb.',
+        'Allikas → uneuurijate arvates (sõnul, hinnangul).',
+        'kahtlema, mitmus: kahtlevad … kas.',
+        'Väide, mida uudis ei kinnita → kaudne kõneviis: olevat.',
+        'Allikata väide → kaudne kõneviis: juhtuvat.',
+        'Peaaegu kindel → on tõenäoline, et …',
+        'Pooleldi kindel → pole välistatud, et …',
+        'kahtlema, mina: kahtlen … kas.',
+      ]),
+      why(purpose(tag(B.table('021_p_register', 'Loosung või kaalutud lause?', 'Vasakul on kommentaariumi liiga kindel lause. Paremas veerus on sama mõte arutluses ettevaatlikumalt ja koos allikaga. Kirjuta lünka puuduv sõna.', 'Kommentaariumis, Arutluses', [
+        'Kella keeramine tapab inimesi! | Mõne uuringu [järgi/põhjal] võib kella keeramine suurendada infarktiriski.',
+        'Kõik tahavad suveaega! | Küsitluse järgi soovis suur [enamik] vastanutest kella keeramise lõpetada.',
+        'Otsust ei tule kunagi! | [Vaevalt] tehakse otsus lähiajal.',
+        'Talveaeg on kindlasti parem! | Uneuurijate [arvates/sõnul/hinnangul] oleks talveaeg tervisele parem.',
+        'Naaber ütles, et see on tehaste pärast välja mõeldud. | Naabri sõnul [olevat] kella keeramine välja mõeldud tehaste jaoks.',
+        'Võib-olla otsustab mõni suur riik ise. | Pole [välistatud], et mõni suur riik otsustab ise.',
+        'Ma ei usu, et Soome meelt muudab. | Ma [kahtlen], kas Soome oma seisukohta muudab.',
+        'Ilmselt keerame veel paar aastat. | On [tõenäoline], et keerame kella veel mõne aasta.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas kõlab sama mõte nii, et lugeja sind usub.'), [
+        'Loosung → allikas ja ettevaatlik tegusõna: mõne uuringu järgi võib …',
+        '„Kõik” → täpsem: suur enamik vastanutest.',
+        '„Kunagi” → vaevalt (vähe tõenäoline); jaatav tegusõna: tehakse.',
+        'Oma hüüe → allikas: uneuurijate arvates.',
+        'Teise väide, mida sa ei kinnita → kaudne kõneviis: olevat.',
+        'Võib-olla → arutluses: pole välistatud, et …',
+        'Ma ei usu → ma kahtlen, kas …',
+        'Ilmselt → arutluses: on tõenäoline, et …',
+      ]),
+      hide(why(teach(tag(purpose(B.choice('021_p_sure', 'Sõber on liiga kindel.', 'Sõber kirjutab kõike väga kindlalt. Vali vastus, mis sobib faktidega ja on õiges vormis.', [
+        ['Fakt: riigid ei ole seitsme aastaga kokku leppinud. Sõber: „Järgmisel aastal enam kella ei keerata!”', 'Vaevalt lõpeb kella keeramine juba järgmisel aastal.', 'Kindlasti lõpeb kella keeramine järgmisel aastal.', 'Vaevalt ei lõpe kella keeramine järgmisel aastal.'],
+        ['Fakt: Eesti eelistab suveaega, Soome talveaega. Sõber: „Mis aeg meile lõpuks jääb?”', 'Ma ei ole kindel: võib-olla suveaeg, võib-olla talveaeg.', 'Kindlasti jääb meile talveaeg.', 'Võib olla jääb kindlasti suveaeg.'],
+        ['Fakt: 84 protsenti vastanutest soovis lõpetamist. Sõber: „Kella keeramine ei sega kedagi.”', 'Ilmselt segab see paljusid, sest enamik soovis lõpetamist.', 'Vaevalt on keegi kella keeramise vastu.', 'Ma kahtlen, kas keegi küsitlusele üldse vastas.'],
+        ['Fakt: uuringud seostavad kella keeramist unepuudusega. Sõber: „Uni ei muutu sellest üldse.”', 'Ma kahtlen, kas see on tõsi: uuringud näitavad muud.', 'Ma kahtlen, et see on tõsi: uuringud näitavad muud.', 'Kindlasti on sul õigus.'],
+        ['Fakt: 2000. ja 2001. aastal Eestis kella ei keeratud. Sõber: „Eestis on kella alati keeratud.”', 'Kindlasti mitte: 2000. ja 2001. aastal seda ei tehtud.', 'Ilmselt on sul õigus.', 'Vaevalt ei keeratud.'],
+        ['Sa ei tea, mida ministrid järgmisel aastal teevad. Sõber: „Järgmisel aastal tehakse otsus!”', 'Võib-olla räägitakse sellest jälle, aga ma ei ole kindel.', 'Kindlasti tehakse otsus järgmisel aastal.', 'Vaevalt ei räägita sellest.'],
+      ], 'full', 'g_notice'), 'Sõber saab vastuse, mis on täpselt nii kindel, kui faktid lubavad.'), { task: 'G13' }),
+      'Pärast iga vastust küsi: „Kui kindel sa tegelikult oled? Mis fakt seda näitab?” Kui õpilane valib kahekordse eituse (vaevalt ei …), ütle ainult: „Vaevalt on juba ei.”'), OLD_WHY['021_p_sure']), CUT_DRILL),
+      hide(tag(purpose(B.writing('021_p_mine', 'Minu ennustused.', 'Kirjuta 4 lauset: mis sinu elus või linnas järgmise viie aasta jooksul kindlasti, ilmselt, võib-olla ja vaevalt muutub. Pane tegusõna kindlussõna järele.', [4, 4], ['kindlasti', 'ilmselt', 'vaevalt'], 2, 'g_notice'), 'Sinu ennustused on esimesed laused sinu raadiovastuseks.'), { task: 'W02', level: 3 }), 'a 4-sentence writing with keywords: the form tasks 021_p_forms / 021_p_news and the home comment take its place'),
+    ],
+    transfer: [
+      station(purpose(B.planning('021_t_plan', 'Raadiointervjuu: plaan (2 minutit).', 'Raadio hommikusaade küsib: „Kas kella keeramine tuleks lõpetada — ja kumb aeg peaks jääma?” Sul on 2 minutit ettevalmistuseks. Kirjuta märksõnad. Edukriteeriumid: 1) seisukoht esimeses lauses ja näitad, kui kindel oled; 2) üks fakt koos allikaga ja üks näide oma elust; 3) kui reporter ütleb midagi ilma allikata, küsid, kust ta seda teab.', ['Minu seisukoht ja kui kindel ma olen:', 'Fakt tekstist (allikas) ja minu näide:', 'Milles ma kahtlen:', 'Mida vastan, kui reporter vaidleb vastu:'], 1), 'Plaan aitab sul ühe minutiga öelda selgelt, mida arvad ja miks.'), 4, 25, { final: 'present' }),
+      teach(tag(purpose(B.rolecards('021_t_interview', 'Raadiointervjuu (1 minut + küsimused).', 'Räägi 1 minut: oma seisukoht, kui kindel oled, üks fakt koos allikaga ja üks näide oma elust. Seejärel vasta reporteri küsimustele. Reageeri, kui ta ütleb midagi ootamatut.',
+        'Sina: raadio külaline.\nSinu eesmärk: kuulaja saab aru, mida sa arvad, miks ja kui kindel sa oled.\nPiirang: kui reporter esitab väite ilma allikata, küsi, kust ta seda teab.',
+        'Reporteri kaart on õpetajal: tema küsimused ja üks väide, mis ei pruugi olla tõsi.',
+        ['Uuringute järgi …', 'Ma kahtlen, kas …'], ['Kust te seda teate?', 'Pole välistatud, et …']), 'Tulemus: sinu seisukoht kõlab raadios selgelt ja ausalt — fakt, arvamus ja kahtlus on lahus.'), { task: 'S16', main: true, level: 4 }),
+      'Õpetaja kaart (reporter). Kuula õpilase minut segamata. Varjatud info: sul on „uudis”, mis ei pruugi olla tõsi — „Kuulsin, et Soome lõpetab kella keeramise juba järgmisel aastal ja Eesti peab järgnema.” Ütle see alles pärast õpilase minutit. Küsimused ükshaaval: 1) „Kas te olete selles täiesti kindel?” 2) varjatud info — õpilane peab küsima allikat või ütlema ettevaatlikult, et ta kahtleb (Kust te seda teate? Kui see olevat nii, …); 3) „Mida ütleksite vahetustega töötajale, kes on teiega eri meelt?” Õnnestunud, kui seisukoht on esimeses lauses, vähemalt kolm eri kindlusväljendit (ilmselt, vaevalt, pole välistatud …), üks fakt koos allikaga ja õpilane ei võta allikata väidet faktina. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('021_t_opinion', 'Kodus: kommentaar uudise alla (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'vastus', {
+        situation: 'Uudisportaal küsib lugejatelt: „Kas kella keeramine tuleks lõpetada ja kumb aeg peaks jääma?” Kirjuta kommentaar, mida loevad ka need, kes arvavad teisiti.',
+        points: ['sinu seisukoht ja kui kindel sa oled', 'üks fakt tekstist koos allikaga (uuringute järgi …)', 'üks näide oma elust või linnast', 'üks väide, milles sa kahtled, ja miks'],
+        words: [130, 150],
+      }), 'Lugejad näevad, et sinu arvamus põhineb faktidel ja et sa eristad fakti kuulujutust.'), 6)), { task: 'W08', main: true, level: 4 }),
+      writingRubric('021_t_rubric', 'Hindamisjuhend: kommentaar (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Kella keeramine on kindlasti halb. Kõik arstid ütlevad, et see on ohtlik südamele. Mina töötan öösel ja olen pärast seda väsinud. Vaevalt see ei muutu kunagi. Ma kahtlen, et poliitikud lepivad kokku. Minu arvates suveaeg on parem, sest õhtud on pikad.” Hinnang: ülesanne 2 (seisukoht, näide ja kahtlus on olemas, kuid fakt on ilma allikata — „kõik arstid”), ülesehitus 2 (järjekord on selge, kuid sidendeid peaaegu ei ole), sõnavara 2 („kindlasti halb” — liiga kindel, faktid seda ei luba; „ohtlik” → võib suurendada riski), grammatika 1 („Vaevalt see ei muutu” → vaevalt see muutub; „kahtlen, et” → kahtlen, kas; „Minu arvates suveaeg on” → minu arvates on suveaeg). Kui õppija lisab allika (uuringute järgi), parandab kolm vormi ja lisab ühe sidendi (seetõttu, samas), saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('021_t_self', ['Ma eristan tekstis fakti, arvamust ja ennustust ning järeldan autori hoiaku.', 'Ma näitan allikat ja kindlust: uuringute järgi …, pole välistatud, et …, vaevalt …, see olevat …', 'Ma ütlen raadios 1 minutiga oma seisukoha ega võta allikata väidet faktina.'], 'Seisukoht selge', 'Ma oskan oma arvamust ausalt põhjendada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(why(station(tag(purpose(B.examListen('021_t_radio', 'Raadio tänavaküsitlus.', 'Kuula kaks korda: mida arvab iga inimene ja kui kindel ta on?', 'choice', [
+        'Reporter: Tere! Pühapäeval keerati kella. Küsime möödujatelt: kas kella keeramine tuleks lõpetada?',
+        'Mees: Kindlasti! Töötan vahetustega ja eelmisel nädalal kestis minu öine vahetus tund aega kauem. Pärast seda olin kaks päeva nagu udus. Ma ei saa aru, miks me seda ikka veel teeme.',
+        'Naine: Mul on kaheaastane laps ja tema ei tea kellast midagi. Ta ärkab nüüd kell viis, mitte kell kuus. Ma arvan, et kella keeramine tuleks lõpetada, aga ilmselt läheb selleks veel aastaid.',
+        'Pensionär: Mina olen sellega harjunud, mulle on see ükskõik. Vaevalt see üldse muutub, sellest räägitakse juba kakskümmend aastat. Ma kahtlen, kas poliitikud kunagi kokku lepivad.',
+        'Üliõpilane: Mina hääletaksin suveaja poolt. Mulle meeldivad pikad õhtud, siis jõuan pärast loenguid veel õue. Võib-olla on talveaeg tervisele parem, aga ma ei ole selles kindel.',
+        'Reporter: Aitäh! Arvamusi on täpselt nii palju kui vastajaid.',
+      ], [
+        ['Kuidas mõjus kella keeramine vahetustega töötajale?', 'Tema öine vahetus oli tund aega pikem ja ta oli väsinud.', 'Ta ei märganud muutust üldse.', 'Ta jäi selle pärast tööle hiljaks.'],
+        ['Kui kindel on vahetustega töötaja, et kella keeramine tuleks lõpetada?', 'täiesti kindel', 'ei ole kindel', 'kahtleb selles'],
+        ['Mis muutus väikese lapse ema kodus pärast kella keeramist?', 'Laps ärkab tund aega varem.', 'Laps magab hommikul kauem.', 'Laps ei maga enam lõunaund.'],
+        ['Millal lõpeb ema arvates kella keeramine?', 'ilmselt alles mitme aasta pärast', 'kindlasti järgmisel aastal', 'mitte kunagi'],
+        ['Mida arvab pensionär poliitikute kokkuleppest?', 'Ta kahtleb, kas nad kunagi kokku lepivad.', 'Ta on kindel, et muutus tuleb kohe.', 'Ta tahab kindlasti talveaega.'],
+        ['Miks eelistab üliõpilane suveaega?', 'Ta jõuab pärast loenguid veel õue.', 'Talveaeg on tema arvates kindlasti tervisele halb.', 'Ta ärkab hommikul hea meelega vara.'],
+      ], 'g_read'), 'Kuuled, kuidas teised oma arvamust põhjendavad; kohe vastad raadiole ise.'), { voice: 'interview', task: 'L02' }), 4, 15, { final: 'present' }), OLD_WHY['021_t_radio']), CUT_SHORT),
+      hide(inLesson(teach(tag(purpose(B.speaking('021_t_say', 'Raadio küsib sinult.', 'Reporter peatab sind tänaval. Räägi 1–2 minutit: mida sa kella keeramisest arvad, kui kindel sa oled, kaks põhjust oma elust ja üks kahtlus. Siis vasta reporteri kahele küsimusele.', [
+        'Kas kella keeramine tuleks lõpetada? Kui kindel sa oled?',
+        'Millised kaks põhjust tulevad sinu elust?',
+        'Milles sa kahtled?',
+        'Kumb aeg peaks jääma: suve- või talveaeg?',
+      ], [120, 180], ['Ma olen kindlasti …', 'Ilmselt …', 'Ma kahtlen, kas …', 'Vaevalt …']), 'Tulemus: sinu arvamus on raadios selge — kuulaja teab, mida sa arvad, miks ja kui kindel sa oled.'), { task: 'S16', main: true, level: 4, harno: 'S1' }),
+      'Õpetaja on reporter. Kuula segamata, siis küsi kaks küsimust: 1) „Aga kui Soome jääb talveajale — kas siis ka?” 2) „Kust sa tead, et see on tervisele halb?” (õpilane peab eristama fakti ja arvamust). Õnnestunud, kui on selge seisukoht, vähemalt kolm erinevat kindlussõna (kindlasti, ilmselt, vaevalt, ma kahtlen, kas …), kaks põhjust oma elust ja üks fakt koos allikaga („küsitluse järgi …”).')), 'a 2–3-min talk with phrases: the product is the interview 021_t_interview (1 min + questions, hidden information)'),
+      hide(extension(teach(tag(purpose(B.rolecards('021_t_more', 'Mini-väitlus: suveaeg või talveaeg igaveseks?', 'Vali pool ja veena teist: kumb aeg peaks Eestisse igaveseks jääma?',
+        'Sinu pool: püsiv suveaeg.\nArgumendid: pikad heledad õhtud; rohkem aega õues pärast tööd; Eesti valitsus eelistab seda.\nLisa üks näide oma elust.',
+        'Sinu pool: püsiv talveaeg.\nArgumendid: valged hommikud; uneuurijate arvates parem ööpäevarütmile; sama aeg Soomega.\nLisa üks näide oma elust.',
+        ['Ma olen kindel, et …', 'Ilmselt …', 'Sinu argument on hea, aga …'], ['Ma kahtlen, kas …', 'Vaevalt …', 'Tõenäoliselt …']), 'Kiire väitlus näitab, kas oskad oma kindlust ka vastase ees hoida.'), { task: 'S11', level: 4 }),
+      'Kui aega jääb (12 min). Õpilane valib poole, sina võtad teise. Kaks vooru: kumbki 1 minut argumente, siis 3 minutit vaba vaidlust. Takistus: „Soomega erinev aeg — kas see on sinu arvates probleem?” Õnnestunud, kui õpilane ütleb vähemalt ühe kahtluse (ma kahtlen, kas …) ja ühe ennustuse (ilmselt / vaevalt).'), 12), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('021_t_exit', 'Kontrolli end: kui kindel?', 'Kirjuta lünka kindlussõna: lause alguses on öeldud, kui kindel kõneleja on.', [
+        'Kindlus umbes 10 %: riigid ei ole seitsme aastaga kokku leppinud, nii et [vaevalt] tuleb otsus juba sel talvel.',
+        'Kindlus 100 %: küsitluse järgi soovis lõpetamist 84 protsenti vastanutest — see on [kindlasti|kahtlemata] suur enamus.',
+        'Kahtlus: ma [kahtlen], kas kõik Euroopa riigid kunagi sama kellaaja valivad.',
+      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas kindlussõnad on käes.')), {}), OLD_WHY['021_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.writing('021_t_comment', 'Kodus: kommentaar uudise alla.', 'Kirjuta kodus 120–150 sõna uudisportaali kommentaariumisse: kas kella keeramine tuleks lõpetada ja kumb aeg peaks jääma. Too üks fakt koos allikaga, kaks põhjust oma elust ja näita, kui kindel sa oled.', [10, 14], ['kindlasti', 'ilmselt', 'vaevalt'], 2, 'g_use'), 'Teised lugejad näevad, et sinu arvamus põhineb faktidel, mitte ainult tundel.')), { task: 'W08', level: 3 }), CUT_OLDTASK),
+      hide(tag(homeTask(purpose(B.speaking('021_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks asi sinu linnas või elus, mis järgmise viie aasta jooksul kindlasti muutub, ja üks, mis vaevalt muutub.', [
+        'Mis kindlasti muutub ja miks sa selles kindel oled?',
+        'Mis vaevalt muutub ja miks?',
+      ], [60, 120]), 'Õpetaja kuulab sinu ennustused ja ütleb, kas kindlussõnad on õiges kohas.')), { task: 'S15' }), CUT_HOME),
+      hide(homework('021_t_homework', ['1. Kommentaar uudise alla, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
+    ],
+  },
+
+  'b1b2-022': {
+    title: 'Päris kuusk või kunstkuusk?',
+    phases: grammar('Kordamine: sidesõna lause alguses, tegusõna teisel kohal (Esiteks on …, Seega ei ole …) · B2: arutluse ülesehitus — teemalause, ühelt poolt … teiselt poolt, lisaks sellele, sellest järeldub, et …, vastupidi; viide allikale (saates öeldi, et …; Kaidi sõnul …)'),
+    format: 'debate',
+    topic: 'nature',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadioväitlusest jõulukuuse üle ja järeldan kõnelejate hoiaku, väitlen märksõnakaartidega ning kirjutan umbes 180-sõnalise arutluse, kus viitan kuuldud argumentidele.',
+    teacherPage: {
+      goal: 'Радиодебаты о ёлке (2 голоса, 3,5 мин), строение аргумента и ссылка на источник, дебаты по карточкам со скрытой информацией; дома рассуждение 180 слов по передаче с рубрикой.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 предложений; дебаты без нового обстоятельства.',
+      hook: '«Väide: jõulukuusk on traditsioon, mida ei peaks muutma.» Ученик сразу говорит, согласен ли он, и одну причину, потом минуту — какая ёлка (или другая традиция) у него дома в декабре и кто это решает. Уважительно к обеим традициям: у многих русскоязычных семей это новогодняя ёлка. Вы не спорите и не исправляете.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о семейной традиции, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «мост аргумента» (3 мин), радиодебаты дважды (8 мин), 10 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — связка + глагол вторым одной строкой, строение абзаца и ссылка на источник, 10 предложений, абзац рассуждения с 10 пропусками без банка, регистр: дебаты → письменный текст',
+        '45–70: станция 4 — план (4 мин), дебаты по карточкам с ключевыми словами и новым обстоятельством (до 4 мин) + голосование, разбор',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: рассуждение 180 слов со ссылкой на передачу и голосовое 1 мин',
+        'Kui aega jääb (75–90): мини-дебаты «запретить ли новогодний фейерверк?» — тот же мост аргумента на новой теме',
+      ],
+      sources: 'Радиодебаты «Kaks häält» — учебный текст KeeleSepp (Март и Кайди вымышленные), адаптирован к B2, без точных цифр. Общие факты: ёлки часто рубят там, где лес всё равно прореживают (например, под линиями электропередачи); искусственную ёлку экологичнее использовать много лет; после праздников ёлки идут на щепу.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Дебаты: две команды по 1–2 человека с карточками; вы — ведущий, судья голосования и носитель нового обстоятельства. В 1:1 противник — вы.',
+      errors: [
+        '«Esiteks, päris kuusk on …» → «Esiteks on päris kuusk …» (без запятой, глагол на втором месте).',
+        '«Sest plast ei lagune.» отдельным предложением → «Põhjus on selles, et plast ei lagune» (sest не начинает письменное предложение).',
+        '«Kaidi sõnul kunstkuusk teenib …» → «Kaidi sõnul teenib kunstkuusk …» (после ссылки на источник глагол вторым).',
+        '«Pealegi» против своей стороны → pealegi / lisaks sellele добавляют аргумент той же стороны; против — samas, ometi, vastupidi.',
+      ],
+      notes: [
+        'Формат — дебаты с голосованием: в конце каждый говорит, какой аргумент его убедил и почему. Кто без ёлки: «Mis traditsioon on sinu peres detsembris? Kumba kuuske sa sõbrale soovitaksid?»',
+        'Связка + глагол вторым (B1) — повтор одной строкой. Цель B2 — абзац рассуждения: тематическое предложение, аргумент с примером, контраргумент с ответом, вывод из аргументов и ссылка на источник («Mardi sõnul …»). Домашнее рассуждение пишется по передаче — это источник, которого раньше не было (аудит 2026-11-25).',
+        'Обратная связь, 2–3 цели: глагол после связки и после ссылки на источник; все части аргумента; вывод следует из аргументов. Во время дебатов не перебивать, 3 замечания после голосования.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('022_d_talk', 'Väide: jõulukuusk on traditsioon, mida ei peaks muutma.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: milline kuusk või muu traditsioon on sinu peres detsembris ja kes selle üle otsustab.', [
+        'Väide: „Jõulukuusk on traditsioon, mida ei peaks muutma.” Kas oled nõus? Miks?',
+        'Milline kuusk või muu traditsioon on sinu peres detsembris ja kes selle üle otsustab?',
+      ], [60, 90]), 'Sinu enda põhjused on tänase väitluse esimesed argumendid.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: räägi ka ise oma pere detsembrist. Ära paranda; kirjuta tahvlile õpilase kaks põhjust — need tulevad jaamas 4 tagasi. Õpilasele ilma kuuseta: „Mis traditsioon on sinu peres detsembris ja kas see on aastatega muutunud?”')), 1, 5),
+      station(tag(B.vocab('022_d_vocab', 'Tunni sõnad.', ['päris kuusk — живая ёлка', 'kunstkuusk — искусственная ёлка', 'jalajälg — (углеродный) след', 'lagunema — разлагаться', 'okkad — хвоя', 'traditsioon — традиция', 'argument — аргумент', 'vastuargument — контраргумент', 'järeldus — вывод', 'veenma — убеждать']), { topic: ['kunstkuusk', 'jalajälg'] }), 2, 20),
+      purpose(B.diagram('022_d_scheme', 'flow', { title: 'Skeem: argumendi sild.', instruction: 'Vaata skeemi enne kuulamist. Kuulates märgi, millise silla osa Mart ja Kaidi ütlevad ja millise sidendiga.', nodes: 'Seisukoht (teemalause): Mina olen päris kuuse poolt.\nPõhjus: Esiteks kasvab kuusk Eesti metsas.\nNäide: Näiteks toome me kuuse igal aastal ise metsast.\nVastuargument ja vastus: Tõsi küll, kunstkuusk on mugav, samas …\nJäreldus: Seega / Sellest järeldub, et …' }, 'full', 'g_read'), 'Skeem näitab, millest koosneb argument, mis kannab ka vastase ees.'),
+      why(teach(tag(purpose(B.examListen('022_d_listen', 'Kuulamine: raadioväitlus „Kaks häält”.', 'Raadiosaates vaidlevad kaks inimest: kas tuua koju päris kuusk või panna üles kunstkuusk. Loe enne küsimused läbi. Kuula saadet kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Mart: Tere! Saates „Kaks häält” vaidleb täna kaks inimest ühe detsembrikuise küsimuse üle: kas tuua koju päris kuusk või panna üles kunstkuusk? Mina olen Mart, töötan metsas ja olen päris kuuse poolt. Minu vastas on disainipoe omanik Kaidi.',
+        'Kaidi: Tere! Mina olen kunstkuuse poolt, kuigi lapsepõlves oli meil alati päris kuusk. Mart, alusta sina.',
+        'Mart: Hea meelega. Esiteks kasvab päris kuusk siinsamas Eesti metsas, kunstkuusk aga tuuakse tavaliselt kaugelt ja tehakse plastist. Teiseks võetakse paljud jõulukuused kohtadest, kus need niikuinii maha raiutaks, näiteks elektriliinide alt või tiheda metsa harvendamisel. Seega ei tee üks kuusk metsale kahju. Ja pärast pühi saab sellest hakkpuitu või küttepuid.',
+        'Kaidi: Selles on sul õigus, et päris kuusk on looduslik. Samas unustad ühe asja: kunstkuuske ei osteta üheks aastaks. Hea kunstkuusk teenib perel kümme aastat või kauemgi. Sellest järeldub, et ühe aasta kohta on selle jalajälg palju väiksem, kui esmapilgul tundub.',
+        'Mart: Aga ainult siis, kui seda tõesti kümme aastat kasutatakse. Minu kogemus on teistsugune: paljud ostavad odava kunstkuuse, see läheb kahe-kolme aastaga koledaks ja viiakse prügimäele. Plast ei lagune looduses sadu aastaid.',
+        'Kaidi: Nõus, odav kuusk on halb ost. Seetõttu soovitan ma alati osta kvaliteetse kuuse ja seda hoida. Lisaks sellele on kunstkuusk lihtsalt mugavam. Okkad ei kuku põrandale, kuuske ei pea igal aastal metsast või turult otsima ja väikese lapse või kassiga peres on see ka ohutum.',
+        'Mart: Ohutuse kohta ütlen siiski üht: päris kuusk püsib kaua värske, kui see seisab vees ja radiaatorist eemal. Ja hind? Kui kuuse ise metsast tood, maksab see vähem kui pere pitsaõhtu.',
+        'Kaidi: Tõsi küll, aga linnas elaval perel ei ole sageli autot ega aega metsa minna. Hea kunstkuusk maksab alguses rohkem, kuid kümne aasta peale tuleb see odavam kui igal aastal uus kuusk turult.',
+        'Mart: Mugavus on argument, ma ei vaidle. Ometi ei ole jõulud minu arvates mugavuse pühad. Päris kuuse lõhn, metsaskäik koos lastega ja see, et kuusk elab — see ongi traditsioon. Kunstkuuse ostad poest viie minutiga, aga mälestust sellest ei jää.',
+        'Kaidi: Vastupidi! Meie peres on mälestus see, kui hakkame igal aastal sama kuuske koos ehtima. Mu tütar ootab seda karpi juba novembris. Traditsioon ei sõltu sellest, kas kuusk on päris, vaid sellest, mida pere sellega teeb.',
+        'Mart: Hea mõte. Aga kokkuvõttes jään ma oma seisukoha juurde: kui kuusk tuuakse õigest kohast ja pärast pühi kasutatakse ära, on päris kuusk loodusele parem valik.',
+        'Kaidi: Ja minu järeldus on, et kõige halvem kuusk on see, mis visatakse ära juba järgmisel aastal — olgu ta päris või plastist. Kuulajad, kirjutage meile, kumb argument teid veenis!',
+      ], [
+        ['Mis on Mardi esimene argument päris kuuse poolt?', 'päris kuusk kasvab Eesti metsas, kunstkuusk tuuakse kaugelt', 'päris kuusk on alati odavam kui kunstkuusk', 'tema lapsed tahavad ainult päris kuuske'],
+        ['Kust võetakse Mardi sõnul paljud jõulukuused?', 'kohtadest, kus need niikuinii maha raiutaks', 'kõige vanemast ja ilusamast metsast', 'poodidest, mis toovad need välismaalt'],
+        ['Mis saab Mardi sõnul päris kuusest pärast pühi?', 'sellest tehakse hakkpuitu või küttepuid', 'see viiakse prügimäele', 'see istutatakse metsa tagasi'],
+        ['Millega on Kaidi Mardiga nõus?', 'et päris kuusk on looduslik', 'et kunstkuusk on loodusele alati halb', 'et jõulud on mugavuse pühad'],
+        ['Mida järeldab Kaidi kunstkuuse jalajälje kohta?', 'pika kasutamise korral on see ühe aasta kohta väike', 'see on alati suurem kui päris kuusel', 'seda ei ole võimalik arvutada'],
+        ['Mis juhtub Mardi kogemuse järgi sageli odava kunstkuusega?', 'see läheb paari aastaga koledaks ja viiakse prügimäele', 'see kestab kauem kui kallis kuusk', 'see müüakse järgmisel aastal edasi'],
+        ['Milliseid mugavuse argumente toob Kaidi?', 'okkad ei kuku, kuuske ei pea otsima, see on ohutum lapsele ja kassile', 'see lõhnab nagu päris mets', 'see on poes alati odavam'],
+        ['Miks vastab Kaidi Mardi traditsiooni-argumendile sõnaga „Vastupidi”? Mida ta tahab näidata?', 'ka kunstkuusega võib perel olla traditsioon ja mälestus', 'ta ei tea, mida traditsioon tähendab', 'ta on Mardiga lõpuks täiesti nõus'],
+        ['Mida võib järeldada Mardi lausest „Mugavus on argument, ma ei vaidle. Ometi …”?', 'ta tunnistab vastase mõtet, kuid jääb oma seisukoha juurde', 'ta muudab saate keskel oma arvamust', 'ta ei ole Kaidit üldse kuulanud'],
+        ['Mida arvab Kaidi saate lõpus kõige halvemast kuusest? Mida see ütleb tema hoiaku kohta?', 'kõige halvem on ühe aasta kuusk: tähtis on kasutada kaua, mitte materjal', 'kõige halvem on alati päris kuusk', 'kõige halvem on alati plastist kuusk'],
+      ], 'g_read'), 'Kuuled, kuidas kaks inimest oma argumente ehitavad, ja saad nende mõtteid oma arutluses kasutada.'), { voice: 'interview', task: 'L02', harno: 'L3' }),
+      'Kuulamine, 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Enne kuulamist loeb õpilane küsimused ja joonib alla võtmesõnad. Pärast: õpilane täidab suuliselt skeemi kummagi kõneleja kohta (seisukoht, põhjus, näide, järeldus) ja leiab kolm sidendit, mille järel tegusõna on teisel kohal (Esiteks kasvab, Seega ei tee, Lisaks sellele on). Küsimused 8–10 on järeldusküsimused (kõneleja hoiak ja vihje). Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Mart: „Esiteks kasvab päris kuusk siinsamas Eesti metsas, kunstkuusk aga tuuakse tavaliselt kaugelt.”',
+        'Mart: kuused võetakse „kohtadest, kus need niikuinii maha raiutaks”.',
+        'Mart: „pärast pühi saab sellest hakkpuitu või küttepuid”.',
+        'Kaidi: „Selles on sul õigus, et päris kuusk on looduslik.”',
+        'Kaidi: „Sellest järeldub, et ühe aasta kohta on selle jalajälg palju väiksem.”',
+        'Mart: odav kuusk „läheb kahe-kolme aastaga koledaks ja viiakse prügimäele”.',
+        'Kaidi: „Okkad ei kuku põrandale, kuuske ei pea … otsima … on see ka ohutum.”',
+        'Järeldus: Kaidi ütleb, et traditsioon „ei sõltu sellest, kas kuusk on päris, vaid sellest, mida pere sellega teeb”.',
+        'Järeldus: „ma ei vaidle” tunnistab, „Ometi” pöörab tagasi oma seisukoha juurde.',
+        'Järeldus: „kõige halvem kuusk on see, mis visatakse ära juba järgmisel aastal — olgu ta päris või plastist”.',
+      ]),
+      hide(why(tag(purpose(B.listening('022_d_radio', 'Raadioväitlus: kuusk metsast või poest?', 'Kuula kaks korda ja täida argumendisild: kirjuta lünka 1–2 sõna või arv.', [
+        'Saatejuht: Tere! Detsembris vaidlevad paljud pered sama küsimuse üle: kas tuua koju päris kuusk või panna üles kunstkuusk? Stuudios on metsandustudeng Mart ja disainipoe omanik Kaidi.',
+        'Mart: Mina olen päris kuuse poolt. Esiteks kasvab kuusk Eesti metsas, kunstkuusk aga tuuakse tavaliselt Aasiast. Pealegi on päris kuuse jalajälg väike, kui see tehakse pärast pühi hakkpuiduks. Näiteks saab riigimetsast kahemeetrise kuuse raieõiguse kaheksa euroga. Seega ei ole päris kuusk ka kallis.',
+        'Kaidi: Mina arvan teisiti. Hea kunstkuusk teenib perel kümme aastat või kauemgi. Esiteks ei pea igal aastal metsas ega kuuseturul käima. Teiseks ei kuku okkad põrandale ja väikese lapse või koera jaoks on see ohutum. Järelikult on kunstkuusk mugav ja pika aja peale ka mõistlik.',
+        'Mart: Aga kunstkuusk on plastist. Kui see visatakse ära juba kolme aasta pärast, on kahju loodusele suur.',
+        'Kaidi: Nõus. Seepärast tuleb osta kvaliteetne kuusk ja seda kaua kasutada. Kokkuvõttes oleneb kõik sellest, kui kaua sa oma kuuske kasutad.',
+        'Saatejuht: Aitäh! Kuulajad, hääletage meie kodulehel!',
+      ], [
+        'Mart on [päris kuuse] poolt.',
+        'Marti esimene põhjus: kuusk kasvab Eesti [metsas].',
+        'Kunstkuusk tuuakse Marti sõnul tavaliselt [Aasiast].',
+        'Päris kuuse jalajälg on väike, kui see tehakse pärast pühi [hakkpuiduks].',
+        'Marti näide: kahemeetrise kuuse raieõigus maksab riigimetsas [kaheksa|8] eurot.',
+        'Kaidi sõnul teenib hea kunstkuusk perel [kümme|10] aastat või kauem.',
+        'Kunstkuuse eelis on see, et [okkad] ei kuku põrandale.',
+        'Kaidi järeldus: kunstkuusk on [mugav] ja pika aja peale mõistlik.',
+      ], 'g_read'), 'Argumendisild näitab, millest koosneb tugev argument; kohe ehitad sama silla ise.'), { voice: 'interview', task: 'L04' }), OLD_WHY['022_d_radio']), CUT_SHORT),
+    ],
+    practice: [
+      station(teach(B.notice('022_p_notice', 'Märka: kuidas arutluse lõik koos püsib?', [
+        'Saatest: **Esiteks kasvab** päris kuusk … · **Seega ei tee** üks kuusk metsale kahju · **Sellest järeldub, et** … · **Lisaks sellele on** kunstkuusk mugavam · **Ometi ei ole** jõulud … · **Vastupidi!**',
+        'Kordamine (B1): sidesõna lause alguses → tegusõna kohe järele: **Esiteks on** … · **Seega ei ole** … · **sest / kuna** sõnajärge ei muuda: …, sest kuusk **kasvab** Eestis.',
+        'B2: lõigu ülesehitus — **teemalause** (Päris kuusk on loodusele parem valik.) → **põhjus** (Esiteks … / Peamine põhjus on see, et …) → **näide** (Näiteks …) → **järeldus** (Seega … / Sellest järeldub, et …).',
+        'B2: kaks poolt — **Ühelt poolt** on kunstkuusk mugav, **teiselt poolt** on see plastist. · **Lisaks sellele / Pealegi** — sama poole uus argument · **Samas / Ometi / Vastupidi** — vastupidine mõte.',
+        'B2: viide allikale — **saates öeldi, et** … · **Kaidi sõnul teenib** hea kuusk kümme aastat. · **Mardi arvates on** … (allika järel tegusõna teisel kohal).',
+        'Kirjas ära alusta lauset sõnaga **sest** ega **aga**: → **Põhjus on selles, et** … / **Kuid** …',
+      ], 'full'), 'Kordamine ühe minutiga (Esiteks on, Seega ei ole). Siis B2 samm: argument ei ole üks lause, vaid lõik, mis viitab allikale ja vastab vastasele. Lase õpilasel öelda saatest üks Mardi ja üks Kaidi argument allikaviitega (Mardi sõnul …, Kaidi arvates …).'), 3, 20),
+      why(purpose(B.transformation('022_p_join', 'Seo kaks mõtet arutluses.', 'Kirjuta teine mõte uue lausena, mis algab antud sõna või väljendiga. Pane tegusõna õigele kohale. Panka ei ole.', [
+        ['Kunstkuusk teenib kümme aastat. → Ühe aasta jalajälg on väike.', 'sellest järeldub, et', 'Sellest järeldub, et ühe aasta jalajälg on väike.'],
+        ['Päris kuusk kasvab siinsamas Eesti metsas. → See ei pea tulema kaugelt teiselt mandrilt.', 'seega', 'Seega ei pea see tulema kaugelt teiselt mandrilt.'],
+        ['Kunstkuusk on mugav. → Okkad ei kuku kogu jõulukuu jooksul põrandale.', 'lisaks sellele', 'Lisaks sellele ei kuku okkad kogu jõulukuu jooksul põrandale.'],
+        ['Odav kunstkuusk läheb kiiresti koledaks. → See viiakse juba paari aasta pärast prügimäele.', 'seetõttu', 'Seetõttu viiakse see juba paari aasta pärast prügimäele.'],
+        ['Jõulud on pere traditsioon. → Mugavus ei ole kuuse valimisel kõige tähtsam.', 'järelikult', 'Järelikult ei ole mugavus kuuse valimisel kõige tähtsam.'],
+        ['Kunstkuusk on ohutum. → Plast ei lagune looduses.', 'teiselt poolt', 'Teiselt poolt ei lagune plast looduses.'],
+        ['Mart ütles, et kuused võetakse elektriliinide alt.', 'Mardi sõnul', 'Mardi sõnul võetakse kuused elektriliinide alt.'],
+        ['Päris kuusk on meie pere traditsioon. → Me käime igal aastal lastega metsas kuuske toomas.', 'näiteks', 'Näiteks käime me igal aastal lastega metsas kuuske toomas.|Näiteks käime igal aastal lastega metsas kuuske toomas.'],
+      ], 'full', 'g_notice'), 'Sinu arutluse laused on seotud ja sõnajärg on õige — lugeja jälgib mõtet vaevata.'), [
+        'Sellest järeldub, et + kõrvallause: sõnajärg on tavaline (ühe aasta jalajälg on).',
+        'Sidend seega lause alguses → tegusõna kohe järel: ei pea (tulema).',
+        'Lisaks sellele (sama poole uus argument) → tegusõna kohe järel: ei kuku.',
+        'Seetõttu (tagajärg) → tegusõna kohe järel: viiakse.',
+        'Järelikult (järeldus) → tegusõna kohe järel: ei ole.',
+        'Teiselt poolt (vastupidine mõte) → tegusõna kohe järel: ei lagune.',
+        'Allikaviide Mardi sõnul → tegusõna kohe järel: võetakse.',
+        'Näiteks lause alguses → tegusõna kohe järel: käime.',
+      ]),
+      why(purpose(B.formtext('022_p_para', 'Arutluse lõik: kumb kuusk?', 'Kirjuta lünka sidend või väljend, mis sobib sulgudes oleva vihjega. Panka ei ole.', 'Kas päris kuusk on loodusele parem?', [
+        'Igal detsembril vaidlevad pered sama küsimuse üle. [Ühelt poolt] (esimene pool) on päris kuusk looduslik ja kasvab Eesti metsas. [Teiselt poolt] (teine pool) võetakse see metsast ära ja juba jaanuaris seisab see prügikasti kõrval.',
+        '',
+        'Raadiosaates „Kaks häält” arutati seda pikalt. Metsas töötava Mardi [sõnul] (allikas) raiutakse paljud kuused niikuinii maha, näiteks elektriliinide alt. [Seega|Järelikult|Seetõttu] (järeldus) ei tee üks kuusk metsale kahju.',
+        '',
+        'Kunstkuusel on oma eelised. [Esiteks] (esimene põhjus) ei kuku okkad põrandale. [Pealegi|Lisaks] (sama poole uus argument) on see väikese lapsega peres ohutum.',
+        '',
+        '[Samas|Ometi|Siiski] (vastupidine mõte) on kunstkuusk plastist ja kui see visatakse ära juba kolme aasta pärast, on kahju suur. [Näiteks] (näide) viis minu naaber oma kuuse prügimäele juba teisel aastal.',
+        '',
+        '[Kokkuvõttes] (lõpp) ei olene vastus ainult materjalist. Sellest [järeldub] (järelduma), et kõige halvem kuusk on see, mida kasutatakse ainult üks kord.',
+      ]), 'Samamoodi ehitad oma kodust arutlust: iga lause teab, mis osa ta argumendist on.'), [
+        'Esimene pool → ühelt poolt.',
+        'Teine pool → teiselt poolt.',
+        'Allikas → Mardi sõnul.',
+        'Järeldus → seega (järelikult, seetõttu); tegusõna kohe järel: ei tee.',
+        'Esimene põhjus → esiteks; tegusõna kohe järel: ei kuku.',
+        'Sama poole uus argument → pealegi või lisaks (sellele).',
+        'Vastupidine mõte → samas (ometi, siiski).',
+        'Näide → näiteks; tegusõna kohe järel: viis.',
+        'Lõpp → kokkuvõttes.',
+        'Sellest järeldub, et … — järelduma, ainsuse 3. isik: järeldub.',
+      ]),
+      why(purpose(tag(B.table('022_p_register', 'Väitluses või arutluses?', 'Vasakul on lause suulisest väitlusest. Paremas veerus on sama mõte kirjalikus arutluses. Kirjuta lünka puuduv sõna.', 'Väitluses, Arutluses', [
+        'Ma olen päris kuuse poolt! | Päris kuusk on minu [arvates] parem valik.',
+        'Kaidi ütles, et kuusk kestab kümme aastat. | Kaidi [sõnul] kestab hea kunstkuusk kümme aastat.',
+        'No ja mis siis? Mugavus pole tähtis! | Mugavus on [küll] oluline, kuid jõulud on eelkõige traditsioon.',
+        'Nii et päris kuusk on parem. | Sellest [järeldub], et päris kuusk on loodusele parem.',
+        'Sest plast ei lagune. | Põhjus on [selles], et plast ei lagune looduses.',
+        'Kõik oleneb sellest, kui kaua sa kuuske kasutad. | [Kokkuvõttes] oleneb kõik sellest, kui kaua kuuske kasutatakse.',
+        'Sa eksid, sellist kuuske ei visata kohe ära. | [Vastupidi], kvaliteetset kuuske kasutatakse aastaid.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas väitluse hüüe muutub arutluse lauseks, mida lugeja usub.'), [
+        'Ma olen … poolt → minu arvates (arvamus kirjas).',
+        'X ütles → X-i sõnul (allikaviide).',
+        'Mugavus on küll oluline, kuid … — tunnista ja pööra.',
+        'Nii et → sellest järeldub, et …',
+        'Sest omaette lausena → põhjus on selles, et …',
+        'Kõik oleneb → kokkuvõttes (lõpp).',
+        'Sa eksid → vastupidi (viisakas vastuväide).',
+      ]),
+      hide(why(teach(tag(purpose(B.transformation('022_p_link', 'Sõber valmistub väitluseks.', 'Sõbra märkmetes on kaks mõtet. Kirjuta teine lause nii, et see algab antud sõnaga.', [
+        ['Päris kuusk lõhnab metsa järele. → Selle raieõigus on odav.', 'pealegi', 'Pealegi on selle raieõigus odav.|Pealegi on raieõigus odav.'],
+        ['Kunstkuusk teenib kümme aastat. → Igal aastal ei pea uut ostma.', 'seega', 'Seega ei pea igal aastal uut ostma.|Seega ei pea igal aastal uut kuuske ostma.|Seega ei pea me igal aastal uut ostma.'],
+        ['Päris kuuse okkad kukuvad. → Meil oli jaanuaris kogu põrand okkaid täis.', 'näiteks', 'Näiteks oli meil jaanuaris kogu põrand okkaid täis.|Näiteks oli jaanuaris meil kogu põrand okkaid täis.'],
+        ['Kunstkuusk on plastist. → See ei lagune looduses.', 'järelikult', 'Järelikult ei lagune see looduses.'],
+        ['Meie kassile meeldib kuuse otsa ronida. → Me valime väikese kunstkuuse.', 'seetõttu', 'Seetõttu valime me väikese kunstkuuse.|Seetõttu valime väikese kunstkuuse.'],
+        ['Mõlemal kuusel on head ja halvad küljed. → Kõik oleneb perest.', 'kokkuvõttes', 'Kokkuvõttes oleneb kõik perest.'],
+      ], 'full', 'g_notice'), 'Sõbra mõtted on seotud ja sõnajärg õige — tema argument kannab.'), { task: 'G05' }),
+      'Kui õpilane kirjutab „Seega see ei ole …”, ära paranda kohe: küsi „Mis sõna tuleb kirjas kohe sidesõna järel?”'), OLD_WHY['022_p_link']), CUT_DRILL),
+      hide(tag(purpose(B.writing('022_p_bridge', 'Minu argument.', 'Ehita oma argument 4 lausega: seisukoht, põhjus (esiteks), näide (näiteks) ja järeldus (seega). Sidesõna järel pane tegusõna teisele kohale.', [4, 4], ['esiteks', 'näiteks', 'seega'], 3, 'g_notice'), 'Sinu neljast lausest saab väitluse esimene argument, mille ütled vastasele.'), { task: 'W11', level: 3 }), 'a 4-sentence writing with keywords: the form tasks 022_p_join / 022_p_para and the home essay take its place'),
+    ],
+    transfer: [
+      station(purpose(B.planning('022_t_plan', 'Väitluse plaan (4 minutit).', 'Kumb kuusk sel aastal — päris või kunstkuusk? Vali pool ja kirjuta märksõnad. Edukriteeriumid: 1) seisukoht esimeses lauses; 2) kaks argumenti silla järgi (põhjus → näide → järeldus), üks neist viitega saatele (Mardi / Kaidi sõnul …); 3) vastad vastase argumendile (tõsi küll …, samas …).', ['Minu seisukoht:', 'Argument 1: põhjus, näide, järeldus:', 'Argument 2 (lisaks sellele …) ja viide saatele:', 'Vastaspoole tugevaim argument ja minu vastus:'], 1), 'Hea plaan teeb sinu väitluse selgeks ja veenvaks.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.rolecards('022_t_debate', 'Väitlus märksõnakaartidega (kuni 4 minutit).', 'Vali pool, õpetaja võtab teise. Kumbki ütleb 30 sekundiga oma seisukoha, siis vaielge kaartide ja näidetega. Reageeri, kui vastane toob uue asjaolu. Lõpus hääletage ja öelge, milline argument veenis.',
+        'Kaart A (päris kuusk): märksõnad, ehita neist ise argument ja too näide. 1) Eesti mets — elektriliin; 2) lõhn — traditsioon; 3) pärast pühi — hakkpuit.',
+        'Kaart B (kunstkuusk): märksõnad, ehita neist ise argument ja too näide. 1) kümme aastat — jalajälg; 2) okkad — laps, kass; 3) pere — ehtimine.',
+        ['Esiteks …', 'Sellest järeldub, et …'], ['Tõsi küll, …, kuid …', 'Vastupidi, …']), 'Tulemus: hääletus näitab, kumb argument oli tugevam — ja sinu pere saab sel aastal põhjendatud kuuseotsuse.'), { task: 'S17', main: true, level: 4 }),
+      'Õpetaja kaitseb poolt, mida õpilane ei valinud. Ütle enne kolm edukriteeriumi. Varjatud info: sinu kaardil on üks asjaolu, mida õpilane ei tea — kui oled päris kuuse poolt: „Meie linn kogub jõulukuused jaanuaris tasuta kokku ja teeb neist hakkpuitu”; kui oled kunstkuuse poolt: „Minu kunstkuusk on juba kaksteist aastat vana ja näeb välja nagu uus.” Ütle see väitluse keskel; õpilane peab reageerima (tunnista, siis vasta). Õnnestunud, kui: seisukoht esimeses lauses, kaks argumenti näitega, üks viide saatele (Mardi / Kaidi sõnul …), vastus uuele asjaolule, tegusõna sidendi järel teisel kohal. Aeg 4 minutit; siis hääletus ja 1 minut tagasisidet: üks tugevus, üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('022_t_arutlus', 'Kodus: arutlus raadiosaate põhjal (umbes 180 sõna).', `Kirjuta 170–190 sõna, algust ei anta. Viita kahele saate argumendile (Mardi sõnul …). ${VOICE_HOME}`, 'vastus', {
+        situation: 'Kohalik ajaleht avaldab detsembris lugejate arutlusi teemal „Päris kuusk või kunstkuusk: kumb on parem valik?”. Allikas: raadiosaade „Kaks häält” (tunni kuulamine).',
+        points: ['teemalause: sinu seisukoht', 'kaks argumenti saatest koos viitega, igaühel näide', 'vastaspoole argument ja sinu vastus (tõsi küll …, samas …)', 'järeldus, mis tuleb argumentidest'],
+        words: [170, 190],
+      }), 'Lugeja näeb mõlemat poolt ja saab ise põhjendatud otsuse teha.'), 3)), { task: 'W14', main: true, level: 4 }),
+      writingRubric('022_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Minu arvates päris kuusk on parem. Esiteks, see lõhnab hästi. Teiseks, see on Eestist. Kunstkuusk on plastist ja see on halb. Sest plast ei lagune. Aga mõned inimesed ütlevad, et kunstkuusk on mugav. See on tõsi. Seega ma ostan päris kuuse.” Hinnang: ülesanne 2 (seisukoht ja argumendid on olemas, kuid viide saatele ja oma näide puuduvad), ülesehitus 2 (esiteks / teiseks on, kuid vastuargumendile ei vastata ja järeldus ei tule argumentidest), sõnavara 2 („on halb” → kahjustab loodust; „hästi” ja „on” korduvad), grammatika 1 („Minu arvates päris kuusk on” → minu arvates on päris kuusk; „Esiteks, see lõhnab” → esiteks lõhnab see; „Sest plast ei lagune.” omaette lausena → põhjus on selles, et …; „Seega ma ostan” → seega ostan ma). Kui õppija lisab viite saatele (Mardi sõnul …), vastab vastuargumendile ja parandab sõnajärje, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('022_t_self', ['Ma saan väitlusest aru ja järeldan kõneleja hoiaku.', 'Ma ehitan lõigu: teemalause, põhjus, näide, järeldus.', 'Ma väitlen, viitan allikale ja reageerin uuele asjaolule.'], 'Argument kannab', 'Ma oskan põhjendatult väidelda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(station(B.chart('022_t_facts', 'Kuuse jalajälg (kg CO₂ ekvivalenti, 2-meetrine kuusk)', { kind: 'bar', unit: 'kg', series: 'CO₂', rows: ['Kunstkuusk (valmistamine) | 40', 'Päris kuusk prügilas | 16', 'Päris kuusk hakkpuiduks või ahju | 3,5'], source: 'Carbon Trust (Suurbritannia), BBC, 2016' }), 4, 15, { final: 'decide' }), CUT_STATS),
+      hide(B.know('022_t_know', ['Riigimetsast saab jõulukuuse raieõiguse (loa ise üks kuusk maha võtta) osta RMK kaudu novembri lõpust aasta lõpuni. 2025. aasta hinnad olid kuni meetrise kuuse eest 3 eurot, 1,1–2-meetrise eest 8 eurot ja 2,1–3-meetrise eest 13 eurot. Kuuse võib võtta ainult kaardil märgitud kohtadest, näiteks elektriliini alt. Kuuseturul maksab kuusk tavaliselt alates 15 eurost.'], 'RMK jõulukuuskede hinnakiri (07.11.2025); ERR', 'Kas teadsid? Kuusk riigimetsast'), CUT_TIP),
+      hide(why(tag(purpose(B.table('022_t_evidence', 'Faktid väitluseks.', 'Vastane ütleb midagi. Leia joonisest või kastist fakt, millega vastata, ja kirjuta see lühidalt.', 'Vastane ütleb, Sinu fakt', [
+        '„Päris kuusk on kallis, see maksab vähemalt kakskümmend eurot.” | [3–13 eurot/raieõigus 3–13 eurot/8 eurot/riigimetsas 3–13 eurot/15 eurot/alates 15 eurost]',
+        '„Kunstkuusk on loodusele alati parem kui päris kuusk.” | [40 kg/kunstkuusk 40 kg/40 kg ja 3,5 kg/3,5 kg/3,5 ja 40 kg]',
+        '„Prügilasse viidud päris kuusk on sama halb kui kunstkuusk.” | [16 kg/16 ja 40 kg/16 kg ja 40 kg/40 ja 16 kg]',
+        '„Metsast võib kuuse võtta igalt poolt, kust tahad.” | [ainult kaardil märgitud kohtadest/kaardil märgitud kohtadest/elektriliini alt]',
+        '„Kuuse saab RMK-lt osta ainult jõululaupäeval.” | [novembri lõpust aasta lõpuni/novembri lõpust]',
+      ], 'g_read'), 'Fakt koos arvuga teeb sinu väitluse argumendi tugevaks.'), { task: 'R08' }), OLD_WHY['022_t_evidence']), CUT_STATS),
+      hide(teach(tag(homeTask(purpose(B.writing('022_t_essay', 'Arutlus: päris kuusk või kunstkuusk? Tunnis plaan, kodus lõpp.', 'Tunnis: plaan ja kaks esimest lauset. Kodus 150–180 sõna: mõlema poole argumendid, igaühele näide, ja lõpus sinu järeldus. Kasuta sidesõnu esiteks, pealegi, näiteks, seega ja kokkuvõttes.', [12, 16], ['esiteks', 'pealegi', 'näiteks', 'seega', 'kokkuvõttes'], 4, 'g_use'), 'Sinu pere või sõbrad loevad arutlust ja teevad oma kuuseotsuse.')), { task: 'W14', main: true, harno: 'W2b' }),
+      'Kodutöö. Järgmises tunnis loe arutlus ette; õpetaja on „kahtleja” ja küsib ühe näite kohta: „Kas see on fakt või arvamus?” Tagasiside: argumendi neli osa, sidesõna järel tegusõna, iga poole näide, järeldus, mis tuleb argumentidest.'), CUT_ESSAY),
+      hide(extension(teach(tag(purpose(B.speaking('022_t_more', 'Mini-väitlus: kas uusaasta ilutulestik tuleks keelata?', 'Vali pool ja too üks argument silla järgi: põhjus, näide ja järeldus.', [
+        'Kellele teeb ilutulestik rõõmu ja kellele mitte?',
+        'Mis on sinu kogemus aastavahetusel?',
+        'Mis oleks sinu ettepanek linnale?',
+      ], [120, 180], ['Esiteks …', 'Näiteks …', 'Seega …']), 'Kiire väitlus uuel teemal näitab, et argumendisild töötab igal pool.'), { task: 'S14', fluency: true }),
+      'Kui aega jääb (12 min). Argumendid, kui õpilasel neid napib: poolt — lemmikloomad kardavad, prügi tänaval, õnnetused; vastu — traditsioon, laste rõõm, üks kord aastas. Kumbki 1 minut, siis vaba vaidlus. Fakte ära lisa: siin harjutame argumendi ehitust, mitte seadust.'), 12), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('022_t_exit', 'Kontrolli end: sidesõna ja sõnajärg.', 'Kirjuta lünka sidesõna, mis sobib lause alguses nimetatud argumendi osaga. Vaata, mis sõna tuleb kohe pärast seda.', [
+        'Järeldus — meie korter on väike. [Seega|Järelikult|Seetõttu] sobib meile kõige paremini väike kuusk laual.',
+        'Veel üks põhjus — päris kuusk on pärit Eesti metsast. [Pealegi|Lisaks] lõhnab see terve kuu.',
+        'Näide — kunstkuuske saab kaua kasutada. [Näiteks] on meie oma juba kaksteist aastat vana.',
+      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas argumendi sidesõnad on käes.')), {}), OLD_WHY['022_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.speaking('022_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks argument sinu valitud kuuse poolt — põhjus, näide ja järeldus.', [
+        'Milline kuusk ja miks?',
+        'Mis on sinu näide ja mis sellest järeldub?',
+      ], [60, 120]), 'Õpetaja kuulab sinu argumenti ja ütleb, kas kõik neli osa on olemas.')), { task: 'S15' }), CUT_HOME),
+      hide(homework('022_t_homework', ['1. Arutlus, 150–180 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
+    ],
+  },
+
+  'b1b2-023': {
+    title: 'Mitu tundi ekraani on lapsele liiga palju?',
+    phases: grammar('Kordamine: kuigi …, on siiski …; ma pakuksin, kas poleks parem … · B2: vastuargumendi tunnistamine ja ümberlükkamine — tõsi küll, …, kuid …; isegi kui …, ei tähenda see, et …; olgugi et …; see argument ei pea paika, sest …; vaatamata + omastav + le (vaatamata keelule)'),
+    format: 'case',
+    topic: 'family',
+    canDo: 'Ma saan aru umbes 500-sõnalisest tekstist laste ekraaniajast ja järeldan autori hoiaku, juhin pere nõupidamist, kus tunnistan teise mõtet ja lükkan vastuargumendi viisakalt ümber, ning kirjutan lastevanemate foorumisse umbes 140-sõnalise vastuse.',
+    teacherPage: {
+      goal: 'Текст об экранном времени, признать и вежливо опровергнуть (tõsi küll …, kuid; isegi kui …), семейный совет со скрытой информацией; дома ответ на форуме 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); текст — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 10 предложений; совет без третьего препятствия.',
+      hook: '«Väide: lapsel on parem ilma nutitelefonita kuni 12. eluaastani.» Ученик сразу говорит, согласен ли он, и одну причину, потом минуту — как в его семье (или у знакомых) решают вопрос экранов. Ученик без детей говорит о племяннике, соседе или о себе в детстве. Вы не спорите и не исправляете.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), формула «вежливое возражение» и картинка (3 мин), текст «Ekraan ei ole vaenlane ega lapsehoidja» (8 мин), 7 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — kuigi … siiski одной строкой, признать → ограничить → опровергнуть, 10 предложений, ответ на форуме с 10 пропусками без банка, регистр: резко → вежливо',
+        '45–70: станция 4 — план (4 мин), семейный совет со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: ответ на форуме 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ролевая игра «телефон ночью в комнате подростка» — сначала признать, потом предложить',
+      ],
+      sources: 'Текст — учебный KeeleSepp (адаптирован к B2, без точной статистики). Общие рекомендации врачей и психологов: маленькому ребёнку нужны движение, игра и разговор со взрослым; экранное время разное по качеству; пример родителей и общие семейные правила. Семейный совет — учебный сценарий без имён.',
+      groups: 'Утверждение — каждый сам. Текст — каждый сам, вопросы на вывод сравнивают в паре. Семейный совет: 2–3 человека в разных ролях (родитель, бабушка или дедушка), карточку старшего даёте вы, ученик ведёт; в 1:1 бабушка или дедушка — вы.',
+      errors: [
+        '«Kuigi telefon on mugav, aga …» → «Kuigi telefon on mugav, on sellel siiski …» (kuigi без aga; главное предложение начинается с глагола).',
+        '«Isegi kui keeld kehtib, see ei tähenda …» → «Isegi kui keeld kehtib, ei tähenda see …» (глагол сразу после придаточного).',
+        '«Vaatamata keeld» → «Vaatamata keelule» (vaatamata + omastav + le: keelu + le).',
+        '«Sa eksid!» → «Ma näen seda teisiti, sest …» / «See argument ei pea paika, sest …» (сначала признать, потом возразить).',
+      ],
+      notes: [
+        'Формат — реальный случай: семья спорит, ученик ведёт совет и договаривается. Без детей: тётя или дядя, крёстный, сосед. Пенсионеру — роли наоборот: он бабушка или дедушка, вы — родитель.',
+        'Kuigi … siiski и условное наклонение (B1) — повтор одной строкой. Цель B2 — полный ход возражения: признать (tõsi küll), ограничить (kuid; isegi kui …, ei tähenda see, et …), опровергнуть с причиной (see argument ei pea paika, sest …) и предложить (ma pakuksin). Это то, что Harno B2 называет «реагировать на аргумент собеседника».',
+        'Обратная связь, 2–3 цели: признание перед возражением; порядок слов после kuigi / isegi kui; vaatamata + -le. В совете не перебивайте, три замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('023_d_talk', 'Väide: lapsel on parem ilma nutitelefonita kuni 12. eluaastani.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: kuidas sinu peres või tuttavate peres ekraanide üle otsustatakse.', [
+        'Väide: „Lapsel on parem ilma nutitelefonita kuni 12. eluaastani.” Kas oled nõus? Miks?',
+        'Kuidas sinu peres või tuttavate peres ekraanide üle otsustatakse ja kas see toimib?',
+      ], [60, 90]), 'Sinu kogemus on tunni juhtumi esimene näide.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: räägi ka ise lühidalt oma kogemusest. Ära paranda; lõpus ütle üks lause, mille õpilane ütles kõige viisakamalt. Õpilasele ilma lasteta: „Mis reegleid oli sinu lapsepõlves ja kas need olid õiglased?”')), 1, 5),
+      station(tag(B.vocab('023_d_vocab', 'Tunni sõnad.', ['ekraaniaeg — экранное время', 'eeskuju — пример (для подражания)', 'keeld — запрет', 'igavlema — скучать', 'süüdi tundma — чувствовать вину', 'kokkulepe — договорённость', 'tunnistama — признавать', 'ümber lükkama — опровергать', 'vaatamata — несмотря на', 'osaliselt nõus — частично согласен']), { topic: ['ekraaniaeg', 'kokkulepe'] }), 2, 20),
+      purpose(B.diagram('023_d_scheme', 'formula', { title: 'Skeem: viisakas vastuväide.', instruction: 'Vaata valemit enne lugemist. Lugedes leia tekstist üks lause, mis tunnistab teise mõtet, ja üks, mis selle piirab või ümber lükkab.', nodes: 'Tunnista | Tõsi küll, väike laps vajab eelkõige liikumist,\nPiira | kuid see ei tähenda, et iga ekraaniminut oleks kahjulik.\nLükka ümber | Täieliku keelu argument ei pea paika, sest ekraan jõuab lapseni niikuinii.\nToeta | Näiteks videokõne vanaemaga on midagi muud kui lühivideod.\nPaku | Kas poleks parem leppida kokku kindlas ajas?' }, 'full', 'g_read'), 'Skeem näitab, kuidas vaielda nii, et teine jääb kuulama.'),
+      why(teach(tag(purpose(B.reading('023_d_text', 'Loe teksti.', 'Loe teksti (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Ekraan ei ole vaenlane ega lapsehoidja', [
+        'Õhtul kell kuus on paljudes kodudes sama pilt: vanem teeb süüa, laps istub diivanil ja vaatab tahvlist multikaid. Pool tundi rahu tundub väike hind. Ometi tekitab just see pilt peredes kõige rohkem vaidlusi. Vanavanemad meenutavad, et nende lapsepõlves mängiti õues, ja peavad iga ekraaniminutit kahjulikuks. Noored vanemad vastavad, et maailm on muutunud ja täielik keeld ei ole enam võimalik. Kummal on õigus?',
+        'Arstid ja lastepsühholoogid on üsna ühel meelel selles, et väga väike laps vajab ekraani asemel liikumist, mängu ja inimest, kes temaga räägib. Mida noorem laps, seda vähem peaks ta ekraani ees istuma. Põhjus ei ole selles, et ekraan ise oleks mürgine, vaid selles, mida laps sel ajal tegemata jätab: ta ei jookse, ei ehita klotsidest torni ega küsi täiskasvanult sada küsimust. Kõne ja tähelepanu arenevad just neis igapäevastes hetkedes. Ka unele mõjub õhtune ekraan halvasti: ere valgus ja põnev video ei lase lapsel rahuneda ning uinumine võtab kauem aega.',
+        'Tõsi küll, kõik ekraaniajad ei ole ühesugused. Pool tundi videokõnes vanaemaga on midagi muud kui pool tundi lühivideoid, mis jätkuvad ise üksteise järel. Hea lastesaade, mida vaadatakse koos ja millest pärast räägitakse, võib õpetada uusi sõnu. Kui aga tahvel antakse lapsele iga kord, kui ta igavleb või nutab, õpib laps, et ekraan on ainus viis rahuneda.',
+        'Paljud vanemad tunnevad end süüdi. Isegi kui nad soovitusi teavad, ei tähenda see, et neil oleks alati jõudu neid järgida. Üksikvanem, kes tuleb õhtul tööst väsinuna koju, ei saa samal ajal süüa teha ja lapsega mängida. Seetõttu ei aita moraalijutlus, vaid praktiline lahendus: kindel aeg, kindel koht ja tegevus, mis ekraani asendab. Näiteks võib laps köögis köögivilju pesta või pliidi kõrval laua taga joonistada. Mõni pere on otsustanud, et multikaid vaadatakse ainult nädalavahetusel ja alati koos, teine pere lubab neid iga päev, aga ainult enne õhtusööki. Mõlemad lahendused toimivad, kui need on selged ja kõigile teada.',
+        'Vaatamata kõigile vaidlustele on kõige tugevam mõju ikkagi vanemate endi eeskujul. Laps märkab, kui ema loeb söögilaua taga telefoni või isa vaatab uudiseid, samal ajal kui lapsele öeldakse, et ekraan on halb. Olgugi et täiskasvanu ekraaniaeg tundub tööasi, näeb laps ainult seda, et vanem vaatab ekraani. Reegel, mis kehtib ainult lapsele, ei pea tavaliselt kaua vastu. Seevastu reegel, mida järgib kogu pere, on lapsele arusaadav ja õiglane.',
+        'Vanemate laste puhul muutub küsimus keerulisemaks. Koolilaps vajab arvutit kodutöödeks ja telefoni, et sõpradega suhelda, ning täielik keeld võib teda klassis teistest eraldada. Seepärast räägivad koolipsühholoogid pigem oskusest kui minutitest: kas laps oskab ise mängu pooleli jätta, kas ta teab, et öösel on telefoni koht köögis, ja kas ta julgeb vanemale öelda, kui nägi internetis midagi hirmutavat või ebameeldivat. Selliseid oskusi ei õpeta keeld, vaid harjutamine koos täiskasvanuga.',
+        'Kas ekraan on siis vaenlane? Pigem mitte. Lapsehoidja ei ole ta aga samuti. Kõige paremini toimivad pered, kes lepivad reeglites kokku koos ja kirjutavad need üles: millal, kui kaua ja kus mitte. Selline kokkulepe ei lõpeta kõiki vaidlusi, kuid muudab need lühemaks. Ja kui vanaema ütleb jälle, et tema ajal oli parem, võib talle rahulikult vastata: „Selles on sul osaliselt õigus. Kas aitaksid meil reegli välja mõelda?”',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Miks tekitab õhtune pilt diivanil peredes vaidlusi? Kes mida arvab?', 'vanavanemad peavad iga ekraaniminutit kahjulikuks, noored vanemad ütlevad, et täielik keeld ei ole võimalik'],
+        ['Mida vajab väga väike laps arstide ja psühholoogide arvates ekraani asemel?', 'liikumist, mängu ja inimest, kes temaga räägib'],
+        ['Milles on teksti järgi ekraani peamine kahju väikesele lapsele?', 'selles, mida laps sel ajal tegemata jätab (ei jookse, ei mängi, ei küsi)'],
+        ['Mida soovitab tekst väsinud vanemale moraalijutluse asemel?', 'praktilist lahendust: kindel aeg, kindel koht ja tegevus ekraani asemel'],
+        ['Miks võrdleb autor videokõnet vanaemaga ja lühivideoid? Mida ta sellega vihjab?', 'ekraaniaeg ei ole ühesugune; tähtis on, mida ja kuidas vaadatakse'],
+        ['Mida tahab autor öelda lausega „Reegel, mis kehtib ainult lapsele, ei pea tavaliselt kaua vastu”?', 'vanemad peavad ise eeskuju näitama; reegel peab kehtima kogu perele'],
+        ['Kuidas suhtub autor vanaema arvamusse? Millest sa seda järeldad?', 'peab seda osaliselt õigeks, kuid mitte täielikult; soovitab tunnistada ja vanaema kaasata (viimane lõik)'],
+        ['Kas sina oled autoriga nõus, et ekraan ei ole vaenlane? Too näide oma elust.'],
+        ['Milline reegel sobiks sinu kodu jaoks? Ütle, millal, kui kaua ja kus mitte.'],
+      ]), 'Pärast lugemist tead, mida arstid soovitavad ja miks keeld üksi ei toimi — sul on argumendid pere nõupidamiseks.'), { task: 'R02', voice: 'article', harno: 'R2b' }),
+      'Lugemine, 20 minutit koos sõnade, valemi ja pildiga. Enne lugemist küsi pildi järgi: mis on tahvli vasakul ja paremal poolel ja mis on keskel? Pärast: õpilane leiab tekstist kolm lauset, mis tunnistavad teist poolt (Tõsi küll …, Isegi kui …, Olgugi et …), ja ütleb, mida lause teises pooles vastu öeldakse. Küsimused 5–7 on järeldusküsimused (autori vihje ja hoiak): nõua põhjendust tekstist. Tekst on kohandatud õppetekst, täpseid arve pole.'), [
+        '1. lõik: vanavanemad „peavad iga ekraaniminutit kahjulikuks”, noored vanemad ütlevad, et „täielik keeld ei ole enam võimalik”.',
+        '2. lõik: väike laps vajab „liikumist, mängu ja inimest, kes temaga räägib”.',
+        '2. lõik: põhjus on „selles, mida laps sel ajal tegemata jätab”.',
+        '4. lõik: „ei aita moraalijutlus, vaid praktiline lahendus: kindel aeg, kindel koht ja tegevus”.',
+        'Järeldus 3. lõigust: „kõik ekraaniajad ei ole ühesugused” — kvaliteet ja koosvaatamine on tähtsad.',
+        'Järeldus 5. lõigust: laps näeb vanema eeskuju; reegel peab kehtima kõigile.',
+        'Järeldus 7. lõigust: vastus „Selles on sul osaliselt õigus. Kas aitaksid …?” — autor tunnistab vanaema, kuid ei nõustu täielikult.',
+        'Sinu oma arvamus: õpetaja vaatab, kas põhjendad näitega.',
+        'Sinu oma reegel: aeg, kestus ja koht.',
+      ]),
+      hide(B.text('023_d_chat', 'Pere vestlusgrupp: kas tahvel lauale?', '**Vanaema Galina:** Eile õhtusöögi ajal vaatas Miša jälle tahvlist multikaid. Kolmeaastane laps ei peaks ju ekraani vaatama!\n\n**Ema Olga:** Kuigi ma saan sinust aru, on mul siiski vaja vahel rahulikult süüa teha. Pool tundi multikaid ei ole maailma lõpp.\n\n**Isa Andres:** Olen osaliselt nõus. Pool tundi on okei, aga mitte söögilaua taga.\n\n**Tädi Kati:** Kas poleks mõistlikum leppida kokku kindlas ajas? Näiteks ainult pärast lõunaund.\n\n**Vanaema Galina:** Ja teie ise? Andres vaatab söögi ajal ometi uudiseid.\n\n**Isa Andres:** Õige. Ma pakuksin, et söögi ajal on telefonid ja tahvel kõik kapis.'), CUT_CAST),
+      hide(why(tag(purpose(B.choice('023_d_who', 'Kes mida arvab?', 'Vali vestluse põhjal iga küsimuse juurde üks õige vastus neljast.', [
+        ['Mille üle on vanaema eile õhtul pere vestlusgrupis nii väga mures?', 'Kolmeaastane Miša vaatas õhtusöögi ajal jälle tahvlist multikaid.', 'Miša ei taha õhtul üldse süüa ega magama minna.', 'Ema vaatab ise liiga palju telefoni ja ei mängi lapsega.', 'Tädi on lubanud lapsele kingiks uue tahvli osta.'],
+        ['Miks lubab ema oma kolmeaastasel pojal õhtuti vahel multikaid vaadata?', 'Tal on vaja vahel rahulikult süüa teha.', 'Ta arvab, et multikad õpetavad lapsele kiiresti eesti keelt.', 'Vanaema palus tal lapsele iga õhtu multikaid näidata.', 'Lasteaias soovitati lapsele õhtuti ekraani näidata.'],
+        ['Millega on isa vanaema mõtetest nõus ja millega mitte?', 'Pool tundi on tema arvates okei, aga mitte söögilaua taga.', 'Ta on vanaemaga täiesti nõus, et ekraani ei tohi üldse olla.', 'Ta arvab, et laps võib vaadata nii palju, kui tahab.', 'Ta tahab, et laps vaataks multikaid ainult hommikul.'],
+        ['Mida pakub tädi Kati kogu perele, et vaidlus lõppeks?', 'Leppida kokku kindlas ajas, näiteks ainult pärast lõunaund.', 'Müüa tahvel ära ja osta lapsele raamatuid.', 'Lasta lapsel multikaid vaadata ainult vanaema juures.', 'Küsida enne otsust nõu lasteaiaõpetajalt.'],
+        ['Mida heidab vanaema vestluse lõpus lapse vanematele ette?', 'Isa vaatab ise söögi ajal uudiseid.', 'Ema ei tee õhtul piisavalt tervislikku toitu.', 'Vanemad ei luba vanaemal lapsega õues käia.', 'Tädi kingib lapsele liiga palju mänguasju.'],
+        ['Mis on isa ettepanek kogu perele vestluse kõige lõpus?', 'Söögi ajal on kõik telefonid ja tahvel kapis.', 'Laps vaatab ekraani ainult õhtul enne magamaminekut.', 'Ainult täiskasvanud võivad söögi ajal telefoni kasutada.', 'Iga pereliige otsustab oma ekraaniaja ise.'],
+      ], 'full', 'g_read'), 'Enne kui oma arvamuse ütled, tead täpselt, mida igaüks arvab ja miks.'), { task: 'R12' }), OLD_WHY['023_d_who']), 'questions of the hidden family chat 023_d_chat'),
+      hide(B.know('023_d_know', ['Maailma Terviseorganisatsiooni (WHO) soovituse järgi ei ole alla kaheaastasele lapsele ekraaniaeg soovitatav. Kahe- kuni neljaaastase lapse ekraaniaeg võiks olla kõige rohkem üks tund päevas, ja mida vähem, seda parem. Ekraani asemel soovitab WHO liikumist, mängu ja ettelugemist.'], 'WHO, soovitused alla viieaastaste laste liikumise, istumise ja une kohta (24.04.2019)', 'Kas teadsid? WHO soovitus'), CUT_TIP),
+    ],
+    practice: [
+      station(teach(B.notice('023_p_notice', 'Märka: kuidas tunnistada ja siiski vastu vaielda?', [
+        'Tekstist: **Tõsi küll**, kõik ekraaniajad ei ole ühesugused · **Isegi kui** nad soovitusi teavad, **ei tähenda see, et** … · **Vaatamata** kõigile **vaidlustele** … · **Olgugi et** täiskasvanu ekraaniaeg tundub tööasi, **näeb** laps …',
+        'Kordamine (B1): **Kuigi** …, **on** (tegusõna kohe) **siiski** … — ilma „aga”-ta · tingiv ettepanek: ma **pakuksin**, **kas poleks** parem, **kas me võiksime** …',
+        'B2: **tunnista ja piira** — **Tõsi küll / Tõepoolest**, …, **kuid** … · **Selles on sul osaliselt õigus, samas** …',
+        'B2: **isegi kui** …, **ei tähenda see, et** … (+ tingiv: et see **oleks** halb) · **olgugi et** = kuigi (kirjas) · **vaatamata** + omastav + **le**: vaatamata **keelule**, vaatamata **sellele, et** …',
+        'B2: **lükka ümber põhjusega** — See argument **ei pea paika, sest** … · **Vastupidi**, … · **Pigem** …',
+        'Pärast kõrvallauset (kuigi …, isegi kui …, olgugi et …) algab pealause tegusõnaga: …, **ei tähenda** see … · …, **näeb** laps …',
+      ], 'full'), 'Kordamine ühe minutiga (kuigi … siiski, ma pakuksin). Siis B2 samm: vastuväide neljas sammus — tunnista, piira, lükka ümber põhjusega, paku. Lase õpilasel öelda tekstist üks lause iga sammu kohta ja üks oma lause vanaemale.'), 3, 20),
+      why(purpose(B.gaps('023_p_forms', 'Viisakas vastuväide: mis sõna või vorm?', 'Kirjuta lünka üks sõna või vorm. Sulgudes on vihje. Panka ei ole.', [
+        'Kuigi ekraan on mugav, [on] see väikesele lapsele siiski liiga palju. (olema)',
+        'Tõsi [küll], laps õpib saatest uusi sõnu, kuid ainult siis, kui vanem vaatab koos. (tunnistus)',
+        'Isegi kui vanemad soovitusi teavad, ei [tähenda] see, et neil oleks alati jõudu neid järgida. (tähendama)',
+        'Vaatamata [keelule] vaatab laps salaja telefoni. (keeld)',
+        'Olgugi [et] täiskasvanu töötab arvutis, näeb laps ainult ekraani. (sidend)',
+        'Täieliku keelu argument ei [pea] paika, sest laps kasutab tahvlit ka koolis. (pidama)',
+        'Ma [pakuksin], et pühapäeviti on terve pere ekraanivaba. (pakkuma)',
+        'Kas me [võiksime] proovida üht kuud ilma õhtuse teleta? (võima)',
+        'Selles on sul [osaliselt] õigus, samas ei saa ma kõike keelata. (osa)',
+        'Kas [poleks] mõistlikum leppida kokku kindlas ajas? (ei oleks, lühidalt)',
+      ], '', 'full', 'g_notice'), 'Õige vorm teeb vastuväite viisakaks, aga selgeks.'), [
+        'Kuigi-lause järel algab pealause tegusõnaga: on (siiski).',
+        'Tunnistus: tõsi küll, …, kuid …',
+        'Isegi kui …, ei tähenda see, et … — tegusõna kohe kõrvallause järel.',
+        'vaatamata + omastav + le: keelu + le = keelule.',
+        'olgugi et = kuigi (kirjas).',
+        'Ümberlükkamine: ei pea paika (pidama).',
+        'Pehme ettepanek: tingiv kõneviis, mina: pakuksin.',
+        'Tingiv kõneviis, meie: võiksime.',
+        'Osaliselt nõus / osaliselt õigus.',
+        'ei oleks → lühidalt poleks.',
+      ]),
+      why(purpose(B.formtext('023_p_forum', 'Vastus foorumis: tõsi küll …, kuid …', 'Lapsevanem kirjutas foorumisse: „Keelame tahvli täielikult, muud lahendust pole.” Loe vastust ja kirjuta sulgudes oleva sõna sobiv vorm. Panka ei ole.', 'Vastus foorumis', [
+        'Tere! Saan teie murest hästi aru. Tõsi küll, väike laps [vajab] (vajama) eelkõige liikumist ja mängu. Kuigi täielik keeld tundub lihtne, [on] (olema) sellel siiski üks suur puudus.',
+        '',
+        'Isegi kui kodus tahvlit ei ole, ei tähenda see, et laps ekraani üldse ei [näeks] (nägema). Ta näeb seda lasteaias, sõprade juures ja bussis teiste telefonides. Vaatamata [keelule] (keeld) jõuab ekraan lapseni niikuinii.',
+        '',
+        'Seepärast ei [pea] (pidama) see argument minu arvates päris paika. Olgugi et keelamine on [lihtsam] (lihtne) kui kokkuleppimine, ei õpi laps nii ekraani mõistlikult kasutama.',
+        '',
+        'Ma [pakuksin] (pakkuma) teisiti: kas [poleks] (ei oleks) parem leppida kokku kindlas ajas ja kohas? Meie peres vaatab laps pärast lõunaund pool tundi saadet koos minuga. Kas me [võiksime] (võima) sellest ka foorumis rohkem rääkida? Võib-olla [leiaksime] (leidma) koos lahenduse, mis sobib mitmele perele.',
+      ]), 'Sellise vastuse kirjutad ka päriselt: viisakas, kuid oma seisukohas kindel.'), [
+        'Tunnistus: tõsi küll, laps vajab (olevik, ainsus).',
+        'Kuigi-lause järel algab pealause tegusõnaga: on (siiski).',
+        'ei tähenda, et … ei näeks — tingiv kõneviis: näeks.',
+        'vaatamata + omastav + le: keelule.',
+        'ei pea paika (pidama); sidendi seepärast järel tegusõna kohe: ei pea.',
+        'Võrdlus sõnaga kui → keskvõrre: lihtsam.',
+        'Pehme ettepanek: pakuksin.',
+        'kas poleks parem …? (ei oleks → poleks).',
+        'Tingiv kõneviis, meie: võiksime.',
+        'Tingiv kõneviis, meie: leiaksime.',
+      ]),
+      why(purpose(tag(B.table('023_p_register', 'Teravalt või viisakalt?', 'Vasakul on terav lause vaidlusest. Paremas veerus on sama mõte viisakalt. Kirjuta lünka puuduv sõna.', 'Teravalt, Viisakalt', [
+        'Sa eksid! | Ma [näen] seda teisiti, sest …',
+        'Jama, ekraan ei ole üldse halb. | [Tõsi] küll, liiga palju ekraani on halb, kuid …',
+        'Ei! Tahvlit ei tule! | Kas [poleks] parem leppida kokku kindlas ajas?',
+        'Sinu ajal oli teine maailm. | Selles on sul [osaliselt] õigus, samas on maailm muutunud.',
+        'Sa ise vaatad ka kogu aeg telefoni! | Kas me [võiksime] kõik söögi ajal telefoni kappi panna?',
+        'Su argument on vale. | See argument ei [pea] paika, sest laps kasutab tahvlit ka koolis.',
+        'Keelame ära ja kõik! | Ma [pakuksin], et proovime kõigepealt üht nädalat.',
+        'Sa ei saa aru! | Ma saan sinust [aru], kuid mul on teine kogemus.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas öelda „ei” nii, et teine jääb kuulama.'), [
+        'Sa eksid → ma näen seda teisiti (oma vaade, mitte süüdistus).',
+        'Jama → tõsi küll, …, kuid … (kõigepealt tunnista).',
+        'Käsk → küsimus: kas poleks parem …?',
+        'Süüdistus → osaliselt õigus, samas …',
+        'Etteheide → ühine ettepanek: kas me võiksime …?',
+        'Vale → ei pea paika, sest … (põhjus).',
+        'Käsk → ma pakuksin, et …',
+        'Sa ei saa aru → ma saan sinust aru, kuid …',
+      ]),
+      hide(why(teach(tag(purpose(B.errorfix('023_p_fix', 'Vend kirjutab liiga teravalt.', 'Sinu vend tahab vanaemale vastata, aga igas reas on üks viga. Kirjuta rida õigesti ja viisakalt.', [
+        ['Kuigi sul on õigus, aga ema vajab ka puhkust.', 'Kuigi sul on õigus, vajab ema siiski ka puhkust.|Kuigi sul on õigus, vajab ema ka puhkust.|Kuigi sul on õigus, vajab ema ometi ka puhkust.'],
+        ['Kuigi multikad on lühikesed, need väsitavad last.', 'Kuigi multikad on lühikesed, väsitavad need last.|Kuigi multikad on lühikesed, väsitavad need siiski last.'],
+        ['Ma pakuks, et teeme nädalavahetusel ekraanivaba päeva.', 'Ma pakuksin, et teeme nädalavahetusel ekraanivaba päeva.|Pakuksin, et teeme nädalavahetusel ekraanivaba päeva.'],
+        ['Kas poleks parem, kui me räägime sellest enne koos?', 'Kas poleks parem, kui me räägiksime sellest enne koos?|Kas poleks parem, kui räägiksime sellest enne koos?'],
+        ['Ma olen osaline nõus, aga söögi ajal võiks telefon olla kapis.', 'Ma olen osaliselt nõus, aga söögi ajal võiks telefon olla kapis.|Olen osaliselt nõus, aga söögi ajal võiks telefon olla kapis.'],
+        ['Kas me võiks proovida üht nädalat ilma tahvlita?', 'Kas me võiksime proovida üht nädalat ilma tahvlita?|Kas me võiksime proovida ühte nädalat ilma tahvlita?|Kas võiksime proovida üht nädalat ilma tahvlita?'],
+      ], 'full', 'g_notice'), 'Vanaema loeb vastust ja tunneb, et teda kuulati — tüli ei tule.'), { task: 'G06' }),
+      'Paranduse järel küsi: „Kuidas vanaema seda lauset kuuleb: teravalt või viisakalt?” Kui õpilane jätab „kuigi … aga”, ütle ainult: „Kuigi juba ütleb aga.”'), OLD_WHY['023_p_fix']), CUT_DRILL),
+      hide(tag(purpose(B.writing('023_p_mine', 'Minu vastus vanaemale.', 'Kirjuta pere vestlusesse 3 lauset: tunnista vanaema mõtet, vaidle vastu kuigi-lausega ja tee pehme ettepanek (ma pakuksin / kas poleks parem).', [3, 3], ['kuigi', 'siiski', 'pakuksin'], 2, 'g_notice'), 'Sinu vastus aitab perel rahulikult edasi rääkida.'), { task: 'W12', level: 3 }), 'a 3-sentence writing with keywords: the form tasks 023_p_forms / 023_p_forum and the home reply take its place'),
+    ],
+    transfer: [
+      station(purpose(B.planning('023_t_plan', 'Pere nõupidamine: plaan (4 minutit).', 'Pühapäeval arutab pere, kui palju võib kolmeaastane laps ekraani vaadata. Sina juhid nõupidamist. Kirjuta märksõnad. Edukriteeriumid: 1) tunnistad iga pereliikme mõtet enne vastuväidet; 2) lükkad vähemalt ühe argumendi viisakalt ümber (see ei pea paika, sest …); 3) lepite kokku kolm reeglit: millal, kui kaua, kus mitte.', ['Mida arvab vanavanem ja mida ma tunnistan:', 'Millise argumendi lükkan ümber ja millise põhjusega:', 'Minu ettepanek (ma pakuksin …):', 'Kolm reeglit: millal, kui kaua, kus mitte:'], 1), 'Plaan aitab sul juhtida vestlust nii, et tüli ei tule.'), 4, 25, { final: 'negotiate' }),
+      inLesson(teach(tag(purpose(B.rolecards('023_t_council', 'Pere nõupidamine (6–8 minutit).', 'Juhi pere nõupidamist: tunnista teise mõtet, vaidle viisakalt vastu, reageeri ootamatule ja leppige kokku kolm reeglit.',
+        'Olukord: kolmeaastane vaatab ekraani kaks tundi päevas; vanavanem tahab null minutit, ema pool tundi õhtul.\nEesmärk: kolm reeglit (millal, kui kaua, kus mitte).\nPiirang: küsi, mida vanavanem ise õhtuti teeb.',
+        'Vanavanema kaart on õpetajal: tema seisukoht, üks argument ja üks üllatus.',
+        ['Tõsi küll, …, kuid …', 'See ei tähenda, et …'], ['Meie ajal …', 'Olgu, ma olen osaliselt nõus …']), 'Tulemus: pere kolm ühist ekraanireeglit (millal, kui kaua, kus mitte), mida kõik on nõus pidama.'), { task: 'S17', main: true, level: 4 }),
+      'Õpetaja kaart (vanavanem; kui õpilane on ise vanavanem, vahetage rollid: tema on vanavanem, sina lapse ema). Seisukoht: kolmeaastane ei peaks ekraani üldse nägema. Argument: „Meie ajal mängisid lapsed õues ja kasvasid suureks.” Varjatud info (ütle poole vestluse pealt): sa vaatad ise iga õhtu kaks sarja ja laps istub sinu kõrval; ja sa tahad talle sünnipäevaks kinkida oma vana tahvli. Takistused ükshaaval: 1) „Pool tundi on ka liiga palju!” 2) „Multikad on vene või inglise keeles, laps ei õpi eesti keelt.” 3) „Kes siis reegleid kontrollib?” Õnnestunud, kui õpilane tunnistab vanavanema mõtet, lükkab vähemalt ühe argumendi viisakalt ümber (see ei pea paika, sest …; isegi kui …, ei tähenda see …), reageerib üllatusele ilma süüdistamata ja te lepite kokku kolm reeglit: aeg, kestus ja koht. Seejärel üks tugevus ja üks parandus.')),
+      tag(homeTask(homeLines(purpose(B.examWriting('023_t_reply', 'Kodus: vastus lastevanemate foorumisse (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'vastus', {
+        situation: 'Lasteaia lastevanemate foorumis kirjutab üks vanem: „Ekraan on lapsele kahjulik. Teeme ettepaneku, et kõigil meie lasteaia lastel oleks kodus ekraan täiesti keelatud.” Vasta talle nii, et vaidlus ei muutu tüliks.',
+        points: ['tunnista üht tema mõtet (tõsi küll …)', 'lükka üks argument viisakalt ümber ja põhjenda (see ei pea paika, sest …)', 'too näide oma elust või tekstist', 'tee pehme ettepanek (ma pakuksin, kas poleks parem …)'],
+        words: [130, 150],
+      }), 'Teised vanemad loevad sinu vastust ja näevad, et keelu asemel on ka teine lahendus.'), 6)), { task: 'W08', main: true, level: 4 }),
+      writingRubric('023_t_rubric', 'Hindamisjuhend: vastus foorumis (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Sa eksid. Ekraan ei ole halb. Kuigi lapsed vaatavad palju, aga see on normaalne. Meie laps vaatab kaks tundi ja on tark. Keelamine on rumal. Ma pakuks, et iga pere otsustab ise.” Hinnang: ülesanne 2 (vastuargument ja ettepanek on olemas, kuid teise mõtet ei tunnistata — algus „Sa eksid” teeb vaidlusest tüli), ülesehitus 2 (laused on järjest, kuid sidendeid ja lõike peaaegu ei ole), sõnavara 2 („rumal”, „normaalne” — toon ei sobi foorumisse; parem: see lahendus ei pruugi toimida), grammatika 1 („Kuigi …, aga …” → kuigi …, on see siiski …; „Ma pakuks” → ma pakuksin). Kui õppija alustab tunnistusega (Tõsi küll, …), parandab kuigi-lause ja tingiva vormi ning lisab ühe näite, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('023_t_self', ['Ma järeldan tekstist autori hoiaku ja leian vastuargumendid.', 'Ma tunnistan teise mõtet ja lükkan selle viisakalt ümber: tõsi küll …, kuid …; isegi kui …, ei tähenda see …', 'Ma juhin pere nõupidamist ja lepin kokku kolm reeglit.'], 'Kokkulepe olemas', 'Ma oskan viisakalt vastu vaielda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(why(station(tag(purpose(B.listening('023_t_voice', 'Õe häälsõnum.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna või arv.', [
+        'Olga: Tere! Kas sul on hetk aega? Meie pere vestlusgrupis läks eile päris tuliseks. Ema arvab, et Miša ei tohi tahvlit üldse näha, Andres tahab söögi ajal uudiseid vaadata ja mina olen kahe tule vahel.',
+        'Ausalt öeldes vaatab Miša praegu ekraani umbes kaks tundi päevas: hommikul pool tundi, kui ma duši all käin, ja õhtul poolteist tundi, kui ma süüa teen. Ma tean, et WHO soovitab kõige rohkem ühe tunni. Aga kuidas ma siis süüa teen?',
+        'Pühapäeval tuleme kõik sinu juurde lõunale. Kas sa aitaksid meil kokku leppida? Sina oskad rahulikult rääkida ja sind kuulavad kõik. Mõtle palun välja kolm reeglit, mis sobiksid nii emale kui ka mulle. Aitäh, kallis!',
+      ], [
+        'Pere vestlusgrupis läks eile päris [tuliseks].',
+        'Olga tunneb, et ta on nagu kahe [tule] vahel.',
+        'Miša vaatab praegu ekraani umbes [kaks|2] tundi päevas.',
+        'Õhtul vaatab Miša ekraani poolteist tundi, kui ema [süüa] teeb.',
+        'Pühapäeval tuleb kogu pere sinu juurde [lõunale].',
+        'Olga palub sul välja mõelda [kolm|3] reeglit.',
+      ], 'g_read'), 'Märkmed näitavad, mis on õe tegelik mure ja mida sinult oodatakse.'), { task: 'L07' }), 4, 15, { final: 'negotiate' }), OLD_WHY['023_t_voice']), CUT_SHORT),
+      hide(extension(teach(tag(purpose(B.speaking('023_t_more', 'Rollimäng: telefon öösel teismelise toas?', 'Õpetaja on 14-aastane, kes vaatab öösel telefoni ja on hommikul väsinud. Räägi temaga ja leppige kokku, kus telefon öösel on — ilma tülita.', [
+        'Mida sa temas mõistad ja ütled seda kõigepealt?',
+        'Mis on sinu ettepanek ja kuidas sa selle pehmelt ütled?',
+        'Mida teete, kui telefon on tema äratuskell?',
+      ], [120, 180], ['Kuigi ma saan aru, et …', 'Kas poleks parem …?', 'Ma pakuksin …']), 'Teismelisega räägid samamoodi kui vanaemaga: kõigepealt tunnista, siis paku.'), { task: 'S10', level: 4 }),
+      'Kui aega jääb (12 min). Sina oled 14-aastane. Argumendid: „Kõik mu sõbrad kirjutavad õhtul”, „Telefon on minu äratuskell”, „Sina vaatad ka voodis telefoni”. Pakkumine lõpus: telefon on öösel köögis, kui saan vana äratuskella. Õnnestunud, kui õpilane ei käsi, vaid pakub (kas poleks, ma pakuksin) ja kasutab ühe kuigi-lause.'), 12), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('023_t_exit', 'Kontrolli end: viisakas vastuväide.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
+        'Kuigi ma saan sinust aru, [olen] ma ekraaniaja koha pealt siiski teist meelt. (olema)',
+        'Ma [pakuksin], et pühapäeviti on meil terve päev ekraanivaba. (pakkuma)',
+        'Kas me [võiksime] proovida üht kuud ilma õhtuse teleta? (võima)',
+      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas kuigi-lause ja tingiv kõneviis on käes.')), {}), OLD_WHY['023_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.letter('023_t_letter', 'Kodus: kiri õele.', 'Kirjuta kodus Olgale (või sõbrale, kelle peres on sama mure) 140–160 sõna: millest sa aru said, millega sa ei ole nõus ja miks ning kolm reeglit, mida pakud. Kasuta sõnu kuigi ja siiski ning tingivat kõneviisi.', 'Kallis Olga!', 'Kallistan\n(sinu nimi)', [140, 160]), 'Olga saab sinu kirjast rahuliku plaani ja teab, et sa oled tema poolel, kuigi sa ei ole kõiges nõus.')), { task: 'W04', level: 3 }), CUT_OLDTASK),
+      hide(tag(homeTask(purpose(B.speaking('023_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks ekraanireegel, mida sa ise järgmisel nädalal proovid, ja miks — kuigi see on raske.', [
+        'Mis reegli sa endale võtad?',
+        'Miks on see raske ja miks sa seda siiski proovid?',
+      ], [60, 120]), 'Õpetaja kuulab sinu plaani ja küsib järgmises tunnis, kuidas läks.')), { task: 'S15' }), CUT_HOME),
+      hide(homework('023_t_homework', ['1. Kiri õele, 140–160 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
+    ],
+  },
+
+  'b1b2-024': {
+    title: 'Auto, buss või jalgsi: mis sinu teekond tegelikult maksab?',
+    phases: grammar('Kordamine: keskvõrre + kui; võrreldes + -ga; erinevalt + -st · B2: valikute ja andmete võrdlus — mida …, seda …; seevastu; kaks korda kallim, poole lühem; mitte niivõrd …, kuivõrd …; eelistama mida millele; samas kui …'),
+    format: 'project',
+    topic: 'money',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest selle kohta, mida teekond tööle päriselt maksab, võrdlen oma teekonna kahte võimalust päris sõiduplaani põhjal, põhjendan valikut kahtlejale ja kirjutan vallale umbes 180-sõnalise ettepaneku.',
+    teacherPage: {
+      goal: 'Передача о цене пути (2 голоса, 3,5 мин), точное сравнение (mida … seda, kaks korda, eelistama), свой путь по peatus.ee, разговор с сомневающимся; дома предложение волости 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); передача — один раз и утверждения 1–7; станция 3 — правило и 10 предложений; объяснение без нового обстоятельства.',
+      hook: '«Väide: linnas ei ole tänapäeval autot vaja.» Ученик сразу говорит, согласен ли он, и одну причину, потом минуту — как он сегодня добрался сюда, сколько это заняло и доволен ли он своим путём. Вы не спорите и не исправляете; запишите два его числа (минуты, евро) — они вернутся на станции 4.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своём пути, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «авто или общественный транспорт» и картинка (3 мин), передача дважды (8 мин), 10 утверждений «верно/неверно» (7 мин)',
+        '25–45: станция 3 — keskvõrre + kui, võrreldes, erinevalt одной строкой, B2-сравнение (mida … seda, kaks korda, mitte niivõrd … kuivõrd, eelistama), 10 предложений, новость волости с 10 пропусками без банка, регистр: разговор → предложение',
+        '45–70: станция 4 — свой путь на peatus.ee и план (5 мин), объяснение сомневающемуся со скрытой информацией (6–8 мин), разбор',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: предложение волости 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «Kumb võidab?» — пары (поезд или автобус в Тарту, электромобиль или бензиновый, жить в городе или за городом): сравнение двумя предложениями за 30 секунд',
+      ],
+      sources: 'Передача «Rahakott» — учебный текст KeeleSepp (исследователь вымышленный), без точных цифр: расходы на машину больше, чем топливо (страховка, ремонт, шины, парковка, потеря стоимости); частота автобуса и выбор машины; летний и зимний вариант пути. Сайт peatus.ee — настоящий планировщик общественного транспорта Эстонии.',
+      groups: 'Утверждение — каждый сам. Передача — каждый сам, проверка в паре. План — каждый свой путь (телефон или компьютер); объяснение: пары «ученик — сомневающийся», карточку сомневающегося даёте вы; в 1:1 сомневающийся — вы.',
+      errors: [
+        '«Võrreldes buss» → «Võrreldes bussiga» (võrreldes + -ga).',
+        '«Mida kaugem, seda kallis» → «Mida kaugemal, seda kallim» (mida … seda — две сравнительные формы).',
+        '«Eelistan bussi kui autot» → «Eelistan bussi autole» (eelistama mida millele).',
+        '«Buss on odavam nagu auto» → «Buss on odavam kui auto» (сравнение — kui, не nagu).',
+      ],
+      notes: [
+        'Формат — мини-проект: у ученика настоящие данные своего пути (peatus.ee и свой опыт), продукт — обоснованное решение «летом / зимой» и предложение волости. Кто не работает: путь в языковую школу, в магазин, к врачу или к внукам.',
+        'Keskvõrre + kui, võrreldes, erinevalt (B1) — повтор одной строкой. Цель B2 — сравнивать точно и с выводом: насколько (kaks korda, poole), что главное (mitte niivõrd …, kuivõrd …), зависимость (mida … seda) и выбор (eelistan bussi autole).',
+        'Обратная связь, 2–3 цели: падеж после võrreldes / erinevalt / eelistama; mida … seda с двумя сравнительными; решение с причиной и планом Б. В разговоре не перебивайте, три замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('024_d_talk', 'Väide: linnas ei ole tänapäeval autot vaja.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: kuidas sa täna siia jõudsid, kui kaua see võttis ja kas oled oma teekonnaga rahul.', [
+        'Väide: „Linnas ei ole tänapäeval autot vaja.” Kas oled nõus? Miks?',
+        'Kuidas sa täna siia jõudsid, kui kaua see võttis ja kas oled oma teekonnaga rahul?',
+      ], [60, 90]), 'Sinu enda teekond on tunni esimene näide: täna võrdled just seda.'), { task: 'S09', fluency: true }),
+      'Üks-ühele: räägi ka ise oma teekonnast. Ära paranda; kirjuta tahvlile õpilase kaks numbrit (minutid, eurod) — need tulevad jaamas 4 tagasi. Kui tund on veebis: „Kuidas sa eile tööle, kooli või poodi läksid?”')), 1, 5),
+      station(tag(B.vocab('024_d_vocab', 'Tunni sõnad.', ['teekond — путь, дорога', 'kulud — расходы', 'kindlustus — страховка', 'ummik — пробка', 'sõiduplaan — расписание', 'võrdlema — сравнивать', 'eelistama — предпочитать', 'eelis — преимущество', 'puudus — недостаток', 'seevastu — напротив']), { topic: ['teekond', 'ummik', 'eelis'] }), 2, 20),
+      purpose(B.diagram('024_d_scheme', 'compare', { title: 'Skeem: auto või ühistransport?', instruction: 'Vaata skeemi enne kuulamist. Kuulates lisa kummalegi poolele üks asi, mida liikuvusuurija ütleb, ja ütle see võrdlusega (võrreldes …, erinevalt …, mida …, seda …).', left: 'Auto', right: 'Buss, rong või ratas', leftItems: 'kiire, kui teel ummikut pole\nkütus, kindlustus, remont, parkimine\nsõidad siis, kui ise tahad', rightItems: 'pilet on odavam\nbussis saab lugeda või puhata\nsõiduplaan: kui buss läks, siis läks' }, 'full', 'g_read'), 'Skeem aitab sul kuulata, mida võrreldakse ja mis on kummagi eelis.'),
+      why(teach(tag(purpose(B.examListen('024_d_listen', 'Kuulamine: mida teekond tegelikult maksab?', 'Raadiosaates „Rahakott” räägib liikuvusuurija sellest, mida meie teekond tööle maksab. Loe enne väited läbi. Kuula saadet kaks korda ja märgi, kas väide on õige või vale.', 'truefalse', [
+        'Saatejuht: Tere õhtust! Saates „Rahakott” räägime täna sellest, mida meie igapäevane teekond tööle tegelikult maksab. Stuudios on liikuvusuurija Tõnu. Tõnu, kas auto on tõesti nii kallis, kui räägitakse?',
+        'Tõnu: Sõltub sellest, mida arvestada. Paljud mõtlevad ainult kütusele, aga kütus on vaid osa kuludest. Kui lisada kindlustus, remont, rehvid, parkimine ja see, et auto kaotab igal aastal väärtust, on auto ülalpidamine mitu korda kallim, kui inimene arvab. Võrreldes bussipiletiga on vahe sageli kolm-neli korda.',
+        'Saatejuht: Miks siis nii paljud ikkagi autoga sõidavad?',
+        'Tõnu: Sest inimesed ei vali mitte niivõrd raha, kuivõrd aega ja mugavust. Kui buss sõidab kord tunnis ja peatus on kilomeetri kaugusel, eelistab peaaegu igaüks autot bussile. Mida harvem buss käib, seda rohkem autosid on teel. See on lihtne matemaatika.',
+        'Saatejuht: Aga kas aeg ei ole ka raha?',
+        'Tõnu: Just nimelt. Kui te istute iga päev ummikus pool tundi, kaotate kuus rohkem kui terve tööpäeva. Bussis saab seda aega vähemalt kasutada: lugeda, õppida või lihtsalt puhata. Autoroolis seda teha ei saa. Seetõttu tasub võrrelda mitte ainult hinda, vaid ka seda, mida te teekonnal teha saate.',
+        'Saatejuht: Linnas on olukord ju teine.',
+        'Tõnu: Jah. Linnas on ühistransport tihedam, seevastu on parkimine kallis ja tänavad hommikuti ummikus. Paljudel linlastel on teekond bussi või trammiga peaaegu sama pikk kui autoga. Erinevalt autojuhist saab bussis lugeda või puhata. Ja kui töökoht on kuni kolme kilomeetri kaugusel, on jalgratas sageli kõige kiirem.',
+        'Saatejuht: Aga talvel? Rattaga minna lumes ja pimedas …',
+        'Tõnu: Muidugi, talv muudab palju. Ma ei ütle, et kõik peaksid aastaringselt rattaga sõitma. Pigem soovitan mõelda kahele võimalusele: üks suveks, teine talveks. Paljud sõidavad suvel rattaga ja talvel bussiga ning säästavad nii umbes poole sellest, mida auto maksaks.',
+        'Saatejuht: Kuulaja küsib: kas elektriauto lahendab probleemi?',
+        'Tõnu: Osaliselt. Sõit on odavam ja õhk puhtam, samas kui ummikuid ja parkimiskohtade puudust elektriauto ei vähenda. Ummikus seisab elektriauto täpselt sama kaua kui bensiiniauto.',
+        'Saatejuht: Ja lapsed? Paljud vanemad viivad lapse kooli autoga.',
+        'Tõnu: Jah, ja sageli on kool vaid paari kilomeetri kaugusel. Erinevalt vanematest ei pea laps ummikus istuma, kui ta käib jala või sõidab rattaga. Mida rohkem lapsi ise kooli läheb, seda vähem autosid on hommikul kooli ees ja seda ohutum on tee kõigile.',
+        'Saatejuht: Mida te soovitaksite inimesele, kes tahab oma teekonda muuta?',
+        'Tõnu: Kõigepealt arvutage. Pange ühe kuu jooksul kirja kõik teekonna kulud ja ajad. Seejärel vaadake sõiduplaanist, mis oleks teine võimalus. Paljud on üllatunud: auto, mis tundus kõige kiirem, ei ole uksest ukseni alati kiirem. Ja proovige uut teekonda vähemalt kaks nädalat, mitte üks päev. Esimene päev on alati kõige raskem.',
+        'Saatejuht: Aitäh, Tõnu!',
+      ], [
+        ['Liikuvusuurija sõnul on kütus suurem osa auto kuludest.', false],
+        ['Kui arvestada ka kindlustust, remonti ja väärtuse kaotust, on auto mitu korda kallim, kui inimesed arvavad.', true],
+        ['Liikuvusuurija arvates valivad inimesed teekonda eelkõige raha järgi.', false],
+        ['Mida harvem buss käib, seda rohkem inimesi sõidab autoga.', true],
+        ['Linnas on parkimine liikuvusuurija sõnul odav, kuid ühistransport harv.', false],
+        ['Lühikese vahemaa korral võib jalgratas olla kõige kiirem.', true],
+        ['Liikuvusuurija soovitab kõigil aastaringselt rattaga sõita.', false],
+        ['Elektriauto vähendab liikuvusuurija sõnul ka ummikuid.', false],
+        ['Liikuvusuurija vihjab, et paljud hindavad auto kiirust valesti.', true],
+        ['Liikuvusuurija arvates piisab uue teekonna proovimiseks ühest päevast.', false],
+      ], 'g_read'), 'Kuuled, mida tasub oma teekonna juures arvestada, ja saad kohe oma valikut võrrelda.'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, 20 minutit koos sõnade, skeemi ja pildiga (umbes 3,5 minutit, kaks korda). Enne kuulamist küsi pildi järgi: mida kaks inimest kaalul võrdlevad? Õpilane loeb väited läbi ja joonib alla võtmesõnad. Pärast: õpilane parandab valed väited suuliselt ja leiab saatest kolm võrdlust (mitte niivõrd … kuivõrd, mida harvem … seda rohkem, erinevalt autojuhist). Väide 9 on järeldusväide (kõneleja vihje). Saade on õppetekst, inimesed on välja mõeldud, täpseid arve pole.'), [
+        'Vale: „kütus on vaid osa kuludest”.',
+        'Õige: koos kindlustuse, remondi ja väärtuse kaotusega „on auto ülalpidamine mitu korda kallim, kui inimene arvab”.',
+        'Vale: inimesed „ei vali mitte niivõrd raha, kuivõrd aega ja mugavust”.',
+        'Õige: „Mida harvem buss käib, seda rohkem autosid on teel.”',
+        'Vale: linnas on ühistransport tihedam, „seevastu on parkimine kallis”.',
+        'Õige: kuni kolme kilomeetri kaugusel „on jalgratas sageli kõige kiirem”.',
+        'Vale: „Ma ei ütle, et kõik peaksid aastaringselt rattaga sõitma.”',
+        'Vale: „ummikuid ja parkimiskohtade puudust elektriauto ei vähenda”.',
+        'Õige (järeldus): „auto, mis tundus kõige kiirem, ei ole uksest ukseni alati kiirem”.',
+        'Vale: „proovige uut teekonda vähemalt kaks nädalat, mitte üks päev”.',
+      ]),
+      hide(station(teach(tag(purpose(B.table('024_d_trip', 'Kuidas sa siia tulid?', 'Kuidas sa täna siia tulid? (Kui tund on veebis: kuidas sa eile tööle, kooli või poodi läksid?) Mitu minutit see võttis ja umbes mitu eurot maksis? Kirjuta oma numbrid tabelisse ja võrdle õpetajaga ühe lausega.', 'Küsimus, Mina, Õpetaja', [
+        'Kuidas ma liikusin? |  | ',
+        'Mitu minutit see võttis? |  | ',
+        'Mitu eurot see umbes maksis? |  | ',
+        'Mis oli kõige mugavam või ebamugavam? |  | ',
+      ]), 'Sinu numbrid on tunni esimesed andmed: täna võrdled just nendega.'), { task: 'S09', fluency: true }),
+      'Täida ka oma veerg ja ütle esimesena: „Võrreldes sinuga sõidan ma …”. Siis küsi: „Kas sa oled selle teekonnaga rahul?” Ära paranda; kirjuta tahvlile õpilase kaks numbrit — need tulevad jaamas 4 tagasi.'), 1, 10), CUT_HOOK),
+      hide(why(tag(purpose(B.listening('024_d_radio', 'Raadio: kolm teekonda.', 'Kuula kaks korda: mida iga inimene võrdleb ja mille kasuks ta otsustab? Kirjuta lünka 1–2 sõna või arv.', [
+        'Saatejuht: Kuidas teie tööle või kooli jõuate? Täna räägivad sellest kolm kuulajat.',
+        'Sergei: Elan Narvas ja töötan tehases kolme kilomeetri kaugusel. Varem sõitsin autoga, nüüd käin jalgsi või rattaga. Erinevalt autost ei pea ma kütuse ja parkimise peale mõtlema. Talvel on muidugi külm ja pime, seevastu suvel on teekond päeva parim osa.',
+        'Kertu: Õpin Tartus ja elan ühikas. Bussiga jõuan ülikooli viieteist minutiga, rattaga kümnega. Võrreldes bussiga on ratas kiirem ja tasuta, aga vihma käes jõuan loengusse märjana. Mida külmemaks läheb, seda sagedamini valin bussi.',
+        'Tõnu: Elan Sauel ja töötan Tallinna kesklinnas. Autoga võtab teekond hommikuses ummikus peaaegu tund aega, rongiga veerand tundi ja jalutuskäik jaama veel kümme minutit. Võrreldes autoga säästan rongiga palju raha. Seevastu pean elama sõiduplaani järgi: kui rong läks, siis läks.',
+        'Saatejuht: Kolm kuulajat, kolm valikut. Aga kuidas sina liigud?',
+      ], [
+        'Sergei tehas on tema kodust [kolme|3] kilomeetri kaugusel.',
+        'Erinevalt autost ei pea Sergei mõtlema kütuse ja [parkimise] peale.',
+        'Rattaga jõuab Kertu ülikooli [kümne|10] minutiga, bussiga viieteistkümnega.',
+        'Kui ilm läheb külmemaks, valib Kertu sagedamini [bussi].',
+        'Autoga võtab Tõnu teekond hommikuses [ummikus] peaaegu tund aega.',
+        'Rongi puudus on Tõnu jaoks see, et tuleb elada [sõiduplaani] järgi.',
+      ], 'g_read'), 'Kolm päris elu näidet näitavad, mida inimesed teekonna valikul võrdlevad.'), { voice: 'interview', task: 'L03' }), OLD_WHY['024_d_radio']), CUT_SHORT),
+    ],
+    practice: [
+      station(teach(B.notice('024_p_notice', 'Märka: kuidas võrrelda täpselt?', [
+        'Saatest: **Võrreldes bussipiletiga** on vahe … · **mitte niivõrd** raha, **kuivõrd** aega · **eelistab** autot **bussile** · **Mida harvem** buss käib, **seda rohkem** autosid … · **seevastu on** parkimine kallis · **samas kui** ummikuid elektriauto ei vähenda',
+        'Kordamine (B1): keskvõrre + **kui** (Rong on kiirem **kui** auto.) · **võrreldes** + -ga (võrreldes **autoga**) · **erinevalt** + -st (erinevalt **autojuhist**)',
+        'B2: **mida** + keskvõrre …, **seda** + keskvõrre …: **Mida** kaugemal elad, **seda** rohkem maksad.',
+        'B2: kui palju — **kaks korda kallim**, **poole lühem**, **kolm korda rohkem** · mis on peamine — **mitte niivõrd** X, **kuivõrd** Y',
+        'B2: valik — **eelistama** + osastav + alaleütlev: eelistan **bussi autole** · vastand — Auto on kiire, **seevastu on** buss odav (tegusõna kohe järel); bussis saab lugeda, **samas kui** autojuht peab teed vaatama.',
+        'Ülivõrre: **kõige kiirem** = **kiireim** · **kõige parem** = **parim**.',
+      ], 'full'), 'Kordamine ühe minutiga (kiirem kui, võrreldes bussiga, erinevalt autost). Siis B2 samm: võrdlus ütleb, kui palju, mis on peamine ja mida sa eelistad. Lase õpilasel öelda oma teekonna kohta kolm lauset: kaks korda …, mitte niivõrd …, kuivõrd …, eelistan … -le.'), 3, 20),
+      why(purpose(B.gaps('024_p_compare', 'Teekond tööle: võrdle täpselt.', 'Kirjuta sulgudes olev sõna õiges vormis. Panka ei ole.', [
+        'Võrreldes eelmise [aastaga] maksan kütuse eest nüüd rohkem. (aasta)',
+        'Erinevalt minu [kolleegist] ei ole mul tööl parkimiskohta. (kolleeg)',
+        'Mida kaugemal tööst elad, seda [kallim] on teekond. (kallis)',
+        'Mida [varem] ma kodust lahkun, seda lühem on ummik. (vara)',
+        'Rongisõit on peaaegu kaks korda [kiirem] kui bussisõit. (kiire)',
+        'Talvel eelistan bussi [jalgrattale]. (jalgratas)',
+        'Paljud ei vali teekonda mitte niivõrd hinna, [kuivõrd] aja järgi. (sidend)',
+        'Auto on mugav, seevastu [on] bussipilet palju odavam. (olema)',
+        'Rattaga jõuan tööle [poole] kiiremini kui jalgsi. (pool)',
+        'Lühikesel teel on jalgratas kõigist võimalustest [kõige kiirem|kiireim]. (kiire, ülivõrre)',
+      ], '', 'full', 'g_notice'), 'Täpne võrdlus näitab, kui palju üks võimalus teisest parem on.'), [
+        'võrreldes + kaasaütlev: aastaga.',
+        'erinevalt + seestütlev: kolleegist.',
+        'mida … seda + keskvõrre: kallim.',
+        'mida + keskvõrre: vara → varem.',
+        'kaks korda + keskvõrre: kiirem.',
+        'eelistama mida (osastav: bussi) millele (alaleütlev): jalgrattale.',
+        'mitte niivõrd …, kuivõrd …',
+        'seevastu lause alguses → tegusõna kohe järel: on.',
+        'poole + keskvõrre: poole kiiremini.',
+        'Ülivõrre: kõige kiirem (kiireim).',
+      ]),
+      why(purpose(B.formtext('024_p_news', 'Valla uudis: buss või rattatee?', 'Loe vallalehe uudist ja kirjuta sulgudes oleva sõna sobiv vorm. Panka ei ole.', 'Vald küsib elanikelt nõu', [
+        'Vallavalitsus kaalub, kuhu panna järgmise aasta transpordiraha: kas tihendada bussiliini või ehitada kooli juurde rattatee. Võrreldes eelmise [aastaga] (aasta) on raha vähem, nii et mõlemat korraga teha ei saa.',
+        '',
+        'Bussiliini poolt on eelkõige eakad ja need, kes käivad tööl linnas. Erinevalt [rattateest] (rattatee) aitaks tihedam buss ka talvel. Seevastu [on] (olema) rattatee ehitus ühekordne kulu, samas kui bussi eest tuleb maksta igal aastal.',
+        '',
+        'Rattatee pooldajad ütlevad, et mida rohkem lapsi rattaga kooli sõidab, seda [vähem] (vähe) on hommikul kooli ees autosid. Praegu viiakse paljud lapsed kooli autoga, kuigi kool on kodust vaid kahe-kolme kilomeetri [kaugusel] (kaugus).',
+        '',
+        'Vallavanema sõnul ei otsustata mitte niivõrd hinna, [kuivõrd] (sidend) kasu järgi. Bussiliin oleks tema hinnangul umbes kaks korda [kallim] (kallis) kui rattatee, kuid seda kasutaks rohkem inimesi. Paljud elanikud eelistavad siiski bussi [autole] (auto), kui buss käib piisavalt tihti.',
+        '',
+        'Kõige [mõistlikum] (mõistlik) lahendus selgub avalikul arutelul järgmisel kuul. Mida [rohkem] (palju) elanikke arutelule tuleb, seda parem.',
+      ]), 'Sellist uudist loed oma vallas päriselt; nüüd näed, kuidas võrdlus aitab otsustada.'), [
+        'võrreldes + kaasaütlev: aastaga.',
+        'erinevalt + seestütlev: rattateest.',
+        'seevastu lause alguses → tegusõna kohe järel: on.',
+        'mida … seda + keskvõrre: vähe → vähem.',
+        'kaugusel (millise kauguse peal: alalütlev).',
+        'mitte niivõrd …, kuivõrd …',
+        'kaks korda + keskvõrre: kallim.',
+        'eelistama mida (bussi) millele: autole.',
+        'kõige + keskvõrre: mõistlikum.',
+        'mida + keskvõrre: palju → rohkem.',
+      ]),
+      why(purpose(tag(B.table('024_p_register', 'Jutus või ettepanekus?', 'Vasakul on lause igapäevasest jutust. Paremas veerus on sama mõte vallale kirjutatud ettepanekus. Kirjuta lünka puuduv sõna.', 'Jutus, Ettepanekus', [
+        'Autoga on kiirem, aga bussiga odavam. | Auto on kiirem, [seevastu] on buss odavam.',
+        'Mul läheb vähem aega kui sul. | [Võrreldes] sinuga kulub mul teekonnale vähem aega.',
+        'Ma sõidan bussiga, sina mitte. | [Erinevalt] sinust sõidan mina bussiga.',
+        'Kui buss käib harva, sõidavad kõik autoga. | [Mida] harvem buss käib, seda rohkem sõidetakse autoga.',
+        'Ma võtan pigem bussi kui auto. | Ma [eelistan] bussi autole.',
+        'See maksab kaks korda rohkem. | See on kaks korda [kallim].',
+        'Asi pole rahas, asi on ajas. | Otsustan mitte niivõrd raha, [kuivõrd] aja järgi.',
+        'Ratas on lühikese tee jaoks kõige parem asi. | Lühikesel teel on jalgratas [parim] valik.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sinu argument kõlab vallavalitsusele kirjutatud ettepanekus.'), [
+        'aga → seevastu (tegusõna kohe järel: on).',
+        'vähem kui sul → võrreldes sinuga.',
+        'sina mitte → erinevalt sinust.',
+        'kui … siis → mida … seda + keskvõrre.',
+        'pigem … kui → eelistan mida millele.',
+        'kaks korda rohkem → kaks korda kallim.',
+        'asi pole …, asi on … → mitte niivõrd …, kuivõrd …',
+        'kõige parem → parim.',
+      ]),
+      hide(why(teach(tag(purpose(B.gaps('024_p_forms', 'Kolleeg kaalub: buss või auto?', 'Kolleeg võrdleb oma kaht teekonda. Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Võrreldes [autoga] võtab bussisõit mul hommikul kakskümmend minutit rohkem aega. (auto)',
+        'Erinevalt [bussist] saan autoga lapse otse lasteaia ukse ette viia. (buss)',
+        'Auto on mugav, seevastu on bussipilet palju [odavam] kui kütus ja parkimine. (odav)',
+        'Mida varem ma kodust lahkun, seda [lühem] on hommikune ummik. (lühike)',
+        'Mida rohkem ma jalgsi käin, seda [paremini] ma öösel magan. (hästi)',
+        'Erinevalt minu [naabrist] ei ole mul talvel autole sooja garaaži. (naaber)',
+        'Võrreldes eelmise [aastaga] maksan kütuse eest nüüd rohkem. (aasta)',
+      ], '', 'full', 'g_notice'), 'Kolleeg näeb kahe võimaluse eeliseid ja puudusi ühe pilguga.'), { task: 'G02' }),
+      'Enne kontrolli küsi iga lünga juures: „Millega võrdled? Millest erineb?” Nii tuleb kääne õpilaselt, mitte sinult.'), OLD_WHY['024_p_forms']), CUT_DRILL),
+      hide(teach(tag(purpose(B.writing('024_p_mine', 'Minu kaks teekonda.', 'Kirjuta 4 lauset oma kahest päris teekonna võimalusest: üks võrreldes-lause, üks erinevalt-lause, üks seevastu-lause ja üks mida … seda-lause.', [4, 4], ['võrreldes', 'erinevalt', 'seevastu', 'mida'], 3, 'g_notice'), 'Sinu neli lauset on projekti „Minu teekond” mustand.'), { task: 'W03', level: 3 }),
+      'Loe laused ette ja loe kokku, mitu eri võrdlusvormi on õiged (eesmärk: neli). Paranda ainult üks viga: küsi „Millega võrdled? Millest erineb?”.'), 'a 4-sentence writing with keywords: the form tasks 024_p_compare / 024_p_news and the home proposal take its place'),
+    ],
+    transfer: [
+      station(purpose(B.planning('024_t_plan', 'Minu teekond: andmed ja plaan (5 minutit).', 'Ava Peatus.ee (Eesti ühistranspordi sõiduplaanid, https://www.peatus.ee) ja leia oma igapäevase teekonna ühistranspordi aeg. Võrdle seda sellega, kuidas sa praegu liigud. Kirjuta märksõnad. Edukriteeriumid: 1) võrdled vähemalt kolme kriteeriumi (aeg, raha, mugavus või tervis); 2) kasutad vähemalt nelja võrdlusvormi; 3) teed selge otsuse põhjusega — suveks ja talveks.', ['Minu teekond ja kaks võimalust (Peatus.ee järgi ja praegu):', 'Aeg ja raha (võrreldes …, kaks korda …):', 'Mugavus või tervis (erinevalt …, seevastu …):', 'Minu otsus suveks ja talveks (mida …, seda …; eelistan … -le):'], 1), 'Päris andmed teevad sinu otsuse veenvaks ka kahtlejale.'), 4, 25, { final: 'plan' }),
+      inLesson(teach(tag(purpose(B.rolecards('024_t_explain', 'Seleta oma valikut kahtlejale (6–8 minutit).', 'Räägi 1–2 minutit: mida võrdlesid, kummagi eelis ja puudus ning sinu otsus. Siis vasta kahtleja küsimustele ja reageeri ootamatule.',
+        'Sina: oma plaaniga.\nEesmärk: kahtleja nõustub, et valik on põhjendatud.\nPiirang: vähemalt kolm kriteeriumi.',
+        'Kahtleja kaart on õpetajal: tema kaks küsimust ja üks uudis.',
+        ['Võrreldes …-ga …', 'Mida …, seda …'], ['Aga talvel?', 'Kas sa arvestasid ka …?']), 'Tulemus: sinu otsus on põhjendatud, sul on plaan B ja sa tead, mida järgmisel kuul proovid.'), { task: 'S12', main: true, level: 4 }),
+      'Õpetaja on kahtleja (kolleeg või pereliige). Kuula segamata, siis küsi: 1) „Aga talvel? Kas sinu otsus jääb samaks?” 2) „Kas sa arvestasid ka kindlustust ja parkimist?” Varjatud info (ütle pärast teist küsimust): kui õpilane valis bussi — „Kuulsin, et sinu bussiliin hakkab jaanuarist käima ainult kord tunnis”; kui auto — „Sinu töö juures muutub parkimine jaanuarist tasuliseks.” Õpilane peab uue asjaolu läbi mõtlema ja oma plaani muutma või kaitsma (plaan B). Õnnestunud, kui õpilane võrdleb vähemalt kolme kriteeriumi, kasutab nelja võrdlusvormi õigesti (võrreldes, erinevalt, mida … seda, kaks korda …), reageerib uudisele ja teeb selge otsuse põhjusega. Seejärel üks tugevus ja üks parandus.')),
+      tag(homeTask(homeLines(purpose(B.examWriting('024_t_proposal', 'Kodus: ettepanek vallale (umbes 180 sõna).', `Kirjuta 170–190 sõna, algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Sinu vald või linn küsib elanikelt: kas järgmise aasta transpordiraha panna bussiliini tihendamisse või rattateede ehitamisse? Kirjuta vallavalitsusele oma ettepanek. Kasuta oma teekonna andmeid (Peatus.ee) ja raadiosaate mõtteid.',
+        points: ['kes sa oled ja kuidas sa praegu liigud (andmed)', 'kahe võimaluse võrdlus vähemalt kolme kriteeriumi järgi', 'vastaspoole argument ja sinu vastus', 'sinu ettepanek ja põhjus'],
+        words: [170, 190],
+      }), 'Vald loeb elanike ettepanekuid enne otsust; sinu andmed ja võrdlus loevad.'), 3)), { task: 'W13', main: true, level: 4 }),
+      writingRubric('024_t_rubric', 'Hindamisjuhend: ettepanek vallale (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere. Ma elan Sauel ja sõidan autoga. Auto on kiirem nagu buss. Võrreldes buss on auto kallis. Mida kaugem, seda kallis. Ma arvan, et buss on parem. Palun tehke rohkem busse.” Hinnang: ülesanne 2 (andmed ja ettepanek on olemas, kuid vastaspoole argumenti ei ole ja võrdluses on ainult üks kriteerium), ülesehitus 2 (lühikesed laused, lõike ja sidendeid peaaegu pole), sõnavara 2 („rohkem busse” → tihendada bussiliini; „Tere.” on vallavalitsusele liiga lihtne pöördumine), grammatika 1 („kiirem nagu buss” → kiirem kui buss; „võrreldes buss” → võrreldes bussiga; „mida kaugem, seda kallis” → mida kaugemal, seda kallim). Kui õppija lisab teise kriteeriumi ja vastuargumendi ning parandab võrdlusvormid, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('024_t_self', ['Ma saan saatest aru ja järeldan kõneleja vihje.', 'Ma võrdlen täpselt: mida …, seda …; kaks korda …', 'Ma põhjendan valikut päris andmetega.'], 'Teekond valitud', 'Ma oskan valikuid andmetega võrrelda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(station(B.chart('024_t_chart', 'Kuidas Eestis tööl käiakse (protsenti töötajatest)', { kind: 'bar', unit: '%', series: ['2003', '2023'], rows: ['Autoga | 25 | 46,9', 'Ühistranspordiga | 29,9 | 17,8', 'Jalgsi | 27,3 | 14,6'], source: 'Statistikaamet, tööjõu-uuring 2003 ja 2023' }), 4, 15, { final: 'plan' }), CUT_STATS),
+      hide(why(tag(purpose(B.table('024_t_data', 'Mida joonis näitab?', 'Enne oma projekti vaata, kuidas Eesti liigub. Vasta joonise põhjal lühidalt.', 'Küsimus, Vastus', [
+        'Kas autoga tööl käijaid oli 2023. aastal rohkem või vähem kui 2003. aastal? | [rohkem/palju rohkem]',
+        'Kumb oli 2003. aastal populaarsem: ühistransport või auto? | [ühistransport]',
+        'Mitu protsenti töötajatest käis 2023. aastal tööl jalgsi? | [14,6/14,6 %/umbes 15]',
+        'Kumma osa langes kahekümne aastaga rohkem: jalgsi või ühistranspordiga käijate? | [jalgsi/jalgsi käijate]',
+        'Mitu korda rohkem inimesi käis 2023. aastal tööl autoga kui ühistranspordiga? | [umbes 2,5 korda/2,5 korda/kaks ja pool korda/üle kahe korra]',
+      ], 'g_read'), 'Arvud näitavad, kas sinu valik on Eestis tavaline või erand.'), { task: 'R15' }), OLD_WHY['024_t_data']), CUT_STATS),
+      hide(tag(purpose(B.table('024_t_project', 'Projekt: minu teekond.', 'Vali oma igapäevaseks teekonnaks kaks päris võimalust ja võrdle neid nelja kriteeriumi järgi. Märgi rea lõppu, kumb võidab.', 'Kriteerium, Võimalus 1, Võimalus 2, Kumb võidab?', [
+        'Aeg (minutit ühes suunas, ummik) |  |  | ',
+        'Raha (kütus, pilet, parkimine: eurot kuus) |  |  | ',
+        'Tervis ja liikumine |  |  | ',
+        'Mugavus (ilm, sõiduplaan, eelis ja puudus) |  |  | ',
+      ]), 'Tulemus: sinu kaart „Minu teekond”, mille järgi otsustad, kuidas järgmisel kuul liigud.'), { task: 'W01', level: 3 }), 'the project card: now the plan 024_t_plan with the learner\'s own data from peatus.ee'),
+      hide(teach(tag(homeTask(purpose(B.writing('024_t_summary', 'Andmed ja minu järeldus: tunnis plaan, kodus lõpp.', 'Tunnis: plaan ja kaks esimest lauset. Kodus 150–180 sõna: mida näitab Statistikaameti joonis (2003 ja 2023), mis võiks olla muutuse põhjus, kuidas sinu teekond sellega võrreldes on ja mida sa järgmisel kuul teisiti teed.', [12, 16], ['võrreldes', 'erinevalt', 'seevastu', 'mida'], 3, 'g_use'), 'Sinu kokkuvõte näitab, et oskad andmeid lugeda ja oma elu nendega võrrelda.')), { task: 'W15', main: true, harno: 'W2a' }),
+      'Kodutöö. Järgmises tunnis loe kokkuvõte ette; õpetaja küsib: „Kas see on joonisel või on see sinu arvamus?” Tagasiside: arvud õigesti (2003 → 2023), võrdlusvormid, põhjus kui oletus (ilmselt, võib-olla — tund 21), selge järeldus.'), CUT_OLDTASK),
+      hide(extension(teach(tag(purpose(B.speaking('024_t_more', 'Mäng: kumb võidab?', 'Õpetaja ütleb kaks asja. Sul on 30 sekundit: võrdle neid kahe lausega ja ütle, kumb võidab.', [
+        'Rong või buss Tallinnast Tartusse?',
+        'Elada tööle lähedal või looduse lähedal?',
+        'Oma auto või rendiauto kord kuus?',
+      ], [120, 180], ['Võrreldes …-ga …', 'Erinevalt …-st …', 'Mida …, seda …']), 'Kiire mäng harjutab võrdlust ilma ettevalmistuseta.'), { task: 'S05', fluency: true }),
+      'Kui aega jääb (12 min). Paarid: rong või buss Tartusse; elektriauto või bensiiniauto; elada linnas või maal; taksoäpp või oma auto; kõndida või sõita trammiga kaks peatust. Iga õige võrdlusvorm on punkt, otsus põhjusega veel üks punkt. Pärast viit paari vahetage rollid: õpilane annab ülesande.'), 12), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('024_t_exit', 'Kontrolli end: kolm võrdlust.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Erinevalt [rongist] sõidab buss ka meie külla. (rong)',
+        'Võrreldes eelmise [kuuga] kõnnin nüüd iga päev rohkem. (kuu)',
+        'Mida rohkem ma kõnnin, seda [vähem] ma väsinud olen. (vähe)',
+      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas võrdlusvormid on käes.')), {}), OLD_WHY['024_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.speaking('024_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: sinu teekond täna ja kümme aastat tagasi — mis on teisiti ja mis on parem?', [
+        'Kuidas sa kümme aastat tagasi liikusid?',
+        'Mis on võrreldes sellega teisiti ja kumb on parem?',
+      ], [60, 120]), 'Õpetaja kuulab sinu võrdlust ja ütleb, kas võrdlusvormid on õiged.')), { task: 'S15' }), CUT_HOME),
+      hide(homework('024_t_homework', ['1. Andmete kokkuvõte ja järeldus, 150–180 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
+    ],
+  },
+
+  'b1b2-025': {
+    title: 'Kontroll 5 — minu seisukoht',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma saan eksami vormis aru lühiteadetest ja raadiointervjuust vaidlemise kohta ning kirjutan kaks teksti: viie minutiga arvamuse samades tingimustes nagu mooduli alguses ja umbes 160-sõnalise arutluse oma seisukohast; Harno lävi on 60 %.',
+    // Methodology v5 (2026-11-25): one sheet, 45 minutes, two skills — listening + writing (module 1: reading + speaking,
+    // module 2: listening + speaking, module 3: reading + writing, module 4: the B2 mock). The listening part keeps the
+    // recorded notices and the debate coach's interview of the v4 control (same transcripts, same audio), now locked: the
+    // notices once (a 51-s clip), the interview twice. The writing part opens with the parallel new task of the module's
+    // cold task (021_d_cold): the same conditions (5 minutes, 5–7 sentences, no phrases, no opening), a new statement; then
+    // the module product „Minu seisukoht” as an argument text with the analytic rubric.
+    discover: [
+      B.text('025_d_intro', 'Kontroll 5: kuulamine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Kuulamine (umbes 18 minutit): neli lühiteadet (kuulad üks kord) ning raadiointervjuu (kuulad kaks korda) lünkade ja õige-vale väidetega — kokku 23 punkti. Kirjutamine (umbes 27 minutit): viie minutiga arvamus (6 punkti) ja arutlus „Minu seisukoht” umbes 160 sõna (12 punkti) — kokku 18 punkti. Kokku 41 punkti. Harno: sooritatud alates 60 % (vähemalt 25 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (29 punkti), meie tunnistus alates 80 % (33 punkti) — see on sisemine lävi. Sõnaraamatut ei kasutata.'),
+      PART('025_p_lpart', 'L', { minutes: 18, points: 23, tasks: 3, note: 'Teated (üks kord, 6 punkti), intervjuu (kaks korda): lüngad (9 punkti) ning õige või vale (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      once(why(B.listening('025_p_notes', 'Kuulamine 1: lühikesed teated (6 punkti).', 'Kuula nelja teadet, igaüht ainult üks kord. Kirjuta lünka 1–2 sõna või arv.', [
+        '1. Tähelepanu! Pühapäeva öösel keeratakse kella: kell neli keeratakse tund aega tagasi kella kolmele. Ärge unustage keerata ka seinakella ja auto kella.',
+        '2. Riigimetsast saab jõulukuuse raieõiguse osta veebist või mobiiliäpist alates novembri lõpust. Hind sõltub kuuse kõrgusest. Kuuse võib võtta ainult kaardil märgitud kohtadest.',
+        '3. Linnaraamatukogu väitlusõhtu teemal „Kas linn vajab rohkem rattateid?” toimub neljapäeval kell kuus õhtul. Osalemine on tasuta, kohti on nelikümmend.',
+        '4. Tähelepanu, bussisõitjad! Alates esmaspäevast sõidab liin number seitse tipptunnil iga kümne minuti tagant. Pärast kella kümmet õhtul väljub buss kord tunnis.',
+      ], [
+        'Pühapäeva öösel keeratakse kell neljalt tagasi kella [kolmele|3].',
+        'Jõulukuuse raieõiguse hind sõltub kuuse [kõrgusest].',
+        'Kuuse võib võtta ainult [kaardil] märgitud kohtadest.',
+        'Väitlusõhtul arutatakse, kas linn vajab rohkem [rattateid].',
+        'Raamatukogu väitlusõhtul on [nelikümmend|40] kohta.',
+        'Tipptunnil sõidab liin seitse iga [kümne|10] minuti tagant.',
+      ]), OLD_WHY['025_p_notes'])),
+      twice(patch(why(tag(B.listening('025_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Kuula intervjuud kaks korda. Täida lausete lüngad 1–2 sõnaga.', [
+        'Saatejuht: Tere! Täna räägime vaidlemisest. Stuudios on väitlustreener Riina Põld. Riina, miks on vaidlemine nii raske?',
+        'Riina: Sest me ajame segi vaidluse ja tüli. Tülis tahame võita, vaidluses aga leida parima lahenduse. Kui see vahe on selge, läheb kõik kergemini.',
+        'Saatejuht: Kuidas head argumenti ära tunda?',
+        'Riina: Heal argumendil on neli osa: seisukoht, põhjus, näide ja järeldus. Kõige sagedamini jääb puudu näide. Ilma näiteta jääb argument õhku rippuma.',
+        'Saatejuht: Mida teha, kui vastane räägib väga enesekindlalt?',
+        'Riina: Enesekindlus ei ole veel tõend. Küsige rahulikult: „Kust te seda teate?” Tavaliselt selgub, et fakt on tegelikult arvamus.',
+        'Saatejuht: Kas vastuvaidlemine ei ole ebaviisakas?',
+        'Riina: Ei ole, kui alustate sellest, millega olete nõus. Näiteks: „Kuigi ma mõtlen teisiti, on teil õigus, et …” Siis kuulab teine teid palju meelsamini.',
+        'Saatejuht: Kas vaidlemist saab õppida ka täiskasvanuna?',
+        'Riina: Kindlasti! Meie õhtustes ringides on inimesi kahekümnest kaheksakümne aastani. Kõige vanem osaleja on pensionär, kes harjutab ringis keeleeksamiks.',
+        'Saatejuht: Mida soovitate kuulajatele?',
+        'Riina: Enne vastamist lugege mõttes kolmeni. Mida rahulikum on teie esimene lause, seda paremini teid kuulatakse.',
+        'Saatejuht: Aitäh, Riina!',
+      ], [
+        'Riina sõnul ajame sageli segi vaidluse ja [tüli].',
+        'Vaidluses tahame Riina sõnul leida parima [lahenduse].',
+        'Heal argumendil on [neli|4] osa.',
+        'Kõige sagedamini jääb argumendist puudu [näide].',
+        'Enesekindlus ei ole Riina sõnul veel [tõend].',
+        'Vastaselt tasub rahulikult küsida, kust ta seda [teab].',
+        'Vastuvaidlemist tasub alustada sellest, millega oled [nõus].',
+        'Riina ringides on inimesi kahekümnest [kaheksakümne|80] aastani.',
+        'Enne vastamist soovitab Riina lugeda mõttes [kolmeni|3].',
+      ]), { voice: 'interview', task: 'L04', harno: 'L3' }), OLD_WHY['025_p_listen']), { instruction: 'Loe enne kuulamist läbi nii osa 2 lüngad kui ka osa 3 väited. Kuula intervjuud kaks korda. Täida lausete lüngad 1–2 sõnaga.' })),
+      patch(why(tag(B.truefalse('025_p_tf', 'Kuulamine 3: õige või vale? (8 punkti)', 'Kuula intervjuud kolmandat korda. Otsusta iga väite kohta: õige või vale.', [
+        ['Riina arvates on vaidlemine raske, sest inimestel ei ole piisavalt fakte.', false],
+        ['Heal argumendil on Riina sõnul kaks osa: seisukoht ja järeldus.', false],
+        ['Riina sõnul on argumendis kõige tähtsam leida vastase vead.', false],
+        ['Riina arvates tasub enesekindla kõneleja sõnu uskuda ilma küsimata.', false],
+        ['Riina näite järgi võib viisakas vastuväide alata sõnadega „Kuigi ma mõtlen teisiti …”.', true],
+        ['Riina õhtustes ringides käib väga eri vanuses inimesi.', true],
+        ['Kõige vanem ringi osaleja on pensionär, kes harjutab keeleeksamiks.', true],
+        ['Riina soovitab vastata vastasele kohe, et ta ei jõuaks edasi rääkida.', false],
+      ], 'full'), { task: 'L05', harno: 'L4' }), OLD_WHY['025_p_tf']), { instruction: 'Sama intervjuu (kolmandat korda seda ei mängita): otsusta kuulamise ajal või kohe pärast iga väite kohta, kas see on õige või vale.', statements: [
+        ['Riina arvates on vaidlemine raske eelkõige seetõttu, et inimestel ei ole piisavalt fakte.', false],
+        ['Heal argumendil on Riina sõnul ainult kaks osa: seisukoht ja järeldus, näidet ei ole vaja.', false],
+        ['Riina sõnul on argumendis kõige tähtsam leida vastase vead ja need kohe välja öelda.', false],
+        ['Riina arvates tasub enesekindla kõneleja sõnu uskuda ka siis, kui ta allikat ei nimeta.', false],
+        ['Riina näite järgi võib viisakas vastuväide alata sõnadega „Kuigi ma mõtlen teisiti …”.', true],
+        ['Riina õhtustes ringides käib väga eri vanuses inimesi, noortest kuni pensionärideni.', true],
+        ['Kõige vanem ringi osaleja on pensionär, kes harjutab seal oma keeleeksamiks.', true],
+        ['Riina soovitab vastata vastasele kohe, et too ei jõuaks oma mõtet lõpuni rääkida.', false],
+      ].map(([text, ok]) => ({ text, answer: ok ? 'true' : 'false' })) }),
+      PART('025_t_wpart', 'W', { minutes: 27, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): sisu ja ülesehitus 0–3, keel 0–3 — samad tingimused nagu mooduli külmas alguses. Kirjutamine 2 (umbes 22 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: kuulamine … / 23 + kirjutamine … / 18 = … / 41.' }),
+      teach(tag(B.writing('025_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Kesklinn peaks olema nädalavahetustel autodele suletud.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, üks põhjus ja näide oma elust ning mida ütleks keegi, kes arvab teisiti. Abifraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), { task: 'W14', harno: 'W2b' }),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-021 (5 minutit, 5–7 lauset, fraase ega algust ei ole), uus väide. Hinda 0–3 sisu ja ülesehituse eest (seisukoht esimeses lauses, põhjus näitega, vastuargument ja vastus sellele) ja 0–3 keele eest (kindlusväljendid ja allikas, sidendi järel tegusõna teisel kohal, kuigi-lause, võrdlus). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
+      tag(B.examWriting('025_t_position', 'Kirjutamine 2: minu seisukoht (umbes 160 sõna, 12 punkti).', 'Vali üks teema ja kirjuta arutlus 150–170 sõnaga. Pealkirja ja algust ei anta.', 'vastus', {
+        situation: 'Teemad: 1) Kas vallal on mõistlikum ehitada uus spordihall või uuendada vana raamatukogu? 2) Kas mobiiltelefon peaks koolitunnis olema keelatud? 3) Kas ühistransport peaks linnas olema kõigile tasuta?',
+        points: ['seisukoht ja kui kindel sa oled', 'kaks argumenti, igaühel näide', 'vastaspoole argument ja sinu vastus', 'järeldus, mis tuleb argumentidest'],
+        words: [150, 170],
+      }), { task: 'W14', harno: 'W2b' }),
+      writingRubric('025_t_wrubric', 'Hindamine: arutlus (12 punkti).', 'Hinda arutlust nelja kriteeriumi järgi (0–3). Sisupunktid: seisukoht ja kindlus, kaks argumenti näitega, vastaspoole argument koos vastusega, järeldus. Mooduli keel on grammatika ja ülesehituse kriteeriumi osa: kindlusväljendid ja allikas (tund 21), sidendid ja allikaviide tegusõnaga teisel kohal (22), tõsi küll …, kuid …; isegi kui …, ei tähenda see … (23), täpne võrdlus (24). Kontrolli tulemus = kuulamine … / 23 + kirjutamine 1 … / 6 + kirjutamine 2 … / 12.', true),
+      hide(tag(B.writing('025_t_essay', 'Kirjutamine 2: arutlus (umbes 180 sõna).', 'Teema: kas linn peaks rohkem raha panema rattateedele või ühistranspordile? Kirjuta arutlus: poolt- ja vastuargumendid, igaühele näide, ja lõpus oma järeldus.', [14, 18], ['ühelt poolt', 'teiselt poolt', 'näiteks', 'kokkuvõttes'], 4), { task: 'W14', harno: 'W2b' }), 'writing 2 is now the exam task card 025_t_position (other block type)'),
+      hide(B.tip('025_d_how', 'Mooduli kontroll: lugemine (eksami vormis, 45 minutit)', 'Mooduli kontroll kestab kaks tundi. Esimeses tunnis on lugemine ning keeleosa ja kuulamine, teises kirjutamine ja rääkimine. Lugemises on neli osa nagu Harno B2 eksamil, ainult lühemad. Tee kõik ilma sõnaraamatuta.', 'full'), CUT_CONTROL),
+      hide(B.vocab('025_d_vocab', 'Tunnid 21–24: sõnad, mis aitavad', ['seisukoht — позиция', 'arvamus — мнение', 'argument — аргумент', 'järeldus — вывод', 'kahtlema — сомневаться', 'vaidlema — спорить', 'kompromiss — компромисс', 'eelis — преимущество', 'puudus — недостаток', 'võrdlema — сравнивать'], '2'), CUT_CONTROL),
+      hide(PART('025_d_rpart', 'R', { minutes: 45, points: 30, tasks: 4, note: 'Lugemisosa on Harno B2 vormis, lühemana (eksamil 70 minutit): neli ülesannet, 30 punkti. Mooduli kontrolli eesmärk on vähemalt 24 punkti (80 %).' }), CUT_CONTROL),
+      hide(why(B.reading('025_d_read', 'Lugemine 1: arvamusartikkel.', 'Loe artiklit vaidlemisest. Vasta kõigepealt kahele küsimusele, siis lahenda osad 1 ja 2.', 'Miks me kommentaariumis vaidleme halvemini kui köögilaua taga?', [
+        '(A) Igaüks meist on seda näinud. Uudise all on sada kommentaari ja juba kolmandas kirjutab keegi, et teised on rumalad. Kümnendas ei räägita enam uudisest, vaid sellest, kes on noor ja kes vana, kes elab linnas ja kes maal. Köögilaua taga vaidleme samade teemade üle palju rahulikumalt: kas kella keeramine tuleks lõpetada, milline kuusk tuua koju või kui kaua võib laps telefoni vaadata. Sama inimene, kes köögis kuulab ja küsib, võib kommentaariumis olla terav ja kiire. Miks see nii on? Minu arvates ei ole põhjus selles, et internetis kirjutavad halvemad inimesed. Põhjus on selles, kuidas vestlus on üles ehitatud.',
+        '(B) Esiteks ei näe me kommentaariumis teise inimese nägu. Köögis märkame kohe, kui sõber solvub või kui tal on raske. Siis muudame tooni, küsime üle või teeme nalja. Ekraanil seda märki ei ole. Pealegi kirjutame tihti kiiresti, telefonist ja poolel teel. Seega jääb lausest alles ainult kõige teravam osa: see, mis meid vihastas. Hiljem loeme oma kommentaari uuesti ja imestame, kes selle kirjutas.',
+        '(C) Teiseks ei kirjuta me kommentaariumis ainult teisele inimesele, vaid publikule. Köögis tahame sõbraga kokkuleppele jõuda või vähemalt teda mõista. Avalikus vaidluses tahame tihti hoopis võita ja näidata teistele, et meil on õigus. Kuigi selline vaidlus võib olla huvitav, ei muuda see kellegi arvamust. Vaevalt on keegi kunagi kirjutanud: „Aitäh, sa veensid mind, ma mõtlen nüüd teisiti.” Publiku ees on taganemine piinlik, köögis aga on see lihtsalt tark otsus.',
+        '(D) Kolmandaks on internetis kerge segi ajada fakti ja arvamust. Kui sõber ütleb köögis, et kella keeramine on tervisele kahjulik, küsime: „Kust sa seda tead?” Kommentaariumis küsitakse seda harva. Arvamus, mida korratakse sada korda, hakkab tunduma faktina. Erinevalt köögist ei ole seal kedagi, kes ütleks rahulikult: „Oota, kontrollime järele.” Nii võib vale arv jõuda tuhandete lugejateni, enne kui keegi märkab, et sellel puudub allikas.',
+        '(E) Kas see tähendab, et kommentaariumid tuleks sulgeda? Ma kahtlen, kas see aitaks. Paljud väljaanded on kommentaare juba piiranud või nõuavad sisselogimist, ometi kolib vaidlus lihtsalt sotsiaalmeediasse. Pealegi on avalik arutelu ühiskonnale vajalik: seal kuuleb ka neid, keda köögilaua taha ei kutsutud. Ilma selleta teaksime üksteise muredest palju vähem. Probleem ei ole seega selles, et inimesed vaidlevad, vaid selles, kuidas nad seda teevad, ja seda saab igaüks ise muuta.',
+        '(F) Ma pakuksin hoopis lihtsat reeglit, mida igaüks saab endale seada. Enne kui vajutad nuppu „saada”, loe oma kommentaar uuesti läbi ja küsi: kas ma ütleksin seda samamoodi inimesele, kes istub minu vastas? Kui ei, muuda üht sõna. Mida rahulikum on esimene lause, seda suurem on võimalus, et ka vastus on rahulik. Kahe minuti töö võib säästa terve õhtu pahameelt. Teine lihtne harjumus on alustada sellest, millega oled nõus. Lause „Selles on sul õigus, kuid …” ei tee sind nõrgemaks, vaid näitab, et sa kuulasid.',
+        '(G) Kokkuvõttes ei ole internet vaidlemist halvemaks teinud. See on lihtsalt näidanud, kui palju sõltub sellest, kas me näeme teist inimest. Köögilaua taga oskame vaielda nii, et pärast saab koos teed juua. Seda oskust tasub kaasa võtta ka ekraani taha, isegi kui kommentaari kirjutamine võtab siis paar minutit rohkem aega. Võib-olla ei veena me sellega kedagi, kuid vähemalt jääb vestlus inimlikuks. Ja kes teab, ehk loeb mõni vaikne lugeja just meie rahulikku kommentaari ning mõtleb oma arvamuse üle uuesti järele.',
+        'Allikas: autori arvamus.',
+      ].join('\n\n'), [['Milliseid kolme põhjust nimetab autor, miks me internetis halvemini vaidleme?', 'me ei näe teise nägu, kirjutame publikule ja ajame segi fakti ja arvamuse|ei näe nägu, kirjutame publikule, fakt ja arvamus lähevad segi'], ['Kas sina ütled internetis asju teisiti kui näost näkku? Too üks näide.']]), OLD_WHY['025_d_read']), CUT_CONTROL),
+      hide(why(tag(B.choice('025_d_mc', 'Osa 1: vali õige vastus (6 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
+        ['Mis juhtub autori sõnul kommentaariumis tihti juba alguses?', 'Keegi nimetab teisi rumalaks.', 'Kõik nõustuvad uudisega.', 'Toimetaja kustutab kommentaarid.', 'Inimesed kirjutavad pikki analüüse.'],
+        ['Miks muudame köögis vaidlemisel tooni?', 'Me näeme, et teine solvub või et tal on raske.', 'Köögis on vaiksem kui mujal.', 'Sõber on alati meiega nõus.', 'Köögis ei tohi vaielda.'],
+        ['Mis on autori arvates avaliku vaidluse eesmärk sageli?', 'võita ja näidata teistele, et meil on õigus', 'teist inimest paremini mõista', 'sõbraga kokkuleppele jõuda', 'uut teavet saada'],
+        ['Mida tahab autor öelda lausega „Oota, kontrollime järele”?', 'Köögis küsitakse fakti järele, kommentaariumis harva.', 'Kõik faktid internetis on valed.', 'Köögis ei räägita kunagi faktidest.', 'Toimetus peab kõik kommentaarid üle kontrollima.'],
+        ['Mida arvab autor kommentaariumide sulgemisest?', 'Ta kahtleb, kas see aitaks.', 'Ta on kindlasti selle poolt.', 'Ta arvab, et kõik väljaanded on seda juba teinud.', 'Ta soovitab sulgeda ka sotsiaalmeedia.'],
+        ['Mida soovitab autor igaühele?', 'lugeda kommentaar enne saatmist uuesti läbi', 'mitte kunagi kommenteerida', 'kirjutada ainult sisselogituna', 'vaielda ainult köögilaua taga'],
+      ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }), OLD_WHY['025_d_mc']), CUT_CONTROL),
+      hide(why(tag(B.table('025_d_para', 'Osa 2: väide ja lõik (8 punkti).', 'Leia iga väite 1–8 jaoks artikli lõik (A–G), kus see mõte on. Ühte lõiku sobib kaks väidet.', 'Väide, Lõik', [
+        '1. Probleem ei ole inimestes, vaid vestluse ülesehituses. | [A]',
+        '2. Kiirustades jääb lausest alles kõige teravam osa. | [B]',
+        '3. Avalik vaidlus ei muuda tavaliselt kellegi arvamust. | [C]',
+        '4. Korduv arvamus võib hakata tunduma faktina. | [D]',
+        '5. Kommentaaride piiramine ei lõpeta vaidlust. | [E]',
+        '6. Avalikus arutelus kuuleb ka neid, keda muidu ei kuulataks. | [E]',
+        '7. Rahulik algus toob tõenäoliselt rahuliku vastuse. | [F]',
+        '8. Köögilaua oskus tasub kaasa võtta ka ekraani taha. | [G]',
+      ], 'g_read'), { task: 'R14', harno: 'R2a' }), OLD_WHY['025_d_para']), CUT_CONTROL),
+      hide(why(tag(B.formtext('025_d_cloze', 'Osa 3: pane sõna õigesse vormi (10 punkti).', 'Elanik kirjutab vallalehele uue rattatee kohta. Kirjuta sulgudes olev sõna lünka õiges vormis.', 'Lugejakiri: miks ma olen rattatee poolt', [
+        'Lugupeetud toimetus!',
+        'Lugesin teie lehest, et vald kaalub Pargi tänavale rattatee ehitamist. Olen [kindlasti] (kindel) selle poolt ja tahaksin selgitada, miks.',
+        'Esiteks [kasutavad] (kasutama) seda tänavat iga hommik sajad koolilapsed. Praegu ei ole seal isegi korralikku kõnniteed. Võrreldes [naabervallaga] (naabervald) on meil rattateid väga vähe. Erinevalt [linnast] (linn) ei sõida meil buss iga poole tunni tagant, nii et paljud pered sõidavad igale poole autoga.',
+        'Mõned naabrid kardavad, et uus tee võtab ära parkimiskohti. Kuigi ma saan sellest murest aru, on laste ohutus siiski [tähtsam] (tähtis). Mida [rohkem] (palju) lapsi rattaga kooli sõidab, seda [vähem] (vähe) autosid on hommikul kooli ees.',
+        'Ma [pakuksin|pakun] (pakkuma), et vald [korraldaks|korraldab] (korraldama) enne otsust avaliku arutelu. Vaevalt leiab rattatee kõigi toetuse, aga arutelul saavad kõik vähemalt oma mure välja öelda. Ootan arutelu [kuupäeva] (kuupäev) vallalehest.',
+        'Lugupidamisega\nPargi tänava elanik Igor Tamm',
+      ].join('\n\n'), 'g_notice'), { task: 'G03', harno: 'R3' }), OLD_WHY['025_d_cloze']), CUT_CONTROL),
+      hide(why(tag(B.insertion('025_d_bank', 'Osa 4: vali lause (6 punkti).', 'Loe Natalja lugu. Vali pangast igasse lünka sobiv lause; üks lause jääb üle.', 'Kuidas ma õppisin eesti keeles vaidlema', [
+        'Kui ma Eestisse kolisin, ei julgenud ma eesti keeles kunagi vastu vaielda. [[Kui kolleegid koosolekul midagi arutasid, noogutasin lihtsalt kaasa.]]',
+        'Ühel päeval muudeti minu tööaega minult küsimata. [[Olin nii pahane, et ei saanud öösel magada.]]',
+        'Järgmisel hommikul kirjutasin paberile kolm lauset. [[Esimene ütles, mida ma arvan, teine miks ja kolmas, mida ma pakun.]]',
+        'Koosolekul mu hääl värises, kuid lugesin oma laused ette. [[Juht kuulas ja küsis, kas ma oleksin kompromissiga nõus.]]',
+        'Lõpuks leppisime kokku, et uus graafik kehtib ainult kaks kuud. [[Pärast seda vaatame koos üle, kas see töötab.]]',
+        'Nüüd ma enam ei karda oma arvamust öelda. [[Tean, et viisakas vastuväide ei tee kedagi vaenlaseks.]]',
+      ], ['Seepärast otsustasin töökohta vahetada ja koosolekutel enam üldse mitte käia.']), { task: 'R16', harno: 'R4' }), OLD_WHY['025_d_bank']), CUT_CONTROL),
+      hide(tag(B.writing('025_d_reply', 'Lugemise lõpuks: vasta autorile (3–4 lauset).', 'Kas oled artikli autori reegliga „loe enne saatmist uuesti läbi” nõus? Kirjuta 3–4 lauset: tunnista üht autori mõtet, vaidle viisakalt vastu või toeta teda ja too üks näide oma elust.', [3, 4], ['kuigi', 'näiteks'], 1, 'g_read'), { task: 'W08' }), CUT_CONTROL),
+    ],
+    practice: [
+      hide(B.tip('025_p_how', 'Mooduli kontroll: keeleosa ja kuulamine (45 minutit)', 'Kuulamine on nagu Harno B2 eksamil, ainult lühem: teateid kuuled üks kord, intervjuud kaks korda ja kolmandat korda õige-vale väidete jaoks. Enne kuulamist on keeleosa: parandad päris kommentaare ja ütled mõtte teisiti.', 'full'), CUT_CONTROL),
+      hide(B.tip('025_p_kpart', 'Keeleosa (12 minutit, 12 punkti)', 'Need on päris laused vaidlustest ja arutlustest nagu tundides 21–24. Paranda ja ütle teisiti nii, et lugeja saab sinust aru ja keegi ei solvu.', 'full'), CUT_CONTROL),
+      hide(why(B.errorfix('025_p_fix', 'Keeleosa A: paranda enne saatmist (6 punkti).', 'Sõber palus sul oma kommentaarid üle vaadata. Igas reas on üks viga: kirjuta rida õigesti.', [
+        ['Vaevalt kella keeramine ei lõpe järgmisel aastal.', 'Vaevalt kella keeramine järgmisel aastal lõpeb.|Vaevalt lõpeb kella keeramine järgmisel aastal.'],
+        ['Ma kahtlen, et naabrid on rattateega nõus.', 'Ma kahtlen, kas naabrid on rattateega nõus.|Kahtlen, kas naabrid on rattateega nõus.'],
+        ['Esiteks, päris kuusk on pärit Eesti metsast.', 'Esiteks on päris kuusk pärit Eesti metsast.'],
+        ['Kuigi ekraan on mugav, aga väikesele lapsele on see liiga palju.', 'Kuigi ekraan on mugav, on see väikesele lapsele siiski liiga palju.|Kuigi ekraan on mugav, on see väikesele lapsele liiga palju.'],
+        ['Võrreldes bussi on rong palju kiirem.', 'Võrreldes bussiga on rong palju kiirem.'],
+        ['Erinevalt minu vennaga sõidan ma tööle rattaga.', 'Erinevalt minu vennast sõidan ma tööle rattaga.|Erinevalt vennast sõidan ma tööle rattaga.'],
+      ]), OLD_WHY['025_p_fix']), CUT_CONTROL),
+      hide(why(B.transformation('025_p_trans', 'Keeleosa B: ütle teisiti (6 punkti).', 'Kirjuta sama mõte uuesti nii, et kasutad antud sõna või sõnu.', [
+        ['Ma ei usu, et vald selle tee sel aastal valmis ehitab.', 'vaevalt', 'Vaevalt vald selle tee sel aastal valmis ehitab.|Vaevalt ehitab vald selle tee sel aastal valmis.'],
+        ['Telefon on mugav, aga söögi ajal ei peaks see laual olema.', 'kuigi', 'Kuigi telefon on mugav, ei peaks see söögi ajal laual olema.|Kuigi telefon on mugav, ei peaks see siiski söögi ajal laual olema.'],
+        ['Buss on odavam. Auto on kiirem.', 'seevastu', 'Buss on odavam. Seevastu on auto kiirem.|Buss on odavam, seevastu on auto kiirem.'],
+        ['Kui elad kaugemal, maksad sõidu eest rohkem.', 'mida … seda', 'Mida kaugemal elad, seda rohkem maksad sõidu eest.|Mida kaugemal sa elad, seda rohkem sa sõidu eest maksad.|Mida kaugemal elad, seda rohkem sõidu eest maksad.|Mida kaugemal sa elad, seda rohkem maksad sõidu eest.'],
+        ['Lähme parem rongiga.', 'kas poleks', 'Kas poleks parem rongiga minna?|Kas poleks parem minna rongiga?|Kas poleks parem, kui läheksime rongiga?|Kas poleks parem, kui me läheksime rongiga?'],
+        ['Kunstkuusk teenib kümme aastat, nii et uut pole vaja osta.', 'seega', 'Kunstkuusk teenib kümme aastat. Seega ei ole vaja uut osta.|Kunstkuusk teenib kümme aastat, seega ei ole vaja uut osta.|Kunstkuusk teenib kümme aastat. Seega pole vaja uut osta.|Kunstkuusk teenib kümme aastat, seega pole vaja uut osta.'],
+      ]), OLD_WHY['025_p_trans']), CUT_CONTROL),
+      hide(B.rubric('025_p_self', 'Minu punktid.', 'Loe kokku oma punktid.', ['Lugemine: … / 30 punkti (osa 1 – 6, osa 2 – 8, osa 3 – 10, osa 4 – 6).', 'Kuulamine: … / 23 punkti (teated – 6, intervjuu – 9, õige/vale – 8).', 'Keeleosa: … / 12 punkti (paranda – 6, ütle teisiti – 6).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.']), CUT_CONTROL),
+    ],
+    transfer: [
+      hide(B.text('025_t_situation', 'Mooduli kontroll: kirjutamine ja rääkimine (eksami vormis)', 'See leht on nagu Harno B2 eksami kirjutamise ja rääkimise osa, ainult lühem. Kirjutad linnavalitsusele kirja ja arutled selle üle, kuidas linnas liikuda. Sõnavõtus esitled mooduli tulemust: oma seisukohta ühes päris küsimuses, mille paned enne kirja kaardile „Minu seisukoht”.'), CUT_CONTROL),
+      hide(B.planning('025_t_product', 'Mooduli tulemus: minu seisukoht.', 'Vali üks päris küsimus oma elust või linnast, mille üle inimesed vaidlevad (kellaaeg, kuusk, ekraan, teekond või oma teema), ja pane kirja oma seisukoht. Kasuta mooduli tundide tulemusi.', ['Küsimus ja minu seisukoht: kui kindel ma olen? (tund 21: kindlasti, ilmselt, vaevalt)', 'Kaks argumenti: põhjus, näide ja järeldus (tund 22: esiteks, pealegi, seega)', 'Teise poole argument ja minu viisakas vastus (tund 23: kuigi …, siiski)', 'Kahe lahenduse võrdlus ja minu ettepanek (tund 24: võrreldes, erinevalt, mida … seda)']), 'the module product „Minu seisukoht” is now writing 2 of the control (025_t_essay); v5 §5: one sheet, listening + writing'),
+      hide(tag(B.letter('025_t_letter', 'Kirjutamine 1: kiri linnavalitsusele (umbes 140 sõna).', 'Linn plaanib sulgeda sinu kodu lähedal oleva bussipeatuse, sest seda kasutab vähe inimesi. Kirjuta linnavalitsuse transpordiosakonnale: kes sa oled ja kuidas peatust kasutad, miks sa ei ole otsusega nõus, mida pakud ja mida küsid.', 'Lugupeetud transpordiosakond!', 'Lugupidamisega', [140, 160]), { task: 'W13', harno: 'W1' }), CUT_CONTROL),
+      hide(PART('025_t_spart', 'S', { minutes: 15, points: 25, tasks: 2, note: 'Rääkimine on Harno B2 vormis, lühemana (eksamil 20 minutit). Sõnavõtu eest saab 10 ja arutelu eest 15 punkti; mooduli kontrolli eesmärk on vähemalt 20 punkti (80 %).' }), CUT_CONTROL),
+      hide(tag(B.speaking('025_t_present', 'Rääkimine 1: sõnavõtt väitlusõhtul (1 minut).', 'Teemakaart: raamatukogu väitlusõhtul ütleb iga osaleja oma seisukoha. Mõtle 2 minutit oma kaardi „Minu seisukoht” järgi, räägi 1 minut, siis vasta paarilise küsimusele.', ['Mis on sinu küsimus ja seisukoht?', 'Kui kindel sa oled ja miks?', 'Millised on sinu kaks argumenti?', 'Mida ütleb teine pool ja mida sa talle vastad?', 'Kas arvamust on kergem muuta köögilaua taga või internetis? Miks?', 'Kas sinu arvates peaks rohkem inimesi avalikel aruteludel osalema? Miks?'], [90, 180], ['Minu seisukoht on …', 'Esiteks …, pealegi …', 'Kuigi …, on siiski …']), { task: 'S16', harno: 'S1' }), CUT_CONTROL),
+      hide(tag(B.rolecards('025_t_debate', 'Rääkimine 2: arutelu argumendikaartidega.', 'Lugege oma kaarti ja öelge alguses oma arvamus. Arutage siis 4 minutit ja jõudke ühise seisukohani.',
+        'Kaart A. Teema: vallal on raha kas uueks spordihalliks või raamatukogu uuendamiseks. Sina oled spordihalli poolt. Argumendid: noored liiguvad vähe; talvel ei ole kuskil trenni teha; võistlused toovad valda külalisi. Lisa oma näide.',
+        'Kaart B. Teema: vallal on raha kas uueks spordihalliks või raamatukogu uuendamiseks. Sina oled raamatukogu poolt. Argumendid: sobib kõigile vanustele; noortel on vaja õppimiskohta ja eakatel kohtumiskohta; hoone on vana ja külm. Lisa oma näide ja esita üks täpsustav küsimus.',
+        ['Võrreldes raamatukoguga …', 'Esiteks …', 'Kas poleks mõistlik …?'], ['Kuigi …, on siiski …', 'Erinevalt spordihallist …', 'Olen osaliselt nõus …']), { task: 'S17', harno: 'S2' }), CUT_CONTROL),
+      hide(B.rubric('025_t_rubric', 'Hindamine (Harno B2 vorm).', 'Märgi, mis on täidetud.', ['Kiri: kõik neli punkti, sobiv pöördumine ja toon, umbes 140 sõna (10 punkti).', 'Arutlus: poolt- ja vastuargumendid, näited ja järeldus, umbes 180 sõna (15 punkti).', 'Sõnavõtt: seisukoht ja kindlus, kaks argumenti, vastus teisele poolele 1 minutiga, vastus küsimusele (10 punkti).', 'Arutelu: põhjendasin, võrdlesin, vaidlesin viisakalt ja jõudsime kokkuleppele (15 punkti).']), CUT_CONTROL),
+      hide(B.selfcheck('025_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne tööelu moodulit korrata.'], 'Moodul 5 tehtud'), CUT_CONTROL),
+    ],
+  },
+}, {
+  'b1b2-021': 'AVAS R→W', 'b1b2-022': 'KUUL L→W', 'b1b2-023': 'PROB R→S', 'b1b2-024': 'PROJ L→S', 'b1b2-025': 'EKS',
+});
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
