@@ -1,60 +1,92 @@
-// B1 course (A2 → B1 roadmap), module 13 „Suhtlemine ja probleemilahendus” (a2b1-061…065), stage B1. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md; how: docs/FINAL_SHAPE_AUTHORING.md). One storyline in July and August 2027, after the
-// summer of module 12: the roof, stairwell and balcony renovation of Jaan's block Männi 8 (12 July – 27 August), the
-// family's long weekend on Saaremaa (hotel „Merekivi” in Kuressaare, the family room is not ready), a rumour about the
-// new tenant Karl in the house chat, and a quarrel about the window in the hot office of Tuul Logistika while Liis is on
-// holiday. The goal, said on the first sheet: at the end the learner helps two colleagues agree and writes the agreement
-// to the boss (Harno W2b), then does the module exam in full B1 form.
-//   061 LUGE R→S  „Remont ja naabrid” — the association's letter (predict, then read), asking, proposing and refusing,
-//                 paluma / soovitama / keelama + da and nõus / valmis olema + ma, meeting new neighbours three times,
-//                 8-min writing; Urmas's words passed on, Eksaminurk R1 (services during the renovation), the meeting
-//                 with the foreman (short answers), the local paper's advice (true / false / not stated), info gap on the
-//                 schedule; Kasuta: the schedule and the association's decisions, the agreement on Karl's sleep (main),
-//                 a voice message to Karl recorded at home, a note to the house chat.
-//   062 KUUL L→S  „Kas te saaksite meid aidata?” — B1 grammar: tingiv kõneviis in polite requests (sooviksin, kas te
-//                 saaksite, kas oleks võimalik): announcements on the way to Saaremaa, Kadri's call to the hotel, rule,
-//                 a holiday photo three times, Oskar's rude message made polite; the manager's e-mail, Eksaminurk L4
-//                 (a communication trainer on the radio), command → request, the hotel notices, „Mida sa
-//                 teeksid?” (S14, the first conditional speaking task of the course); Kasuta: the manager's voicemail →
-//                 what it means, the call to the manager (main), a voice message to Helgi, the hotel questionnaire.
-//   063 AVAS R→W  „Kuulujutt trepikojas” — B1 grammar of the module (METHODOLOGY_STANDARD §7): kaudne kõneviis and
-//                 reported speech (olevat, tegevat, olevat teinud, väidetavalt, … sõnul): try first, the house chat, rule,
-//                 try again (Helju's letter), 4-3-2, a rumour of your own; translation, three witnesses, Karl's day
-//                 (who did what when), verbs of speaking, Merike's errors, passing it on to Sofia; Kasuta: Eksaminurk R4
-//                 = Urmas's notice on what really happened, the talk with the hurt Karl, the story recorded at home, the
-//                 story „Kuidas kuulujutt sündis” (main, W05).
-//   064 KIRJ L→W  „Palav kontor: kokkulepe kirja” — Markus's and Kristjan's voicemails, Anna's model letter (paragraph
-//                 functions), passing on a view (… sõnul, olevat), the parts of a letter, opinions three times, a survey of
-//                 three; linking and forms, Liis's voicemail from her holiday (numbers), Sofia's draft errors, joining
-//                 sentences, an article on work in the heat (R3a-style cloze), topic questions; Kasuta: two voicemails →
-//                 notes for the meeting, the meeting Sofia leads (agreement), a summary for Liis recorded at home, plan,
-//                 Eksaminurk W2b = the letter to Liis (main), rewrite.
-//   065 EKS       Module exam in full Harno B1 form (§6.1 stage 3): R1, R2, R3b, R4 (33 p, 50 min) · L1, L2, L3a, L4 (30 p)
-//                 · W1b, W2a (20 p) · S0, S1a, S1b, S2 (20 p); warm-up sheet with the neighbours' evening of 28 August.
-// B1 grammar (METHODOLOGY_STANDARD §7, grammarPlan.js): tingiv kõneviis (062, notice + rule) and the module's new item, the
-// quotative mood and reported speech (063 introduced in the AVAS lesson, 064 used in the letter). §6.2 row 13 is used with
-// lessons 1 and 3 swapped (allowed by §6.2): 061 LUGE R→S, 062 KUUL L→S, 063 AVAS R→W, 064 KIRJ L→W — so that the AVAS
-// lesson brings in the module's B1 grammar item (§4.1 rule 6) and 061 does not open with AVAS after 056 (KUUL). Cast
-// (docs/COURSE_CAST.md): new — association head Urmas (as before), tenant Karl (flat 12, night shifts at the airport, dog
-// Roki), pensioner Helju (flat 2, cat Nurr), Taavi (flat 7, works from home, garage), Merike (flat 5), foreman Andres of
-// „Kindel Katus”, hotel „Merekivi” (receptionist Kätlin, manager Hannes), radio trainer Evelin Lill, mediator Mari Kuusk.
-// Places and firms of the story are fictional (Männi 8, Kindel Katus, Merekivi); Virtsu, Kuivastu, Kuressaare and its
-// castle are real. Earlier versions: archive/v3/b1/module13.js, archive/v1/b1/module13.js, git history (design v2 sample).
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, topic „keel” + „suhted”, „ümbruskond”): the topic opener 061_d_open
-// (Estonian among the languages, Uralic family, an EU language, 262 mother tongues in Estonia in 2026, EKI, Sõnaveeb,
-// Keeleamet) replaces the goal text 061_d_goal; „Kas teadsid?” 061_p_know (night quiet, KorS § 56), 062_p_know (EKI's
-// language advice, Sõnaveeb), 063_p_know (what Estonian grammar does differently, the quotative -vat), 064_p_know (Estonian
-// at work: the Language Act, Keeleamet, the Harno certificate); examiner set 065_d_warm. One 3-2-1 / 4-3-2 left
-// (063_d_432); record-at-home twice (062_t_rec, 064_t_rec); 061 Kasuta is no longer voicemail → letter. Exam listenings
-// 065_p_l2 and 065_p_l4 and the R2 article lost invented figures. Sources: the PR of agent/av-b1-module-13.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 13 „Suhtlemine ja probleemilahendus” (a2b1-061…065), stage B1- (lessons 061–080).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1–12: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, ≈ 45 min). B1 stage of v5 (061–090):
+// text 180–300 words, audio ≤ 3.5 min, writing ~50 + ~100 words, speech 120–180 s. Inputs alternate: reading (061, 063)
+// and listening (062, 064). Every lesson has a written pair task of ≥ 5 rows with its input and a second attempt of its
+// outcome as its own block in Kasuta (the time estimate counts both): in class in 062 / 064; in 061 / 063 the block is the
+// home recording of the pair's in-class second attempt, because those Kasuta sheets carry the homework card (v4: a home
+// recording needs one) and stay ≤ 5 blocks; half of the Kasuta sheets are without a phone task (academic value round 2).
+//   061 case    „Naaber, kas sa saad aidata?” — the module's COLD TASK first (120–180 s: one request or refusal, no help)
+//               and the Harno R1 corner (the house notice board) as the pre-task,
+//               ONE text, a newspaper advice column „Naaber palub alati abi. Mida teha?” (≈ 260 words) as the model of
+//               asking, proposing and refusing; paluma / soovitama / keelama / lubama + da, nõus / valmis olema + ma,
+//               kahjuks + põhjus + uus pakkumine. Outcome: two neighbours at the door (an idea card) — one is moving
+//               and asks for help — with the visual „Kolimispäev” and HIDDEN information on the teacher's card; second
+//               attempt without phrases: the learner's own real request (in pairs, recorded at home).
+//   062 infogap „Kas te saaksite mind aidata?” — a radio programme on polite requests (new recording, heard twice,
+//               6 three-option questions = the Harno L2 corner: radio story + multiple choice) and the conditional
+//               (tingiv kõneviis) of polite requests: Kas te saaksite …? Ma sooviksin … Kas oleks võimalik …? Outcome: a
+//               phone call to a hotel reception with the visual „Broneeringu kinnitus” and a hidden-information card;
+//               second attempt: a real Estonian conversation club found on integratsioon.ee (the module's LINK TASK,
+//               https://www.integratsioon.ee).
+//   063 project „Kas see on tõsi?” — ONE text, a district paper's article on a rumour about a bakery (≈ 255 words) and
+//               the quotative mood (kaudne kõneviis): olevat, tulevat, olevat müünud, … sõnul, väidetavalt, tegelikult;
+//               Harno R4 corner (a library notice that corrects a rumour, phrase bank) as the form task.
+//               Outcome: a 70–100-word story „Kuidas kuulujutt sündis” without a given opening (W2a form), with the
+//               visual „Maja vestlus”; second attempt: told aloud (in pairs, recorded at home).
+//   064 debate  „Kokkulepe kirja” — a staff meeting on noise in an open office (new recording, heard twice, 8 gap
+//               sentences) with four views and a compromise; … sõnul, … arvates, pakkus, et, leppisime kokku, et, kuigi,
+//               seega; Harno L3b corner (the recording itself); a workplace questionnaire in the W1a form (untagged:
+//               one corner a lesson, V12). Outcome: the letter to the absent manager without a given
+//               opening (Harno W2b) with the visual „Koosoleku märkmed”; second attempt: a new meeting about the office
+//               kitchen (Harno S1b) with hidden information, summed up at home in a message and a voice message.
+//   065 EKS     Control 13 (one sheet, 9 blocks, three skills): reading 18 p (a letter with a word bank, R3b, and a notice
+//               with a phrase bank, R4 — both new), listening 8 p (the radio story on hotel complaints, recording kept,
+//               locked, Harno L2), speaking 10 p — task 1 is the PARALLEL NEW TASK of 061's cold task, task 2 an
+//               agreement (S1b) —; thresholds named one way. 065 was a module exam in full Harno B1 form (3 sheets, 37
+//               blocks); the owner's plan keeps the mock exams for 080 / 089 / 090.
+// The continuing story of the v2 design sample (Jaan's block Männi 8 with Urmas, Karl, Helju and Taavi, the family's
+// Saaremaa hotel, Sofia's hot office) is not used: the people of the texts are made up and appear in one lesson only.
+// The previous version is kept below as OLD: every block of it that is not on a sheet any more is retired (hidden, id and
+// learners' answers kept, practice/engine/extract.js still builds Harjuta items from its form tasks); a block on a sheet
+// with a reused id has the same type. „Mäletad?” cards (hidden, Harjuta) now ask about the new lessons of modules 12–13.
+// Owner 2026-11-25: texts adapted to the level, facts need not be real or checked; the topic opener 061_d_open and the
+// „Kas teadsid?” cards are off the sheets.
+// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): requests and refusals with da / ma (061), the conditional of
+// polite requests (062, 'conditional'), the quotative mood and reported speech (063, 'quotative'), reporting views and
+// an agreement in a letter (064).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
 // the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-13', course: 'b1', title: 'Suhtlemine ja probleemilahendus', level: 'B1', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-13', course: 'b1', title: 'Suhtlemine ja probleemilahendus', level: 'B1', design: 'v3-stations', template: 'v4' };
 
-export const LESSONS = withShapes({
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of a lesson whose home task is a recording
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 13). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+const V5_EXAM = 'v5 (2026-11-25): täispikk mooduli eksam asendati ühe lehe kontrolliga; proovieksamid on 080 / 089 / 090';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a recording in the control: heard twice and locked (G6)
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// a writing form of n ruled lines: the picture stands directly above the task and both fit on one page
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// a face-to-face pair card on the phone-card layout: two role cards A and B side by side
+const cards = (block) => ({ ...block, data: { ...block.data, cardA: { ...block.data.cardA, label: 'Kaart A' }, cardB: { ...block.data.cardB, label: 'Kaart B' } } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+
+// ======================================================================== the v2 design sample (2026-10-16)
+// Kept for its ids: the blocks that are not on the v5 sheets are retired from here (retire(id, why) below).
+const OLD = {
   'a2b1-061': {
     title: 'Remont ja naabrid',
     canDo: 'Ma loen ühistu teadet ja remondigraafikut ning lepin naabritega kokku, kuidas remondiaja mured lahendada: palun abi, teen ettepaneku ja keeldun viisakalt.',
@@ -1085,6 +1117,839 @@ export const LESSONS = withShapes({
       B.rubricSpeaking('065_t_rs', 'Hindamine: rääkimine (20 punkti).'),
       B.rubric('065_t_points', 'Minu punktid: kirjutamine ja rääkimine.', 'Kirjuta kirjutamise ja rääkimise punktid ning võrdle neid eesmärgi ja vahekontrolli lävega.', ['Kirjutamine: … / 20 (eesmärk 16, lävi 12)', 'Rääkimine: … / 20 (eesmärk 16, lävi 12)', 'Kõige paremini õnnestus mul: …', 'Järgmisel korral teen teisiti: …']),
       B.selfcheck('065_t_self', ['Ma saan aru kuulutustest, artiklitest, teadetest ja intervjuudest suhtlemise kohta.', 'Ma kasutan õigesti tingivat ja kaudset kõneviisi ning paluma + da, nõus olema + ma.', 'Ma kirjutan teate ja jutu etteantud pealkirjaga.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 13 eksam tehtud'),
+    ],
+  },
+};
+
+// The blocks of OLD that are off the sheets: retire(id, why) hides one — its id and the learners' answers stay.
+const OLD_BLOCKS = Object.fromEntries(Object.values(OLD).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id, reason) => {
+  const b = OLD_BLOCKS[id];
+  if (!b) throw new Error(`moodul 13: vana plokk ${id} puudub`);
+  return hide(b, reason);
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 061 case: asking a neighbour, refusing politely (da / ma)
+  'a2b1-061': {
+    title: 'Naaber, kas sa saad aidata?',
+    phases: grammar('Keel: palub mul aidata · soovitab mulle puhata · olen nõus aitama · Kahjuks ma ei saa, sest … , aga …'),
+    format: 'case',
+    topic: 'neighbours',
+    canDo: 'Ma palun naabrilt või kolleegilt abi, teen ettepaneku, keeldun viisakalt ja lepin kokku, kes mida teeb.',
+    teacherPage: {
+      goal: 'Ученик просит соседа о помощи, предлагает, вежливо отказывает (kahjuks + причина + aga …) и передаёт просьбу: palub mul aidata, on nõus aitama.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт 120–180 с, затем Eksaminurk R1 — доска объявлений) → текст «Naaber palub alati abi. Mida teha?» и 8 вопросов, в паре таблица из 6 строк → пункт 4: разговор у двери по картинке «Kolimispäev» со скрытой информацией, вторая попытка — своя настоящая просьба. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 13: ученик 2–3 минуты без помощи рассказывает, как он о чём-то просил или кому-то отказал. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки sest / aga / kui / kuigi, формы: palusin teda aidata, olin nõus tulema, kahjuks ei saanud, tingiv). Контроль (урок 65) начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–10: пункт 1 — холодный старт «Üks palve» 120–180 с без помощи; три заметки учителя; Eksaminurk R1 (доска объявлений дома, 6 объявлений, 8 человек, ~6 мин) — первые просьбы и предложения',
+        '10–25: пункт 2 — слова (2 мин), колонка советов из газеты (письмо читательницы и ответ консультанта, ≈ 255 слов), 8 вопросов (один на вывод), в паре письменно 6 строк «что сказать» по тексту',
+        '25–45: пункт 3 — заметить → правило (paluma / keelama / lubama kellel + da, soovitama kellele + da; nõus / valmis olema + ma; kahjuks + põhjus + aga) → 8 преобразований → в паре «попроси и откажи» по таблице → 8–10 своих предложений',
+        '45–70: пункт 4 — разговор у двери по картинке «Kolimispäev» (карточка-идеи): A просит о помощи, у B свои ограничения (скрытая информация у учителя); вторая попытка без фраз — своя настоящая ситуация, партнёр отказывает в первый раз (в классе в паре, дома — запись)',
+        '70–75: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание (запись второй попытки 2–3 мин, записка соседу 60–80 слов, слова урока в «Harjuta → Sõnad»)',
+        'Kui aega jääb (10 мин, только в плане учителя): как просят и отказывают у ученика на родине — прямо или через намёк',
+        '75–90: запас',
+      ],
+      sources: 'Колонка советов (пункт 2), объявления (R1) и картинка «Kolimispäev» — учебные, люди и дома выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4 в паре: A — сосед, который переезжает, B — сосед, который заранее придумывает два своих препятствия; потом смена ролей. Один на один вы — сосед B со скрытой информацией.',
+      errors: [
+        '«palub minule aidata» / «palub mind aidata» вместо «palub mul aidata» (paluma kellel? + da).',
+        '«soovitab mul puhata» — разговорно, правило: «soovitab mulle puhata» (soovitama kellele?).',
+        '«olen nõus aidata» вместо «olen nõus aitama» (nõus / valmis olema + ma).',
+        'Голое «Ei!» без причины и нового предложения: «Kahjuks ma ei saa, sest … , aga ma võin …».',
+      ],
+      notes: [
+        'Холодный старт и урок 65 — пара «до / после»: те же три заметки, похожая тема. Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: падеж после paluma / soovitama и da / ma. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('061_d_meet', 'Külm start: üks palve', 'Räägi 2–3 minutit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Räägi ühest korrast, kui sa pidid kedagi millegi kohta paluma või kellelegi „ei” ütlema: naabrile, kolleegile või sõbrale. Mis oli olukord, mida sa ütlesid, mida teine vastas ja kuidas see lõppes?',
+      ], [120, 180])), 'Tunnis 65 on sarnane ülesanne: siis näed, kui palju rohkem sa oskad.'), { task: 'S02', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 13 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (sest, aga, kui, kuigi); 3) vormid: palve edasi (palusin teda aidata, ta palus mul tulla), nõus / valmis + ma, viisakas keeldumine (kahjuks … , aga …). Hoia märkmed alles: tunnis 65 on paralleelne uus ülesanne ja te võrdlete.'), 1, 10),
+      tag(half(B.vocab('061_d_vocab', 'Tunni sõnad.', ['paluma — просить', 'soovitama — советовать', 'keelama — запрещать', 'lubama — разрешать / обещать', 'keelduma — отказываться', 'nõus olema — быть согласным', 'valmis olema — быть готовым', 'ettepanek — предложение', 'vastu võtma — принимать', 'kokku leppima — договариваться'], '2')), {}),
+      teach(tag(purpose(why(B.adsmatch('061_p_ads', 'Eksaminurk: maja infotahvel (Harno B1 lugemine 1)', 'Loe maja infotahvlit. Kirjuta iga inimese juurde sobiva kuulutuse täht. Üks kuulutus võib sobida mitmele.', [
+        ['Pakun abi', 'Olen 17-aastane õpilane ja aitan suvel raskeid asju kanda ning mööblit kokku panna. Õhtuti ja nädalavahetusel. Küsin kümme eurot tunnis. Korter 14.'],
+        ['Laenan tööriistu', 'Mul on redel, trell ja haamer. Laenan neid naabritele tasuta, aga palun tooge need samal päeval tagasi. Helistage õhtul pärast kuut. Korter 3.'],
+        ['Koerahoid', 'Pensionär hoiab päeval teie koera ja käib temaga kaks korda jalutamas. Pikemaks ajaks, kui olete puhkusel, kahjuks ei saa. Korter 7.'],
+        ['Pakid', 'Töötan kodus ja võtan meelsasti vastu teie pakke. Palun kirjutage mulle enne, kui pakk tuleb. Korter 9.'],
+        ['Otsin abi', 'Vanem naaber otsib kedagi, kes tooks talle kord nädalas poest toitu. Maksan bensiini eest. Korter 2.'],
+        ['Eesti keele vestlusring', 'Igal kolmapäeval kell 18 räägime keldri klubiruumis eesti keeles. Kõik on oodatud, ka algajad. Tasuta.'],
+      ], [
+        ['Sa kolid laupäeval ja vajad kedagi, kes aitab diivani neljandale korrusele kanda.', 'A'],
+        ['Sa tahad riiulit seinale panna, aga sul ei ole trelli.', 'B'],
+        ['Sa oled terve päeva tööl ja sinu koer ei taha üksi kodus olla.', 'C'],
+        ['Sa ootad internetist tellitud kingitust, aga päeval ei ole kedagi kodus.', 'D'],
+        ['Sa käid igal laupäeval autoga poes ja tahad kedagi aidata.', 'E'],
+        ['Sa õpid eesti keelt ja tahad rohkem rääkida.', 'F'],
+        ['Sa vajad redelit, et laes lampi vahetada.', 'B'],
+        ['Sa pead uue kapi kokku panema, aga ei oska.', 'A'],
+      ], 'g_read'), [
+        'A: „aitan … raskeid asju kanda”.',
+        'B: „Mul on redel, trell ja haamer.”',
+        'C: „hoiab päeval teie koera”.',
+        'D: „võtan meelsasti vastu teie pakke”.',
+        'E: „otsib kedagi, kes tooks talle kord nädalas poest toitu”.',
+        'F: „räägime keldri klubiruumis eesti keeles”.',
+        'B: „redel” — laenab tasuta.',
+        'A: „mööblit kokku panna”.',
+      ]), 'Enne teksti vaatad, kuidas naabrid infotahvlil abi paluvad ja pakuvad. Eksamil (Harno B1 lugemine 1) on sama ülesanne.'), { harno: 'R1', task: 'R01' }),
+      'Eksaminurk (Harno B1 lugemine 1, olukorrad ja kuulutused, ~8 min). Eksamil on üheksa olukorda ja kuus kuulutust. Strateegia: 1) loe kõigepealt olukorrad ja jooni alla, mida inimene vajab; 2) otsi kuulutusest sama mõte teiste sõnadega (trell → tööriistad); 3) üks kuulutus võib sobida mitmele inimesele. Üks-ühele: õpilane teeb ülesande 8 minutiga ja põhjendab siis kolme vastust valjusti.'),
+      station(tag(purpose(why(ownText(B.reading('061_d_letter', 'Lehe nõuandeveerg.', 'Loe lugeja kirja ja nõustaja vastust. Vasta lühidalt (1–6 sõna), viimasele küsimusele oma sõnadega.', 'Naaber palub alati abi. Mida teha?', [
+        '„Kolisin pool aastat tagasi kortermajja. Mu naaber on tore vanem proua, aga ta palub mul peaaegu iga päev midagi teha: poest leiba tuua, tema pakke vastu võtta või tema koeraga jalutada. Ma aitan hea meelega, aga ma töötan ja mul on kaks last. Ma ei oska keelduda, sest ma ei taha teda solvata. Samal ajal pean ma ise laupäeval suure kapi neljandale korrusele tõstma ja ma ei julge kelleltki abi paluda. Mida teha? Marju, Tartu”',
+        '',
+        'Hea Marju! Paljud inimesed kardavad keelduda. Aga viisakas „ei” ei riku head suhet, kui sa ütled ka põhjuse ja pakud midagi muud. Näiteks: „Kahjuks ma ei saa täna poodi minna, sest mul on trenn, aga laupäeval toon sulle leiba.” Nii saab naaber aru, et sa ei ole pahane, vaid lihtsalt hõivatud.',
+        '',
+        'Ma soovitan teil kahekesi kokku leppida, millal sa saad aidata. Näiteks: „Ma olen valmis teisipäeval ja reedel poes käima.” Siis ei pea naaber iga päev küsima ja sina tead oma aega ette.',
+        '',
+        'Ära karda ka ise abi paluda. Palu konkreetselt: mida on vaja teha, millal ja kui kaua see võtab. „Kas sa saad laupäeval kella kümnest pool tundi aidata kappi kanda?” on parem kui „Kas sa saad mind kunagi aidata?”. Paljud naabrid on nõus aitama, kui nad teavad täpselt, mida neilt palutakse.',
+        '',
+        'Ja lõpuks: räägi naabriga silmast silma, ära kirjuta maja vestlusesse. Sõnumis kõlab ka viisakas palve kergesti külmalt.',
+        '',
+        'Nõustaja Kaido Mänd',
+      ], [
+        ['Mida palub naaber Marjul peaaegu iga päev teha?', 'poest leiba tuua, pakke vastu võtta või koeraga jalutada|poest leiba tuua|pakke vastu võtta|koeraga jalutada'],
+        ['Miks ei oska Marju keelduda?', 'ta ei taha naabrit solvata|ei taha teda solvata|ta ei taha solvata'],
+        ['Millega vajab Marju ise laupäeval abi?', 'kapi tõstmisega|suure kapi tõstmisega neljandale korrusele|kapi kandmisega'],
+        ['Mida peab nõustaja sõnul ütlema koos viisaka „ei”-ga?', 'põhjuse ja uue pakkumise|põhjust ja pakkuma midagi muud|põhjus ja uus pakkumine'],
+        ['Mida soovitab nõustaja naabriga kokku leppida?', 'millal Marju saab aidata|millal ta saab aidata|kindlad päevad'],
+        ['Milline palve on nõustaja arvates parem?', 'konkreetne palve|palve, kus on mida, millal ja kui kaua|konkreetne'],
+        ['Miks ei soovita nõustaja kirjutada maja vestlusesse?', 'sõnumis kõlab palve külmalt|palve kõlab sõnumis külmalt|see kõlab külmalt'],
+        ['Mida arvad: miks ei ole naaber pahane, kui Marju ütleb „ei” nii, nagu nõustaja soovitab?', ''],
+      ])), [
+        'Lugeja kiri: „poest leiba tuua, tema pakke vastu võtta või tema koeraga jalutada”.',
+        'Lugeja kiri: „Ma ei oska keelduda, sest ma ei taha teda solvata.”',
+        'Lugeja kiri: „pean ma ise laupäeval suure kapi neljandale korrusele tõstma”.',
+        'Esimene lõik: „kui sa ütled ka põhjuse ja pakud midagi muud”.',
+        'Teine lõik: „Ma soovitan teil kahekesi kokku leppida, millal sa saad aidata.”',
+        'Kolmas lõik: „Palu konkreetselt: mida on vaja teha, millal ja kui kaua see võtab.”',
+        'Viimane lõik: „Sõnumis kõlab ka viisakas palve kergesti külmalt.”',
+        'Oma vastus: naaber kuuleb põhjust ja uut pakkumist, nii et ta saab aru, et Marju on lihtsalt hõivatud.',
+      ]), 'Enne kui sa ise naabriga räägid, loed, kuidas paluda ja keelduda nii, et suhe jääb heaks.'), { task: 'R15', voice: 'forum' }), 2, 15),
+      teach(tag(purpose(B.table('061_d_find', 'Paaris: mida öelda?', 'Kirjutage koos igasse ritta terve lause, mida inimene võiks öelda: palve, ettepanek või viisakas „ei”. Mudel on tekstis.', 'Olukord, Mida ta ütleb? (terve lause)', [
+        'Marju ei saa täna poodi minna, sest tal on trenn. | ',
+        'Marju tahab käia poes kindlatel päevadel. | ',
+        'Marju vajab laupäeva hommikul abi kapiga. | ',
+        'Naaber palub Marjul pakki vastu võtta, aga Marju on tööl. | ',
+        'Sinu kolleeg palub sul reedel tema eest kauem tööl olla. | ',
+      ], 'g_read'), 'Teie laused on tunni lõpu vestluse materjal: nii palute ja keeldute ka ise.'), { task: 'G02' }),
+      'Paarid kirjutavad koos 6–8 minutit, üks kirjutab, teine dikteerib, poole pealt vahetavad. Siis loevad kaks rida ette ja kontrollivad: kas palves on mida, millal ja kui kaua; kas „ei”-s on põhjus ja uus pakkumine. Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Ja mida sa pakud vastu?”.'),
+      hide(B.review('061_d_review', [['Kuidas ilm pühapäeval muutus ja millal oodati äikest?', 'a2b1-056'], ['Mida pakkusid naabrid maja foorumis 300 euro eest?', 'a2b1-059'], 'Kas sa oled kunagi naabrilt abi palunud? Milles?']), V5_DRILL),
+      retire('061_d_open', V5_CUT),
+      retire('061_d_sort', V5_DRILL),
+      retire('061_d_order', V5_DRILL),
+    ],
+    practice: [
+      station(B.notice('061_d_notice', 'Märka: palun, soovitan, olen nõus', [
+        'Tekstist: naaber **palub mul** leiba **tuua** · ma **soovitan teil** kokku **leppida** · naabrid **on nõus aitama** · ma **olen valmis** poes **käima**',
+        'Palve edasi + **-da**: **paluma / keelama / lubama** kellel? (**mul**, Marjul) · **soovitama** kellele? (**mulle**, Marjule) — Ta palub mul aidata. Arst soovitab mulle puhata. Ühistu keelab rattaid trepikotta panna.',
+        '**nõus / valmis olema** + **-ma**: Ma olen nõus aita**ma**. Naaber on valmis tule**ma**. (mitte: nõus aidata)',
+        'Viisakas „ei”: **Kahjuks ma ei saa**, sest … , **aga** ma võin … · ettepanek: **Teeme nii, et** … · **Mul on ettepanek:** … · **Kas see sobib?**',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.transformation('061_p_pass', 'Kes mida palub?', 'Inimesed ütlevad sulle midagi. Kirjuta antud sõnaga, mida nad paluvad, soovitavad, keelavad, lubavad või milleks on valmis.', [
+        ['Naaber: „Palun jaluta laupäeval mu koeraga!”', 'palub', 'Naaber palub mul laupäeval tema koeraga jalutada.|Naaber palub mul laupäeval oma koeraga jalutada.|Naaber palub mul laupäeval koeraga jalutada.'],
+        ['Arst: „Puhka kaks päeva kodus.”', 'soovitab', 'Arst soovitab mulle kaks päeva kodus puhata.|Arst soovitab mul kaks päeva kodus puhata.'],
+        ['Ühistu: „Ärge pange rattaid trepikotta.”', 'keelab', 'Ühistu keelab rattaid trepikotta panna.|Ühistu keelab meil rattaid trepikotta panna.|Ühistu keelab elanikel rattaid trepikotta panna.'],
+        ['Ülemus: „Võid reedel varem koju minna.”', 'lubab', 'Ülemus lubab mul reedel varem koju minna.'],
+        ['Kolleeg: „Jah, ma aitan sind homme.”', 'nõus', 'Kolleeg on nõus mind homme aitama.|Kolleeg on nõus homme mind aitama.'],
+        ['Naaber: „Ma võin su lilli kasta, kui sa ära oled.”', 'valmis', 'Naaber on valmis mu lilli kastma, kui ma ära olen.|Naaber on valmis minu lilli kastma, kui ma ära olen.'],
+        ['Õpetaja: „Lugege iga päev natuke eesti keeles.”', 'soovitab', 'Õpetaja soovitab meile iga päev natuke eesti keeles lugeda.|Õpetaja soovitab meil iga päev natuke eesti keeles lugeda.'],
+        ['Majaomanik: „Ärge suitsetage rõdul.”', 'keelab', 'Majaomanik keelab rõdul suitsetada.|Majaomanik keelab meil rõdul suitsetada.|Majaomanik keelab elanikel rõdul suitsetada.'],
+      ]), [
+        'paluma kellel? → mul + da: jalutada.',
+        'soovitama kellele? → mulle + da: puhata.',
+        'keelama + da: panna (ärge pange → keelab panna).',
+        'lubama kellel? → mul + da: minna.',
+        'nõus olema + ma: aitama.',
+        'valmis olema + ma: kastma.',
+        'soovitama kellele? → meile + da: lugeda.',
+        'keelama + da: suitsetada.',
+      ]), 'Kaheksa lauset näitavad, kas palve edasiandmine on käes: kellel või kellele, da või ma.'), { task: 'G05' }),
+      teach(tag(purpose(B.speaking('061_d_ask', 'Paaris: palu ja keeldu.', 'A palub tabeli järgi abi. B keeldub viisakalt ja pakub midagi muud. A teeb uue ettepaneku. Siis vahetage.', [
+        'Mida sa palud ja millal?',
+        'Miks sa ei saa ja mida sa pakud selle asemel?',
+        'Milles te kokku leppisite?',
+        'Kumb teist oli viisakam ja miks?',
+        'Mida sa järgmisel korral teisiti ütleksid?',
+      ], [120, 180], '', 'g_read'), 'Proovid teksti mudelid kohe suuliselt läbi: palve, viisakas „ei” ja uus ettepanek.'), { task: 'S17', fluency: true }),
+      'Paarid teevad kolm lühikest dialoogi tabeli ridade järgi, iga kord vahetavad rolli. Kontrolli, et keeldumises on kolm osa: kahjuks + põhjus + uus pakkumine. Üks-ühele: õpilane palub, sina keeldud ilma uue pakkumiseta ja õpilane peab küsima „Aga millal sa saaksid?”.'),
+      tag(purpose(rows(B.writing('061_d_write', 'Kirjuta terved laused.', 'Kirjuta 10–12 lauset ühest päris olukorrast: kus sa vajad abi või pead „ei” ütlema, mida palud, mida pakud vastu.', [10, 12]), 18), 'Oma laused on tunni lõpu teise katse materjal.'), { task: 'W02' }),
+      retire('061_p_meeting', V5_CUT),
+      retire('061_p_verbs', V5_DRILL),
+      retire('061_p_paper', V5_CUT),
+      retire('061_p_know', V5_CUT),
+      retire('061_p_gap', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(B.ideaCard('061_t_agree', 'Naabri palve ukse taga', 'Vaata pilti üleval. A kolib ja palub abi, B on naaber, kes kõike teha ei saa. Leppige 3–4 minutiga kokku. Siis vahetage.',
+        'Laupäeval kolib korterisse 12 uus pere. Lift on remondis. A tuleb reede õhtul naabri B ukse taha. B-l on laupäeval omad plaanid.',
+        ['diivan 4. korrusele (kell 10)', 'kastid trepist üles (kell 12)', 'lapsed kaks tundi (kell 14)', 'koer jalutama (kell 16)', 'parkimiskoht autole (kell 9)', 'vastu: pitsa, abi hiljem või midagi muud'],
+        'millega B aitab ja millal, millega mitte ja mida A pakub vastu', [180, 300]), 'Pärast vestlust teate, millega B aitab, millal ja mida A pakub vastu.'), { task: 'S12', main: true, level: 4 }),
+      'Läbirääkimine ukse taga (Harno B1 rääkimise 1b moodi). Paaris: B mõtleb enne endale kaks takistust (töö, haige selg, oma lapsed …) ja ei ütle neid ette. Üks-ühele: sina oled naaber B. Varjatud info: laupäeval kella 9–12 oled tööl; selg on haige, raskeid asju kanda ei tohi; sinu parkimiskoht maja ees on laupäeval vaba; pärastlõunal saad lastega mängida ja koeraga jalutada; sa ei ole uue naabriga varem rääkinud. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Kahjuks hommikul ma ei saa.” (ilma uue pakkumiseta — õpilane peab ise küsima „Aga millal sa saaksid?”); 2) „Diivanit ma kanda ei saa, mul on selg haige.”; 3) „Mida sa mulle vastu pakud?” Õnnestunud, kui õpilane palub konkreetselt (mida, millal, kui kaua), reageerib keeldumisele uue ettepanekuga, pakub midagi vastu ja kordab kokkuleppe üle (näiteks: auto saab B kohale, B mängib kell 14–16 lastega, õhtul pitsa). Teine katse ilma fraasideta (lehel all, tunnis paaris ja kodus salvestusena): õpilase päris olukord, paariline keeldub esimesel korral.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.gaps('061_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Naaber palub mul laupäeval diivanit [kanda] (kandma).',
+        'Ma olen nõus sind pärastlõunal [aitama] (aidata).',
+        'Arst soovitab [mulle] kaks päeva kodus puhata (mina).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas palve vormid on käes.'), ['paluma + da: kanda.', 'nõus olema + ma: aitama.', 'soovitama kellele? → mulle.'])), {}),
+      purpose(B.selfcheck('061_t_self', ['Ma palun konkreetselt: mida, millal ja kui kaua.', 'Ma keeldun viisakalt: kahjuks + põhjus + uus pakkumine.', 'Ma annan palve edasi: palub mul aidata, soovitab mulle puhata, on nõus aitama.', 'Ma lepin naabriga kokku, kes mida teeb.'], 'Abi palutud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      teach(tag(homeTask(purpose(B.speaking('061_t_rec', 'Teine katse: sinu päris palve', 'Tunnis paaris, kodus salvesta 2–3 minutit ilma fraasideta: keda sa palud, mida pakud vastu ja milles te kokku leppisite.', [
+        'Keda sa palud ja mida täpselt (mida, millal, kui kaua)?',
+        'Mida sa pakud vastu, kui ta keeldub?',
+        'Milles te lõpuks kokku leppisite?',
+      ], [120, 180]), 'Nüüd ilma abita: palud oma päris elus kedagi ja reageerid tema „ei”-le; õpetaja kuuleb, kas palve vormid tulid õigesti.')), { task: 'S15', fluency: true }),
+      'Tunnis: paariline (või sina) keeldub esimesel korral alati ja ütleb põhjuse; õpilane peab tegema uue ettepaneku. Üks-ühele: vahetage rollid, sina palud ja õpilane keeldub viisakalt. Ära paranda kõne ajal, märgi üks vorm (paluma + da, nõus + ma, kahjuks … , aga …), mille õpilane pärast ise parandab. Kodus salvestab õpilane sama vestluse oma osa ilma lehte vaatamata.'),
+      homework('061_t_homework', ['1. Kirjuta naabrile 60–80 sõna (paber postkasti): kes sa oled, mida palud, mida pakud vastu ja kuidas sinuga ühendust võtta.', '2. Salvesta oma teine katse (ülesanne üleval).', '3. Kirjuta vihikusse viis lauset: palub mul …, soovitab mulle …, olen nõus …, olen valmis …, kahjuks … , aga …', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      retire('061_t_note', 'v5 (2026-11-25): kodune kiri on nüüd kodutöökaardil 061_t_homework'),
+      retire('061_t_sit', V5_CUT),
+      retire('061_t_plan', V5_CUT),
+      retire('061_t_rubric', V5_CUT),
+      retire('061_t_check', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 062 infogap: polite requests in a service (the conditional)
+  'a2b1-062': {
+    title: 'Kas te saaksite mind aidata?',
+    phases: grammar('Keel: Kas te saaksite … ? · Ma sooviksin … · Kas oleks võimalik … ? · Mida te soovitaksite?'),
+    format: 'infogap',
+    topic: 'freetime',
+    canDo: 'Ma saan aru raadiosaatest viisakast suhtlemisest ja helistan teenindusse: palun ja küsin tingiva kõneviisiga ning lahendan probleemi.',
+    teacherPage: {
+      goal: 'Ученик понимает радиопередачу о вежливых просьбах (Harno L2) и звонит в отель: просит в условном наклонении (Kas te saaksite …? Ma sooviksin …) и решает проблему.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → радиопередача «Keel ja inimesed» (2 раза, 6 вопросов с тремя вариантами), в паре 6 строк «резко → вежливо» → пункт 4: звонок на ресепшен по картинке «Broneeringu kinnitus» со скрытой информацией; вторая попытка — настоящий языковой клуб (integratsioon.ee). Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sind on teeninduses väga hästi või väga halvasti teenindatud?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 61 без записей: одно предложение «Naaber palus mul …».',
+      plan: [
+        '0–13: пункт 1 — хорошее или плохое обслуживание; одно предложение с paluma + da (повторение урока 61); слова; в паре таблица «otse → viisakalt»: сначала свой вежливый вариант (прогноз)',
+        '13–25: пункт 2 — радиопередача «Keel ja inimesed» (≈ 2,5 мин, 2 раза; Eksaminurk L2: сначала прочитать вопросы), 8 вопросов, в паре исправить таблицу по передаче, пересказ «история Маргуса»',
+        '28–48: пункт 3 — заметить → правило (-ksi-: saaksite, sooviksin, oleks, võiksime; основа от ma-формы; teeksin, läheksin) → 8 преобразований «käsk → palve» → «Mida sa teeksid?» в паре → 8–10 своих предложений',
+        '48–70: пункт 4 — звонок на ресепшен отеля по картинке «Broneeringu kinnitus»: номер не тот, что забронирован; у администратора скрытая информация; вторая попытка без фраз — настоящий языковой клуб на integratsioon.ee (подготовка звонка или письма)',
+        '70–75: проверка на выходе, «Ma oskan …», домашнее задание (письмо в отель 60–80 слов + голосовое сообщение 1 мин; слова урока в «Harjuta → Sõnad»)',
+        'Kui aega jääb (10 мин, только в плане учителя): как вежливо просят на родном языке ученика — есть ли там «условная» вежливость',
+        '75–90: запас',
+      ],
+      sources: 'Радиопередача (пункт 2), отель «Rannakivi» и картинка «Broneeringu kinnitus» — учебные, люди и цены выдуманы; проверять не нужно (владелец 2026-11-25). Вторая попытка — настоящий сайт Integratsiooni Sihtasutus (https://www.integratsioon.ee): языковые кафе и разговорные клубы.',
+      groups: 'Пункт 4 в паре: A — гость (звонит), B — администратор (свою карточку A не читает); потом смена ролей. Один на один вы — администратор со скрытой информацией.',
+      errors: [
+        '«Kas te saate mulle anda?» — правильно, но резче; вежливее «Kas te saaksite …?».',
+        '«Ma sooviks» вместо «Ma sooviksin» (окончание лица: -ksin, -ksid, -ks, -ksime, -ksite, -ksid).',
+        '«tegeksin», «mineksin» вместо «teeksin», «läheksin».',
+        '«Kas oleks võimalik saan …» вместо «Kas oleks võimalik saada …» (после võimalik — da-форма).',
+      ],
+      notes: [
+        'Звонок — продукт урока: приветствие и имя, проблема в одном-двух предложениях, две вежливые просьбы, реакция на «нет», договорённость повторена.',
+        'Обратная связь, 2 цели: форма -ksi- с окончанием лица и da-форма после võimalik. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('062_d_photo', 'Kas sind on hästi teenindatud?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Millal sind viimati väga hästi või halvasti teenindati?',
+        'Mida palus naaber sul eelmises tunnis teha?',
+      ], [120, 180])), 'Sinu kogemus on tänase tunni algus: lõpus helistad ise teenindusse ja palud viisakalt abi, nii et teenindaja tahab sind aidata.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma lugu teenindusest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida sa siis ütlesid?”). Ära paranda.'), 1, 13),
+      tag(half(B.vocab('062_d_vocab', 'Tunni sõnad.', ['viisakas — вежливый', 'järsk — резкий', 'teenindus — обслуживание', 'broneering — бронь', 'vastuvõtt — ресепшен', 'administraator — администратор', 'kaebus — жалоба', 'vabandama — извиняться', 'võimalik — возможный', 'lahendus — решение'], '2')), { topic: ['broneering'] }),
+      teach(tag(purpose(B.table('062_d_rule', 'Paaris: otse või viisakalt? (enne ja pärast kuulamist)', 'Enne kuulamist kirjutage koos viisakas variant. Pärast kuulamist parandage oma laused saate järgi.', 'Otse (liiga järsk), Viisakalt (terve lause)', [
+        'Andke mulle teine tuba! | ',
+        'Ma tahan rääkida eilsest toast. | ',
+        'Ma tahan tuba hoovi poole. | ',
+        'Mida ma nüüd tegema pean? | ',
+        'Leidke lahendus täna! | ',
+        'Tooge mulle hommikusöök tuppa! | ',
+        'Ma ei saa aru, mida te ütlete! | ',
+      ], 'g_read'), 'Kõigepealt proovite ise, siis kuulete, kuidas seda raadios öeldi. Võrdlete oma lauseid saatega ja parandate need: teie parandatud laused on tunni lõpu kõne materjal, kui helistate ise hotelli vastuvõttu. Pange tähele, millised sõnad teevad lause viisakaks ja millised järsuks.'), { task: 'L06' }),
+      'Enne kuulamist kirjutavad paarid 4–5 minutit oma viisaka variandi (ennustus); pärast teist kuulamist parandavad nad punase pliiatsiga saate järgi (neli lauset on saates sõna-sõnalt). Siis loeb A järsu lause ette ja B vastab viisaka variandiga ilma lehte vaatamata. Kontrolli: saaksite / sooviksin / oleks võimalik / soovitaksite. Üks-ühele: õpilane kirjutab, sina oled administraator ja vastad järsule lausele külmalt, viisakale soojalt.'),
+      station(tag(purpose(why(ownText(twice(B.examListen('062_d_port', 'Eksaminurk: raadiosaade „Keel ja inimesed” (Harno B1 kuulamine 2)', 'Loe enne küsimused läbi. Siis kuula saadet kaks korda ja vali igale küsimusele kolmest vastusest üks.', 'choice', [
+        'Saatejuht: Tere õhtust! Teie kuulate saadet „Keel ja inimesed”. Täna räägime sellest, kuidas paluda nii, et teine inimene tahaks aidata. Stuudios on suhtluskoolitaja Triin Saar. Triin, miks on mõni palve meile ebameeldiv?',
+        'Koolitaja: Sageli on asi vormis. Kui klient ütleb hotelli vastuvõtus „Andke mulle teine tuba!”, kõlab see nagu käsk. Kui ta ütleb „Kas te saaksite mulle teise toa anda?”, on sisu sama, aga töötaja kuuleb palvet. Eesti keeles teeb palve pehmeks tingiv kõneviis: saaksite, võiksite, oleks.',
+        'Saatejuht: Meil on helistaja. Tere, Margus!',
+        'Kuulaja: Tere! Mul oli eelmisel nädalal just selline lugu. Broneerisin Pärnus hotellis kaheks ööks vaikse toa, aga mu aken oli otse tänava poole ja öösel oli väga lärmakas. Esimesel õhtul olin nii väsinud ja pahane, et ütlesin administraatorile üsna järsult: „See tuba ei sobi!”',
+        'Koolitaja: Ja mis juhtus?',
+        'Kuulaja: Administraator ütles ainult, et vabu tube ei ole. Järgmisel hommikul proovisin teisiti. Ütlesin: „Ma sooviksin rääkida eilsest toast. Kas oleks võimalik saada tuba hoovi poole, kui mõni vabaneb?” Ja kujutage ette, lõunaks oli mul uus tuba ja hommikusöök tasuta.',
+        'Koolitaja: Väga hea näide! Kolm asja aitasid: Margus ütles rahulikult, mis on probleem, ta pakkus lahenduse ja kasutas tingivat kõneviisi.',
+        'Saatejuht: Aga kas tingiv kõneviis ei kõla liiga pehmelt? Kas klient ei pea olema kindel?',
+        'Koolitaja: Viisakas ei tähenda nõrk. Võib öelda väga selgelt: „Ma ei ole selle toaga rahul. Ma sooviksin, et te leiaksite lahenduse täna.” Tähtis on ka see, kellega te räägite. Administraator ei ole süüdi, et tänaval on lärm. Kui te olete tema peale pahane, ei taha ta teid aidata.',
+        'Saatejuht: Ja telefonis?',
+        'Koolitaja: Telefonis ei näe teine teie nägu, seepärast on hääl veel tähtsam. Alustage tervitusest ja öelge oma nimi. Siis öelge lühidalt, mis on probleem, ja küsige: „Mida te soovitaksite?” Lõpus korrake üle, milles te kokku leppisite.',
+        'Saatejuht: Aitäh, Triin! Järgmisel nädalal räägime sellest, kuidas viisakalt kirjas kaevata.',
+      ], [
+        ['Millest räägivad saatejuht ja koolitaja tänases raadiosaates?', 'kuidas paluda nii, et teine tahaks aidata', 'kuidas odavalt hotellis ööbida', 'kuidas leida tööd teeninduses'],
+        ['Mis teeb koolitaja sõnul eesti keeles palve pehmeks ja viisakaks?', 'tingiv kõneviis', 'pikk selgitus', 'vali hääl'],
+        ['Mis oli Marguse hotellitoaga Pärnus eelmisel nädalal valesti?', 'aken oli tänava poole ja öösel oli lärm', 'tuba oli liiga väike', 'toas ei olnud sooja vett'],
+        ['Mida Margus pärast viisakat palvet järgmisel päeval sai?', 'uue toa ja tasuta hommikusöögi', 'raha tagasi', 'toa teises hotellis'],
+        ['Miks ei tasu koolitaja arvates administraatori peale pahane olla?', 'tema ei ole lärmis süüdi', 'ta võib kliendi hotellist välja saata', 'ta ei räägi eesti keelt'],
+        ['Mida tasub koolitaja sõnul teenindusse helistades kõne lõpus teha?', 'kokkulepe üle korrata', 'oma nimi veel kord öelda', 'kohe kaevata'],
+      ]))), [
+        'Saatejuht: „kuidas paluda nii, et teine inimene tahaks aidata”.',
+        'Koolitaja: „Eesti keeles teeb palve pehmeks tingiv kõneviis”.',
+        'Margus: „mu aken oli otse tänava poole ja öösel oli väga lärmakas”.',
+        'Margus: „lõunaks oli mul uus tuba ja hommikusöök tasuta”.',
+        'Koolitaja: „Administraator ei ole süüdi, et tänaval on lärm.”',
+        'Koolitaja: „Lõpus korrake üle, milles te kokku leppisite.”',
+      ]), 'Harjutad Harno B1 kuulamise 2. osa: raadiolugu ja kuus kolme vastusega küsimust. Saates kuuled ka just neid viisakaid palveid, mida tunnis vajad.'), { harno: 'L2', task: 'L02' }), 2, 12),
+      teach(tag(purpose(B.speaking('062_d_retell', 'Paaris: Marguse lugu.', 'A jutustab Marguse esimesest õhtust, B järgmisest hommikust. Siis ütleb kumbki, mida koolitaja soovitas ja kas ta on nõus.', [
+        'Mis oli Marguse toaga valesti ja mida ta esimesel õhtul ütles?',
+        'Mida ta ütles järgmisel hommikul ja mis siis juhtus?',
+        'Mida koolitaja soovitab telefonis teha? Kas sa oled nõus?',
+      ], [120, 180], '', 'g_read'), 'Jutustad saate järgi, miks viisakas palve aitas, ja kordad saate viisakad laused.'), { task: 'S07', fluency: true }),
+      'Paarid jutustavad kordamööda ilma lehte vaatamata; kuulaja ütleb pärast ühe viisaka lause, mida jutustaja kasutas. Üks-ühele: õpilane jutustab kogu loo, sina küsid „Ja mida ta täpselt ütles?”.'),
+      hide(B.review('062_d_review', [['Mida naaber Marjult iga päev teha palus ja mida nõustaja soovitas?', 'a2b1-061'], ['Miks ei tahtnud kindlustus pärast tormi kogu kahju maksta?', 'a2b1-058'], 'Kus sa viimati teeninduses abi palusid?']), V5_DRILL),
+      retire('062_d_hook', V5_CUT),
+      retire('062_d_call', V5_CUT),
+      retire('062_d_polite', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('062_d_notice', 'Märka: tingiv kõneviis teeb palve pehmeks', [
+        'Saatest: **Kas te saaksite** mulle teise toa anda? · **Ma sooviksin** rääkida eilsest toast. · **Kas oleks võimalik** saada tuba hoovi poole? · **Mida te soovitaksite?**',
+        'Vorm: tüvi + **-ksi-** + lõpp: saa**ksin**, saa**ksid**, saa**ks**, saa**ksime**, saa**ksite**, saa**ksid** · eitus: ma **ei saaks** · lühike vorm: **oleks**, **võiks**, **tahaks**',
+        'Tüvi tuleb **ma**-vormist: aita|ma → aita**ksite** · tule|ma → tule**ksin** · ole|ma → ole**ksin** · aga: tegema → **teeksin**, minema → **läheksin**, nägema → **näeksin**',
+        'Pärast **võimalik**, **tahaksin**, **sooviksin** tuleb **da**-vorm või nimisõna: Kas oleks võimalik **saada** …? Ma sooviksin **vahetada** tuba. Ma sooviksin **arvet**.',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.transformation('062_p_polite', 'Käsust viisakaks palveks.', 'Kirjuta lause viisakaks küsimuseks või sooviks. Kasuta antud sõna tingivas kõneviisis.', [
+        ['Andke mulle kohe teine tuba, see siin ei sobi!', 'saama', 'Kas te saaksite mulle teise toa anda?|Kas te saaksite mulle kohe teise toa anda?'],
+        ['Ma tahan homme hiljem, kella kaheteistkümne paiku, lahkuda.', 'soovima', 'Ma sooviksin homme hiljem lahkuda.|Ma sooviksin homme hiljem, kella kaheteistkümne paiku, lahkuda.|Ma sooviksin homme kella kaheteistkümne paiku lahkuda.'],
+        ['Pange mu kott kuni õhtuni hoiule!', 'võima', 'Kas te võiksite mu koti kuni õhtuni hoiule panna?|Kas te võiksite mu koti hoiule panna?'],
+        ['Ma tahan homme hommikul hommikusööki tuppa.', 'olema võimalik', 'Kas oleks võimalik saada homme hommikul hommikusööki tuppa?|Kas oleks võimalik saada hommikusööki tuppa?|Kas oleks võimalik homme hommikul hommikusöök tuppa saada?'],
+        ['Helistage mulle täna õhtul tagasi!', 'saama', 'Kas te saaksite mulle täna õhtul tagasi helistada?|Kas te saaksite mulle tagasi helistada?'],
+        ['Ma tahan enne maksmist arvet näha.', 'tahtma', 'Ma tahaksin enne maksmist arvet näha.|Ma tahaksin arvet näha.'],
+        ['Mida ma pean nüüd selle toaga tegema?', 'soovitama', 'Mida te soovitaksite?|Mida te mulle soovitaksite?|Mida te soovitaksite mul teha?|Mida te soovitaksite mulle teha?'],
+        ['Tehke toa hinnast natuke alla!', 'võima', 'Kas te võiksite toa hinnast natuke alla teha?|Kas te võiksite hinnast alla teha?'],
+      ]), [
+        'saama → saaksite: Kas te saaksite …?',
+        'soovima → sooviksin + da: lahkuda.',
+        'võima → võiksite; pange → panna (koti).',
+        'olema → oleks + da: saada.',
+        'saama → saaksite + da: helistada.',
+        'tahtma → tahaksin.',
+        'soovitama → soovitaksite.',
+        'võima → võiksite + da: teha.',
+      ]), 'Kaheksa lauset näitavad, kas tingiva kõneviisi vorm on käes.'), { task: 'G14' }),
+      teach(tag(purpose(B.speaking('062_p_would', 'Paaris: mida sa teeksid?', 'Küsi paarilisel ja vasta ise tingiva kõneviisiga koos põhjusega: Ma helistaksin … , sest … Siis vahetage.', [
+        'Sinu hotellitoas ei ole sooja vett. Mida sa teeksid ja mida sa ütleksid?',
+        'Kuller tõi paki valele aadressile. Kellele sa helistaksid ja mida sa paluksid?',
+        'Restoranis on sinu toit külm. Kas sa ütleksid midagi? Mida?',
+        'Naaber paneb öösel muusika valjuks. Mida sa teeksid?',
+        'Bussijuht ei peatu sinu peatuses. Mida sa ütleksid?',
+        'Sinu internet ei tööta juba kolm päeva. Mida sa paluksid?',
+      ], [120, 180], '', 'g_notice'), 'Harjutad tingivat kõneviisi päris olukordades enne, kui ise helistad.'), { task: 'S14', fluency: true }),
+      'Paarid küsivad kordamööda, igaüks vastab 2–3 lausega. Kontrolli, et vastuses on tingiv kõneviis (helistaksin, ütleksin, paluksin) ja põhjus. Üks-ühele: õpilane küsib sinult kaks küsimust; sina vastad ühe korra valesti (ma helistan) ja õpilane parandab.'),
+      tag(purpose(rows(B.writing('062_p_sent', 'Kirjuta terved laused.', 'Mõtle üks päris probleem teeninduses. Kirjuta 8–10 lauset, mida sa telefonis ütleksid: tervitus, probleem, kaks viisakat palvet, kokkulepe.', [8, 10]), 18), 'Oma laused on sinu kõne materjal tunni lõpus.'), { task: 'W08' }),
+      retire('062_p_mail', V5_CUT),
+      retire('062_p_radio', V5_CUT),
+      retire('062_p_notices', V5_CUT),
+      retire('062_p_know', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(cards(B.phoneCards('062_t_call', 'Kõne vastuvõttu: tuba ei ole see', 'Vaata pilti üleval. A on külaline ja helistab vastuvõttu, B on administraator. Leidke 3–4 minutiga lahendus. Siis vahetage.',
+        'On reede õhtu. Sa jõudsid hotelli „Rannakivi” ja said toa võtme. Toas on midagi valesti.',
+        ['Külaline (A)', [
+          'Sinu broneering on pildil.',
+          'Toas on ainult kaks voodit, rõdu ei ole ja aken on parkla poole.',
+          'Sul on kaasas kaks last.',
+          'Eesmärk: hea lahendus täna õhtul. Küsi tingiva kõneviisiga ja korda kokkulepe üle.',
+        ]], ['Administraator (B)', [
+          'Pere tube täna õhtul vabu ei ole.',
+          'Sa saad pakkuda lisavoodit või kaks tuba kõrvuti.',
+          'Homme kell 12 vabaneb pere tuba merevaatega.',
+          'Raha tagasi maksmise üle otsustab juhataja.',
+        ]], [180, 300])), 'Pärast kõnet on sul lahendus: kus te täna magate, mis saab homme ja mida hotell pakub.'), { task: 'S10', main: true, level: 4 }),
+      'Telefonikõne nagu Harno B1 rääkimise 2. osas. Üks-ühele: sina oled administraator. Varjatud info: pere tube täna vabu ei ole; teisel korrusel on kaks tuba kõrvuti (üks on väike); lisavoodi maksab 15 eurot, aga selle võid pakkuda tasuta, kui külaline on viisakas; homme kell 12 vabaneb pere tuba merevaatega; raha tagasi maksmise üle otsustab juhataja, kes helistab esmaspäeval. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Kahjuks on kõik pere toad täis.”; 2) „Lisavoodi maksab 15 eurot.”; 3) „Raha tagasi ma maksta ei saa.” Õnnestunud, kui õpilane ütleb oma nime ja probleemi, palub vähemalt kaks korda tingiva kõneviisiga (Kas te saaksite … , Kas oleks võimalik …), reageerib „ei”-le uue palvega ja kordab kokkuleppe üle. Teine katse ilma fraasideta on järgmine ülesanne.'), 4, 25, { final: 'complain' }),
+      teach(tag(purpose(B.speaking('062_t_rec', 'Päris kõne: eesti keele vestlusring', 'Leia lehelt integratsioon.ee (https://www.integratsioon.ee) üks eesti keele vestlusring oma linnas. Harjuta kõnet korraldajale 2–3 minutit ilma fraasideta; paariline on korraldaja.', [
+        'Kes sa oled ja mida sa tahaksid teada (aeg, koht, tase, hind)?',
+        'Kas sa saaksid tulla? Millal?',
+      ], [120, 180]), 'Päris samm: kasutad viisakat palvet päris inimesega ja leiad koha, kus eesti keeles rääkida.'), { task: 'S04', level: 4, fluency: true }),
+      'Seosülesanne (päris allikas). Õpilane avab lehe ise; kui telefoni ei ole, näita lehte oma ekraanilt. Paariline (või sina) on korraldaja ja küsib vastu („Mis tasemel sa oled?”, „Kas sa tuled üksi?”). Ära paranda kõne ajal, märgi üks tingiva kõneviisi vorm, mille õpilane pärast parandab. Kodus võib õpilane päriselt helistada või kirjutada ja järgmises tunnis rääkida, mida ta teada sai.'),
+      tag(homeTask(purpose(rows(B.writing('062_t_home', 'Kodus: kiri hotelli juhatajale.', 'Kirjuta juhatajale 6–9 lauset: mis oli broneeringus ja mis toas, mida administraator tegi, mida sa sooviksid, sinu kontakt. Saada õpetajale ka 1-minutiline häälsõnum.', [6, 9]), 6), 'Juhataja saab aru, mis juhtus ja mida sa soovid; õpetaja näeb, kas palved on viisakad.')), { task: 'W04' }),
+      tag(exitCheck(why(purpose(B.gaps('062_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna tingivas kõneviisis.', [
+        'Kas te [saaksite] mulle homme hommikul enne kella kümmet tagasi helistada? (saama)',
+        'Ma [sooviksin] täna õhtul toa vahetada, sest aken on tänava poole. (soovima)',
+        'Kas [oleks] võimalik viimasel päeval toast hiljem lahkuda, näiteks kell kaksteist? (olema)',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas viisaka palve vorm on käes.'), ['saama → saaksite (teie).', 'soovima → sooviksin (mina).', 'olema → oleks võimalik.'])), {}),
+      purpose(B.selfcheck('062_t_self', ['Ma saan aru raadiosaatest ja vastan kolme vastusega küsimustele.', 'Ma palun tingiva kõneviisiga: Kas te saaksite … ? Ma sooviksin …', 'Ma ütlen telefonis probleemi, reageerin „ei”-le ja kordan kokkuleppe üle.'], 'Probleem lahendatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      retire('062_t_form', 'v5 (2026-11-25): kodune kiri on nüüd kirjutamisplokk 062_t_home'),
+      retire('062_t_sit', V5_CUT),
+      retire('062_t_voice', V5_CUT),
+      retire('062_t_rubric', V5_CUT),
+      retire('062_t_check', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 063 project: a rumour and what really happened (quotative)
+  'a2b1-063': {
+    title: 'Kas see on tõsi?',
+    phases: grammar('Keel: pood olevat suletud · omanik olevat maja müünud · omaniku sõnul · väidetavalt · tegelikult'),
+    format: 'project',
+    topic: 'town',
+    canDo: 'Ma saan aru, mida räägitakse, annan kuuldud juttu edasi kaudse kõneviisiga (olevat, tulevat, olevat teinud) ja kirjutan loo, kuidas kuulujutt sündis ja mis oli tegelikult.',
+    teacherPage: {
+      goal: 'Ученик передаёт слух косвенным наклонением (olevat, tulevat, olevat müünud; … sõnul), отделяет слух от факта (tegelikult) и пишет рассказ «Kuidas kuulujutt sündis».',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → статья «Kas Kooli tänava pagariäri suletakse?» (≈ 255 слов) и 8 вопросов, в паре таблица «слух — что на самом деле», пересказ в паре → пункт 4: рассказ 70–100 слов без данного начала по картинке «Maja vestlus», вторая попытка — устно. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sa oled kuulnud kuulujuttu, mis hiljem ei olnud tõsi?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 62 без записей: одна вежливая просьба (Kas te saaksite …?).',
+      plan: [
+        '0–8: пункт 1 — слух, который оказался неправдой; одна просьба с tingiv (повторение урока 62)',
+        '8–25: пункт 2 — слова, статья районной газеты (≈ 255 слов), 8 вопросов, в паре письменно «Kuulujutt → Tegelikult» (6 строк), в паре мнение: почему слухи распространяются, как проверить',
+        '25–45: пункт 3 — заметить → правило (-vat: olevat, tulevat, tegevat; olevat + -nud; ei olevat; … sõnul, väidetavalt; tegelikult + изъявительное) → Eksaminurk R4 (объявление библиотеки, банк фраз: слух и факт) → пересказ в паре (A — что говорили, B спрашивает «Kes seda ütles? Kust sa seda tead?») → 8–10 своих предложений',
+        '45–70: пункт 4 — рассказ 70–100 слов без данного начала по картинке «Maja vestlus» или о своём слухе (15 мин); вторая попытка — рассказать партнёру без текста, партнёр задаёт два вопроса (дома — запись)',
+        '70–75: проверка на выходе, «Ma oskan …», домашнее задание (рассказ начисто, запись второй попытки, слова урока в «Harjuta → Sõnad»)',
+        'Kui aega jääb (10 мин, только в плане учителя): как проверяют новости и слухи у ученика на родине',
+        '75–90: запас',
+      ],
+      sources: 'Статья (пункт 2), объявление библиотеки (R4) и картинка «Maja vestlus» — учебные, пекарня, люди и даты выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 2 в паре: A пишет первые три строки таблицы, B — последние три, потом пересказ по очереди. Пункт 4: каждый пишет сам, потом рассказывает партнёру без текста. Один на один вы — сосед, который задаёт вопросы.',
+      errors: [
+        '«Ta olevat müüs maja» вместо «Ta olevat maja müünud» (прошедшее: olevat + -nud).',
+        '«Pood olevat suletud» и «Pood on suletud» — разное: первое слух, второе факт; после «tegelikult» — изъявительное наклонение.',
+        '«Omaniku sõnul ta ütles, et …» — лишнее; либо «Omaniku sõnul …», либо «Omanik ütles, et …».',
+        '«tegemat» или «teevat» вместо «tegevat» (основа от ma-формы: tege|ma → tegevat).',
+      ],
+      notes: [
+        'Рассказ — продукт урока: где и когда, что говорили (минимум две формы -vat), как слух распространился, что было на самом деле, что я из этого понял.',
+        'Обратная связь, 2 цели: формы -vat / olevat + -nud и граница «слух — факт». Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('063_d_rumour', 'Kas see oli tõsi?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kas sa oled kuulnud kuulujuttu, mis hiljem ei olnud tõsi? Mida räägiti ja mis oli tegelikult?',
+        'Ütle ilma märkmeteta üks viisakas palve eelmisest tunnist (Kas te saaksite … ?).',
+      ], [120, 180])), 'Sinu kogemus on tänase tunni algus: lõpus kirjutad loo ühest kuulujutust.'), { task: 'S19', fluency: true }),
+      'Üks-ühele: räägi kõigepealt üks lühike lugu kuulujutust (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Kes seda rääkis?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('063_d_vocab', 'Tunni sõnad.', ['kuulujutt — слух', 'väidetavalt — якобы', 'tegelikult — на самом деле', '… sõnul — по словам …', 'levima — распространяться', 'selguma — выясняться', 'uskuma — верить', 'kinnitama — подтверждать', 'edasi saatma — пересылать', 'pagariäri — пекарня'], '2')), { topic: ['kuulujutt', 'väidetavalt', 'pagariäri'] }), 2, 17),
+      tag(purpose(why(ownText(B.reading('063_d_chat', 'Linnaosa leht.', 'Loe artiklit. Vasta igale küsimusele lühidalt (1–6 sõna).', 'Kas Kooli tänava pagariäri suletakse?', [
+        'Eelmisel nädalal levis Kooli tänava majades kiiresti uudis, et populaarne pagariäri „Kaneelirull” suletakse. Ühe maja vestlusesse kirjutas keegi, et omanik olevat maja maha müünud ja pagariäri asemele tulevat apteek. Teise kirjutaja sõnul olevat pood juba nädal aega kinni.',
+        '',
+        'Kuulujutt sündis väga lihtsalt. Pagariäri uksel oli paber: „Suletud 3.–16. märtsini”. Üks naaber tegi sellest pildi ja kirjutas maja vestlusesse: „Kas keegi teab, mis juhtus?” Teine naaber vastas, et ta olevat kuulnud, et maja müüakse. Kolmas lisas, et apteek olevat juba lepingu allkirjastanud. Ükski neist ei olnud pagariäri omanikuga rääkinud.',
+        '',
+        'Pagariäri omanik Kertu Lepik oli väga üllatunud, kui kliendid hakkasid talle helistama. „Ma ei müü midagi,” ütles ta. „Me vahetame köögis ahju ja värvime seinad. Kahe nädala pärast oleme tagasi ja kõik kliendid saavad esimesel päeval kohvi tasuta.”',
+        '',
+        'Miks levivad kuulujutud nii kiiresti? Suhtluskoolitaja Rein Otsa sõnul tahavad inimesed lünka täita. Kui infot ei ole, mõtlevad nad selle ise välja. Sõnumirakenduses on lihtne vajutada „edasta” ja kuulujutt jõuab sadade inimesteni ühe õhtuga.',
+        '',
+        'Kuidas siis käituda? Koolitaja soovitab enne edasisaatmist küsida: kes seda ütles ja kust ta seda teab? Kui allikat ei ole, tasub kirjutada nii: „Ma kuulsin, et pood olevat kinni.” Ja lisada: „Ma ei tea, kas see on tõsi.” Kõige parem on aga küsida otse inimeselt, keda asi puudutab.',
+      ], [
+        ['Mida räägiti pagariärist?', 'et see suletakse|et pagariäri suletakse|see suletakse'],
+        ['Mis pidi kuulujutu järgi pagariäri asemele tulema?', 'apteek'],
+        ['Mis oli pagariäri uksel?', 'paber „Suletud 3.–16. märtsini”|paber|teade, et pood on suletud'],
+        ['Kellega ei olnud kirjutajad rääkinud?', 'pagariäri omanikuga|omanikuga'],
+        ['Miks oli pagariäri tegelikult kinni?', 'köögis vahetatakse ahju ja värvitakse seinu|remondi pärast|ahi vahetati ja seinad värviti'],
+        ['Mida saavad kliendid esimesel päeval?', 'kohvi tasuta|tasuta kohvi'],
+        ['Miks mõtlevad inimesed koolitaja sõnul info ise välja?', 'nad tahavad lünka täita|infot ei ole|nad tahavad lünka täita, kui infot ei ole'],
+        ['Mida soovitab koolitaja küsida enne sõnumi edasisaatmist?', 'kes seda ütles ja kust ta seda teab|kes ütles ja kust ta teab'],
+      ])), [
+        'Esimene lõik: „levis … uudis, et populaarne pagariäri „Kaneelirull” suletakse”.',
+        'Esimene lõik: „pagariäri asemele tulevat apteek”.',
+        'Teine lõik: „Pagariäri uksel oli paber: „Suletud 3.–16. märtsini”.”',
+        'Teine lõik: „Ükski neist ei olnud pagariäri omanikuga rääkinud.”',
+        'Kolmas lõik: „Me vahetame köögis ahju ja värvime seinad.”',
+        'Kolmas lõik: „kõik kliendid saavad esimesel päeval kohvi tasuta”.',
+        'Neljas lõik: „tahavad inimesed lünka täita. Kui infot ei ole, mõtlevad nad selle ise välja.”',
+        'Viimane lõik: „kes seda ütles ja kust ta seda teab?”',
+      ]), 'Enne kui sa ise loo kirjutad, loed, kuidas üks kuulujutt sündis ja kuidas see edasi anti.'), { task: 'R19', voice: 'news' }),
+      teach(tag(purpose(B.table('063_d_rule', 'Paaris: kuulujutt ja tegelikkus.', 'Kirjutage koos paremale terve lause: mis oli tegelikult. Viimasesse ritta kirjutage oma kuulujutt (olevat …) ja tegelikkus.', 'Mida räägiti?, Mis oli tegelikult?', [
+        'Omanik olevat maja maha müünud. | ',
+        'Pagariäri asemele tulevat apteek. | ',
+        'Pood olevat juba nädal aega kinni. | ',
+        'Apteek olevat lepingu allkirjastanud. | ',
+        'Kõik kirjutajad olevat omanikuga rääkinud. | ',
+        ' | ',
+      ], 'g_read'), 'Teie tabel näitab, kuidas kuulujutt ja tegelikkus erinevad — sama vahet teed oma loos.'), { task: 'G02' }),
+      'Paarid kirjutavad koos 6–8 minutit: A kirjutab kolm esimest rida, B kolm viimast. Kontrolli, et paremas veerus on kindel kõneviis (Tegelikult pood remonditakse / omanik ei müü midagi) ja viimases reas on vasakul -vat-vorm. Üks-ühele: õpilane kirjutab, sina loed ühe kuulujutu nagu fakti („Omanik müüs maja.”) ja õpilane parandab: „Omanik olevat …”.'),
+      teach(tag(purpose(B.speaking('063_d_opinion', 'Paaris: miks me kuulujutte usume?', 'Küsi paarilisel ja vasta ise kahe-kolme lausega. Ütle oma arvamus ja põhjus. Siis vahetage.', [
+        'Mis sa arvad: miks levivad kuulujutud nii kiiresti?',
+        'Kas sina kontrollid uudist enne, kui selle edasi saadad? Kuidas?',
+        'Kas Eestis ja sinu kodumaal räägitakse naabritest samamoodi? Too näide.',
+      ], [120, 180], '', 'g_read'), 'Ütled oma arvamuse laiemal teemal: miks kuulujutud levivad ja kuidas neid kontrollida.'), { task: 'S11' }),
+      'Paarid küsivad kordamööda. Kontrolli, et vastuses on arvamus ja põhjus (Minu arvates …, sest …) ning üks -vat-vorm või … sõnul. Üks-ühele: sina vastad ka ise ja ütled ühe korra vastupidise arvamuse, õpilane reageerib.'),
+      hide(B.review('063_d_review', [['Kuidas sai Margus hotellis uue toa?', 'a2b1-062'], ['Kuidas ütled viisakalt „ei”, kui sa ei saa aidata?', 'a2b1-061'], 'Kas sa usud kuulujutte? Miks?']), V5_DRILL),
+      retire('063_d_hook', V5_CUT),
+      retire('063_d_try', V5_CUT),
+      retire('063_d_again', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('063_d_notice', 'Märka: kas tead või oled kuulnud?', [
+        'Tekstist: omanik **olevat** maja maha **müünud** · pagariäri asemele **tulevat** apteek · pood **olevat** kinni · Teise kirjutaja **sõnul** … · **Tegelikult** vahetame köögis ahju.',
+        'Kaudne kõneviis = ma ei tea ise, ma kuulsin: tüvi **ma**-vormist + **-vat**: ole|ma → ole**vat** · tule|ma → tule**vat** · tege|ma → tege**vat** · elama → ela**vat** · eitus: **ei olevat**',
+        'Mis oli varem: **olevat** + **-nud**: olevat müü**nud**, olevat kuul**nud**, olevat allkirjasta**nud**',
+        'Teised viisid: **… sõnul** (omaniku sõnul, tema sõnul) · **väidetavalt** · **räägitakse, et** … · fakt: **Tegelikult** + kindel kõneviis: Pood on remondis.',
+      ], 'full'), 3, 15),
+      teach(tag(purpose(why(B.bankText('063_t_notice', 'Eksaminurk: raamatukogu teade (Harno B1 lugemine 4)', 'Teatest on välja võetud kaheksa lauseosa. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', 'Kas Kalda raamatukogu suletakse?', [
+        'Head lugejad! Viimastel päevadel olete meilt sageli küsinud, [[kas Kalda raamatukogu suletakse]]. Linnas räägitakse, [[et raamatukogu olevat juba maha müüdud]]. See ei ole tõsi. Linnavalitsuse sõnul [[kolib raamatukogu sügisel uude majja]], mis asub kooli kõrval. Uues majas on rohkem ruumi lastele ja eraldi tuba, [[kus saab vaikselt töötada]].',
+        '',
+        'Kolimise ajal, 1.–20. septembrini, on raamatukogu kinni. [[Raamatuid saab sel ajal tagastada]] kooli fuajees oleva kasti kaudu. Tähtaegu pikendame ise, [[nii et viivist maksma ei pea]].',
+        '',
+        'Kui kuulete midagi, [[mida te ei ole meilt lugenud]], küsige palun otse meilt. [[Kõige värskem info on meie kodulehel]] ja raamatukogu uksel.',
+      ], ['sest raamatuid on liiga palju', 'kuigi keegi ei küsinud'], 'g_notice'), [
+        'küsinud, … → kaudne küsimus: kas … suletakse.',
+        'räägitakse, et … → kaudne kõneviis: olevat müüdud.',
+        '… sõnul + tegusõna kohe: kolib raamatukogu.',
+        'eraldi tuba, … → kus saab töötada.',
+        'Lause algab suure tähega: Raamatuid saab tagastada.',
+        'Tähtaegu pikendame, … → tagajärg: nii et.',
+        'Kui kuulete midagi, … → mida te ei ole lugenud.',
+        'Lause algab suure tähega: Kõige värskem info.',
+      ]), 'Harjutad Harno B1 lugemise 4. osa: paned teksti tagasi puuduvad lauseosad. Teade näitab, kuidas kuulujuttu ja fakti eristada.'), { harno: 'R4', task: 'R16' }),
+      'Eksaminurk (Harno B1 lugemine 4, fraasipank, ~8 min). Eksamil on tekst 120–150 sõna ja kaheksa lünka. Strateegia: 1) loe kogu tekst läbi; 2) vaata lünga ümber: kas puudub lause algus või lõpp, kas järgmine sõna on suure tähega; 3) kontrolli, kas sidesõna (et, kus, nii et) sobib mõttega. Pärast leiavad õpilased tekstist, mis on kuulujutt (olevat müüdud) ja mis fakt (kolib). Üks-ühele: õpilane teeb ülesande 8 minutiga ja põhjendab kahte valikut.'),
+      teach(tag(purpose(B.speaking('063_d_432', 'Paaris: anna uudis edasi.', 'A jutustab artikli järgi, mida räägiti ja mis oli tegelikult. B küsib: „Kes seda ütles? Kust sa seda tead?” Siis vahetage.', [
+        'Mida pagariärist räägiti?',
+        'Kuidas kuulujutt sündis ja levis?',
+        'Mis oli tegelikult ja mida sina nüüd teeksid?',
+        'Kes kirjutas maja vestlusesse ja miks ta seda tegi?',
+      ], [120, 180], '', 'g_notice'), 'Annad kuuldud jutu edasi nii, et kuulaja teab, mis on kuulujutt ja mis fakt.'), { task: 'S13', fluency: true }),
+      'Üks-ühele: õpilane jutustab, sina küsid kaks korda „Kust sa seda tead?”. Lõpus ütleb kumbki ühe lause, mida koolitaja soovitas.'),
+      tag(purpose(rows(B.writing('063_p_sent', 'Kirjuta terved laused.', 'Kirjuta 10–12 lauset ühest kuulujutust oma majas, töökohas või linnas: mida räägiti (olevat, … sõnul), kuidas jutt levis, mis oli tegelikult.', [10, 12]), 18), 'Oma laused on sinu loo materjal.'), { task: 'W06' }),
+      hide(tag(purpose(why(B.transformation('063_p_report', 'Kuuldud jutt edasi.', 'Sa kuulsid seda naabrilt, aga ei tea, kas see on tõsi. Kirjuta lause kaudse kõneviisiga või antud sõnaga.', [
+        ['„Uus naaber töötab öösiti lennujaamas.”', 'kaudne', 'Uus naaber töötavat öösiti lennujaamas.'],
+        ['„Raamatukogu on terve suve kinni.”', 'kaudne', 'Raamatukogu olevat terve suve kinni.'],
+        ['„Nurga kohvikusse tuleb sügisel uus kokk.”', 'kaudne', 'Nurga kohvikusse tulevat sügisel uus kokk.'],
+        ['„Ühistu ostis eelmisel nädalal hoovi uued pingid.”', 'kaudne, minevik', 'Ühistu olevat eelmisel nädalal hoovi uued pingid ostnud.|Ühistu olevat ostnud eelmisel nädalal hoovi uued pingid.|Ühistu olevat eelmisel nädalal ostnud hoovi uued pingid.'],
+        ['„Bussipiletid lähevad järgmisest kuust kallimaks.”', 'kaudne', 'Bussipiletid minevat järgmisest kuust kallimaks.'],
+        ['„Meie kool sai sel kevadel uue direktori.”', 'kaudne, minevik', 'Meie kool olevat sel kevadel uue direktori saanud.|Meie kool olevat saanud sel kevadel uue direktori.|Meie kool olevat sel kevadel saanud uue direktori.'],
+        ['Juhataja: „Pood on kaks nädalat remondis ja avatakse siis uuesti.”', 'juhataja sõnul', 'Juhataja sõnul on pood kaks nädalat remondis ja avatakse siis uuesti.'],
+        ['„Meie majja kolis eile noor pere kolme lapsega.”', 'kaudne, minevik', 'Meie majja olevat eile kolinud noor pere kolme lapsega.|Meie majja olevat eile noor pere kolme lapsega kolinud.|Noor pere kolme lapsega olevat eile meie majja kolinud.'],
+      ]), [
+        'töötama → töötavat.',
+        'olema → olevat.',
+        'tulema → tulevat.',
+        'minevik: olevat + ostnud.',
+        'minema → minevat.',
+        'minevik: olevat + saanud.',
+        '… sõnul + kindel kõneviis: on (inimene ütles seda ise).',
+        'minevik: olevat + kolinud.',
+      ]), 'Kaheksa lauset näitavad, kas kaudse kõneviisi vormid on käes.'), { task: 'G05' }), V5_DRILL),
+      retire('063_p_know', V5_CUT),
+      retire('063_p_trans', V5_DRILL),
+      retire('063_p_witness', V5_CUT),
+      retire('063_p_day', V5_CUT),
+      retire('063_p_verbs', V5_DRILL),
+      retire('063_p_fix', V5_DRILL),
+      retire('063_p_relay', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(rows(B.writing('063_t_tale', 'Lugu: „Kuidas kuulujutt sündis”', 'Vaata pilti üleval või mõtle oma lugu. Kirjuta lehe rubriiki „Meie tänav” 70–100 sõna: mis juhtus, mida räägiti, mis oli tegelikult, mida õppisid.', [9, 12]), 8), 'Lehe lugejad saavad aru, kuidas kuulujutt sündis ja mis oli tegelikult.'), { task: 'W05', main: true, level: 4 }),
+      'Mooduli vaba kirjutamine (ilma antud alguse ja fraasideta, Harno B1 kirjutamise 2a vormis). Teine katse (lehel all): õpilane jutustab loo paarilisele ilma tekstita, kuulaja küsib kaks küsimust, millele loos vastust ei olnud; kodus salvestab. Õpilane kirjutab 15 minutit ilma abita pildi „Maja vestlus” järgi (kell 19.02 pilt kollasest autost ja kastidest; 19.05 „Kas keegi teab, mis toimub?”; 19.10 kolmanda korteri proua olevat ära kolinud; 19.14 ta olevat korteri maha müünud; 19.20 uus omanik tegevat sinna hostelit; 21.30 proua ise: „Ma ei koli kuhugi. Poeg toob mulle uue diivani ja viib vana ära.”) või oma loo järgi. Kontrolli: koht ja aeg, vähemalt kaks -vat-vormi, selge piir kuulujutu ja tegelikkuse vahel (tegelikult …), üks õppetund. Parandatud versioon on kodutöö.'), 4, 25, { final: 'explain' }),
+      tag(exitCheck(why(purpose(B.gaps('063_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna kaudses kõneviisis.', [
+        'Naabri sõnul [olevat] pagariäri juba terve nädala kinni. (olema)',
+        'Majas räägitakse, et uus omanik [tegevat] kolmandas korteris hostelit. (tegema)',
+        'Vestluses kirjutati, et proua olevat oma korteri juba maha [müünud]. (müüma)',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kaudse kõneviisi vormid on käes.'), ['olema → olevat.', 'tegema → tegevat.', 'minevik: olevat + müünud.'])), {}),
+      purpose(B.selfcheck('063_t_self', ['Ma saan aru, kuidas kuulujutt sündis ja mis oli tegelikult.', 'Ma annan kuuldut edasi: olevat, tulevat, olevat müünud, … sõnul, väidetavalt.', 'Ma eristan kuulujuttu ja fakti: tegelikult + kindel kõneviis.', 'Ma kirjutan ja jutustan loo, kuidas kuulujutt sündis.'], 'Lugu kirjutatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      teach(tag(homeTask(purpose(B.speaking('063_t_rec', 'Teine katse: jutusta oma lugu', 'Tunnis paaris, kodus salvesta: jutusta 2–3 minutit ilma tekstita ja ilma fraasideta, mida räägiti ja mis oli tegelikult.', [
+        'Mida räägiti ja kes seda ütles?',
+        'Kuidas jutt levis?',
+        'Mis oli tegelikult ja mida sa sellest õppisid?',
+      ], [120, 180]), 'Nüüd suuliselt ja ilma tekstita: kuulaja saab loost aru ja õpetaja kuuleb, kas -vat-vormid tulid õigesti.')), { task: 'S15', fluency: true }),
+      'Tunnis: paariline on naaber, kes loost midagi ei tea, ja küsib kaks küsimust, millele loos vastust ei olnud („Kas keegi vabandas?”, „Mida sa järgmisel korral teeksid?”). Üks-ühele: sina oled see naaber. Ära paranda kõne ajal; märgi üks -vat-vorm, mille õpilane pärast parandab. Kodus salvestab õpilane sama loo uuesti ilma tekstita.'),
+      homework('063_t_homework', ['1. Paranda lugu õpetaja märkuste järgi ja kirjuta see puhtalt.', '2. Salvesta oma teine katse (ülesanne üleval).', '3. Kirjuta vihikusse viis lauset: … olevat …, … tulevat …, … olevat teinud …, … sõnul …, Tegelikult …', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      retire('063_t_story', 'v5 (2026-11-25): lugu on nüüd kirjutamisplokk 063_t_tale (pilt ja ülesanne samal lehel)'),
+      retire('063_t_sit', V5_CUT),
+      retire('063_t_karl', V5_CUT),
+      retire('063_t_rubric', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 064 debate: a staff meeting and its agreement in a letter
+  'a2b1-064': {
+    title: 'Kokkulepe kirja',
+    phases: grammar('Keel: Kerli sõnul … · Rasmuse arvates … · Toomas pakkus, et … · Me leppisime kokku, et … · kuigi · seega'),
+    format: 'debate',
+    topic: 'work',
+    canDo: 'Ma saan aru töökoosolekust, kus inimesed on eri arvamusel, kirjutan kokkuleppe kohta juhatajale kirja ja lepin kolleegidega ise kokku.',
+    teacherPage: {
+      goal: 'Ученик понимает собрание с разными мнениями (… sõnul, … arvates), пишет руководителю письмо о договорённости (Harno W2b) и сам договаривается с коллегой (S1b).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → запись собрания «Müra kontoris» (2 раза, 8 предложений с пропусками), в паре таблица «кто что думает» (5 строк) → пункт 4: письмо руководителю по картинке «Koosoleku märkmed», вторая попытка — новое собрание о кухне (S1b) со скрытой информацией. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mis sind tööl, koolis või kodus teiste inimeste juures kõige rohkem segab?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 63 без записей: одно предложение с olevat.',
+      plan: [
+        '0–8: пункт 1 — что мешает работать; одно предложение с olevat (повторение урока 63)',
+        '8–28: пункт 2 — слова, запись собрания (≈ 2,5 мин, 2 раза), 8 предложений с пропусками, в паре письменно таблица «Kes? — mure — mida pakub» (5 строк)',
+        '28–50: пункт 3 — заметить → правило (Kerli sõnul / Rasmuse arvates; pakkus, et; leppisime kokku, et; kuigi; seega; Kas me saaksime …?) → 8 предложений письма из заметок Евы → анкета о работе в форме Harno W1a (ответы целыми предложениями) → план письма в паре',
+        '50–70: пункт 4 — письмо руководителю 80–100 слов без данного начала по картинке «Koosoleku märkmed» (15 мин); вторая попытка — собрание о кухне в офисе (S1b) со скрытой информацией',
+        '70–75: проверка на выходе, «Ma oskan …», домашнее задание (сообщение коллеге 6–8 предложений + голосовое сообщение 1 мин о договорённости по кухне; слова урока в «Harjuta → Sõnad»)',
+        'Kui aega jääb (10 мин, только в плане учителя): как проходят собрания у ученика на родине — кто решает, говорят ли все',
+        '75–90: запас',
+      ],
+      sources: 'Запись собрания (пункт 2), анкета (W1a) и картинка «Koosoleku märkmed» — учебные, фирма, люди и цены выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 2 в паре: A пишет строки Kerli и Rasmus, B — Toomas и Eva, последнюю строку вместе. Вторая попытка в паре: A и B — коллеги, у каждого своё мнение; один на один вы — коллега со скрытой информацией.',
+      errors: [
+        '«Kerli sõnul ta ei saa keskenduda» → «Kerli sõnul ei saa ta keskenduda» (после «… sõnul» сразу глагол).',
+        '«Rasmus arvates» вместо «Rasmuse arvates» (родительный падеж).',
+        '«Me leppisime kokku, et proovime» — правильно; «Me leppisime kokku proovida» — тоже возможно, но не «kokku leppisime proovima».',
+        'Письмо без договорённости и без просьбы: в письме должно быть, что решили, на сколько и что просим у руководителя.',
+      ],
+      notes: [
+        'Письмо — продукт урока: проблема, кто что думал (два «… sõnul / arvates»), договорённость и срок, просьба к руководителю, вежливое окончание.',
+        'Обратная связь, 2 цели: порядок слов после «… sõnul / Kuigi …, …» и полнота письма (4 пункта). Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('064_d_opinion', 'Mis sind segab?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Mis sind tööl, koolis või kodus teiste inimeste juures kõige rohkem segab? Kuidas te selle lahendasite?',
+        'Ütle ilma märkmeteta üks lause eelmisest tunnist kaudse kõneviisiga (… olevat …).',
+        'Kas sa räägid murest pigem otse või kirjutad sellest? Miks?',
+      ], [120, 180])), 'Sinu kogemus on tänase tunni algus: lõpus kirjutad kokkuleppe kohta kirja.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: räägi kõigepealt, mis sind tööl segab (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Kas sa ütlesid seda kolleegile?”). Ära paranda.'),
+      1, 8),
+      station(tag(half(B.vocab('064_d_vocab', 'Tunni sõnad.', ['koosolek — собрание', 'arvamus — мнение', 'kompromiss — компромисс', 'kokkulepe — договорённость', 'segama — мешать', 'keskenduma — сосредоточиться', 'kõrvaklapid — наушники', 'vaikus — тишина', 'proovima — пробовать', 'kokkuvõte — итог / резюме', 'ettepanek — предложение', 'ebamugav — неудобный'], '2')), {}), 2, 17),
+      tag(purpose(why(ownText(twice(B.listening('064_p_liis', 'Koosolek: müra kontoris.', 'Loe enne laused läbi. Siis kuula koosolekut kaks korda ja kirjuta igasse lünka üks sõna või number.', [
+        'Eva: Tere! Alustame. Meie juhataja on puhkusel ja palus, et me lepiksime täna kokku, kuidas avatud kontoris müra vähendada. Ma kirjutan pärast talle kokkuvõtte. Kerli, sina tõid selle teema välja.',
+        'Kerli: Jah. Ma teen raamatupidamist ja pean numbritele keskenduma. Aga minu laua kõrval räägitakse terve päev telefonis. Eelmisel nädalal tegin aruandes kaks viga, sest ma ei saanud keskenduda.',
+        'Rasmus: Ma saan aru, aga minu töö ongi telefonis rääkida. Ma helistan päevas umbes kolmekümnele kliendile. Ma ei saa iga kõne jaoks koridori minna.',
+        'Eva: Toomas, mida sina arvad?',
+        'Toomas: Mind segab rohkem see, et inimesed räägivad laudade vahel. Minu arvates oleks kõige lihtsam, kui kõigil oleksid mürasummutavad kõrvaklapid. Need maksavad umbes sada eurot tükk.',
+        'Kerli: Kõrvaklappidega ma terve päeva istuda ei saa, mul hakkab pea valutama.',
+        'Eva: Meil on ka koosolekuruum, mis on hommikuti tühi. Kas see aitaks?',
+        'Rasmus: Kõnede jaoks? Hommikuti küll. Aga pärast kella kahte on seal alati koosolekud.',
+        'Kerli: Mul on ettepanek. Teeme nii, et kella üheksast kaheteistkümneni on kontoris vaikne aeg. Siis helistab Rasmus koosolekuruumist ja mina teen kõige raskema töö.',
+        'Rasmus: Kuigi see on mulle natuke ebamugav, olen nõus proovima. Aga pärastlõunal pean saama oma laua tagant helistada.',
+        'Toomas: Ja kui Kerli vajab pärastlõunal vaikust, võib ta istuda väikeses toas akna juures. Seal on üks laud vaba.',
+        'Eva: Hea. Seega proovime uut korda kaks nädalat. Ma kirjutan juhatajale ja küsin, kas me saaksime osta ka kaks paari kõrvaklappe neile, kes tahavad. Kahe nädala pärast, kaheteistkümnendal mail, vaatame uuesti.',
+      ], [
+        'Eva sõnul on ettevõtte juhataja praegu [puhkusel] ja ootab koosoleku kokkuvõtet.',
+        'Kerli tegi eelmisel nädalal aruandes kaks [viga], sest ta ei saanud keskenduda.',
+        'Rasmus helistab oma töö tõttu päevas umbes [kolmekümnele|30] kliendile.',
+        'Toomase arvates oleks kõige lihtsam, kui kõigil kontoris oleksid mürasummutavad [kõrvaklapid].',
+        'Toomase sõnul maksavad ühed head kõrvaklapid umbes [sada|100] eurot.',
+        'Kontori koosolekuruum on tühi [hommikuti], aga pärast kella kahte on seal koosolekud.',
+        'Kerli ettepaneku järgi on kontoris vaikne aeg kella üheksast [kaheteistkümneni|12].',
+        'Eva sõnul proovitakse uut korda kaks [nädalat] ja siis arutatakse uuesti.',
+      ], 'g_read'))), [
+        'Eva: „Meie juhataja on puhkusel”.',
+        'Kerli: „tegin aruandes kaks viga”.',
+        'Rasmus: „Ma helistan päevas umbes kolmekümnele kliendile.”',
+        'Toomas: „kui kõigil oleksid mürasummutavad kõrvaklapid”.',
+        'Toomas: „Need maksavad umbes sada eurot tükk.”',
+        'Eva: „koosolekuruum, mis on hommikuti tühi”.',
+        'Kerli: „kella üheksast kaheteistkümneni on kontoris vaikne aeg”.',
+        'Eva: „Seega proovime uut korda kaks nädalat.”',
+      ]), 'Kuuled, kuidas neli kolleegi räägivad eri arvamustest ja leiavad kompromissi. Sellest kirjutad tunni lõpus kirja. Eksamil (Harno B1 kuulamine 3b) on sama ülesanne.'), { harno: 'L3b', task: 'L04' }),
+      teach(tag(purpose(B.table('064_d_views', 'Paaris: kes mida arvab?', 'Kirjutage koos terve lause: mis on inimese mure ja mida ta pakub (… sõnul, … arvates). Lõpus kokkulepe ja teie arvamus.', 'Kes?, Mis on tema mure?, Mida ta pakub?', [
+        'Kerli |  | ',
+        'Rasmus |  | ',
+        'Toomas |  | ',
+        'Eva |  | ',
+        'Kokkulepe |  | ',
+        'Meie arvamus |  | ',
+        'Mida küsida juhatajalt? |  | ',
+        'Mis saab kahe nädala pärast? |  | ',
+        'Mis on teie oma ettepanek? |  | ',
+        'Kes kirjutab juhatajale ja millal? |  | ',
+      ], 'g_read'), 'Teie tabel on kirja plaan: probleem, arvamused ja kokkulepe. Tunni lõpus kirjutad selle järgi juhatajale kirja, nii et iga rida on üks lause sinu kirjas.'), { task: 'L03' }),
+      'Paarid kirjutavad koos 6–8 minutit: A kirjutab Kerli ja Rasmuse read, B Toomase ja Eva read, viimase rea koos. Kontrolli, et pärast „… sõnul” tuleb tegusõna kohe (Kerli sõnul ei saa ta keskenduda) ja nimi on omastavas (Rasmuse arvates). Üks-ühele: õpilane kirjutab, sina ütled ühe rea valesti („Toomas tahab vaikset aega”) ja õpilane parandab salvestise järgi.'),
+      teach(tag(purpose(B.speaking('064_d_survey', 'Paaris: kellega sa nõustud?', 'Küsi paarilisel ja vasta ise kahe-kolme lausega: … sõnul, … arvates ja sinu arvamus. Siis vahetage.', [
+        'Kumma mure on sinu arvates suurem, Kerli või Rasmuse oma?',
+        'Mida arvad Toomase ettepanekust kõrvaklappide kohta?',
+        'Miks oli Rasmus lõpuks nõus vaikse ajaga?',
+        'Kas kokkulepe on sinu arvates hea ja õiglane?',
+        'Kas sinu töökohas või koolis on samasugune mure?',
+        'Kas avatud kontor on sinu arvates hea mõte?',
+        'Kes peaks sinu arvates sellise asja otsustama: juhataja või kõik koos?',
+      ], [120, 180], '', 'g_read'), 'Ütled koosoleku järgi, kes mida arvas, ja ütled oma arvamuse koos põhjusega. Nii valmistud koosolekuks, mida tunni lõpus ise juhid, ja harjutad vastama nagu eksamineerijale.'), { task: 'S09', fluency: true }),
+      'Paarid küsivad kordamööda. Kontrolli, et vastuses on üks „… sõnul / … arvates” ja oma arvamus põhjusega. Üks-ühele: sina küsid kaks küsimust, siis õpilane sinult; teisel ringil ütled sa ühe vale väite („Rasmuse arvates on kõrvaklapid parim lahendus”) ja õpilane parandab.'),
+      hide(B.review('064_d_review', [['Mida räägiti Kooli tänava pagariärist ja mis oli tegelikult?', 'a2b1-063'], ['Kuidas paluksid hotellis viisakalt teist tuba?', 'a2b1-062'], 'Kas sulle meeldivad koosolekud? Miks?']), V5_DRILL),
+      retire('064_d_hook', V5_CUT),
+      retire('064_d_voices', V5_CUT),
+      retire('064_d_model', V5_CUT),
+      retire('064_d_parts', V5_DRILL),
+      retire('064_d_survey', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('064_d_notice', 'Märka: kuidas kokkulepet kirjas edasi anda', [
+        'Arvamused: **Kerli sõnul** segab müra tema tööd. · **Rasmuse arvates** ei saa ta iga kõne jaoks välja minna. · **Toomas pakkus, et** kõigil võiksid olla kõrvaklapid. (pärast „… sõnul / arvates” tuleb tegusõna kohe)',
+        'Kokkulepe: **Me leppisime kokku, et** … · **Kuigi** see on Rasmusele ebamugav, **on** ta nõus proovima. · **Seega** proovime uut korda kaks nädalat.',
+        'Palve juhatajale: **Kas me saaksime** osta … ? · **Palun andke teada**, kas … · **Kohtume uuesti** 12. mail.',
+        'Kirja ülesehitus: pöördumine → miks kirjutad → probleem → arvamused → kokkulepe ja aeg → palve → lõputervitus ja nimi.',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.transformation('064_p_join', 'Märkmetest kirjalauseks.', 'Eva märkmed on lühikesed. Kirjuta igast märkmest terve lause kirja jaoks. Kasuta antud sõna.', [
+        ['Kerli: müra tõttu ei saa numbritele keskenduda', 'sõnul', 'Kerli sõnul ei saa ta müra tõttu keskenduda.|Kerli sõnul ei saa ta müra pärast keskenduda.|Kerli sõnul segab müra tal keskenduda.'],
+        ['Rasmus: 30 kõnet päevas, ei saa iga kõne jaoks koridori minna', 'arvates', 'Rasmuse arvates ei saa ta iga kõne jaoks koridori minna.'],
+        ['Toomas: kõigile kontoris mürasummutavad kõrvaklapid, umbes 100 eurot', 'pakkus, et', 'Toomas pakkus, et kõigil võiksid olla mürasummutavad kõrvaklapid.|Toomas pakkus, et kõigile ostetakse kõrvaklapid.|Toomas pakkus, et kõigile võiks osta kõrvaklapid.|Toomas pakkus, et kõigil võiksid olla kõrvaklapid.'],
+        ['kokkulepe: kella 9–12 vaikne aeg, kõned koosolekuruumist', 'leppisime kokku, et', 'Me leppisime kokku, et kella üheksast kaheteistkümneni on kontoris vaikne aeg.|Leppisime kokku, et kella 9–12 on kontoris vaikne aeg.|Me leppisime kokku, et kella 9–12 on vaikne aeg.'],
+        ['Rasmusele natuke ebamugav, aga ta on nõus proovima', 'kuigi', 'Kuigi see on Rasmusele ebamugav, on ta nõus proovima.'],
+        ['seega: proovime uut korda kaks nädalat', 'seega', 'Seega proovime uut korda kaks nädalat.|Seega proovime kaks nädalat.'],
+        ['juhatajalt küsida: kaks paari kõrvaklappe soovijatele?', 'kas me saaksime', 'Kas me saaksime osta kaks paari kõrvaklappe?|Kas me saaksime kaks paari kõrvaklappe osta?'],
+        ['uus koosolek 12. mail, siis vaatame, kas kord töötab', 'kohtume', 'Kohtume uuesti kaheteistkümnendal mail.|Me kohtume uuesti 12. mail.|Kohtume uuesti 12. mail.'],
+      ]), [
+        '… sõnul + tegusõna kohe: ei saa.',
+        'omastav + arvates: Rasmuse arvates ei saa.',
+        'pakkus, et + terve lause.',
+        'leppisime kokku, et + terve lause.',
+        'Kuigi …, + tegusõna kohe: on ta.',
+        'Seega + tegusõna kohe: proovime.',
+        'tingiv: saaksime + da: osta.',
+        'Kohtume uuesti + millal?',
+      ]), 'Kaheksa lauset on peaaegu valmis kiri: nii saavad märkmetest kirja laused.'), { task: 'W09' }),
+      teach(tag(purpose(B.examWriting('064_p_form', 'Kirjuta terved laused: töökoha küsitlus', 'Firma uurib, kuidas töötajad koos töötavad. Vasta igale küsimusele terve lausega; miks-küsimustele anna põhjus.', 'kusimustik', {
+        situation: 'Küsitlus „Koos on parem”. Vastused on anonüümsed. Kui sa ei tööta, vasta kooli või kursuse kohta.',
+        questions: [
+          'Mis on teie amet või mida te õpite?',
+          'Kas te töötate pigem üksi või koos teistega? Miks?',
+          'Mis teid tööl või koolis kõige rohkem segab?',
+          'Kas te eelistate kolleegiga rääkida või talle kirjutada? Miks?',
+          'Mida te teete, kui kolleeg on teiega eri arvamusel?',
+          'Kas avatud kontor on teie arvates hea mõte? Miks?',
+          'Milline on teie arvates hea koosolek?',
+          'Mida võiks teie töökohas või koolis paremini teha?',
+          'Kui palju aega te nädalas koosolekutel veedate?',
+          'Kas te soovitaksite oma töökohta sõbrale? Miks?',
+        ],
+      }), 'Kirjutad terveid lauseid oma tööst nagu Harno B1 kirjutamise 1. osa küsimustikus: need mõtted aitavad ka koosolekul.'), { task: 'W01' }),
+      'Küsimustik Harno B1 kirjutamise 1a vormis (~10 min). Eksamil vastatakse igale küsimusele lühidalt, aga miks-küsimustele tuleb anda põhjus. Kontrolli: terve lause, tegusõna olemas, põhjus (sest, kuna) miks-küsimustes. Üks-ühele: õpilane kirjutab 8 minutit, siis loeb kaks vastust ette ja sina küsid ühe „Miks?” juurde.'),
+      teach(tag(purpose(B.planning('064_t_plan', 'Paaris: kirja plaan.', 'Kirjutage koos igale küsimusele paar märksõna. Siis ütleb kumbki, millest tema kiri algab ja millega lõpeb.', [
+        'Kellele ja miks sa kirjutad?',
+        'Mis oli probleem?',
+        'Kes mida arvas? (… sõnul, … arvates)',
+        'Milles te kokku leppisite ja kui kauaks?',
+        'Mida sa juhatajalt palud?',
+      ], 2), 'Plaan aitab kirjutada kirja, kus on kõik neli tähtsat asja.'), { task: 'W11' }),
+      'Paarid kirjutavad märksõnad 3–4 minutit ja ütlevad siis suuliselt esimese ja viimase lause. Üks-ühele: õpilane teeb plaani, sina küsid: „Mida sa juhatajalt palud?”.'),
+      retire('064_p_forms', V5_DRILL),
+      retire('064_p_fix', V5_DRILL),
+      retire('064_p_heat', V5_CUT),
+      retire('064_p_know', V5_CUT),
+      retire('064_p_topic', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(rows(B.writing('064_t_mail', 'Kiri juhatajale: mida me kokku leppisime', 'Vaata pilti üleval. Sina oled Eva, juhataja on puhkusel. Kirjuta talle kiri 80–100 sõna: probleem, kes mida arvas, kokkulepe ja aeg, sinu palve.', [10, 12]), 8), 'Juhataja saab kirjast teada, mis oli probleem, kes mida arvas ja mida te otsustasite.'), { task: 'W04', main: true, level: 4 }),
+      'Mooduli kiri (ilma antud alguse ja fraasideta, Harno B1 kirjutamise 2b vormis). Õpilane kirjutab 15 minutit plaani ja pildi „Koosoleku märkmed” järgi. Kontrolli: pöördumine ja põhjus, kaks arvamust (… sõnul, … arvates), kokkulepe koos ajaga (kaks nädalat, 12. mai), üks palve tingiva kõneviisiga (Kas me saaksime …), lõputervitus ja nimi. Üks-ühele: õpilane loeb kirja ette, sina oled juhataja ja küsid ühe küsimuse, millele kirjas vastust ei ole.'), 4, 25, { final: 'plan' }),
+      teach(tag(purpose(B.ideaCard('064_t_meeting', 'Teine katse: koosolek kontori köögist', 'A ja B on kolleegid. Öelge arvamus ja põhjus, siis leppige 3–4 minutiga kokku üks kord kaheks nädalaks. Ilma fraasideta.',
+        'Kontori köök on alati segamini: kraanikausis on tassid ja külmkapis vana toit. Köögi jaoks on raha 30 eurot kuus.',
+        ['nõudepesu graafik: iga päev üks inimene', 'igaüks peseb oma tassi kohe', 'reedel tühjendatakse külmkapp', 'koristaja kord nädalas (40 € kuus)', 'nõudepesumasin (350 €)'],
+        'üks kord: kes mida teeb, millest alustate ja millal te kokkulepet kontrollite', [180, 300]), 'Nüüd juhid ise koosolekut: arvamus, põhjus, kompromiss ja kokkulepe.'), { task: 'S03', level: 4 }),
+      'Kokkulepe ideekaardiga Harno B1 rääkimise 1b vormis (~4 min). Üks-ühele: sina oled kolleeg. Varjatud info: sa töötad kontoris ainult kolmel päeval nädalas ja graafik sulle ei meeldi; sa jood ainult oma termosest ja köögi segadus ei ole sinu süü; sa tead, et juhataja on lubanud köögi jaoks 30 eurot kuus, mitte rohkem. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Miks mina pean pesema teiste tasse?”; 2) kui plaan maksab üle 30 euro kuus: „Selleks meil raha ei ole.”; 3) „Kes kontrollib, et graafikut täidetakse?” Õnnestunud, kui õpilane ütleb arvamuse ja põhjuse, reageerib vastuväitele (Kuigi …, …), leiab kompromissi eelarve piires ja kordab kokkuleppe üle (kes, mida, millal vaatame uuesti).'),
+      tag(exitCheck(why(purpose(B.gaps('064_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Kerli [sõnul] segavad telefonikõned laua kõrval tema tööd numbritega. (sõna)',
+        'Me [leppisime] koosolekul kokku, et proovime uut korda kaks nädalat. (leppima)',
+        'Kas me [saaksime] osta kontorisse kaks paari mürasummutavaid kõrvaklappe? (saama)',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset kirjast: kas arvamus, kokkulepe ja palve on õiges vormis?'), ['… sõnul: Kerli sõnul.', 'minevik, meie: leppisime.', 'tingiv, meie: saaksime.'])), {}),
+      purpose(B.selfcheck('064_t_self', ['Ma saan aru koosolekust, kus inimesed on eri arvamusel.', 'Ma annan arvamusi edasi: … sõnul, … arvates, pakkus, et.', 'Ma kirjutan kokkuleppe kohta kirja: probleem, arvamused, kokkulepe, palve.', 'Ma lepin kolleegidega kokku ja leian kompromissi.'], 'Kokkulepe kirjas', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.writing('064_t_home', 'Kodus: sõnum kolleegile.', 'Kolleeg ei olnud köögi koosolekul. Kirjuta talle 6–8 lauset: probleem, kokkulepe, tema ülesanne. Saada ka 1-minutiline häälsõnum.', [6, 8]), 'Kolleeg teab, mida otsustati, ja õpetaja näeb ja kuuleb, kas kokkulepe on selge.')), { task: 'W12' }),
+      retire('064_t_letter', 'v5 (2026-11-25): kiri on nüüd kirjutamisplokk 064_t_mail (pilt ja ülesanne samal lehel)'),
+      retire('064_t_sit', V5_CUT),
+      retire('064_t_notes', V5_CUT),
+      retire('064_t_edit', V5_CUT),
+      retire('064_t_rubric', V5_CUT),
+      retire('064_t_rec', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 065 control 13 (one sheet): reading, listening, speaking
+  'a2b1-065': {
+    title: 'Kontroll 13: suhtlemine ja probleemilahendus',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen kirja ja teadet, saan aru raadioloost, räägin ilma abita ühest raskest vestlusest ja lepin kolleegiga kokku.',
+    discover: [
+      B.examPart('065_p_rpart', 'R', { part: 'Lugemine', minutes: 18, points: 18, tasks: 2, target: 60, note: `See on mooduli 13 kontroll: kolm osa, umbes 40 minutit, ilma sõnaraamatuta. ${THRESHOLDS}` }),
+      tag(why(B.gaps('065_p_r3', 'Lugemine 1. Kiri sõbrale.', 'Loe kirja. Kirjuta igasse lünka sobiv sõna pangast; kaks sõna jääb üle.', [
+        'Tere, Eliise! Elan uues korteris juba kolm [nädalat].',
+        'Alguses oli raske, sest ma ei tundnud majas [kedagi].',
+        'Ühel päeval palus naaber mul oma kassi [toita], kui ta oli tööreisil.',
+        'Ma olin hea meelega [nõus], sest mulle meeldivad kassid.',
+        'Pärast seda kutsus ta mind [külla] ja me jõime koos teed.',
+        'Majas räägiti, et ta [olevat] kunagi olnud kuulus laulja.',
+        'Tegelikult selgus, et ta [õpetab] muusikakoolis laulmist.',
+        'Ta [soovitas] mul ka keelekohvikus käia, sest seal saab palju rääkida.',
+        'Nüüd käime seal koos ja ta parandab [viisakalt] minu vigu.',
+        'Kas sa [saaksid] mulle järgmisel nädalal helistada? Räägin rohkem!',
+      ], ['nädalat', 'kedagi', 'toita', 'nõus', 'külla', 'olevat', 'õpetab', 'soovitas', 'viisakalt', 'saaksid', 'keeldus', 'kuigi'], 'full', 'g_read'), [
+        'kolm + osastav: nädalat.',
+        'eitus + osastav: ei tundnud kedagi.',
+        'paluma + da: toita.',
+        'nõus olema: olin nõus.',
+        'Kuhu? → külla.',
+        'räägiti, et … → kaudne: olevat.',
+        'Tegelikult + kindel kõneviis: õpetab.',
+        'soovitama kellel / kellele + da: soovitas mul käia.',
+        'Kuidas? → viisakalt.',
+        'viisakas palve: saaksid.',
+      ]), { task: 'R04', harno: 'R3b' }),
+      tag(why(B.gaps('065_p_r4', 'Lugemine 2. Teade naabritele.', 'Teatest on välja võetud kaheksa lauseosa. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
+        'Head Lille tänava elanikud! Laupäeval, 6. juunil korraldame naabripäeva, [et naabrid saaksid üksteisega tuttavaks].',
+        'Kokku saame kell kaks hoovis, [kus on lauad ja pingid kõigile].',
+        'Linnaosa toob grilli ja joogid, [aga palume igaühel kaasa võtta üks suupiste].',
+        'Lastele on mängud ja maalimine, [mida juhivad kooli õpilased].',
+        'Kui sajab vihma, [kohtume kooli võimlas].',
+        'Kella neljast räägime koos, [mida võiks meie tänaval paremaks muuta].',
+        'Palun andke reedeks teada, [mitu inimest teie perest tuleb].',
+        'Kui te ise tulla ei saa, [võite oma mõtted kirjutada maja postkasti].',
+      ], ['et naabrid saaksid üksteisega tuttavaks', 'kus on lauad ja pingid kõigile', 'aga palume igaühel kaasa võtta üks suupiste', 'mida juhivad kooli õpilased', 'kohtume kooli võimlas', 'mida võiks meie tänaval paremaks muuta', 'mitu inimest teie perest tuleb', 'võite oma mõtted kirjutada maja postkasti', 'sest pidu jääb ära', 'kuigi keegi ei tulnud'], 'full', 'g_read'), [
+        'Miks? → et + tingiv: saaksid.',
+        'Kus? → kus on lauad.',
+        'vastand: aga palume.',
+        'Kes juhivad? → mida juhivad õpilased.',
+        'Kui sajab … → mis siis: kohtume võimlas.',
+        'Millest räägime? → mida võiks paremaks muuta.',
+        'Mida teada anda? → mitu inimest tuleb.',
+        'Kui ei saa tulla … → mida teha: võite kirjutada.',
+      ]), { harno: 'R4', task: 'R16' }),
+      B.examPart('065_p_lpart', 'L', { part: 'Kuulamine', minutes: 8, points: 8, tasks: 1, target: 60, note: 'Kuulad kaks korda.' }),
+      tag(why(locked(B.examListen('065_p_l2', 'Kuulamine. Raadiolugu.', 'Kuula raadiolugu hotellikaebustest kaks korda. Vali igale küsimusele kolmest vastusest üks.', 'choice', OLD_BLOCKS['065_p_l2'].data.transcript, [
+        ['Millest raadioloos räägitakse?', 'mida teha, kui hotellituba ei vasta broneeringule', 'kuidas osta odavat praamipiletit', 'kuidas restoranis lauda broneerida'],
+        ['Millal tasub nõustaja sõnul probleemist teatada?', 'kohe vastuvõtus', 'pärast koju jõudmist', 'järgmisel aastal'],
+        ['Mida tuleb teha, kui hotell probleemi ei lahenda?', 'teha pilte ja kirjutada kirjalik kaebus', 'kirjutada internetti halb arvustus', 'lahkuda kohe hotellist'],
+        ['Mitu päeva on hotellil aega kaebusele vastata?', 'viisteist', 'viis', 'kolmkümmend'],
+        ['Kui palju maksab vaidluse lahendamine tarbijavaidluste komisjonis?', 'mitte midagi, see on tasuta', 'viisteist eurot', 'viiskümmend eurot'],
+        ['Mida soovitab nõustaja teha juba broneerimisel?', 'tingimused hoolikalt läbi lugeda', 'küsida alati allahindlust', 'maksta kohe kogu summa'],
+        ['Mida tuleb kirjalikus kaebuses hotellile öelda?', 'mis juhtus ja mida te soovite', 'kui palju tuba maksis', 'kes hotellis töötas'],
+        ['Miks tasub nõustaja sõnul hotellis rahulikult ja viisakalt rääkida?', 'siis leitakse lahendus tavaliselt kiiremini', 'siis saab alati raha tagasi', 'siis ei pea kaebust kirjutama'],
+      ])), [
+        'Diktor: „Mida teha, kui hotellituba ei vasta broneeringule või ei ole puhas?”',
+        'Diktor: „tasub probleemist teatada kohe vastuvõtus”.',
+        'Diktor: „tuleb teha pilte ja kirjutada hotellile kirjalik kaebus”.',
+        'Diktor: „Hotellil on aega kirjalikule kaebusele vastata viisteist päeva.”',
+        'Diktor: „Vaidluse lahendamine komisjonis on tasuta.”',
+        'Diktor: „soovitab ka broneerimisel tingimused hoolikalt läbi lugeda”.',
+        'Diktor: „Kirjas tuleb öelda, mis juhtus ja mida te soovite”.',
+        'Diktor: „Kui klient on rahulik, leitakse lahendus tavaliselt kiiremini.”',
+      ]), { harno: 'L2', task: 'L02' }),
+      half(B.examPart('065_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele või paaris. Ülesanne 1 on ilma abita; ülesanne 2 on kokkulepe.' })),
+      teach(tag(half(B.speaking('065_t_s1', 'Rääkimine 1. Üks raske vestlus.', 'Räägi 2–3 minutit ilma abita ja ilma märkmeteta.', [
+        'Räägi ühest korrast, kui sa pidid kellegagi midagi rasket arutama: kellega, mis oli probleem, mida sa ütlesid ja palusid, kuidas te kokku leppisite ja mida sa järgmisel korral teisiti teeksid?',
+      ], [120, 180])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 61 külm start): sama hindamine, sarnane teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset; sidesõnad sest, aga, kui, kuigi; vormid: palve edasi paluma + da, nõus + ma, tingiv kõneviis, kaudne kõneviis) ja võrdle tunni 61 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.ideaCard('065_t_s1b', 'Rääkimine 2. Kokkulepe: keelekohvik tööl.', 'Õpetaja või paariline on sinu kolleeg. Arutage umbes 4 minutit ja leppige kokku üks plaan.',
+        'Teie töökohas tahetakse alustada eesti keele keelekohvikuga: üks kord nädalas, üks tund. Raha on 50 eurot kuus.',
+        ['lõunapausil kontori köögis', 'reede õhtul kohvikus', 'kohv ja küpsised (20 € kuus)', 'õpetaja kord kuus (50 €)', 'iga kord üks teema', 'eesti keelt rääkivad kolleegid abiks'],
+        'millal ja kus, mida te teete ja kuidas raha kasutate', [180, 300]), { harno: 'S1b', task: 'S03' }),
+      'Kokkulepe nagu Harno B1 rääkimise 1b osas (~4 min). Õpetaja on kolleeg ja ütleb kaks korda vastu: 1) „Lõunapausil tahan ma süüa, mitte õppida.”; 2) kui plaan maksab üle 50 euro kuus: „Nii palju raha meil ei ole.” Punktid 0–5: ütleb arvamuse ja põhjuse 0–1, reageerib vastuväitele ja pakub kompromissi 0–2, vormid (tingiv kõneviis, nõus + ma, kuigi) 0–1, kordab kokkuleppe üle 0–1.'),
+      teach(half(B.table('065_t_profile', 'Minu tulemus.', 'Kirjuta iga osa punktid ja protsent. Viimases lahtris võrdle rääkimist tunni 61 alguse ülesandega.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Lugemine (18 p) |  |  | ',
+        'Kuulamine (8 p) |  |  | ',
+        'Rääkimine (10 p) |  |  | ',
+      ])), 'Õpetajale: rääkimise rea viimases lahtris on tunni 61 külma stardi ja selle tunni rääkimise 1 võrdlus (kolm märget). Kokku 36 punkti: 60 % ≈ 21,6, 70 % ≈ 25,2, 80 % ≈ 28,8 punkti. Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (lugemine → tunnid 61 ja 63, kuulamine → tunnid 62 ja 64, rääkimine → tunnid 61, 62 ja 64). Kirjutamist selles kontrollis ei ole: mooduli kirjad (063 lugu, 064 kiri juhatajale) on hinnatud tunnis.'),
+      retire('065_d_intro', V5_EXAM),
+      retire('065_d_vocab', V5_EXAM),
+      retire('065_d_quiz', V5_DRILL),
+      retire('065_d_story', V5_CUT),
+      retire('065_d_sort', V5_DRILL),
+      retire('065_d_cross', V5_DRILL),
+      retire('065_d_trans', V5_DRILL),
+      retire('065_d_fix', V5_DRILL),
+      retire('065_d_write', V5_EXAM),
+      retire('065_d_warm', V5_EXAM),
+    ],
+    practice: [
+      retire('065_p_r1', V5_EXAM),
+      retire('065_p_r2text', V5_EXAM),
+      retire('065_p_r2', V5_EXAM),
+      retire('065_p_l1', V5_EXAM),
+      retire('065_p_l3', V5_EXAM),
+      retire('065_p_l4', V5_EXAM),
+      retire('065_p_rcheck', V5_EXAM),
+      retire('065_p_lcheck', V5_EXAM),
+      retire('065_p_points', V5_EXAM),
+    ],
+    transfer: [
+      retire('065_t_wpart', V5_EXAM),
+      retire('065_t_w1', V5_EXAM),
+      retire('065_t_rw1', V5_EXAM),
+      retire('065_t_w2', V5_EXAM),
+      retire('065_t_rw2', V5_EXAM),
+      retire('065_t_s0', V5_EXAM),
+      retire('065_t_s2', V5_EXAM),
+      retire('065_t_rs', V5_EXAM),
+      retire('065_t_points', V5_EXAM),
+      retire('065_t_self', V5_EXAM),
     ],
   },
 }, {

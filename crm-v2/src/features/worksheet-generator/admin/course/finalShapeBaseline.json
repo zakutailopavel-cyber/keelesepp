@@ -92,11 +92,12 @@
   "*|*|V5-pairs",
   "a2b1-057|*|V11-input"
  ],
+ "a2b1-module-13": [
+  "*|*|V4-type-speaking"
+ ],
  "course": [
-  "*|*|V6-corner-L2",
   "*|*|V6-exam-S1b",
   "*|*|V6-gap-L2",
-  "*|*|V6-total-L2",
   "*|*|V6-variant-W1a"
  ]
 }
