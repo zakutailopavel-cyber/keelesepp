@@ -32,7 +32,9 @@ describe('B1 → B2 lesson goals (lesson quality contract A2–A3)', () => {
           used[block.goal] = (used[block.goal] || 0) + 1;
         }
       }
-      for (const key of Object.keys(goals)) expect(used[key] || 0, `${id} ${key}`).toBeGreaterThanOrEqual(2);
+      // v5 (docs/METHODOLOGY_B1_B2_V5.md): one input a lesson — its one recording may carry g_listen alone
+      const v5 = Object.keys(PHASES).some((phase) => buildCourseSheet(moduleOf(id), id, phase).meta?.methodV5);
+      for (const key of Object.keys(goals)) expect(used[key] || 0, `${id} ${key}`).toBeGreaterThanOrEqual(v5 && key === 'g_listen' ? 1 : 2);
     }
   });
 

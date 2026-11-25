@@ -1,35 +1,48 @@
-// B2 course (B1 → B2 roadmap), module 10 „Suhted ja konfliktid” (b1b2-046…050), stage B1+/B2- (the module file is B2-:
-// homework 140–180 words, the B2 opener and article lengths).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–7. Module goal (the learner): „Ma oskan oma suhetes pinget rahulikult lahendada: kirjeldan
-// inimest õiglaselt, ütlen, mida tunnen ja miks, annan teiste sõnad täpselt edasi ja jõuan kokkuleppeni”; module product
-// „Minu kokkuleppe kaart” (049 Kasuta, the S16 one-minute talk in 050). Relationships from the learner's own angle: his
-// friends, money lent to a friend, a noisy house and its chat, a family that plans one summer. The learner may always
-// choose a neutral or invented story; no personal disclosure is required. Not repeated from earlier modules: a colleague
-// conflict at work (module 6), a complaint to a service (module 2), a rental deposit (module 4).
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 10).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   046 facts    „Kas sul on sõber, kellele saad öösel kell kolm helistada?”  free time (friends)   final present: a friend's reference (S11)
-//   047 case     „Sõber ei maksa 300 eurot tagasi — kuidas sellest rääkida?”  money                 final explain: talk with the friend (S13)
-//   048 infogap  „Muusika kell 23 ja majagrupp keeb — kuidas tüli vahendada?”  neighbours            final advise: relay between neighbours (S05)
-//   049 game     „Kaks õde ja üks apelsin: kuidas pere ühise plaani leiab?”    family (generations)  final negotiate: the family summer (S17)
-//   050 exam     Kontroll 10 in Harno B2 form + „Minu kokkuleppe kaart” as the S16 one-minute talk.
-// Grammar line of the roadmap (B2, docs/METHODOLOGY_STANDARD.md §5) by discovery and spiralled: character words and their
-// derivation — adjective → noun (aus → ausus, kannatlik → kannatlikkus) and the opposite (eba-, -matu) (046; back in 050);
-// feelings with cause and consequence (kuna, seetõttu, mistõttu) and the clitic -ki / -gi with the indefinite pronouns —
-// isegi, keegi, mitte keegi, ei tulnudki (047; back in 048's voice message and 050); reported speech — ütles, et …; küsis,
-// kas …; palus, et … / palus + da; väitis, et … with the quotative -vat of module 7 (048; back in 049's radio and 050);
-// soft proposals and conditions — ma saan aru, et …; mis oleks, kui …; kas saaksime …; olen nõus tingimusel, et …
-// (049, after module 7's conditional; back in 050). The one long text of the module is the topic opener (046 station 2,
-// ≈ 330 words, after a 15-minute hook and pre-taught words). The course's cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js (046 without g_listen: it has no recording) and the archetypes
-// (LUGE, RÄÄK, KIRJ, PROJ, EKS) with the exam corners R1, W1, R2b, S2. The v2 storyline version (Vahtra 5, Tuul Logistika,
-// Oskar and Rasmus, the mediated meeting) is in git history before 2026-11-19.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B2 course (B1 → B2 roadmap), module 10 „Suhted ja konfliktid” (b1b2-046…050), stage B2-.
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, strictModulesV5.json) on the v3 station engine with the
+// v4 task formats (docs/COURSE_DESIGN_STATIONS.md §7), built like modules 1–9 (b2/module01.js … module09.js): one real
+// communicative outcome a lesson, ONE input, ≤ 4 / 4 / 5 blocks a sheet and ≤ 14 a lesson, a 75-min core in 4 stations.
+// Module goal (the learner): „Ma oskan oma suhetes pinget rahulikult lahendada: kirjeldan inimest õiglaselt, ütlen, mida
+// tunnen ja miks, annan teiste sõnad täpselt edasi ja jõuan kokkuleppeni.” Relationships from the learner's own angle: a
+// friend he recommends, money lent to a friend, a noisy house and its chat, a family that plans one summer. The learner
+// may always choose a neutral or invented story; no personal disclosure is required.
+//   Avasta  (4): station 1 one statement (046: the module's cold task in SPEECH, 2 minutes to think + 1 minute; module 9
+//                measured writing), station 2 the lesson's words, one explanatory scheme and the ONE input — reading
+//                about 450–500 words with 3 inference questions (046 how a friendship grows, 048 a house chat that boils
+//                over) or listening about 3.5–4 min with 2 voices and 10 items (047 money between friends, 049 position
+//                and interest in a family).
+//   Harjuta (4): station 3 the rule (the B1 form as a one-line review, then the B2 step), one form task of 10 items and
+//                one coherent text of 10 gaps, both without a word bank (a reference for an animal shelter, a forum post,
+//                the minutes of a house meeting, a family chat), and one register / paraphrase task of 8 rows (message to
+//                a friend → reference letter, reproach → I-message, order → proposal; in 048 the board's newsletter with a
+//                bank of 8 neutral sentences and one angry chat message left over — the Harno R4 corner).
+//   Kasuta  (5): station 4 the plan, the product (a reference for a friend, a debate with keyword cards, a mediation
+//                between two neighbours, a negotiation game of three generations — each with hidden information), the
+//                home writing of ~140 or ~180 words with the 1-min voice message, the analytic Harno B2 rubric (a
+//                borderline sample in the teacher's note) and the exit „Ma oskan …” with three success criteria.
+//   046 facts   „Kas sul on sõber, kellele saad öösel kell kolm helistada?”  reading „Sõber ei teki iseenesest”       character nouns and opposites
+//   047 case    „Sõber ei maksa 300 eurot tagasi — kuidas sellest rääkida?”  radio „Raha ja sõprus”, 2 voices          feelings with their case, -ki / -gi
+//   048 infogap „Muusika kell 23 ja majagrupp keeb — kuidas tüli vahendada?”  reading „Kui majagrupp keeb”           reported speech, precisely
+//   049 game    „Kaks õde ja üks apelsin: kuidas pere ühise plaani leiab?”    radio „Seisukoht ja huvi”, 2 voices      proposals and conditions
+//   050 exam    Module control: one sheet, 45 min, LISTENING + SPEAKING (module 7 L + W, module 8 R + S, module 9 R + W).
+//                Why L + S: the module's cold task is spoken (module 9 measured writing), so its parallel task must be
+//                spoken too; the module product „Minu kokkulepe” is a talk; conflicts are solved by listening and
+//                speaking. Listening opens with L1 as on the exam: eight short notices, each its own clip of 35–45 s heard
+//                once (locked); then the v4 interview with a house chairman, now heard twice and locked.
+// Module requirements (v5 §2): cold task 046_d_cold (2 + 1 minutes, no phrases) ↔ parallel new task 050_t_cold (same
+// conditions, new statement); a speech without phrases in every other station 1 (047–049); hidden-information cards
+// 046_t_call, 047_t_talk, 048_t_relay, 049_t_game, 050_t_deal („Varjatud info:”); debate cards with 2–3 keywords an
+// argument (047_t_talk); link task 049_t_plan (a real bus or train on Peatus.ee); one scheme a teaching lesson (046 flow,
+// 047 formula, 048 flow, 049 compare); texts are adapted learning texts without exact statistics („KeeleSepp õppetekst”,
+// owner 2026-11-25); no story cast, no dictation, no „Kas teadsid?”. Module 3 had the adjective, module 7–9 kuna /
+// seetõttu / mistõttu, module 2 and 8 the conditional, module 7 the quotative -vat: each comes back here as the one-line
+// review, the B2 step is new.
+// Kept: lesson ids, titles, the four lesson topics and formats, the archetypes (LUGE, RÄÄK, KIRJ, PROJ, EKS). Removed
+// blocks stay in the file as hide(block, why) (blocks.js) — the v4 lessons of 2026-11-19 are kept below as V4 and every
+// block not on a v5 sheet is taken from there with retire(): off every sheet, ids and learners' answers kept; their closed
+// drills still feed the Harjuta practice engine (practice/engine/extract.js) with their old explanations (OLD_WHY, the
+// v4 EXPLAIN map).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -40,13 +53,55 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every v4 lesson (hidden in v5: the home task is the writing on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 10. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
 const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
 // nobody has to tell a real story from his own life
 const OWN_OR_INVENTED = 'Võid rääkida oma, tuttava või väljamõeldud loo.';
+// the home voice message of v5 (§3): one line at the end of the home writing (a learner who cannot record says it in class)
+const VOICE_HOME = 'Salvesta ka 1-minutiline häälsõnum samal teemal.';
+
+// why a block left the sheet (v5 §4)
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_DRILL = 'closed drill / exit gaps → Harjuta (v5 §4: drills off the lesson sheet)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home task is the writing on the sheet with its 1-min voice message (v5 §3)';
+const CUT_HOOK = 'v5: station 1 is one statement the learner answers at once (5 min); the hook text and the talk merged';
+const CUT_TALK = 'v5: a 2.5–3.5-min talk with phrases in station 1 (audit 2026-11-25: B2 talks 1 min); the cold task 046_d_cold takes its place';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) or a second input';
+const CUT_SHORT = 'a short voice message below B2 as the input (audit 2026-11-25): replaced by the lesson\'s one input';
+const CUT_OLDTASK = 'v4 task replaced by the v5 task of the same station (new id, other block type)';
+const CUT_KNOW = '„Kas teadsid?” (v5 §4: cut unless the task uses it)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, listening + speaking (v5 §5)';
+
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 1–9, 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (käänded, sõnajärg sidendi järel, kaudne kõne, tingiv kõneviis, tunde sõna rektsioon) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+// short: the one-line descriptors (the same four criteria), where the full ones would leave the self-check alone on a page
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = false) => {
+  const b = B.rubricW2(id, title);
+  return teach(purpose({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Analüütiline hindamisjuhend (Harno B2): neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Sama juhendiga kontrollid oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, 'Enne saatmist näed, mille eest hindaja punkte annab.'), sample);
+};
+// a home text is written at home: fewer lines on the sheet, so the sheet ends on a full page
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// control: change a kept v4 block's data; the recordings' play count (G6: B2 2×, a short clip 1×, locked in a control)
+const patch = (b, data) => ({ ...b, data: { ...b.data, ...data } });
+const twice = (b) => ({ ...b, data: { ...b.data, plays: 2, lockPlays: true } });
+const once = (b) => ({ ...b, data: { ...b.data, plays: 1, lockPlays: true } });
+// L1 as on the exam: every short clip is its own recording (tools/listening-audio, `questions[i].script`, one play
+// button a clip); the block's transcript stays the whole text the teacher reads (as b2/module07.js)
+const perClip = (block) => {
+  const clips = String(block.data.transcript).split('\n').map((line) => line.replace(/^[^:]{1,20}:\s*/, '').trim()).filter(Boolean);
+  return { ...block, data: { ...block.data, questions: block.data.questions.map((q, i) => ({ ...q, script: clips[i] })) } };
+};
 
 export const MODULE = { id: 'b1b2-module-10', course: 'b2', title: 'Suhted ja konfliktid', level: 'B2-', design: 'v3-stations', template: 'v4' };
 
@@ -54,7 +109,8 @@ export const MODULE = { id: 'b1b2-module-10', course: 'b2', title: 'Suhted ja ko
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
-export const LESSONS = withShapes({
+// the v4 lessons of 2026-11-19 (B1+ „task-based”): the source of every block that is not on a v5 sheet
+const V4 = {
   'b1b2-046': {
     title: 'Kas sul on sõber, kellele saad öösel kell kolm helistada?',
     phases: grammar('Keel: omadus ja vastand — lahke → lahkus, sõbralik → sõbralikkus → ebasõbralik, tänama → tänamatu'),
@@ -712,14 +768,10 @@ export const LESSONS = withShapes({
       B.selfcheck('050_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Moodul 10 läbitud'),
     ],
   },
-}, {
-  'b1b2-046': 'LUGE R→W', 'b1b2-047': 'RÄÄK R→S', 'b1b2-048': 'KIRJ L→W', 'b1b2-049': 'PROJ L→S', 'b1b2-050': 'EKS',
-});
+};
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the explanations of the v4 blocks (the v4 EXPLAIN map), kept for the Harjuta practice engine
+const OLD_WHY = {
   // 046
   '046_d_facts': [
     '1. lõik: „meil saadetakse kaarte ja kommi ka sõpradele, klassikaaslastele ja kolleegidele”.',
@@ -919,3 +971,817 @@ export const EXPLAIN = {
     'Vale: „puuritakse ainult pärastlõunal”.',
   ],
 };
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id, reason) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module10: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reason);
+};
+
+export const LESSONS = withShapes({
+  'b1b2-046': {
+    title: 'Kas sul on sõber, kellele saad öösel kell kolm helistada?',
+    phases: grammar('Kordamine: aus, kannatlik · B2: ausus, sõbralikkus, ebaaus, hoolimatu, abitu; hindan tema ausust'),
+    format: 'facts',
+    topic: 'freetime',
+    canDo: 'Ma soovitan sõpra tegude kaudu, loen artiklit sõprusest ja kirjutan umbes 140-sõnalise soovituskirja.',
+    teacherPage: {
+      goal: 'Холодная задача устно; статья «как знакомый становится другом»; качество как существительное и антоним; рекомендация друга со скрытой информацией; дома письмо 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–5 и вопросы 1–5; станция 3 — правило и 10 предложений; разговор без третьего препятствия.',
+      hook: '«Väide: täiskasvanuna on uut sõpra peaaegu võimatu leida.» Ученик 2 минуты думает (можно записать слова) и 1 минуту говорит без помощи. Это холодная задача модуля (устно; модуль 9 мерил письмо): не помогайте, не давайте фраз, не исправляйте. Запишите заметки — в уроке 050 ученик говорит параллельную задачу в тех же условиях.',
+      plan: [
+        '0–5: станция 1 — холодная задача: 2 минуты подготовки, 1 минута речи без помощи; заметки сохраните до 050',
+        '5–25: станция 2 — 10 слов (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин), схема «как знакомый становится другом» (3 мин)',
+        '25–45: станция 3 — прилагательное одной строкой, B2: ausus, sõbralikkus, ebaaus, hoolimatu, abitu и падеж существительного; 10 предложений, рекомендация в приют для животных с 10 пропусками без банка, регистр (8 строк): сообщение другу → рекомендательное письмо',
+        '45–70: станция 4 — план (3 мин), картинка, разговор с дочерью хозяйки со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: рекомендательное письмо 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «Угадай качество» — описать человека только поступками, партнёр называет качество и существительное (kannatlik → kannatlikkus)',
+      ],
+      sources: 'Статья «Sõber ei teki iseenesest» — учебный текст KeeleSepp, без точной статистики. Общая основа: исследования о времени, нужном для дружбы (например, J. A. Hall, 2018: десятки часов до дружбы, сотни — до близкой), опросы об одиночестве в ЕС (молодые не реже пожилых), долгое исследование Гарварда о качестве отношений. Бухгалтер из Тарту, подруга Кати, Марек, хозяйка комнаты и её дочь — учебные.',
+      groups: 'Холодная задача — каждый сам, остальные слушают молча. Статья — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: один рекомендует друга, другой — дочь хозяйки с вашей карточкой; потом смена. В 1:1 дочь — вы.',
+      errors: [
+        '«Ta on ausus» → «Ta on aus» / «Tema ausus …» (качество человека — прилагательное, качество как вещь — существительное).',
+        '«kannatlikus» → «kannatlikkus» (-lik + -kus: два k).',
+        '«mitteaus», «ebakannatlik» → «ebaaus», «kannatamatu» (у каждого слова свой антоним: eba- или -matu).',
+        '«Ma hindan tema ausus» → «… tema ausust» (hindama — частичный объект); «imestan tema kannatlikkust» → «… kannatlikkuse üle».',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по речи. Отметьте: позиция в первом предложении, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 050 ученик говорит параллельную задачу (050_t_cold), вы сравниваете.',
+        'Прилагательное (модули 1–3) — повтор одной строкой. Цель B2 — качество как вещь и антоним: существительные на -us / -dus / -likkus, приставка eba-, суффиксы -matu / -tu и падеж в предложении (hindan ausust, imestan kannatlikkuse üle, räägin lahkusest). Это язык характеристики, рекомендации и аргумента.',
+        'Одиночество — тема деликатная: ученик не обязан говорить о себе, всегда можно «человек, которого знаю» или выдуманный. Обратная связь, 2–3 цели: качество + поступок как доказательство; форма существительного или антонима; смягчение слабой стороны («vahel natuke …, aga …»).',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('046_d_cold', 'Külm algus: üks minut ilma abita.', 'Väide: „Täiskasvanuna on uut sõpra peaaegu võimatu leida.” Mõtle 2 minutit (märkmeid võib teha) ja räägi 1 minut: kas oled nõus? Valmis fraase ei ole.', [
+        'Kas oled väitega nõus, osaliselt nõus või ei ole nõus?',
+        'Mis on sinu peamine põhjus? Too üks näide oma elust või tuttava elust.',
+        'Mida ütleks keegi, kes arvab teisiti, ja mida sina talle vastaksid?',
+      ], [60, 90]), 'See on sinu algus: õpetaja märgib üles, kuidas sa praegu räägid, ja tunnis 50 räägid samadel tingimustel uuest väitest.'), { task: 'S16', fluency: true, harno: 'S1' }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, suuliselt (moodul 9 mõõtis kirjutamist, moodul 10 mõõdab rääkimist). Ära aita, ära anna fraase ega paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (seetõttu, samas …) ja 2–3 korduvat viga. Hoia märkmed alles: tunnis b1b2-050 räägib õppija paralleelse ülesande samades tingimustes (kontrolli rääkimise 1. osa) ja te võrdlete. Üks-ühele: sina oled kuulaja; pärast kõnet küsi ainult „Miks?”. Üksildus on õrn teema: õppija ei pea rääkima endast.')), 1, 5),
+      station(tag(B.vocab('046_d_vocab', 'Tunni sõnad.', ['usaldus — доверие', 'usaldusväärne — надёжный', 'vastastikkus — взаимность', 'regulaarsus — регулярность', 'üksildus — одиночество', 'tuttav — знакомый', 'hooliv — заботливый', 'otsekohene — прямой (о человеке)', 'aega veetma — проводить время', 'lubama — обещать']), { topic: ['üksildus', 'usaldus', 'vastastikkus', 'regulaarsus', 'otsekohene'] }), 2, 20),
+      why(teach(tag(purpose(B.reading('046_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Sõber ei teki iseenesest', [
+        'Lapsepõlves leiame sõbra peaaegu märkamatult: liivakastist, koolipingist või hoovist, kus samad lapsed mängivad iga päev. Keegi ei planeeri sõprust ega mõtle, kas teisel on aega. Täiskasvanuna on päevad täis tööd, kohustusi ja pereasju ning uus sõprus ei teki enam iseenesest. Eriti tunnevad seda need, kes on kolinud uude linna või riiki. Paljud neist ütlevad, et tuttavaid ja kolleege on palju, aga inimest, kellele öösel kell kolm helistada, ei ole.',
+        'Uurijad on küsinud, mis teeb tuttavast sõbra. Vastus on lihtsam, kui arvata võiks: aeg ja ühine tegevus. Et tuttavast saaks sõber, on vaja kümneid tunde koos veedetud aega, lähedase sõbra jaoks koguni sadu. Tähtis ei ole aga ainult tundide arv, vaid ka see, mida nende ajal tehakse. Jutuajamine, ühine mure või ühine töö loovad sidet palju rohkem kui lihtsalt samas ruumis istumine. Ka ühine sõit tööle või lapse trenni ootamine võib saada sõpruse alguseks, kui seal hakatakse päriselt rääkima. Seepärast ei pruugi kolleeg, kellega jagad aastaid sama kontorit, saada sõbraks, kui te räägite ainult tööst.',
+        'Täiskasvanud leiavad sõpru sageli seal, kus kohtumine on muutunud harjumuseks: kooris, matkaklubis, keelekursusel, vabatahtlikus töös või naabrite ühisel talgupäeval. Seal näed sama inimest iga nädal ja kohtumiseks ei pea iga kord uut põhjust otsima. Üks Tartusse kolinud raamatupidaja meenutab, et leidis esimese päris sõbra alles teisel aastal — rahvatantsurühmast, kuhu ta läks ainult keele pärast. „Alguses rääkisime ainult sammudest. Pool aastat hiljem aitas ta mul kolida,” ütleb ta.',
+        'Üksi elamine ei tähenda veel üksildust. Üksildus on tunne, et kui midagi juhtub, ei ole kellegagi rääkida ega kedagi, kes toetaks. Paljusid üllatab, et noored ei tunne end harvem üksildasena kui vanemad inimesed. Telefonis võib olla sadu kontakte, kuid ükski neist ei too poest leiba, kui palavik on kõrge. Ka see, kes on alati seltskonnas, võib tunda, et keegi ei tunne teda päriselt. Üksildus ei ole iseloomuviga ega nõrkus: see on märk, et inimene vajab sidet, nagu nälg on märk, et ta vajab süüa.',
+        'Mis siis teeb sõbrast lähedase? Psühholoogid nimetavad tavaliselt kolme asja: usaldus, vastastikkus ja regulaarsus. Usaldus kasvab tegudest, mitte sõnadest: sõber teeb seda, mida lubab, ja hoiab saladust. Vastastikkus tähendab, et mõlemad annavad ja võtavad. Kes ainult kuulab või ainult räägib, väsib varem või hiljem. Regulaarsus ei tähenda, et peab iga päev kohtuma; mõnikord piisab kord kuus helistamisest, kui see on kindel. Lähedast sõpra ei tee ka see, et ta on alati nõus. Aus sõber ütleb vahel ka seda, mida sa kuulda ei taha, ja jääb ometi sinu kõrvale.',
+        'Lõpuks ei ole küsimus selles, kui palju sõpru sul on, vaid kas sul on keegi, keda usaldad. Hea sõber ei pea olema iga päev sinu kõrval. Tähtis on teadmine, et ta vastab, kui sa teda vajad. Ja kui sellist inimest praegu ei ole, pole see häbiasi, vaid ülesanne: vali üks koht, kus käid iga nädal, ja anna sõprusele aega.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Miks tekib lapsepõlves sõprus autori sõnul peaaegu märkamatult?', 'samad lapsed kohtuvad iga päev samas kohas ja keegi ei pea sõprust planeerima'],
+        ['Mis teeb uurijate järgi tuttavast sõbra?', 'koos veedetud aeg ja ühine tegevus'],
+        ['Miks ei pruugi kolleegist saada sõpra, kuigi te jagate aastaid sama kontorit?', 'kui räägite ainult tööst; puudub jutuajamine, ühine mure või ühine tegevus'],
+        ['Milliseid kolme asja nimetavad psühholoogid lähedase sõpruse alusena?', 'usaldus, vastastikkus ja regulaarsus'],
+        ['Miks sobivad koor, matkaklubi või keelekursus täiskasvanule sõbra leidmiseks? Järelda.', 'kohtumine on iganädalane harjumus: näed sama inimest regulaarselt ja teete midagi koos, nii kogunevad aeg ja ühine tegevus'],
+        ['Mida tahab raamatupidaja öelda lausega „Pool aastat hiljem aitas ta mul kolida”? Järelda.', 'ühisest tegevusest kasvas usaldus: tuttavast sai sõber, kes aitab ka siis, kui on raske'],
+        ['Milline on autori hoiak inimese suhtes, kellel praegu lähedast sõpra ei ole? Mida ta vihjab viimase lausega?', 'see ei ole häbiasi; sõprust saab ise teadlikult luua, kui käid regulaarselt samas kohas ja annad aega'],
+      ]), 'Pärast lugemist tead, mis teeb tuttavast sõbra, ja oskad oma sõpra tegude kaudu kirjeldada.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade ja skeemiga. Enne lugemist küsi: kus sina oled täiskasvanuna kellegagi tuttavaks saanud? Pärast lugemist lisab õpilane skeemi igale sammule ühe näite tekstist. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst ilma statistikata; ära küsi õpilase enda üksilduse kohta.'), [
+        '1. lõik: lapsed mängivad „iga päev” samas kohas; „Keegi ei planeeri sõprust”.',
+        '2. lõik: „aeg ja ühine tegevus”.',
+        '2. lõik: kolleegist ei pruugi saada sõpra, „kui te räägite ainult tööst”.',
+        '5. lõik: „usaldus, vastastikkus ja regulaarsus”.',
+        'Järeldus 3. lõigust: kohtumine on „muutunud harjumuseks” — sama inimest näed iga nädal.',
+        'Järeldus 3. lõigust: alguses räägiti „ainult sammudest”, hiljem tuli abi kolimisel — tuttavast sai sõber.',
+        'Järeldus 6. lõigust: „pole see häbiasi, vaid ülesanne: vali üks koht, kus käid iga nädal, ja anna sõprusele aega”.',
+      ]),
+      purpose(B.diagram('046_d_scheme', 'flow', { title: 'Skeem: kuidas tuttavast saab sõber?', instruction: 'Pärast lugemist kirjuta iga sammu juurde üks näide tekstist. Viimase kasti juurde kirjuta, kes on sinu jaoks selline inimene või kus võiksid teda kohata.', nodes: 'Tuttav: näete teineteist juhuslikult, räägite viisakalt\nÜhine tegevus: koor, trenn, kursus — iga nädal\nAeg: kümned tunnid koos, jutuajamine, ühine mure\nUsaldus ja vastastikkus: teeb, mida lubab; mõlemad annavad ja võtavad\nSõber: vastab, kui sind vaja on' }, 'full', 'g_read'), 'Skeem näitab, mis samm-sammult teeb tuttavast sõbra.'),
+      retire('046_d_hook', CUT_HOOK),
+      retire('046_d_talk', CUT_TALK),
+      retire('046_d_open', CUT_STATS),
+      retire('046_d_facts', CUT_STATS),
+    ],
+    practice: [
+      station(teach(B.notice('046_p_notice', 'Märka: aus → ausus → ebaaus', [
+        'Artiklist: **usaldus** kasvab tegudest · **vastastikkus** tähendab, et … · **regulaarsus** ei tähenda … · see ei ole **häbiasi** · tunda end **üksildasena** → **üksildus**',
+        'Kordamine (B1): omadus on omadussõna — Ta on **aus**, **kannatlik**, **sõbralik**.',
+        'B2: omadus kui asi (nimisõna) — **-us / -dus**: aus → **ausus**, julge → **julgus**, üksildane → **üksildus**, otsekohene → **otsekohesus**, abivalmis → **abivalmidus** · **-lik → -likkus** (kaks k-d): sõbralik → **sõbralikkus**, kannatlik → **kannatlikkus**',
+        'B2: vastand — **eba-**: aus → **ebaaus**, viisakas → **ebaviisakas**, kindel → **ebakindel** · **-matu** (ma-tegevusnimest): hoolima → **hoolimatu**, tänama → **tänamatu**, kannatama → **kannatamatu** · **-tu**: abi → **abitu**, mõte → **mõttetu**',
+        'Nimisõna käändub nagu iga teine: hindan tema **ausust** (osastav) · imestan tema **kannatlikkuse** üle · räägin tema **lahkusest** · Tema **otsekohesus** ehmatab alguses.',
+      ], 'full'), 'Kordamine ühe minutiga (omadussõna). Siis B2 samm: omadus kui asi ja vastand ning nimisõna kääne lauses. Lase õpilasel leida artiklist neli nimisõna ja öelda, millisest omadussõnast need tulevad.'), 3, 20),
+      why(teach(tag(purpose(B.gaps('046_p_forms', 'Sõbranna kirjutab oma sõbrast.', 'Otsusta, kas lause vajab omadust, asja või vastandit, ja kirjuta sulgudes olev sõna õiges vormis. Panka ei ole.', [
+        'Kui Kati midagi lubab, teeb ta selle ka ära — tema [usaldusväärsus] on mulle kõige tähtsam. (usaldusväärne)',
+        'Ta ei ole kunagi unustanud mu sünnipäeva; selline [tähelepanelikkus] on haruldane. (tähelepanelik)',
+        'Ainult järjekorras on ta natuke [kannatamatu]: viis minutit ootamist ja ta hakkab närveerima. (kannatama)',
+        'Kui keegi tema kohta valesid levitas, tegi selline [ebaaus] käitumine talle väga haiget. (aus)',
+        'Ta ei jäta kunagi koera kuuma autosse, sest ta ei ole [hoolimatu] inimene. (hoolima)',
+        'Ma hindan väga tema [ausust], kuigi vahel võiks ta midagi ka ütlemata jätta. (aus)',
+        'Uues linnas tundis ta end esimesel aastal väga [üksildasena]. (üksildane)',
+        'Ma imestan tema [kannatlikkuse] üle: ta seletas mu vanaemale kolm korda, kuidas videokõnet teha. (kannatlik)',
+        'Tema [otsekohesus] ehmatab alguses mõnda inimest, aga hiljem hinnatakse seda. (otsekohene)',
+        'Kui ta haiglas oli, tundis ta end esimest korda elus täiesti [abituna]. (abi; kellena?)',
+      ], '', 'full', 'g_notice'), 'Täpne sõna teeb kirjelduse usaldusväärseks: ütled, milline inimene on ja mida sa temas hindad.'), { task: 'G09' }),
+      'Pärast iga rida küsi: „Kas siin on omadus, asi või vastand?” Read 6 ja 8: tegusõna nõuab käänet (hindama + osastav, imestama + üle). Lisa küsimus: „Kas sinul on mõni neist omadustest? Too näide.”'), [
+        'Lause vajab asja (tema …): usaldusväärne → usaldusväärsus.',
+        'selline + nimisõna: -lik → -likkus (kaks k-d): tähelepanelikkus.',
+        'Mõte on vastupidine (hakkab närveerima): kannatama → kannatamatu.',
+        'Käitumine oli vale: aus → ebaaus (vastand eesliitega eba-).',
+        'ei ole + vastupidine omadus: hoolima → hoolimatu.',
+        'hindama + osastav: ausus → ausust.',
+        'tundis end + kellena: üksildane → üksildasena.',
+        'imestama + omastav + üle: kannatlikkuse üle.',
+        'Tema + asi lause alguses: otsekohene → otsekohesus.',
+        'abi → abitu (ilma abita); tundis end + kellena (olev kääne) → abituna.',
+      ]),
+      why(purpose(B.formtext('046_p_ref', 'Soovitus loomade varjupaigale.', 'Sõber soovitab Marekit varjupaiga vabatahtlikuks. Kirjuta lünka üks sõna või vorm (vihje sulgudes). Panka ei ole.', 'Soovitus: Marek vabatahtlikuks', [
+        'Tere! Kirjutan seoses Mareki sooviga hakata teie varjupaigas vabatahtlikuks. Tunnen teda kuus aastat ja võin tema [usaldusväärsust] (usaldusväärne; osastav) kinnitada.',
+        '',
+        'Mareki suurim tugevus on [kannatlikkus] (kannatlik). Kui mu koer pärast operatsiooni süüa ei tahtnud, istus ta tunde tema juures. Sellist [hoolivust] (hooliv; osastav) näeb harva.',
+        '',
+        'Ta on ka väga [otsekohene] (otsekohesus → omadussõna): kui midagi on valesti, ütleb ta seda kohe, aga rahulikult. Tema [ausus] (aus; asi) on mulle alati tähtis olnud.',
+        '',
+        'Ausalt öeldes on ta vahel natuke [ebakindel] (kindel; vastand), kui peab võõrastega rääkima. Samas ei ole ta kunagi [ebaviisakas] (viisakas; vastand) ja harjub kiiresti.',
+        '',
+        'Ta ei ole kunagi [hoolimatu] (hoolima; vastand) loomade ega inimeste vastu. Imestan tihti tema [rahulikkuse] (rahulik; … üle) üle.',
+        '',
+        'Soovitan Marekit soojalt. Olen kindel, et tema [abivalmidus] (abivalmis; asi) tuleb teie loomadele kasuks.',
+      ]), 'Samamoodi kirjutad kodus soovituse oma sõbrale: omadus, tegu ja ausalt üks nõrk külg.'), [
+        'kinnitama + osastav: usaldusväärsus → usaldusväärsust.',
+        'Tugevus on + asi: -lik → -likkus: kannatlikkus.',
+        'Sellist + osastav: hoolivus → hoolivust.',
+        'Ta on + omadus: otsekohene.',
+        'Tema + asi: aus → ausus.',
+        'Vastand eesliitega eba-: ebakindel.',
+        'Vastand eesliitega eba-: ebaviisakas.',
+        'Vastand -matu: hoolima → hoolimatu.',
+        'imestama + omastav + üle: rahulikkuse.',
+        'abivalmis → abivalmidus.',
+      ]),
+      why(purpose(tag(B.table('046_p_register', 'Sõnum sõbrale või soovituskiri?', 'Vasakul on sõnum sõbrale, paremal sama mõte soovituskirjas võõrale inimesele. Kirjuta lünka puuduv sõna.', 'Sõnum sõbrale, Soovituskiri', [
+        'Kati on super! | Kati on [usaldusväärne] ja hooliv inimene.',
+        'Tunnen teda juba ülikoolist. | Oleme Katiga [tuttavad] ülikooli ajast, juba kaheksa aastat.',
+        'Ta maksab alati õigel ajal. | Ta täidab oma rahalised [kohustused] alati õigel ajal.',
+        'Ta on vahel natuke kärsitu. | Mõnikord võib ta olla veidi [kannatamatu], kuid ta ütleb seda ise välja.',
+        'Ta ei valeta kunagi. | Tema [ausus] on minu jaoks väljaspool kahtlust.',
+        'Kui midagi on viltu, ütleb ta otse. | Probleemide korral [pöördub] ta kohe otse asjaosalise poole.',
+        'Võtke ta julgelt! | [Soovitan] teda teile soojalt.',
+        'Helista, kui tahad rohkem teada. | Lisateabe saamiseks võite minuga [ühendust] võtta.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sõber kõlab kirjas, mida loeb võõras inimene, kes peab otsustama.'), [
+        'super → usaldusväärne (kirjeldav omadus).',
+        'tunnen → oleme tuttavad (mitmus).',
+        'maksab → täidab oma kohustused.',
+        'kärsitu → kannatamatu.',
+        'ei valeta → tema ausus.',
+        'ütleb otse → pöördub otse asjaosalise poole.',
+        'Võtke ta → soovitan teda.',
+        'Helista → võite minuga ühendust võtta.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('046_t_plan', 'Soovitus: plaan (3 minutit).', 'Tuttava 74-aastane ema annab Tartus oma korteris ühe toa üürile ja sinu sõber (päris või väljamõeldud) kandideerib. Emal on kolm küsimust: kas üürnik maksab õigel ajal, kas ta on vaikne ja kas temaga saab rääkida, kui midagi on valesti. Kui ei taha rääkida päris inimesest, kasuta Kati tegusid: maksab arved kuu esimesel päeval; aitas sul kolida ja tõi kõigile suppi; helistab sinu emale sünnipäeval; ütleb otse, kui talle midagi ei meeldi; jääb vahel hiljaks, aga annab alati ette teada. Kirjuta märksõnad. Edukriteeriumid: 1) kolm omadust, igaüks koos teoga; 2) vähemalt kolm nimisõna või vastandit (usaldusväärsus, kannatamatu …); 3) üks nõrk külg pehmelt ja selge soovitus.', ['Omadus 1 ja tegu, mis seda tõendab:', 'Omadus 2 ja tegu:', 'Omadus 3 ja tegu:', 'Nõrk külg pehmelt ja minu soovitus:'], 1), 'Plaan aitab sul tõendada iga omadust teoga, mitte ainult kiita.'), 4, 25, { final: 'present' }),
+      teach(tag(purpose(B.rolecards('046_t_call', 'Kohtu tuttavaga: soovita oma sõpra (6–8 minutit).', 'Räägi tuttavale kohvikus oma sõbrast nii, et tema ema saaks otsustada: iga omadus koos teoga. Reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord: sinu sõber tahab üürida tuba 74-aastaselt prouale; sinu tuttav on proua tütar.\nSinu eesmärk: vasta ema kolmele küsimusele, iga omadus koos teoga, ja anna selge soovitus.\nPiirang: ole aus — nimeta ka üks nõrk külg, aga pehmelt.',
+        'Tuttava kaart on õpetajal: ema kahtlused ja üks asi, mida sa veel ei tea.',
+        ['Ta on väga usaldusväärne: näiteks kord …', 'Ausalt öeldes on ta vahel natuke …, aga …'], ['Kuidas sa seda tead?', 'Kas tal on mõni halb harjumus?']), 'Tulemus: ema teab, kas ta võib sinu sõpra usaldada.'), { task: 'S11', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled proua tütar. Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Kõik ütlevad oma sõbra kohta head. Too näide!” 2) „Kas tal on mõni halb harjumus?” Varjatud info (ütle pärast teist takistust): „Ah jaa — emal on kaks kassi ja ta sõidab kevadel kuuks ajaks sanatooriumi. Üürnik peaks siis kasside eest hoolitsema.” Õpilane peab reageerima ausalt: kas sõber armastab loomi, kas tal on allergia, kas ta on kodus; vajadusel ütleb, et küsib sõbralt üle, mitte ei luba tema eest. Õnnestunud, kui õpilane nimetab kolm omadust koos teoga, ütleb ühe nõrga külje pehmelt (vahel natuke …, aga …), kasutab vähemalt kolm nimisõna või vastandit (usaldusväärsus, kannatamatu, hoolimatu) ja annab selge soovituse. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('046_t_mail', 'Kodus: soovituskiri (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Proua palus kirjalikku soovitust: ta tahab seda rahulikult lugeda, enne kui otsustab, kas annab toa sinu sõbrale.',
+        points: ['kes sa oled ja kui kaua sõpra tunned', 'tema kolm omadust, igaüks koos teoga', 'üks nõrk külg ausalt, aga pehmelt', 'sinu soovitus ja kuidas sinuga ühendust võtta'],
+        words: [130, 150],
+      }), 'Proua loeb sinu kirja ja otsustab, kas annab toa sinu sõbrale.'), 6)), { task: 'W08', main: true, level: 4 }),
+      writingRubric('046_t_rubric', 'Hindamisjuhend: soovituskiri (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Kati on minu sõber. Ta on hea ja aus ja tore. Ta on väga hea inimene. Ta maksab raha. Ta ei ole lärmakas. Ma soovitan teda. Ta on super. Tervitades!” Hinnang: ülesanne 2 (soovitus on olemas, kuid tegusid ei ole, ei selgu, kes kirjutab ja kui kaua sõpra tunneb; nõrk külg puudub), ülesehitus 2 (järjekord on selge, lõike ja sidendeid ei ole), sõnavara 2 („hea”, „tore”, „super” ei kirjelda iseloomu; puuduvad usaldusväärsus, hoolivus, kohustused), grammatika 1 (ainult lihtlaused; „maksab raha” → maksab üüri õigel ajal; ühtegi nimisõna ega vastandit pole). Kui õppija lisab iga omaduse juurde teo, ühe pehme nõrga külje ja tutvustuse, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('046_t_self', ['Ma loen artiklit sõprusest ja üksildusest ning järeldan autori hoiaku.', 'Ma moodustan omadussõnast nimisõna ja vastandi: ausus, sõbralikkus, ebaaus, hoolimatu, abitu.', 'Ma soovitan sõpra tegude kaudu ja reageerin ootamatule küsimusele ausalt.'], 'Sõber soovitatud', 'Ma oskan sõpra soovitada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('046_t_chat', CUT_INPUT),
+      retire('046_t_card', 'second input: Kati\'s deeds are now on the plan card 046_t_plan (v5: one input per lesson, ≤ 5 blocks on Kasuta)'),
+      retire('046_t_more', CUT_EXTRA),
+      retire('046_t_exit', CUT_DRILL),
+      retire('046_t_letter', CUT_OLDTASK),
+      retire('046_t_home', CUT_HOME),
+      retire('046_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-047': {
+    title: 'Sõber ei maksa 300 eurot tagasi — kuidas sellest rääkida?',
+    phases: grammar('Kordamine: kuna, seetõttu · B2: pettusin temas, solvus minu peale, häbeneb võlga; ei vastanudki, isegi'),
+    format: 'case',
+    topic: 'money',
+    canDo: 'Ma saan aru raadiosaatest rahast ja sõprusest, ütlen oma tunde täpselt, arutlen kaartidega ja kirjutan sõbrale umbes 140-sõnalise kirja.',
+    teacherPage: {
+      goal: 'Радио «Raha ja sõprus» (2 голоса): чувства кредитора и должника; чувство с падежом и -ki/-gi; спор с карточками и скрытой информацией; дома письмо другу 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 предложений; спор без истории учителя.',
+      hook: '«Väide: sõbrale ei tohi kunagi raha laenata.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — своя, знакомая или выдуманная история. Без фраз, не исправляйте. Не спрашивайте о суммах и долгах самого ученика. Отметьте, как ученик называет чувства (pettunud, solvunud …) — это тема станции 3.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «я-сообщение вместо упрёка» и картинка (3 мин), радио дважды (9 мин), 10 вопросов, из них 3 на вывод (6 мин)',
+        '25–45: станция 3 — kuna / seetõttu / mistõttu одной строкой, B2: чувство с падежом (pettuma kelleski, solvuma kelle peale, häbenema mida, mures mille pärast) и -ki / -gi; 10 предложений, пост на форуме с 10 пропусками без банка, регистр (8 строк): упрёк → я-сообщение',
+        '45–70: станция 4 — план аргументов (3 мин), спор с карточками ключевых слов ≤ 4 мин со скрытой информацией, разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо другу 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ролевая игра — вежливо сказать «нет» знакомому, который просит 500 евро на телефон (вы уговариваете три раза)',
+      ],
+      sources: 'Радио «Raha ja sõprus» — учебный текст KeeleSepp (ведущий Margus и психолог Triin вымышлены), без статистики. Общая основа: договор займа можно заключить устно (võlaõigusseadus § 11), но юристы советуют крупную сумму фиксировать письменно — сумма, сроки, график; совет «одалживать столько, сколько готов потерять» — общая рекомендация финансовых консультантов. Друг с долгом 300 € и брат с долгом 500 € — учебные.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: пары «за» и «против» с карточками A и B; потом смена сторон. В 1:1 вы берёте сторону, которую ученик не выбрал.',
+      errors: [
+        '«Ma pettusin temale» → «Ma pettusin temas» (pettuma kelleski — в ком).',
+        '«Ta solvus minule» → «Ta solvus minu peale» (solvuma kelle peale — на кого).',
+        '«Ta ei tulnudgi» → «Ta ei tulnudki» (после k, p, t, g, b, d, s, h — -ki; после гласных и l, m, n, r, v, j — -gi: keegi, temagi).',
+        '«Keegi teab» в значении «никто не знает» → «Mitte keegi ei tea» (в отрицании нужно ei).',
+      ],
+      notes: [
+        'Формат — случай: письмо слушателя на радио (300 евро, три месяца, друг молчит). Ученик решает, на чьей он стороне в споре и что напишет другу. Всегда есть вариант «знакомая история» или выдуманная.',
+        'kuna / seetõttu / mistõttu (модули 7–9) — повтор одной строкой. Цель B2 — чувство с управлением (pettuma kelleski, solvuma kelle peale, häbenema mida, kahetsema mida, muretsema mille pärast, tänulik millegi eest) и усиление -ki / -gi. Это язык я-сообщения: сказать, что чувствую и почему, не обвиняя.',
+        'Обратная связь, 2–3 цели: управление глагола чувства; я-сообщение вместо упрёка («Ma olin pettunud, kui …» вместо «Sa oled valetaja»); -ki / -gi. В споре не перебивать, три замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('047_d_talk', 'Väide: sõbrale ei tohi kunagi raha laenata.', `Ütle kohe, kas oled nõus, ja üks põhjus. Siis räägi minut: kas oled raha laenanud ja kuidas see lõppes. ${OWN_OR_INVENTED}`, [
+        'Väide: „Sõbrale ei tohi kunagi raha laenata.” Kas oled nõus? Miks?',
+        'Mis juhtus, kui sina või keegi tuttav laenas sõbrale raha? Mida tundis see, kes andis, ja mida see, kes võttis?',
+      ], [60, 90]), 'Sinu enda kogemus näitab, mida sa juba tead ja mida raadiost veel kuuled.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe lausega (lugu võib olla väljamõeldud). Ära küsi õpilase päris summasid. Pane kirja, milliseid tunde nimetavaid sõnu õpilane kasutab (pettunud, solvunud, piinlik) — need tulevad jaamas 3 tagasi.')), 1, 5),
+      station(tag(B.vocab('047_d_vocab', 'Tunni sõnad.', ['laenama — одалживать (давать или брать в долг)', 'võlg — долг', 'osade kaupa maksma — платить частями', 'pettuma (kelleski) — разочароваться (в ком)', 'solvuma (kelle peale) — обидеться (на кого)', 'häbenema (mida) — стыдиться (чего)', 'süütunne — чувство вины', 'vältima — избегать', 'umbusaldus — недоверие', 'kahetsema (mida) — сожалеть (о чём)']), { topic: ['süütunne', 'umbusaldus', 'kahetsema'] }), 2, 20),
+      purpose(B.diagram('047_d_scheme', 'formula', { title: 'Skeem: mina-sõnum etteheite asemel.', instruction: 'Kuulates kirjuta iga rea juurde psühholoogi näide. Pärast kuulamist kirjuta oma mina-sõnum ühe päris või väljamõeldud loo kohta.', nodes: 'Sündmus | Mis juhtus? Ilma hinnanguta: „Raha ei tulnud mais.”\nTunne | Mida mina tundsin? „Olin pettunud.” — mitte „Sa oled valetaja.”\nPõhjus | Miks see mulle tähtis on? „Mul endal on sel kuul suured kulud.”\nPalve | Mida ma pakun? „Kas saaksime kokku leppida osamaksed?”' }, 'full', 'g_notice'), 'Skeem näitab, kuidas öelda oma tunne nii, et teine ei pea end kaitsma.'),
+      why(teach(tag(purpose(B.examListen('047_d_radio', 'Kuulamine: raadiosaade „Raha ja sõprus”.', 'Raadiosaates räägib saatejuht psühholoogiga sellest, mida teha, kui sõber ei maksa laenatud raha tagasi. Loe enne küsimused läbi. Kuula saadet kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Margus: Tere! Saates „Suhete tund” räägime täna rahast ja sõprusest. Stuudios on psühholoog Triin. Triin, alustame kuulaja kirjaga. Kuulaja kirjutab: „Laenasin märtsis heale sõbrale kolmsada eurot. Ta lubas maksta kuu lõpus tagasi. Nüüd on juuni, raha ei ole ja sõber ei vasta isegi mu sõnumitele. Mul on piinlik uuesti küsida. Mida ma valesti tegin?”',
+        'Triin: Tere! Kõigepealt: ta ei teinud midagi valesti. Aidata sõpra on ilus. Aga ma kuulen selles kirjas mitut tunnet korraga. Ta on sõbras pettunud, sest sõber ei pidanud sõna. Ta on solvunud, sest sõber teda väldib. Ja tal on piinlik küsida raha, mis on ju tegelikult tema oma.',
+        'Margus: Miks inimene, kes võlgneb, üldse vaikib? Lihtsam oleks ju öelda, et praegu ei saa.',
+        'Triin: Väga sageli on põhjus häbi. Võlgnik häbeneb, et ei suuda lubadust pidada. Iga sõnum meenutab talle seda ja nii ta hakkab sõpra vältima. Ta ei vastagi, sest ei tea, mida öelda. Kõrvalt paistab see ükskõiksusena, aga seest on see sageli süütunne.',
+        'Margus: Mida kuulaja siis teha võiks?',
+        'Triin: Ma soovitaksin mitte kirjutada viiendat sõnumit, vaid helistada või kohtuda. Kirjas kõlab kõik teravamalt. Ja rääkida endast, mitte temast. Mitte „sa oled valetaja”, vaid „ma olin pettunud, kui raha mais ei tulnud, sest mul endal on sel kuul suured kulud”. Nii ei pea teine end kaitsma ja saab hakata lahendust otsima.',
+        'Margus: Aga kui ta ikka ei maksa?',
+        'Triin: Siis tasub pakkuda väiksemaid osamakseid. Kolmsada eurot korraga võib olla võimatu, aga viiskümmend eurot kuus on paljudele jõukohane. Ja kokkulepe tuleks kirja panna: summa, kuupäevad ja kuidas raha üle kantakse. See ei ole umbusaldus, vaid selgus mõlemale.',
+        'Margus: Paljud kuulajad küsivad: kas sõbrale üldse tasub raha laenata?',
+        'Triin: Minu rusikareegel on: laena ainult nii palju, kui oled valmis vajadusel kaotama. Kui see summa jääb tagasi saamata, ei tohiks see sinu enda elu segi paisata. Kui summa on suur, on aus öelda ei ja pakkuda muud abi: aega, nõu või abi töö otsimisel. Ja küsi endalt ausalt: kas ma annan selle raha laenuks või tegelikult kingituseks? Mõlemad on lubatud, aga see peab olema mõlemale selge.',
+        'Margus: Ei-sõna on ju raske öelda.',
+        'Triin: On küll. Aga ei saab öelda soojalt. Näiteks: „Ma hoolin sinust, seepärast ma ei laena raha. Ma ei taha, et raha meie vahele tuleks.” Paljud sõprused ei lõpe mitte sellepärast, et keegi ütles ei, vaid sellepärast, et keegi ütles jah ja hiljem vaikis.',
+        'Margus: Kuulaja kirjutas ka, et nägi sotsiaalmeedias pilte, kus sõber oli kontserdil. See tegi talle eriti haiget.',
+        'Triin: Seda ma usun. Aga pilt ei näita kogu lugu. Pilet võis olla kingitus, sõber võis olla kaotanud töö ja seda häbeneda. Ma ei ütle, et see on vabandus. Aga enne kui teha järeldus, tasub küsida. Küsimus „Kuidas sul läheb?” avab ukse paremini kui „Kus mu raha on?”.',
+        'Margus: Ja kui sõprus on juba katki?',
+        'Triin: Siis tuleb otsustada, kumb on tähtsam: raha või suhe. Mõnikord on mõistlik summa unustada ja sõprus päästa. Mõnikord on vastupidi. Aga see peaks olema sinu teadlik otsus, mitte vaikiv solvumine, mis kestab aastaid.',
+        'Margus: Aitäh, Triin!',
+      ], [
+        ['Mida kuulaja oma kirjas küsib?', 'mida ta valesti tegi', 'kuidas raha kiiremini teenida', 'kas ta peaks pöörduma politsei poole'],
+        ['Milliseid tundeid kuuleb Triin kuulaja kirjas?', 'pettumust, solvumist ja piinlikkust', 'viha ja kadedust', 'hirmu ja kergendust'],
+        ['Miks võlgnik Triini sõnul sageli vaikib?', 'ta häbeneb, et ei suuda lubadust pidada', 'ta on raha juba unustanud', 'ta tahab sõbrale kätte maksta'],
+        ['Mida soovitab Triin teha viienda sõnumi asemel?', 'helistada või kohtuda', 'kirjutada pikem kiri', 'oodata veel kolm kuud'],
+        ['Kuidas peaks kuulaja Triini järgi oma murest rääkima?', 'endast: mida ta tundis ja miks', 'sõbra vigadest', 'ühiste tuttavate kaudu'],
+        ['Mida pakub Triin, kui sõber ei suuda kogu summat korraga maksta?', 'väiksemaid igakuiseid osamakseid', 'uut, suuremat laenu', 'et kuulaja võtaks ise pangalaenu'],
+        ['Milline on Triini rusikareegel laenamise kohta?', 'laena ainult nii palju, kui oled valmis kaotama', 'ära laena kunagi kellelegi', 'laena ainult pereliikmetele'],
+        ['Mida tahab Triin öelda lausega „See ei ole umbusaldus, vaid selgus mõlemale”? Järelda.', 'kirjalik kokkulepe kaitseb ka sõprust, sest hiljem pole vaja vaielda, mida lubati', 'kuulaja ei usalda enam oma sõpra', 'ilma lepinguta ei saa raha üldse tagasi nõuda'],
+        ['Mida võib järeldada Triini lausest, et sõprus lõpeb sageli siis, kui keegi ütles jah ja hiljem vaikis?', 'vaikimine kahjustab sõprust rohkem kui aus ei', 'jah-sõna on alati vale', 'ei-sõna lõpetab iga sõpruse'],
+        ['Milline on Triini hoiak saate lõpus?', 'inimene peaks ise teadlikult otsustama, kas tähtsam on raha või suhe', 'raha tuleb alati tagasi nõuda', 'sõprus on alati rahast tähtsam'],
+      ], 'g_listen'), 'Kuuled mõlema poole tundeid; kohe arutled, kas sõbrale tasub laenata.'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, 20 minutit koos sõnade ja skeemiga (umbes 4 minutit, kaks korda). Enne kuulamist küsi: mida tunneb see, kes ootab oma raha, ja mida see, kes võlgneb? Õpilane loeb küsimused ja joonib alla võtmesõnad. Pärast: õpilane täidab skeemi psühholoogi näidetega. Küsimused 8–10 on järeldusküsimused (psühholoogi hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Kuulaja: „Mida ma valesti tegin?”',
+        'Triin: ta on „sõbras pettunud”, „solvunud” ja tal on „piinlik küsida”.',
+        'Triin: „Võlgnik häbeneb, et ei suuda lubadust pidada.”',
+        'Triin: „mitte kirjutada viiendat sõnumit, vaid helistada või kohtuda”.',
+        'Triin: „rääkida endast, mitte temast”.',
+        'Triin: „viiskümmend eurot kuus on paljudele jõukohane”.',
+        'Triin: „laena ainult nii palju, kui oled valmis vajadusel kaotama”.',
+        'Järeldus: summa, kuupäevad ja ülekanne on kirjas — kumbki ei pea hiljem meenutama ega vaidlema.',
+        'Järeldus: sõprus lõpeb, kui „keegi ütles jah ja hiljem vaikis”, mitte ei-sõna pärast.',
+        'Järeldus: „see peaks olema sinu teadlik otsus, mitte vaikiv solvumine”.',
+      ]),
+      retire('047_d_hook', CUT_HOOK),
+      retire('047_d_chat', 'v4 input (a chat of 98 words, below B2): the lesson\'s one input is now the radio 047_d_radio (v5: one input per lesson)'),
+      retire('047_d_feel', 'questions on the v4 chat; the lesson\'s questions are on the radio 047_d_radio (v5: one input per lesson)'),
+      retire('047_d_know', CUT_KNOW),
+    ],
+    practice: [
+      station(teach(B.notice('047_p_notice', 'Märka: pettusin temas, solvus minu peale, ei vastanudki', [
+        'Saatest: ta on **sõbras pettunud** · võlgnik **häbeneb**, et … · Ta **ei vastagi**. · ei vasta **isegi** sõnumitele · Kordamine (B1): **kuna** …, **seetõttu** …, **mistõttu** …',
+        'B2: **pettuma** kelleski · **solvuma** kelle peale · **häbenema** mida · **kahetsema** mida · **mures** mille pärast · **tänulik** millegi eest',
+        'B2: **ei …-ki / -gi** — oodatud asi jäi tulemata (ei vastanud**ki**) · **isegi** / **-gi** · k, p, t, g, b, d, s, h järel **-ki**, muidu **-gi** · **mitte keegi / midagi / kunagi** + ei',
+      ], 'full'), 'Kordamine ühe minutiga (kuna, seetõttu, mistõttu). Siis B2 samm: tunde sõna nõuab oma käänet ja -ki / -gi annab rõhu. Lase õpilasel leida saatest kolm tunnet ja öelda küsimus: kelles? kelle peale? mida?'), 3, 20),
+      why(teach(tag(purpose(B.transformation('047_p_ki', 'Ütle tunne täpselt.', 'Ütle iga mõte antud sõnadega. Mõtle, millist käänet tunde sõna nõuab. Panka ei ole.', [
+        ['Ma ootasin raha mais. Raha ei tulnud.', 'ei …-ki', 'Ma ootasin raha mais, aga see ei tulnudki.|Ma ootasin raha mais, aga raha ei tulnudki.'],
+        ['Ta ei helistanud mulle. Ta ei helistanud ka minu sünnipäeval.', 'isegi', 'Ta ei helistanud mulle isegi minu sünnipäeval.|Ta ei helistanud isegi minu sünnipäeval.'],
+        ['Ma ei ole sellest ühelegi inimesele rääkinud.', 'mitte kellelegi', 'Ma ei ole sellest mitte kellelegi rääkinud.|Ma pole sellest mitte kellelegi rääkinud.'],
+        ['Sõber valetas mulle ja nüüd ma ei usalda teda enam.', 'Ma pettusin …', 'Ma pettusin oma sõbras.|Ma pettusin sõbras.'],
+        ['Ta on minu peale pahane, sest ma ütlesin ei.', 'solvus', 'Ta solvus minu peale, sest ma ütlesin ei.|Ta solvus mu peale, sest ma ütlesin ei.'],
+        ['Igoril on oma võla pärast piinlik.', 'häbeneb', 'Igor häbeneb oma võlga.'],
+        ['Ma muretsen, sest sõbra töökoht on ohus.', 'olen mures … pärast', 'Ma olen mures sõbra töökoha pärast.|Olen mures sõbra töökoha pärast.'],
+        ['Sa aitasid mind kolimisel. Aitäh!', 'Olen sulle tänulik …', 'Olen sulle tänulik abi eest.|Olen sulle tänulik kolimisabi eest.|Olen sulle tänulik selle eest, et sa mind kolimisel aitasid.|Olen sulle tänulik, et sa mind kolimisel aitasid.'],
+        ['Mul oli piinlik uuesti küsida. Ma ei kirjutanud kuu aega.', 'seetõttu', 'Mul oli piinlik uuesti küsida, seetõttu ei kirjutanud ma kuu aega.|Mul oli piinlik uuesti küsida. Seetõttu ei kirjutanud ma kuu aega.'],
+        ['Ma ei saanud raha tagasi. Ma pidin hambaarsti edasi lükkama.', 'mistõttu', 'Ma ei saanud raha tagasi, mistõttu pidin hambaarsti edasi lükkama.|Ma ei saanud raha tagasi, mistõttu pidin ma hambaarsti edasi lükkama.'],
+      ], 'full', 'g_notice'), 'Kui tunne on täpne ja kääne õige, saab sõber aru, mida sa tundsid, ilma et ta end rünnatuna tunneks.'), { task: 'G05' }),
+      'Pärast iga rida küsi: „Mis tunne siin on ja mis on põhjus?” Rida 9: pärast seetõttu on tegusõna kohe teine (seetõttu ei kirjutanud ma). Read 4–8: küsi tunde sõna küsimus (kelles? kelle peale? mida? mille pärast? mille eest?).'), [
+        'Oodatud asi jäi tulemata → ei + -nud + -ki: ei tulnudki (d järel -ki).',
+        'Ootamatu rõhk → isegi enne seda sõna, mida rõhutad.',
+        'Eitus kõigi kohta → mitte kellelegi + ei.',
+        'pettuma kelleski → sõbras (seesütlev).',
+        'solvuma kelle peale → minu peale.',
+        'häbenema mida → oma võlga (osastav).',
+        'mures mille pärast → töökoha pärast.',
+        'tänulik millegi eest → abi eest.',
+        'Pärast seetõttu on tegusõna kohe teine: seetõttu ei kirjutanud ma.',
+        'Tagajärg tervele mõttele → koma ja mistõttu.',
+      ]),
+      why(purpose(B.formtext('047_p_post', 'Foorumi postitus: kas küsida raha tagasi?', 'Kirjuta lünka üks sõna või vorm (vihje sulgudes). Panka ei ole.', 'Laenasin vennale raha — mida nüüd teha?', [
+        'Talvel laenasin vennale viissada eurot. Ta lubas maksta suvel, aga raha ei [tulnudki] (tulema + rõhk). Ausalt öeldes olen ma temas väga [pettunud] (pettuma; kesksõna). Ta ei helista mulle [isegi] (rõhk) jõulude ajal. Ema arvab, et olen tema [peale] (solvunud kelle …?) lihtsalt solvunud.',
+        '',
+        'Vend [häbeneb] (häbenema; olevik) oma võlga. [Kuna] (põhjus lause alguses) ta kaotas sügisel töö, ei suuda ta praegu maksta. Mul endal on kodulaen, [mistõttu] (tagajärg tervele mõttele) pidin puhkuse ära jätma. Kõige rohkem kahetsen ma [seda] (kahetsema mida?), et me ei pannud midagi kirja.',
+        '',
+        'Ma ei ole sellest [kellelegi] (kes + -gi; kellele?) peale oma naise rääkinud. Olen tänulik iga [nõuande] (nõuanne; … eest) eest.',
+      ]), 'Samamoodi kirjutad kodus sõbrale: tunne, põhjus ja ettepanek, ilma etteheiteta.'), [
+        'Oodatud asi jäi tulemata → ei tulnudki.',
+        'olema pettunud kelleski → pettunud.',
+        'Rõhk → isegi.',
+        'solvunud kelle peale → tema peale.',
+        'häbenema mida; olevik → häbeneb.',
+        'Põhjus lause alguses → Kuna …, ei suuda ta (tegusõna kohe järel).',
+        'Tagajärg tervele mõttele → mistõttu.',
+        'kahetsema mida → seda, et …',
+        'kes + -gi → keegi; kellele + -gi → kellelegi.',
+        'tänulik millegi eest → nõuande eest (omastav).',
+      ]),
+      why(purpose(tag(B.table('047_p_register', 'Etteheide või mina-sõnum?', 'Vasakul on etteheide, paremal sama mõte mina-sõnumina. Kirjuta lünka puuduv sõna.', 'Etteheide, Mina-sõnum', [
+        'Sa oled valetaja! | Ma olin [pettunud], kui raha mais ei tulnud.',
+        'Sa ei hooli minust üldse. | Mulle tegi [haiget], et sa mu sõnumitele ei vastanud.',
+        'Sa unustad alati kõik! | Ma [muretsen], et me unustame oma kokkuleppe.',
+        'Maksa kohe ära! | Kas me [saaksime] maksed kokku leppida?',
+        'Sinu pärast jäin hambaarstist ilma. | Mul on sel kuul suured [kulud], seetõttu vajan raha.',
+        'Sa käid kontserdil, aga mulle ei maksa! | Mind [häirib], et meie kokkulepe on lahtine.',
+        'Sinuga ei saa üldse rääkida. | Ma [tahaksin] sinuga rahulikult rääkida.',
+        'Kõik teavad, et sa oled selline! | Ma ei ole sellest [kellelegi] rääkinud.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sama mure kõlab nii, et sõber jääb sõbraks.'), [
+        'Valetaja → mina-tunne: olin pettunud.',
+        'Ei hooli → mulle tegi haiget.',
+        'Unustad alati → ma muretsen.',
+        'Käsk → tingiv küsimus: kas me saaksime.',
+        'Sinu pärast → minu olukord: mul on suured kulud.',
+        'Süüdistus → mind häirib, kui …',
+        'Ei saa rääkida → ma tahaksin rääkida.',
+        'Kõik teavad → ma ei ole kellelegi rääkinud (-gi + eitus).',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('047_t_plan', 'Arutelu: argumentide plaan (3 minutit).', 'Teema: kas sõbrale tasub raha laenata? Vali pool: poolt või vastu. Kirjuta märksõnad. Edukriteeriumid: 1) kaks argumenti, igaühel näide raadiosaatest või elust; 2) vähemalt kaks tunnet õige käändega (pettunud kelleski, solvunud kelle peale, häbeneb mida) ja üks -ki / -gi vorm; 3) vastad partneri argumendile ja jõuate lõpus ühise seisukohani või ütled selgelt, milles jäite eri meelt.', ['Minu pool ja esimene lause (30 sekundit):', 'Argument 1 ja näide:', 'Argument 2 ja näide:', 'Mida vastan, kui partner ütleb …:'], 1), 'Plaan aitab sul rääkida argumentidega, mitte ainult tundega.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.rolecards('047_t_talk', 'Arutelu märksõnakaartidega (kuni 4 minutit).', 'Öelge kõigepealt kumbki 30 sekundiga oma arvamus. Siis arutage kaartide ja oma näidetega. Reageeri, kui partner toob uue loo. Lõpus jõudke ühise seisukohani või öelge, milles jäite eri meelt.',
+        'Kaart A (poolt): märksõnad, ehita neist ise argument ja too näide. 1) häda — tõeline sõber; 2) kirjalik kokkulepe — selgus; 3) väike summa — kingitus.',
+        'Kaart B (vastu): märksõnad, ehita neist ise argument ja too näide. 1) võlg — häbi, vältimine; 2) raha — sõpruse vahel; 3) muu abi — aeg, nõu.',
+        ['Ühelt poolt …', 'Ma olin kord pettunud, kui …'], ['Ma ei ole päris nõus, sest …', 'Kas võiksime kokku leppida, et …?']), 'Tulemus: selge seisukoht kahe argumendi ja näitega ning kokkulepe või ausalt nimetatud lahkarvamus.'), { task: 'S17', main: true, level: 4 }),
+      'Õpetaja võtab poole, mida õppija ei valinud. Kuula 30 sekundit vahele segamata, siis arutle. Varjatud info (ütle arutelu keskel). Kui õppija on poolt: „Mul on oma lugu: laenasin vennale tuhat eurot. Ta ei maksnudki tagasi ja me ei ole kolm aastat rääkinud.” Kui õppija on vastu: „Mul on oma lugu: kui ma kaotasin töö, laenas sõber mulle üüriraha. Ilma temata oleksin korterist ilma jäänud — ja ma maksin kõik tagasi.” Õppija peab reageerima: küsima täpsustust, näitama, et mõistab tunnet (Ma saan aru, et sa olid oma vennas pettunud …), ja kaaluma oma seisukohta (näiteks laenata ainult summat, mida oled valmis kaotama, ja kirjaliku kokkuleppega). Õnnestunud, kui õppija toob kaks argumenti näitega, kasutab vähemalt kaks tunnet õige käändega ja ühe -ki / -gi vormi, vastab partneri loole ja jõuate kokkuleppele või nimetab selgelt, mis jäi lahti. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('047_t_mail', 'Kodus: kiri sõbrale (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Laenasid märtsis heale sõbrale 300 eurot. Ta lubas maksta kuu lõpus, kuid nüüd on juuni ja ta ei vasta sinu sõnumitele. Kirjuta talle kiri, mis hoiab nii raha kui ka sõprust. Võid kirjutada ka väljamõeldud sõbrale.',
+        points: ['mida sa tundsid ja miks (mina-sõnum, mitte etteheide)', 'et mõistad, miks ta võib vaikida', 'konkreetne ettepanek: osamaksed, summad ja kuupäevad', 'kuidas te edaspidi suhtlete ja miks sõprus on sulle tähtis'],
+        words: [130, 150],
+      }), 'Sõber saab kirjast aru, mida sa tunned, ja teab täpselt, mida sa pakud.'), 6)), { task: 'W13', main: true, level: 3 }),
+      writingRubric('047_t_rubric', 'Hindamisjuhend: kiri sõbrale (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Sa ei maksnud raha tagasi. Sa oled halb sõber. Ma olen vihane sinu peal. Kõik ütlevad, et sa valetad. Maksa raha kohe ära. Muidu ma ei räägi sinuga. Tšau!” Hinnang: ülesanne 1 (raha nõutakse, kuid ettepanekut ega kuupäevi ei ole; toon on süüdistav ega hoia sõprust), ülesehitus 2 (järjekord on selge, sidendeid peaaegu ei ole), sõnavara 2 („vihane” ja „halb” on ainsad tunded; puuduvad pettunud, osamakse, kokkulepe), grammatika 2 („vihane sinu peal” → sinu peale; käsk mina-sõnumi asemel). Kui õppija kirjutab mina-sõnumi (Olin pettunud, kui …), pakub osamaksed kuupäevadega ja lõpetab sooja lausega, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('047_t_self', ['Ma saan raadiosaatest aru, mida tunnevad laenaja ja võlgnik, ja järeldan psühholoogi hoiaku.', 'Ma ütlen tunde õige käändega ja rõhutan: pettusin temas, solvus minu peale, ei vastanudki, isegi.', 'Ma kaitsen arutelus oma seisukohta ja reageerin partneri loole.'], 'Arutelu peetud', 'Ma oskan rahast ja tunnetest rääkida'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('047_t_voice', CUT_SHORT),
+      retire('047_t_more', CUT_EXTRA),
+      retire('047_t_exit', CUT_DRILL),
+      retire('047_t_letter', CUT_OLDTASK),
+      retire('047_t_home', CUT_HOME),
+      retire('047_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-048': {
+    title: 'Muusika kell 23 ja majagrupp keeb — kuidas tüli vahendada?',
+    phases: grammar('Kordamine: ütles, et; küsis, kas · B2: palus + da, palus mitte, väitis, et … olevat; öeldi, paluti'),
+    format: 'infogap',
+    topic: 'neighbours',
+    canDo: 'Ma loen artiklit naabritülist, annan kahe naabri sõnad erapooletult edasi ja kirjutan juhatusele umbes 180-sõnalise kokkuvõtte.',
+    teacherPage: {
+      goal: 'Статья «Kui majagrupp keeb»: ссора в чате дома, ночная тишина, работа посредника; косвенная речь B2; посредничество со скрытой информацией; дома резюме правлению 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 10 предложений; посредничество без третьего препятствия.',
+      hook: '«Väide: naabriga tuleb tüli lahendada otse, mitte majagrupis.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — какие звуки мешают ему дома и что он делал. Без фраз, не исправляйте. Отметьте, как ученик передаёт чужие слова (ta ütles, et …) — это тема станции 3.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своём доме, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), картинка и схема «пять шагов посредника» (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (8 мин)',
+        '25–45: станция 3 — ütles, et / küsis, kas одной строкой, B2: лицо, место и время, palus + da / palus, et + tingiv, palus mitte, väitis, et … olevat, öeldi / paluti; 10 сообщений для правления, протокол собрания с 10 пропусками без банка, бюллетень правления: 8 нейтральных предложений из банка (Harno R4), лишнее — злое сообщение из чата',
+        '45–70: станция 4 — план с сообщением Людмилы (3 мин), посредничество: вы — сосед сверху, потом Людмила (8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: резюме правлению 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): спокойное выступление на собрании дома (2 мин): что сказали обе стороны, что говорит закон, следующий шаг — без ярлыков',
+      ],
+      sources: 'Статья «Kui majagrupp keeb» — учебный текст KeeleSepp, без статистики. Закон: korrakaitseseadus § 56 lg 2 (Riigi Teataja) — не в общественном месте с 22.00 до 6.00, в ночь перед выходным с 0.00 до 7.00 запрещено создавать длительный или повторяющийся шум, существенно мешающий другим; часы дневного ремонта закон не задаёт, их задают правила дома (kodukord), принятые общим собранием (korteriomandi- ja korteriühistuseadus). Медсестра, Людмила, семья сверху и председатель — учебные.',
+      groups: 'Утверждение — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Посредничество в группе: A — член правления, B — сосед сверху, C — Людмила (B и C сидят в разных углах). В 1:1 вы играете обоих соседей по очереди.',
+      errors: [
+        '«Ta ütles, et ta töötas öösiti» → «… et ta töötab öösiti» (в эстонском время при пересказе не сдвигается).',
+        '«Ta küsis, kas sa saaksid» → «Ta küsis, kas ma saaksin» (меняется лицо: sa → ma, ma → ta).',
+        '«Ta palus mind rääkima» → «Ta palus mul rääkida» / «Ta palus, et ma räägiksin» (palus + kellel + da).',
+        '«Ta küsis, et millal» → «Ta küsis, millal …» (вопросительное слово без «et»); «Ta palus ei kirjutada» → «Ta palus mitte kirjutada».',
+      ],
+      notes: [
+        'Формат — инфогэп: у ученика только слова Людмилы (на карточке плана); позицию соседей сверху знаете только вы. Он должен спросить, передать и вернуться — без этого задача не решается. Это и есть посредничество (CEFR B2 «mediating communication»).',
+        'ütles, et / küsis, kas (модуль 7, B1) — повтор одной строкой; -vat был в модуле 7. Цель B2 — точная передача: лицо, место и время, просьба и запрет (palus + da, palus, et + tingiv, palus mitte + da), сомнение (väitis, et … olevat) и безличная передача (öeldi, paluti, lubati). Нейтральные глаголы: ütles, palus, pakkus — не karjus, nõudis.',
+        'Ученику без своей квартиры: общежитие или частный дом и соседи через забор (собака, газонокосилка) — те же фразы. Ни одна сторона не «виновата»: не позволяйте ученику судить. Обратная связь, 2–3 цели: лицо и время при пересказе; kas / millal без et; нейтральный глагол.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('048_d_talk', 'Väide: naabriga tuleb tüli lahendada otse, mitte majagrupis.', `Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: millised helid sind kodus segavad ja mida sa oled teinud. ${OWN_OR_INVENTED}`, [
+        'Väide: „Naabriga tuleb tüli lahendada otse, mitte majagrupis.” Kas oled nõus? Miks?',
+        'Millised helid sind kodus segavad? Mida tegid sina või su naabrid, kui keegi oli liiga vali?',
+      ], [60, 90]), 'Sinu enda kodu annab naabritülile esimese võrdluse.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe lausega. Ära paranda. Kui õpilane elab eramajas: „Mis sind naabri juures segab — koer, muruniiduk, auto?” Pane kirja, kuidas õpilane annab teiste sõnu edasi (ta ütles, et …) — see tuleb jaamas 3 tagasi.')), 1, 5),
+      station(tag(B.vocab('048_d_vocab', 'Tunni sõnad.', ['öörahu — ночная тишина', 'müra — шум', 'häirima — мешать', 'kodukord — правила дома', 'korteriühistu — товарищество собственников', 'vahendaja — посредник', 'erapooletu — беспристрастный', 'edasi andma — передавать', 'leebe — мягкий', 'kohut mõistma — судить']), { topic: ['öörahu', 'kodukord', 'vahendaja', 'korteriühistu'] }), 2, 20),
+      why(teach(tag(purpose(B.reading('048_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Kui majagrupp keeb', [
+        'Kell on pool kaksteist öösel. Teisel korrusel elav naine, kes läheb hommikul kell kuus haiglasse tööle, kuuleb ülemisest korterist muusikat ja naeru. Ta kirjutab maja vestlusgruppi: „Kas siin majas ei ole keegi kuulnud öörahust?” Kümne minuti pärast on vestluses kakskümmend sõnumit. Üks naaber kirjutab, et noored peavadki elama, teine, et tema laps ärkas samuti üles, kolmas lisab vihase näo. Hommikuks ei räägi keegi enam muusikast, vaid sellest, kes on „tülinorija”.',
+        'Korteriühistute juhatuse liikmed tunnevad seda pilti hästi. Nende sõnul ei lahene tülid vestlusgrupis, vaid kasvavad. Kirjas puudub hääletoon ja nägu, mistõttu kõlab iga lause teravamalt, kui see oli mõeldud. Mõni kirjutab vihaselt keset ööd ja kahetseb seda juba järgmisel hommikul, kuid sõnum on juba kõigil ees. Lisaks loevad sõnumeid ka need, keda asi ei puuduta, ja igaüks tunneb, et peab poole valima. Paljud majad on seepärast kokku leppinud, et vestlusgrupis jagatakse ainult teateid ja kaebusi seal ei arutata.',
+        'Miks me siis üldse vestlusgrupis kirjutame, mitte ei koputa uksele? Sageli on põhjus lihtne: me kardame. Võõra inimese uksele minna on ebamugav, eriti kell pool kaksteist öösel. Kirjutada on palju lihtsam, sest teise inimese reaktsiooni ei pea kohe nägema. Lisaks loodame, et kui teised naabrid meid toetavad, on meil õigus. Kuid toetus vestlusgrupis ei lahenda muret: see teeb ühe poole tugevamaks ja teise vihasemaks.',
+        'Mida ütleb seadus? Korrakaitseseaduse järgi ei tohi kella kümnest õhtul kuni kuueni hommikul tekitada kestvat või korduvat müra, mis teisi oluliselt häirib. Puhkepäevale eelneval ööl algab öörahu keskööl ja kestab seitsmeni. Päevase remondi kellaaegu seadus ei määra; need lepitakse kokku maja kodukorras. Seadus on aga viimane abinõu. Enamasti saab asja lahendada ilma politseita, kui inimesed räägivad omavahel õigel ajal ja õigel viisil.',
+        'Kogenud vahendajad teevad seda mitmes sammus. Kõigepealt räägivad nad kummagi naabriga eraldi ja kuulavad. Seejärel annavad nad ühe naabri sõnad teisele edasi nii täpselt ja erapooletult kui võimalik: „Naaber ütles, et ta töötab öösiti, ja palus, et reedeti pandaks muusika kümneks vaiksemaks.” Vahendaja ei ütle „ta karjus” ega „ta nõudis”, vaid „ta ütles” ja „ta palus”. Ta ei mõista kohut ega otsusta, kellel on õigus. Kui üks pool ei ole veel valmis teisega kohtuma, viib vahendaja sõnu edasi seni, kuni mõlemad on nõus koos laua taha istuma.',
+        'Sageli selgub vahendamisel midagi, mida teine pool ei teadnud. Ülemise korteri pere ei teadnud, et naaber magab päeval; naaber ei teadnud, et reedene pidu oli isa juubel ja juhtus kord aastas. Kui inimene saab teada teise põhjused, muutub ta tavaliselt leebemaks. Üks juhatuse esimees ütleb, et pooled tülid lõpevad juba siis, kui keegi küsib: „Mis teil tegelikult juhtus?” Ühine kohtumine toimub neutraalses kohas, näiteks maja koosolekuruumis või hoovis, mitte kellegi köögis, kus teine tunneks end külalisena.',
+        'Hea kokkulepe on konkreetne: mis kell, mis päevadel ja kes kellele helistab, kui midagi juhtub. „Edaspidi oleme vaiksemad” ei ole kokkulepe. „Remonti teeme tööpäeviti kella kaheteistkümnest kuueni ja enne pidu paneme trepikotta teate” on. Kokkulepe tasub kirja panna ja trepikotta üles riputada, et ka uued elanikud seda teaksid. Ja veel üks lihtne reegel, mida juhatuse liikmed korrutavad: kõigepealt koputa uksele, alles siis kirjuta gruppi.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Millest räägitakse vestlusgrupis hommikuks?', 'mitte enam muusikast, vaid sellest, kes on tülinorija'],
+        ['Miks kõlab vestlusgrupis iga lause teravamalt, kui see oli mõeldud?', 'kirjas puudub hääletoon ja nägu'],
+        ['Mis kell algab öörahu ööl vastu puhkepäeva ja millal see lõpeb?', 'keskööl ja kestab kella seitsmeni'],
+        ['Kes määrab päevase remondi kellaajad?', 'maja ise oma kodukorras; seadus neid ei määra'],
+        ['Miks kasutab vahendaja sõnu „ütles” ja „palus”, mitte „karjus” ja „nõudis”? Järelda.', 'et jääda erapooletuks: neutraalne tegusõna ei pane teist poolt end kaitsma ega tüli kasvama'],
+        ['Miks lõpevad esimehe sõnul pooled tülid juba küsimusega „Mis teil tegelikult juhtus?”? Järelda.', 'inimene saab teada teise põhjused (öötöö, juubel) ja muutub leebemaks'],
+        ['Milline on autori hoiak vestlusgrupi ja otse rääkimise kohta? Mida ta vihjab viimase lausega?', 'otse rääkimine lahendab tüli paremini kui grupp; enne kirjutamist tuleks naabriga silmast silma rääkida'],
+      ]), 'Pärast lugemist tead, miks tüli majagrupis kasvab ja mida vahendaja teeb; kohe vahendad ise.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade, pildi ja skeemiga. Enne lugemist küsi: mis juhtub sinu arvates majagrupis kümne minutiga? Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Seaduse kellaajad on lihtsustatud; ära anna õigusnõu („küsi juhatuselt või vaata Riigi Teatajast”).'), [
+        '1. lõik: „Hommikuks ei räägi keegi enam muusikast, vaid sellest, kes on „tülinorija”.”',
+        '2. lõik: „Kirjas puudub hääletoon ja nägu.”',
+        '4. lõik: „Puhkepäevale eelneval ööl algab öörahu keskööl ja kestab seitsmeni.”',
+        '4. lõik: „Päevase remondi kellaaegu seadus ei määra; need lepitakse kokku maja kodukorras.”',
+        'Järeldus 5. lõigust: vahendaja „ei mõista kohut” — neutraalsed sõnad hoiavad ta erapooletuna.',
+        'Järeldus 6. lõigust: „Kui inimene saab teada teise põhjused, muutub ta tavaliselt leebemaks.”',
+        'Järeldus 7. lõigust: „kõigepealt koputa uksele, alles siis kirjuta gruppi”.',
+      ]),
+      purpose(B.diagram('048_d_scheme', 'flow', { title: 'Skeem: kuidas vahendaja töötab?', instruction: 'Pärast lugemist kirjuta iga sammu juurde üks näide tekstist. Siis mõtle: millise sammu jätavad naabrid majagrupis vahele?', nodes: 'Kuula kumbagi eraldi: mis juhtus, mis on tema mure?\nÜtle sõnad edasi erapooletult: ütles, et …; palus, et …\nKüsi teise poole põhjust: „Mis teil tegelikult juhtus?”\nKohtumine neutraalses kohas: hoov, koosolekuruum\nKonkreetne kokkulepe: mis kell, mis päevadel, kes kellele helistab' }, 'full', 'g_read'), 'Skeem näitab vahendaja samme; samamoodi vahendad tunni lõpus ise.'),
+      retire('048_d_hook', CUT_HOOK),
+      retire('048_d_voice', 'the neighbour\'s voice message (65 s, below B2) as the input: her words are now on the plan card 048_t_plan; the lesson\'s one input is the article 048_d_text'),
+    ],
+    practice: [
+      station(teach(B.notice('048_p_notice', 'Märka: ta ütles, et …; ta palus, et …', [
+        'Artiklist: Naaber **ütles, et** ta **töötab** öösiti, ja **palus, et** reedeti **pandaks** muusika vaiksemaks. · Kordamine (B1): **ütles, et** … · **küsis, kas** … · **küsis, millal** … (ilma sõnata et)',
+        'B2: muutuvad isik (ma → ta), koht (siin → seal) ja aeg (homme → järgmisel päeval), tegusõna aeg ei muutu · palus **kellel + da** · palus, et + **tingiv** · palus **mitte + da** · väitis, et … **olevat** · **öeldi, paluti, lepiti kokku**',
+      ], 'full'), 'Kordamine ühe minutiga (ütles, et; küsis, kas). Siis B2 samm: isik, koht ja aeg, palve ja keeld, -vat ja umbisikuline. Lase õpilasel leida artiklist kaks kaudse kõne lauset ja öelda, mida naaber täpselt ütles (otse kõnes).'), 3, 20),
+      why(teach(tag(purpose(B.transformation('048_p_report', 'Majagrupist juhatusele.', 'Ütle iga sõnum kaudses kõnes, alusta antud sõnadega. Panka ei ole.', [
+        ['Ülemine naaber: „Me teeme remonti ainult kaks nädalat.”', 'Ülemine naaber kirjutas, et', 'Ülemine naaber kirjutas, et nad teevad remonti ainult kaks nädalat.'],
+        ['Ljudmila: „Kas te saaksite reede õhtul muusika vaiksemaks panna?”', 'Ljudmila küsis, kas', 'Ljudmila küsis, kas nad saaksid reede õhtul muusika vaiksemaks panna.'],
+        ['Esimese korruse naaber: „Ärge kirjutage siia keset ööd!”', 'Esimese korruse naaber palus mitte', 'Esimese korruse naaber palus mitte kirjutada sinna keset ööd.|Esimese korruse naaber palus keset ööd mitte sinna kirjutada.|Esimese korruse naaber palus mitte keset ööd sinna kirjutada.|Esimese korruse naaber palus keset ööd sinna mitte kirjutada.'],
+        ['Kolmanda korruse naaber: „Ljudmila on lihtsalt tülinorija.” (Sina seda ei usu.)', 'Kolmanda korruse naaber väitis, et', 'Kolmanda korruse naaber väitis, et Ljudmila olevat lihtsalt tülinorija.'],
+        ['Ljudmila: „Millal teie remont lõpeb?”', 'Ljudmila küsis, millal', 'Ljudmila küsis, millal nende remont lõpeb.'],
+        ['Juhatuse esimees: „Ma tulen homme kell kuus teie juurde.”', 'Esimees kirjutas, et', 'Esimees kirjutas, et ta tuleb järgmisel päeval kell kuus nende juurde.|Esimees kirjutas, et ta tuleb järgmisel päeval kell kuus meie juurde.'],
+        ['Ülemine naaber: „Helistage mulle otse!”', 'Ülemine naaber palus', 'Ülemine naaber palus talle otse helistada.|Ülemine naaber palus meil talle otse helistada.|Ülemine naaber palus, et talle otse helistataks.|Ülemine naaber palus, et me talle otse helistaksime.'],
+        ['Ljudmila: „Ma magan päeval kella kaheksast kolmeni.”', 'Ljudmila ütles, et', 'Ljudmila ütles, et ta magab päeval kella kaheksast kolmeni.'],
+        ['Ülemise korteri pere: „Me ei teadnud, et te töötate öösiti.”', 'Pere ütles, et', 'Pere ütles, et nad ei teadnud, et ta töötab öösiti.|Pere ütles, et nad ei teadnud, et Ljudmila töötab öösiti.'],
+        ['Juhatus: „Kõik naabrid, palun tulge laupäeval hoovi koosolekule!”', 'Juhatus palus kõigil naabritel', 'Juhatus palus kõigil naabritel tulla laupäeval hoovi koosolekule.|Juhatus palus kõigil naabritel laupäeval hoovi koosolekule tulla.'],
+      ], 'full', 'g_notice'), 'Juhatus näeb tüli rahulikult ja täpselt, ilma vihaste sõnadeta.'), { task: 'G14' }),
+      'Pärast iga rida küsi: „Kes räägib ja kellele? Mis muutub: isik, koht, aeg?” Rida 4: õpilane ise ei usu väidet, seepärast -vat (olevat). Rida 6: homme → järgmisel päeval. Read 7 ja 10: palus + kellel + da-tegevusnimi.'), [
+        'Väide: et + isik muutub (me → nad); aeg jääb: teevad.',
+        'Jah-ei-küsimus: kas + isik muutub (te → nad): saaksid.',
+        'Keeld: palus mitte + da: kirjutada; siia → sinna.',
+        'Sa ei vastuta väite eest: väitis, et … olevat.',
+        'Küsisõna ees et puudub: küsis, millal …; teie → nende.',
+        'ma → ta; homme → järgmisel päeval; teie → nende (või meie).',
+        'Palve: palus + da (helistada) või palus, et + tingiv.',
+        'Aeg ei muutu: ma magan → ta magab.',
+        'me → nad; te → ta; aeg jääb: ei teadnud, töötab.',
+        'palus kellel + da: kõigil naabritel tulla.',
+      ]),
+      why(purpose(B.formtext('048_p_minutes', 'Majakoosoleku protokoll.', 'Kirjuta lünka üks sõna või vorm (vihje sulgudes). Panka ei ole.', 'Majakoosolek laupäeval hoovis', [
+        'Ljudmila ütles, et ta [töötab] (töötama; aeg ei muutu) haiglas öövahetustes ja magab päeval. Ta küsis, [kas] (jah-ei-küsimus) naabrid saaksid reedeti muusika vaiksemaks panna. Samuti palus ta, et remont [toimuks] (toimuma; palus, et …) ainult pärastlõunal.',
+        '',
+        'Pere selgitas, et toru purunes ja remont [peab] (pidama; aeg ei muutu) kuu lõpuks valmis olema. Nad küsisid, [millal] (aeg) Ljudmila täpselt magab. Pere sõnul oli pidu isa juubel ja see [olevat] (olema; sa ei vastuta väite eest) ühekordne. Nad palusid naabritel enne gruppi kirjutamist neile otse [helistada] (helistama; palusid + …).',
+        '',
+        'Üks naaber palus keset ööd gruppi [mitte] (keeld) kirjutada. Koosolekul [lepiti] (leppima; umbisikuline minevik) kokku, et kaebusi majagrupis ei arutata. Esimees lubas, et paneb uue kodukorra [järgmisel] (homme → kaudses kõnes) päeval trepikotta üles.',
+      ]), 'Samamoodi kirjutad kodus juhatusele: kes mida ütles ja palus, erapooletult.'), [
+        'Aeg ei muutu: töötab.',
+        'Jah-ei-küsimus → kas.',
+        'palus, et + tingiv: toimuks.',
+        'Aeg ei muutu: peab.',
+        'Küsisõna ees ei ole sõna et: millal.',
+        'Sa ei vastuta väite eest → olevat.',
+        'palusid kellel + da: helistada.',
+        'Keeld → mitte + da.',
+        'Umbisikuline minevik: lepiti kokku.',
+        'homme → järgmisel päeval.',
+      ]),
+      why(purpose(tag(B.insertion('048_p_summary', 'Juhatuse uudiskiri: vali erapooletu lause.', 'Vali igasse lünka sobiv lause. Üks lause jääb üle: vihane sõnum majagrupist.', 'Mis meie majas juhtus ja mida me kokku leppisime', [
+        'Majagrupis tekkis tüli muusika ja remondi pärast. [[Ljudmila kurtis, et reede õhtul oli kuulda valju muusikat.]] Ta töötab öösiti ja magab päeval. [[Ta palus, et puuritaks ainult pärastlõunal.]] Pere vastas samal päeval. [[Nad ütlesid, et ei teadnud tema öövahetustest.]] Toru purunes ja remont peab kuu lõpuks valmis olema. [[Reedene pidu olevat olnud isa juubel.]] Laupäeval oli hoovis koosolek. [[Seal lepiti kokku, et puuritakse kella kolmest kuueni.]] Reedeti on muusika kümnest vaiksem. [[Kaebusi majagrupis enam ei arutata.]]',
+      ], ['Ülemised peavad igal ööl pidu!'], 'g_notice'), { task: 'R16', harno: 'R4' }), 'Näed, kuidas vihane tüli kõlab erapooletus kokkuvõttes, mida loeb kogu maja.'), [
+        'Ljudmila mure (kurtis, et …) tuleb kohe pärast tüli kirjeldust.',
+        'Pärast põhjust (öövahetused) tuleb palve: palus, et puuritaks …',
+        'Pere vastus: nad ütlesid, et … (kaudne kõne, neutraalne).',
+        'Pere põhjus, mille eest kirjutaja ei vastuta: olevat olnud.',
+        'Koosolek → seal lepiti kokku (umbisikuline).',
+        'Teine kokkulepe: kaebusi majagrupis ei arutata.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('048_t_plan', 'Vahendamine: plaan (3 minutit).', 'Oled korteriühistu juhatuse liige. Naaber Ljudmila jättis sulle sõnumi: „Töötan haiglas öövahetustes ja magan päeval kaheksast kolmeni. Kaks nädalat on ülemisest korterist kostnud päeval puurimist ja reede õhtul valju muusikat. Käisin nende uksel, aga keegi ei avanudki. Majagrupis nimetati mind tülinorijaks. Ma ei taha politseid. Palun, et remont oleks tööpäeviti kaheteistkümnest kuueni ja reede õhtul pandaks muusika kümneks vaiksemaks. Kas sa saaksid nendega rääkida?” Edukriteeriumid: 1) annad Ljudmila sõnad edasi kaudses kõnes (ütles, et …; palus, et …; küsis, kas …); 2) küsid ülemise naabri põhjust ja viid vastuse Ljudmilale; 3) ei mõista kohut ja pakud konkreetse kokkuleppe.', ['Mida Ljudmila ütles (kaudses kõnes):', 'Mida ta palus:', 'Mida küsin ülemiselt naabrilt:', 'Minu ettepanek kokkuleppeks:'], 1), 'Plaan aitab sul anda sõnad edasi täpselt, ilma oma hinnanguta.'), 4, 25, { final: 'advise' }),
+      teach(tag(purpose(B.rolecards('048_t_relay', 'Vahenda naabrite vahel (6–8 minutit).', 'Mine ülemise korruse naabri juurde, anna Ljudmila sõnad edasi, küsi tema seisukohta ja vii vastus Ljudmilale tagasi. Reageeri, kui naaber ütleb midagi, mida sa ei teadnud.',
+        'Olukord: oled juhatuse liige; Ljudmila sõnum on sinu plaanikaardil. Sa ei tea, mida ülemised naabrid arvavad.\nSinu eesmärk: mõlemad naabrid teavad, mida teine tegelikult ütles, ja neil on üks ühine ettepanek.\nPiirang: sa ei ole kohtunik — ära ütle, kellel on õigus.',
+        'Ülemise naabri kaart on õpetajal: tema põhjused ja üks asi, mida Ljudmila ei tea.',
+        ['Ljudmila palus mul teile edasi öelda, et …', 'Kas ma võin talle öelda, et …?'], ['Me ei teadnudki, et …', 'Öelge talle, et …']), 'Tulemus: mõlemad naabrid teavad, mida teine tegelikult ütles, ja neil on üks ühine ettepanek.'), { task: 'S05', main: true, level: 4 }),
+      'Õpetaja kaart (ülemine naaber; seejärel mängi Ljudmilat). Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Miks ta meile ise ei helistanud?” 2) „Me ei saa remonti peatada!” Varjatud info (ütle pärast teist takistust): „Vannitoas purunes toru ja kindlustus nõuab, et remont oleks kuu lõpuks valmis. Ja meil on kuuekuune laps, kes magab samuti päeval kella ühest kolmeni. Reedene pidu oli mehe neljakümnes sünnipäev — see oli ühekordne.” Õpilane peab reageerima: arvestama uue asjaoluga ja pakkuma uue aja (näiteks puurida ainult kella kolmest kuueni), siis andma selle kaudses kõnes Ljudmilale edasi. Ljudmila rollis küsi: „Kas nad ütlesid, et nad vabandavad?” Õnnestunud, kui õpilane annab mõlema sõnad edasi kaudses kõnes (vähemalt kolm: ütles, et; palus, et / palus + da; küsis, kas), kasutab neutraalseid tegusõnu, ei mõista kohut ja kokkulepe on konkreetne. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('048_t_mail', 'Kodus: kokkuvõte juhatusele (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Juhatus palus sul kirjutada vahendamisest kokkuvõtte. Selle põhjal otsustatakse, kas maja kodukorda tuleks muuta.',
+        points: ['mis juhtus ja miks sa vahendasid', 'mida ütlesid ja palusid mõlemad pooled (kaudses kõnes, erapooletult)', 'milles lepiti kokku ja mis jäi lahtiseks', 'sinu ettepanek kodukorra kohta ja miks see on mõistlik'],
+        words: [170, 190],
+      }), 'Juhatus saab sinu kirjast kahe poole täpse pildi ja otsustab, kuidas edasi.'), 6)), { task: 'W12', main: true, level: 4 }),
+      writingRubric('048_t_rubric', 'Hindamisjuhend: kokkuvõte juhatusele (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere, juhatus! Ljudmila on pahane. Ta karjus, et ülemised on hoolimatud. Ülemised ütles, et neil on remont. Ma arvan, et Ljudmilal on õigus. Nad peavad vaikselt olema. Palun tehke uus kord. Aitäh!” Hinnang: ülesanne 1 (kokkulepet ja ettepaneku põhjendust ei ole; kirjutaja võtab poole), ülesehitus 2 (järjekord on selge, lõike ja sidendeid ei ole), sõnavara 2 („karjus”, „pahane”, „hoolimatud” ei ole erapooletud sõnad), grammatika 2 („Ülemised ütles” → ütlesid; kaudset kõnet on ainult kaks korda, palvet ega küsimust ei ole). Kui õppija annab mõlema poole sõnad edasi neutraalse tegusõnaga (ütles, palus, küsis, kas), kirjutab kokkuleppe kellaaegadega ja põhjendab ettepanekut, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('048_t_self', ['Ma loen artiklit naabritülidest ja järeldan, mida autor soovitab.', 'Ma annan teiste sõnad kaudses kõnes edasi: ütles, et …; küsis, kas …; palus + da; palus mitte …; väitis, et … olevat.', 'Ma vahendan kahe naabri vahel erapooletult ja reageerin uuele asjaolule.'], 'Tüli vahendatud', 'Ma oskan vahendada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('048_t_rules', 'second input: the law on night rest is now part of the article 048_d_text (v5: one input per lesson)'),
+      retire('048_t_ask', CUT_DRILL),
+      retire('048_t_more', CUT_EXTRA),
+      retire('048_t_exit', CUT_DRILL),
+      retire('048_t_letter', CUT_OLDTASK),
+      retire('048_t_home', CUT_HOME),
+      retire('048_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-049': {
+    title: 'Kaks õde ja üks apelsin: kuidas pere ühise plaani leiab?',
+    phases: grammar('Kordamine: läheksime, saaksime · B2: ma saan aru, et; mis oleks, kui; tingimusel, et; vastutasuks'),
+    format: 'game',
+    topic: 'family',
+    canDo: 'Ma saan aru raadiosaatest seisukohast ja huvist, jõuan pere läbirääkimisel kokkuleppeni ja kirjutan umbes 180-sõnalise kokkuleppe kirja.',
+    teacherPage: {
+      goal: 'Радио «Seisukoht ja huvi»: позиция и интерес; язык переговоров B2; реальный рейс на Peatus.ee; игра трёх поколений со скрытой информацией; дома письмо-договорённость 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и утверждения 1–7; станция 3 — правило и 10 предложений; игра в один раунд без карточки условий, расписание — дома.',
+      hook: '«Väide: peres peaks viimase sõna ütlema see, kes maksab.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — из-за чего спорят в его семье или у друзей и кто обычно уступает. Без фраз, не исправляйте. Не расспрашивайте о разводах и настоящих ссорах.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), прогноз «чего на самом деле хотели сёстры?» и схема «позиция или интерес» (3 мин), радио дважды (9 мин), 10 утверждений верно / неверно, из них 3 на вывод (6 мин)',
+        '25–45: станция 3 — tingiv одной строкой, B2: ma saan aru, et + kindel; mis oleks, kui + tingiv; tingimusel, et; eeldusel, et; vastutasuks; kui just … ei; 10 предложений, сообщение мамы в семейный чат с 10 пропусками без банка, регистр (8 строк): приказ → предложение',
+        '45–70: станция 4 — роль и реальный рейс на Peatus.ee (5 мин), игра в два раунда со скрытой информацией и очками (10 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо-договорённость 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ролевая игра — извиниться так, чтобы сработало (забытый юбилей мамы), без «aga» и с конкретным шагом',
+      ],
+      sources: 'Радио «Seisukoht ja huvi» — учебный текст KeeleSepp (ведущая Kristiina и семейный медиатор Urmas вымышлены). История об апельсине — классический пример различия позиции и интереса (R. Fisher, W. Ury «Getting to Yes», 1981). Общий факт: Sotsiaalkindlustusamet предлагает расходящимся родителям бесплатную семейную медиацию (perelepitus), если оба согласны. Расписания — реальный сайт https://www.peatus.ee (страница не открывалась при подготовке; при необходимости покажите свой пример). Семья и роли — учебные.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, выводы сравнивают в паре. Игра в группе из трёх: каждый берёт одну роль (бабушка, родитель, подросток); вы ведёте время, тянете карточку условия и считаете очки. В 1:1 ученик выбирает роль, вы играете остальные две.',
+      errors: [
+        '«Mis oleks, kui me läheme» → «Mis oleks, kui me läheksime» (в предложении-гипотезе — условное наклонение).',
+        '«Olen nõus, tingimusel et» → «Olen nõus tingimusel, et …» (запятая перед et); после tingimusel, et обычно изъявительное (sa juhid), условное тоже встречается.',
+        '«Ma saan aru, et sa oleksid väsinud» → «… et sa oled väsinud» (понимаю факт — изъявительное).',
+        '«Kas me saame …» звучит как требование; «Kas me saaksime …?» — мягче.',
+      ],
+      notes: [
+        'Формат — игра с очками: конкретная договорённость (кто, что, когда) — 3 очка, каждое «Ma saan aru, et …» — 1, каждая уступка с условием — 1. Карточка условия во втором раунде (скрытая информация) заставляет договариваться заново. Задание-связь: настоящий автобус или поезд с Peatus.ee делает договорённость проверяемой.',
+        'Условное наклонение (модули 2 и 8) — повтор одной строкой. Цель B2 — язык переговоров: показать понимание (ma saan aru, et + изъявительное), предложить (mis oleks, kui + условное), уступить с условием (tingimusel, et; eeldusel, et; juhul kui; vastutasuks; kui just … ei).',
+        'Ученику без семьи рядом: друзья планируют поездку или соседи — общий двор; пенсионер может играть бабушку — это его голос. Обратная связь, 2–3 цели: условное наклонение в предложении; изъявительное после ma saan aru, et; конкретность («küll kuidagi» — не договорённость).',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('049_d_talk', 'Väide: peres peaks viimase sõna ütlema see, kes maksab.', `Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: mille üle sinu peres või sõpradega kõige sagedamini vaieldakse ja kes tavaliselt järele annab. ${OWN_OR_INVENTED}`, [
+        'Väide: „Peres peaks viimase sõna ütlema see, kes maksab.” Kas oled nõus? Miks?',
+        'Mille üle teie peres või sõpradega kõige sagedamini vaieldakse? Kes annab järele ja kas see on õiglane?',
+      ], [60, 90]), 'Sinu pere või sõprade näide annab mängule päris tausta.'), { task: 'S09', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe lausega (pere võib olla väljamõeldud). Ära küsi lahutuse ega päris tülide kohta. Pane kirja, kas õpilane pakub midagi tingiva kõneviisiga (läheksime, võiksime) — see tuleb jaamas 3 tagasi.')), 1, 5),
+      station(tag(B.vocab('049_d_vocab', 'Tunni sõnad.', ['seisukoht — позиция', 'huvi — интерес (что на самом деле важно)', 'kompromiss — компромисс', 'järele andma — уступать', 'tingimus — условие', 'vastutasuks — взамен', 'põlvkond — поколение', 'lepitaja — медиатор', 'kaaluma — взвешивать', 'kokkulepe — договорённость']), { topic: ['seisukoht', 'huvi', 'põlvkond', 'vastutasuks'] }), 2, 20),
+      purpose(B.diagram('049_d_scheme', 'compare', { title: 'Skeem: seisukoht või huvi?', instruction: 'Enne kuulamist arva: mida õed tegelikult tahtsid? Kuulates kirjuta paremale poolele iga seisukoha taga olev huvi. Siis lisa üks näide oma perest või sõpradest.', left: 'Seisukoht: mida nõutakse', right: 'Huvi: miks see on tähtis', leftItems: 'Mul on vaja seda apelsini!\nKogu pere tuleb suvel maale!\nMa jään juulis linna!', rightItems: 'üks õde: mahl, teine: koor koogi jaoks\nvanaema: …\nteismeline: …' }, 'full', 'g_notice'), 'Skeem näitab, et seisukohad on vastuolus, aga huvid sageli mitte.'),
+      why(teach(tag(purpose(B.examListen('049_d_radio', 'Kuulamine: raadiosaade „Seisukoht ja huvi”.', 'Raadiosaates räägib saatejuht perelepitajaga sellest, kuidas pere jõuab ühise plaanini, kui igaüks tahab midagi muud. Loe väited läbi, kuula kaks korda ja otsusta: õige või vale.', 'truefalse', [
+        'Kristiina: Tere! Saates „Suhete tund” räägime täna sellest, kuidas pere jõuab ühise plaanini, kui igaüks tahab midagi muud. Stuudios on perelepitaja Urmas. Urmas, suvi on tulekul ja paljudes peredes algab vaidlus. Kust alustada?',
+        'Urmas: Tere! Ma alustan sageli ühe vana looga. Kaks õde vaidlevad viimase apelsini pärast. Ema lõikab selle pooleks ja annab kummalegi poole. Õiglane? Tundub küll. Aga üks õde pressib oma poolest mahla ja viskab koore ära, teine riivib koore kooki ja viskab sisu ära. Kui ema oleks küsinud, milleks neil apelsini vaja on, oleks kumbki saanud kaks korda rohkem seda, mida ta tegelikult tahtis.',
+        'Kristiina: Mida see lugu meile õpetab?',
+        'Urmas: Et seisukoht ja huvi ei ole sama asi. Seisukoht on see, mida inimene nõuab: „Kogu pere tuleb suvel maale!” Huvi on see, miks ta seda nõuab. Vanaema kardab üksi jääda, isa tahab lõpuks välja magada, teismeline ei taha sõpradest ilma jääda. Seisukohad on vastuolus, aga huvid sageli mitte.',
+        'Kristiina: Kuidas huvini jõuda?',
+        'Urmas: Küsimusega „Miks see sulle tähtis on?”. Ja siis tuleb öelda oma sõnadega, mida kuulsid: „Ma saan aru, et sa kardad suvel üksi jääda.” Inimene, kes tunneb, et teda on mõistetud, on valmis ka ise järele andma.',
+        'Kristiina: Ja siis?',
+        'Urmas: Siis otsige koos vähemalt kolm varianti, enne kui midagi otsustate. Esimene idee on harva parim. Kui variandid on laual, saab neid kaaluda: mis oleks, kui me sõidaksime maale kümneks päevaks ja üks nädal oleks mere ääres? Kas saaksime minna pärast festivali?',
+        'Kristiina: Meil öeldakse peres sageli lõpus: „Küll me kuidagi saame.” Kas see on kokkulepe?',
+        'Urmas: Ei ole. See on lootus. Kokkulepe ütleb, kes, mida ja millal teeb. Näiteks: vanaema juures oleme kümnendast kahekümnenda juulini, isa parandab katuse, teismeline sõidab festivalile bussiga ja tuleb tagasi järgmisel päeval. Hea on lisada ka tingimus: olen nõus tingimusel, et … Ja kokku leppida, mis saab siis, kui midagi muutub.',
+        'Kristiina: Aga mida teha, kui keegi peres ütleb lihtsalt: „Mina ei lähe kuhugi”?',
+        'Urmas: Siis ei tasu vaielda, vaid küsida, mida ta kardab. Teismeline, kes ütleb „ma ei lähe maale”, mõtleb sageli „ma ei taha sõpradest ilma jääda”. Kui see on välja öeldud, saab otsida lahenduse: võib-olla tuleb ta maale hiljem või sõber tuleb kaasa. Ära lõpeta vestlust ei-sõnaga, vaid küsimusega: mis tingimusel sa oleksid nõus?',
+        'Kristiina: Kas vanavanemate sõnal peaks olema suurem kaal?',
+        'Urmas: Austus vanema põlvkonna vastu on tähtis, aga kaal ei tähenda vetoõigust. Paljud vanaemad on hoopis rõõmsad, kui neilt küsitakse, mida nad tegelikult vajavad. Tihti selgub, et vajadus on väiksem, kui kõik kartsid: mitte kaks nädalat seltskonda, vaid abi aiatööga ja kindel aeg, millal lapselapsed helistavad.',
+        'Kristiina: Ja kui pere ise kokkuleppele ei jõua?',
+        'Urmas: Siis võib appi kutsuda lepitaja. Lepitaja ei otsusta kellegi eest. Ta aitab rääkida nii, et igaüks saaks sõna ja keegi ei jääks kõrvale. Lahku minevatele vanematele pakub riik perelepitust tasuta, et nad saaksid lapse huvides kokku leppida.',
+        'Kristiina: Üks nõuanne kuulajatele?',
+        'Urmas: Enne järgmist vaidlust küsi teistelt: miks see sulle tähtis on? Ja vasta ise samale küsimusele.',
+        'Kristiina: Aitäh, Urmas!',
+      ], [
+        ['Urmase loos lõikas ema apelsini pooleks ja see oli õdedele parim lahendus.', false],
+        ['Üks õde vajas apelsinist mahla, teine koort.', true],
+        ['Seisukoht on Urmase järgi see, miks inimene midagi nõuab.', false],
+        ['Urmase sõnul on pereliikmete huvid sageli vähem vastuolus kui nende seisukohad.', true],
+        ['Urmas soovitab enne otsustamist leida koos vähemalt kolm varianti.', true],
+        ['Lause „Küll me kuidagi saame” on Urmase sõnul hea kokkulepe.', false],
+        ['Urmase arvates peaks vanavanematel olema pere otsustes vetoõigus.', false],
+        ['Urmas vihjab, et vanaema tegelik vajadus võib olla väiksem, kui pere kartis.', true],
+        ['Urmase sõnadest võib järeldada, et inimene, kes tunneb end mõistetuna, annab kergemini järele.', true],
+        ['Urmas annab mõista, et lepitaja otsustab lõpuks, kumb pool on õiges.', false],
+      ], 'g_listen'), 'Saade annab sulle mängu reegli: räägi huvidest, mitte seisukohtadest.'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, 20 minutit koos sõnade ja skeemiga (umbes 4 minutit, kaks korda). Enne kuulamist arvab õpilane skeemi järgi, mida õed tegelikult tahtsid. Õpilane loeb väited ja joonib alla võtmesõnad. Pärast kuulamist täidab õpilane skeemi parema poole. Väited 8–10 on järeldusväited (lepitaja hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Vale: ema oleks pidanud küsima, „milleks neil apelsini vaja on”; pooleks lõikamine ei olnud parim.',
+        'Õige: üks pressis mahla, teine riivis koore kooki.',
+        'Vale: seisukoht on see, mida inimene nõuab; huvi on see, miks ta seda nõuab.',
+        'Õige: „Seisukohad on vastuolus, aga huvid sageli mitte.”',
+        'Õige: „otsige koos vähemalt kolm varianti, enne kui midagi otsustate”.',
+        'Vale: „Ei ole. See on lootus.”',
+        'Vale: „kaal ei tähenda vetoõigust”.',
+        'Õige (järeldus): „vajadus on väiksem, kui kõik kartsid”.',
+        'Õige (järeldus): „Inimene, kes tunneb, et teda on mõistetud, on valmis ka ise järele andma.”',
+        'Vale (järeldus): „Lepitaja ei otsusta kellegi eest.”',
+      ]),
+      retire('049_d_hook', CUT_HOOK),
+      retire('049_d_know', CUT_KNOW),
+    ],
+    practice: [
+      station(teach(B.notice('049_p_notice', 'Märka: kuidas pakkuda nii, et teine kuulab?', [
+        'Raadiost: „**Ma saan aru, et** sa **kardad** suvel üksi jääda.” · „**Mis oleks, kui** me **sõidaksime** maale kümneks päevaks?” · „**Kas saaksime** minna pärast festivali?” · olen nõus **tingimusel, et** …',
+        'Kordamine (B1): tingiv kõneviis — me **läheksime**, sa **saaksid**, ta **tuleks** (-ks-).',
+        'B2: näita, et mõistad (fakt → kindel kõneviis): **Ma saan aru, et** sul **on** raske. · **Mulle tundub, et** sulle **on** tähtis …',
+        'B2: paku (mõeldud olukord → tingiv): **Mis oleks, kui** me **läheksime** …? · **Kas** me **saaksime** …? · Me **võiksime** proovida … · **Kui** vanaema **tuleks** meile, ei **peaks** keegi sõitma.',
+        'B2: tingimus ja vastutasu — olen nõus **tingimusel, et** sa **juhid** (ka tingiv: juhiksid) · **eeldusel, et** … · **juhul, kui** … · **vastutasuks** ma … · **kui just** … **ei** … (= välja arvatud siis, kui).',
+      ], 'full'), 'Kordamine ühe minutiga (läheksime, saaksime). Siis B2 samm: mõistmine kindla kõneviisiga, ettepanek tingivaga, järeleandmine tingimusega. Lase õpilasel leida saatest üks lause igast liigist.'), 3, 20),
+      why(teach(tag(purpose(B.gaps('049_p_mood', 'Jõulud: kus ja kellega?', 'Pere vaidleb, kus jõule veeta. Otsusta, kas lause vajab tingivat või kindlat kõneviisi, ja kirjuta sulgudes olev tegusõna õiges vormis. Panka ei ole.', [
+        'Mis oleks, kui me [veedaksime] jõululaupäeva meil ja esimese püha vanaema juures? (veetma)',
+        'Kas me [saaksime] sõita juba reedel, et laps ei peaks õhtul autos magama? (saama)',
+        'Ma saan aru, et sa [kardad] pühade ajal üksi jääda. (kartma)',
+        'Olen nõus maale sõitma tingimusel, et sina [juhid|juhiksid] tagasiteel autot. (juhtima)',
+        'Kui vanaema [tuleks] hoopis meile, ei peaks keegi kaheksa tundi sõitma. (tulema)',
+        'Vastutasuks [võiksin] ma vanaemale enne pühi aias appi minna. (võima)',
+        'Kui me oleksime varem rääkinud, [poleks|ei oleks] see tüli nii suureks läinud. (olema, eitus)',
+        'Mulle tundub, et sulle [on] tähtis, et kõik oleksid koos. (olema)',
+        'Me sõidame laupäeval maale, kui just ilm väga halb [ei ole|pole]. (olema, eitus)',
+        'Olen nõus linna jääma eeldusel, et sa [helistad|helistaksid] vanaemale iga päev. (helistama)',
+      ], '', 'full', 'g_notice'), 'Õige vorm teeb ettepaneku pehmeks ja tingimuse selgeks; see on mängu põhivõte.'), { task: 'G02' }),
+      'Pärast iga lauset küsi: „Kas see on fakt või ettepanek?” Fakt → kindel kõneviis (kardad, on), ettepanek või mõeldud olukord → tingiv (veedaksime, tuleks). Rida 7 on minevikus: oleks + -nud. Rida 9: kui just … ei + kindel kõneviis.'), [
+        'Mis oleks, kui + tingiv: veedaksime.',
+        'Viisakas küsimus → tingiv: saaksime.',
+        'Ma saan aru, et + fakt (kindel): kardad.',
+        'tingimusel, et + kindel (juhid) või tingiv (juhiksid).',
+        'Mõeldud olukord: kui + tingiv: tuleks.',
+        'Pakkumine → tingiv: võiksin.',
+        'Mineviku mõeldud olukord: ei oleks / poleks + -nud.',
+        'Mulle tundub, et + fakt: on.',
+        'kui just … ei + kindel kõneviis: ei ole.',
+        'eeldusel, et + kindel (helistad) või tingiv (helistaksid).',
+      ]),
+      why(purpose(B.formtext('049_p_chat', 'Pere vestlus: suveplaan.', 'Ema kirjutab pere vestlusse ettepaneku. Kirjuta lünka üks sõna või vorm (vihje sulgudes). Panka ei ole.', 'Meie suvi — ettepanek', [
+        'Kallid! Eile õhtul läks vaidlus üsna teravaks ja mul on kahju. Ma saan aru, et vanaema [tahab] (tahtma; fakt) suvel kogu pere enda juurde.',
+        '',
+        'Samas tundub mulle, et isa [vajab] (vajama; fakt) pärast rasket aastat lihtsalt puhkust. Mis oleks, kui me [sõidaksime] (sõitma; ettepanek) vanaema juurde kümneks päevaks ja seejärel nädalaks mere äärde?',
+        '',
+        'Kas me [saaksime] (saama; viisakas küsimus) teha nii, et Mart tuleb maale alles pärast festivali? Olen sellega nõus [tingimusel] (tingimus), et ta sõidab bussiga ja helistab, kui on kohal.',
+        '',
+        'Isa võiks vanaema juures katuse ära parandada. [Vastutasuks] (vastu + tasu) hoiab vanaema kaks päeva lapsi, et me saaksime kahekesi matkale minna.',
+        '',
+        'Kui ilm [peaks] (pidama; tingiv) halvaks minema, sõidame mere äärde hiljem. Ja kui keegi selle plaaniga nõus ei [ole] (olema; fakt, eitus), öelge kohe, mitte nädala pärast.',
+        '',
+        'Lepime kokku [järgmiseks] (järgmine; mis ajaks?) pühapäevaks. Mina helistan vanaemale ja [broneerin] (broneerima; mina, olevik) majutuse Pärnus.',
+      ]), 'Samamoodi kirjutad kodus oma kokkuleppe kirja: mõistmine, ettepanek, tingimus ja kes mida millal teeb.'), [
+        'Ma saan aru, et + fakt: tahab.',
+        'tundub, et + fakt: vajab.',
+        'Mis oleks, kui + tingiv: sõidaksime.',
+        'Viisakas küsimus → tingiv: saaksime.',
+        'Olen nõus tingimusel, et …',
+        'Vastutasuks = vastu + tasu (kokku).',
+        'Kui … peaks + ma-tegevusnimi: võimalik, aga mitte kindel muutus.',
+        'Fakt, eitus: ei ole.',
+        'mis ajaks? → saav kääne: järgmiseks.',
+        'mina, olevik: broneerin.',
+      ]),
+      why(purpose(tag(B.table('049_p_register', 'Käsk või ettepanek?', 'Vasakul on käsk või nõudmine, mis teeb vaidluse teravaks. Paremal on sama mõte ettepanekuna. Kirjuta lünka puuduv sõna.', 'Käsk, Ettepanek', [
+        'Me läheme Pärnu ja kõik! | Mis oleks, kui me [läheksime] seekord Pärnu?',
+        'Sa ei lähe festivalile! | Ma saan aru, et festival on sulle [tähtis], aga ma muretsen.',
+        'Vanaema peab meile tulema. | [Kas] vanaema saaks seekord meile tulla?',
+        'Sina parandad katuse! | Kas sa [võiksid] katuse ära parandada?',
+        'Ma lähen ainult siis, kui sina maksad. | Olen nõus minema [tingimusel], et jagame kulud.',
+        'Ei, see ei sobi. | See on minu jaoks [keeruline], sest mul on puhkus alles augustis.',
+        'Ära räägi minuga nii! | Mulle [teeb] haiget, kui sa räägid minuga sellisel toonil.',
+        'Küll me kuidagi saame. | Lepime [kokku]: kes, mida ja millal teeb.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sama soov kõlab nii, et teine tahab kuulata.'), [
+        'Käsk → Mis oleks, kui + tingiv: läheksime.',
+        'Keeld → näita mõistmist: on sulle tähtis.',
+        'Nõudmine → viisakas küsimus: Kas … saaks …?',
+        'Käsk → Kas sa võiksid …?',
+        'Ultimaatum → tingimusel, et …',
+        'Ei sobi → see on minu jaoks keeruline, sest …',
+        'Käsk → mina-sõnum: mulle teeb haiget.',
+        'Lootus → kokkulepe: lepime kokku.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('049_t_plan', 'Enne mängu: roll ja päris sõiduplaan (5 minutit).', 'Pere planeerib juulit: vanaema tahab kõiki maale Võrumaale, lapsevanem nädalaks Pärnusse, teismeline linna. Autot ei ole. Vali mängukaardilt üks roll. Leia sõiduplaanide lehelt Peatus.ee (https://www.peatus.ee) üks päris buss või rong oma linnast Võrru või Pärnusse: väljumise aeg, sõiduaeg ja hind; kui telefoni ei ole, kasuta õpetaja näidet. Kirjuta märksõnad. Edukriteeriumid: 1) ütled enne iga ettepanekut, mida teine tahab (Ma saan aru, et …); 2) pakud tingiva kõneviisiga ja seod järeleandmise tingimusega (tingimusel, et …; vastutasuks …); 3) kokkuleppes on kes, mida ja millal, ka päris sõiduaeg.', ['Minu roll ja minu tegelik huvi:', 'Päris ühendus (kust, kuhu, mis kell, hind):', 'Minu kaks ettepanekut:', 'Mida annan vastutasuks ja mis tingimusel:'], 1), 'Päris sõiduaeg teeb kokkuleppe kontrollitavaks: kõik teavad, mis kell keegi kuhu jõuab.'), 4, 25, { final: 'negotiate' }),
+      teach(tag(purpose(B.rolecards('049_t_game', 'Läbirääkimismäng: üks suvi, kolm soovi (10 minutit).', 'Punktid: konkreetne kokkulepe (kes, mida, millal) 3, iga „Ma saan aru, et …” 1, iga tingimusega järeleandmine 1. Teises voorus muutub üks asi ja kokkulepet tuleb muuta.',
+        'Roll (vali üks): vanaema — kardab üksi jääda, katus ja aed vajavad abi; lapsevanem — raske tööaasta, tahab puhata, puhkust on juulis kaks nädalat; teismeline — festival 12. juulil, suvetöö kolmel päeval nädalas.\nEesmärk: saada see, mis sulle tegelikult tähtis on.',
+        'Teised rollid ja tingimuste kaardid on õpetajal.',
+        ['Ma saan aru, et sulle on tähtis …', 'Mis oleks, kui …?'], ['Olen nõus tingimusel, et …', 'Hea, lepime kokku: …']), 'Tulemus: teie pere suveplaan, kus iga põlvkonna tegelik huvi on arvesse võetud.'), { task: 'S17', main: true, level: 4 }),
+      'Õpetaja kaart. Mängi rolle, mida õpilane ei valinud; ütle kõigepealt oma seisukoht, huvi ainult siis, kui küsitakse („Miks see sulle tähtis on?”). Varjatud info (2. voor, tõmba üks kaart ja ütle see alles siis): 1) vanaema kukkus ja ei saa kaks nädalat aias töötada — abi on vaja just juuli alguses; 2) festival lükati augustisse; 3) Pärnu majutus maksab kaks korda rohkem, kui arvati; 4) buss, mille õpilane leidis, pühapäeviti ei sõida. Õpilane peab reageerima ja kokkulepet muutma. Loe punktid kokku. Õnnestunud, kui kokkuleppes on kes, mida ja millal, iga roll saab oma huvi ja õpilane kasutab vähemalt kaks tingivat ettepanekut ja ühe „tingimusel, et” või „eeldusel, et”. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('049_t_mail', 'Kodus: kokkuleppe kiri (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Kirjuta pere vestlusse (või sõpradele) kiri, mis paneb tunnis sõlmitud kokkuleppe kirja.',
+        points: ['tänu või vabandus eilse vaidluse pärast', 'kuidas sa mõistad iga pereliikme huvi', 'kokkulepe: kes, mida ja millal, ka päris sõiduaeg', 'tingimus ja mis saab siis, kui midagi muutub'],
+        words: [170, 190],
+      }), 'Pere loeb kirja ja teab, milles kokku leppisite ja mis saab, kui midagi muutub.'), 5)), { task: 'W04', main: true, level: 4 }),
+      writingRubric('049_t_rubric', 'Hindamisjuhend: kokkuleppe kiri (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Hei kõik! Me läheme vanaema juurde. Siis Pärnu. Mart ka tuleb. Isa teeb katus. See on hea plaan, ma arvan. Küll me kuidagi saame. Kallistused!” Hinnang: ülesanne 1 (kes, mida ja millal on puudu, huvisid ei nimetata, „küll me kuidagi saame” ei ole kokkulepe), ülesehitus 2 (järjekord on selge, lõike ja sidendeid ei ole), sõnavara 2 (puuduvad kokkulepe, tingimus, huvi, vastutasuks), grammatika 2 („teeb katus” → katuse; ühtegi tingivat ettepanekut ega tingimust pole). Kui õppija nimetab iga pereliikme huvi (Ma saan aru, et …), kirjutab kuupäevad ja sõiduaja ning lisab tingimuse, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('049_t_self', ['Ma saan raadiost aru, mille poolest erineb seisukoht huvist.', 'Ma pakun ja tingin: mis oleks, kui …; tingimusel, et …; vastutasuks …', 'Ma jõuan kokkuleppeni ja muudan seda, kui midagi muutub.'], 'Kokkulepe sõlmitud', 'Ma oskan läbi rääkida'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('049_t_cards', 'the three role cards are now in the game card 049_t_game (v5: ≤ 5 blocks on Kasuta)'),
+      retire('049_t_more', CUT_EXTRA),
+      retire('049_t_exit', CUT_DRILL),
+      retire('049_t_letter', CUT_OLDTASK),
+      retire('049_t_home', CUT_HOME),
+      retire('049_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-050': {
+    title: 'Kontroll 10 — suhted ja konfliktid',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma saan eksami vormis aru kaheksast lühiteatest ja raadiointervjuust, räägin minuti ilma abita ja lepin eksamineerijaga kokku; Harno lävi on 60 %.',
+    // Methodology v5 (2026-11-25): one sheet, 45 minutes, two skills — LISTENING + SPEAKING (module 7 L + W, 8 R + S,
+    // 9 R + W). Speaking because the module's cold task 046_d_cold was spoken (module 9 measured writing) and the module
+    // product „Minu kokkulepe” is a talk; listening because a conflict is solved by listening first. Listening opens with
+    // L1 as on the exam: eight short notices, each its own clip of 35–45 s heard once (locked); then the v4 control's
+    // interview with a house chairman (same transcript and audio), now locked and heard twice, with its gaps and
+    // true/false statements. The speaking part opens with the parallel new task of the cold task (same conditions:
+    // 2 minutes to think, 1 minute, no phrases, a new statement), then the module product as a negotiation with the
+    // examiner, who holds hidden information. The old three sheets (28 blocks) stay hidden below.
+    discover: [
+      B.text('050_d_intro', 'Kontroll 10: kuulamine ja rääkimine (45 minutit)', 'Kontrollis on kaks osaoskust. Rääkimine (umbes 15 minutit, üks-ühele eksamineerijaga): üheminutiline sõnavõtt pärast kahte minutit ettevalmistust ja kokkulepe eksamineerijaga — kokku 12 punkti. Kuulamine (umbes 22 minutit): kaheksa lühiteadet (igaüht kuulad üks kord) ning raadiointervjuu (kuulad kaks korda) lünkade ja õige-vale väidetega — kokku 25 punkti. Kokku 37 punkti. Harno: sooritatud alates 60 % (vähemalt 23 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (26 punkti), meie tunnistus alates 80 % (30 punkti) — see on sisemine lävi. Sõnaraamatut ei kasutata. Kuulamise ajal võid teha märkmeid, kuid vastused kirjuta lehele kohe: salvestust ei saa peatada ega uuesti alustada.'),
+      PART('050_t_spart', 'S', { minutes: 15, points: 12, tasks: 2, note: 'Sõnavõtt (2 minutit ettevalmistust, 1 minut kõnet) ja kokkulepe eksamineerijaga (kuni 4 minutit): 4 kriteeriumi × 0–3 = 12 toorpunkti. Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      teach(tag(patch(B.examiner('050_t_cold', 'suhted ja konfliktid', [
+        'Kas tüli võib hea suhte tugevamaks teha? Too näide oma elust või tuttava elust.',
+        'Kas sa räägid pigem otse või kirjutad sõnumi, kui oled kellegi peale pahane? Miks?',
+        'Kas sõbrale tasub raha laenata ja mis tingimustel oleksid sina nõus seda tegema?',
+        'Mida peaks tegema naaber, keda öine müra segab, enne kui ta kirjutab majagruppi?',
+        'Kes peaks peres otsustama, kuidas pühad veedetakse, ja kuidas jõuda kokkuleppele?',
+        'Milline iseloomu omadus aitab tülis kõige rohkem? Too näide inimesest, keda tead.',
+      ], 'B2', [60, 180]), { instruction: 'Väide: „Tüli teeb hea suhte tugevamaks.” Mõtle kaks minutit (märkmeid võib teha) ja räägi siis üks minut: kas oled väitega nõus ja miks? Valmis fraase ei ole. Pärast kõnet vastad eksamineerija küsimustele.' }), { task: 'S16', harno: 'S1' }),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-046 (2 minutit mõtlemiseks, 1 minut kõneks, fraase ei ole), uus väide. Võrdle külma alguse märkmetega: seisukoht esimeses lauses, põhjus ja näide, vastuargument, sidendid, korduvad vead. Ütle õppijale üks konkreetne areng ja üks järgmine samm. Pärast kõnet küsi 2–3 küsimust nimekirjast (kuni 4 minutit) ja esita ühele vastusele vastuargument, millele õpilane viisakalt vastab.'),
+      teach(tag(B.rolecards('050_t_deal', 'Rääkimine 2: kokkulepe (kuni 4 minutit).', 'Vali üks olukord ja lepi eksamineerijaga kokku. Ütle, mida tunned ja miks, näita, et mõistad tema huvi, ja paku lahendus tingimusega. Reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord (vali üks): A) sõber, kes ei ole sulle 200 eurot tagasi maksnud, tahab lõpuks rääkida; B) uus naaber teeb õhtuti remonti ja sinu laps ei saa magada; C) õde tahab, et kogu pere veedaks jõulud tema juures, aga sina oled sel aastal kokku leppinud teisiti.\nSinu eesmärk: konkreetne kokkulepe — kes, mida ja millal.\nPiirang: hoia suhet; ära süüdista, räägi endast.',
+        'Teise poole kaart on eksamineerijal: tema huvi ja üks asjaolu, mida sa veel ei tea.',
+        ['Ma olin pettunud, kui …', 'Mis oleks, kui …?'], ['Ma saan aru, aga …', 'Ja mis siis, kui …?']), { task: 'S13', harno: 'S2' }),
+      'Eksamineerija on teine pool. Ütle kõigepealt oma seisukoht, huvi ainult siis, kui küsitakse. Varjatud info (ütle teise vastuse järel): A) „Ma kaotasin töö ja mul on häbi — saan maksta ainult kolmkümmend eurot kuus.” B) „Me ei teadnudki, et teil on väike laps. Meil sünnib kuu lõpus beebi ja lastetuba peab enne valmis saama.” C) „Ema ütles mulle eile, et tal on raske sõita ja ta tahab jõulud veeta just minu juures, sest ma elan tema lähedal.” Õppija peab reageerima ja kokkulepet muutma. Hinda: tunne ja põhjus mina-sõnumiga, mõistab teise huvi (Ma saan aru, et …), reageerib uuele asjaolule, konkreetne kokkulepe tingimusega (tingimusel, et …; vastutasuks …).'),
+      PART('050_p_lpart', 'L', { minutes: 22, points: 25, tasks: 3, note: 'Teated (igaüks üks kord, 8 punkti), intervjuu (kaks korda): lüngad (9 punkti) ning õige või vale (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      once(why(tag(perClip(B.examListen('050_p_clips', 'Kuulamine 1: kaheksa lühiteadet (8 punkti).', 'Kuulad kaheksat lühikest teadet. Iga teadet kuuled ainult üks kord. Loe enne küsimus läbi, siis kuula ja vali üks õige vastus kolmest.', 'choice', [
+        'Teadustaja: Korteriühistu teade. Järgmisel nädalal vahetatakse kõigis korterites veetorud. Müra tekitavaid töid tehakse ainult tööpäeviti kella üheksast viieni, mitte nädalavahetusel. Kolmapäeval on vesi kogu päeva kinni, seepärast varuge vett juba teisipäeva õhtul. Kui teie kodus on väike laps või keegi, kes töötab öösiti, andke juhatusele teada: proovime teie korteris teha tööd pärastlõunal. Küsimuste korral helistage juhatuse esimehele, mitte ehitajatele. Töid tehakse korruste kaupa, alustades ülevalt, ja ühes korteris kestab töö umbes kaks päeva. Täname teid kannatlikkuse eest.',
+        'Teadustaja: Linnaraamatukogu kutsub uusi linnaelanikke sõbraõhtule. Kohtume igal teisel neljapäeval kell kuus kolmanda korruse saalis. Räägime eesti keeles, kuid keegi ei pea rääkima täiuslikult: tähtsam on julgus kui grammatika. Igal õhtul on üks teema, näiteks lemmikretsept või kodulinn. Esimesel õhtul räägime sellest, kuidas keegi meist siia linna jõudis, ja tutvume üksteisega väikestes rühmades. Kaasa võib võtta midagi väikest laua jaoks. Osalemine on tasuta, kuid kohti on kakskümmend, seepärast andke oma tulekust teada raamatukogu kodulehel.',
+        'Teadustaja: Tere, siin Siim. Vabandust, et nii kaua vaikisin. Mul oli piinlik, sest ma ei suutnud raha õigel ajal tagasi maksta, ja ma ei osanudki sulle midagi öelda. Ma tean, et sa vajasid seda raha ise ja et sul oli hambaarst. Just see teeb mulle kõige rohkem häbi. Nüüd on mul uus töö ja esimene palk tuleb kuu lõpus. Ma pakun nii: maksan kolm kuud järjest viiskümmend eurot ja viimase osa enne jõule. Kui see sulle ei sobi, helista mulle õhtul pärast seitset. Ja aitäh, et sa minust ei loobunud. Loodan, et saame varsti jälle koos kohvi juua.',
+        'Teadustaja: Sotsiaalkindlustusamet tuletab meelde, et lahku minevad vanemad saavad lapse elu üle kokku leppida perelepitaja abiga. Perelepitaja ei otsusta kummagi vanema eest ega ütle, kellel on õigus. Ta aitab vanematel rääkida nii, et mõlemad saaksid sõna ja et kokkulepe arvestaks lapse huvidega. Teenust saab taotleda siis, kui mõlemad vanemad on nõus. Kohtumised toimuvad neutraalses kohas ja kestavad tavaliselt paar tundi; mõnikord piisab ühest kohtumisest, mõnikord on vaja mitut. Lisateavet saab ameti kodulehelt ja infotelefonilt tööpäeviti.',
+        'Teadustaja: Hoovipäev Pärna tänaval! Laupäeval kella kümnest kolmeni koristame koos hoovi, parandame liivakasti ja istutame kaks uut puud. Tööriistad annab linn, kindad võtke palun ise kaasa. Kell üks on ühine supilõuna, mille eest maksab korteriühistu. Lastele on õues mängud ning vanematele naabritele toome trepikojast toolid välja, et kõik saaksid koos istuda. Eelmisel aastal tutvusid hoovipäeval naabrid, kes olid kümme aastat samas trepikojas elanud ja teineteist ainult tervitanud. Kõik naabrid on oodatud, ka need, kes kolisid majja alles sel sügisel. Vihma korral lükkub hoovipäev nädala võrra edasi.',
+        'Teadustaja: Vabatahtlike keskus otsib inimesi, kes käiksid kord nädalas üksi elava eaka inimese juures külas. Ei ole vaja teha midagi erilist: juua koos teed, jalutada või aidata poes käia. Paljud vabatahtlikud ütlevad, et said ise vähemalt sama palju, kui andsid, ja paljud eakad ootavad külaskäiku terve nädala. Enne esimest külaskäiku on kahetunnine koolitus selle kuu viimasel laupäeval; seal räägitakse ka sellest, mida teha, kui eakas tunneb end halvasti. Eesti keelt ei pea oskama täiuslikult; peaasi, et oled usaldusväärne ja tuled kokkulepitud ajal.',
+        'Teadustaja: Raadio „Suhete tund” ootab kuulajate kirju. Järgmises saates räägime sellest, kuidas öelda sõbrale ei nii, et sõprus jääb alles. Kirjutage meile oma lugu: millal te ütlesite ei ja mis siis juhtus, või millal oleksite tahtnud ei öelda, aga ei julgenud. Nimesid ega muid isikuandmeid me eetris ei nimeta. Parimad kirjad loeb ette psühholoog, kes annab ka nõu, kuidas sellises olukorras käituda ja mida järgmisel korral teisiti öelda. Kui soovite, võite kirjutada ka anonüümselt. Kirju ootame reede õhtuni saate kodulehel; saade on eetris pühapäeval kell kümme.',
+        'Teadustaja: Tere, siin Marika. Elan teisel korrusel. Kirjutan, sest eile õhtul oli trepikojas jälle kuulda koera haukumist. Ma ei ole pahane ja saan aru, et koer on üksi kodus kurb, aga mul on väike laps, kes ärkab iga heli peale. Kas me saaksime kokku leppida, et koer ei jääks õhtuti üksi koju? Kui teil on vaja, võin mõnikord ise temaga jalutama minna. Helistage mulle, kui teil sobib, või koputage mu uksele; minu number on ka postkastil. Ma tean, et kõigil on vahel raske, ja loodan, et leiame koos lahenduse.',
+      ], [
+        ['Mida palub korteriühistu teha neil, kelle kodus on väike laps või keegi, kes töötab öösiti?', 'anda juhatusele teada', 'helistada ehitajatele', 'olla kolmapäeval kodus'],
+        ['Mis on raamatukogu sõbraõhtul teate järgi tähtsam kui grammatika?', 'julgus rääkida', 'täiuslik hääldus', 'hea retsept'],
+        ['Miks ei vastanud Siim nii kaua oma sõbra sõnumitele?', 'tal oli piinlik, et ta ei suutnud raha tagasi maksta', 'ta oli välismaal tööl', 'ta oli sõbra peale solvunud'],
+        ['Mida teeb perelepitaja teate järgi lahku minevate vanematega?', 'aitab vanematel rääkida ja kokku leppida', 'otsustab, kumb vanem on õiges', 'räägib ainult lapsega'],
+        ['Mida tahab teade öelda looga naabritest, kes olid kümme aastat ainult tervitanud?', 'hoovipäev aitab naabritel tuttavaks saada', 'naabrid ei taha omavahel rääkida', 'hoovipäev on ainult koristamiseks'],
+        ['Mis on vabatahtliku juures teate järgi kõige tähtsam, kui ta käib eaka inimese juures külas?', 'et ta on usaldusväärne ja tuleb kokkulepitud ajal', 'et ta räägib täiuslikult eesti keelt', 'et ta käib eaka juures iga päev'],
+        ['Mida lubab raadiosaade kuulajatele, kes saadavad oma loo?', 'nende nimesid eetris ei nimetata', 'iga kiri loetakse eetris ette', 'neile helistatakse reede õhtul'],
+        ['Mida pakub Marika naabritele, kelle koer õhtuti haugub?', 'et ta võib vahel ise koeraga jalutama minna', 'et ta kutsub korteriühistu esimehe', 'et ta kolib lapsega teisele korrusele'],
+      ], 'g_read', 1)), { task: 'L01', harno: 'L1' }), [
+        'Teade 1: „Kui teie kodus on väike laps või keegi, kes töötab öösiti, andke juhatusele teada.”',
+        'Teade 2: „tähtsam on julgus kui grammatika”.',
+        'Teade 3: „Mul oli piinlik, sest ma ei suutnud raha õigel ajal tagasi maksta.” Ta „ei osanudki” midagi öelda.',
+        'Teade 4: „Ta aitab vanematel rääkida nii, et mõlemad saaksid sõna.” Ta „ei otsusta kummagi vanema eest”.',
+        'Teade 5 (järeldus): naabrid, kes olid „teineteist ainult tervitanud”, tutvusid hoovipäeval.',
+        'Teade 6: „peaasi, et oled usaldusväärne ja tuled kokkulepitud ajal”.',
+        'Teade 7: „Nimesid ega muid isikuandmeid me eetris ei nimeta.”',
+        'Teade 8: „Kui teil on vaja, võin mõnikord ise temaga jalutama minna.”',
+      ])),
+      twice(patch(why(V4_BLOCKS['050_p_listen'], OLD_WHY['050_p_listen']), { instruction: 'Raadios räägib korteriühistu esimees naabritülidest. Loe enne kuulamist läbi lüngad ja osa 3 väited. Kuula intervjuud kaks korda ja täida lüngad 1–2 kuuldud sõnaga.' })),
+      patch(why(V4_BLOCKS['050_p_tf'], OLD_WHY['050_p_tf']), { title: 'Kuulamine 3: õige või vale? (8 punkti)', instruction: 'Sama intervjuu: otsusta kuulamise ajal või kohe pärast, kas väide on õige või vale. Väide on õige ainult siis, kui esimees ütleb seda saates.', statements: [
+        ['Peetri juhitud majas elab umbes sada kakskümmend inimest ja vähemalt kakskümmend koera.', true],
+        ['Talvel kurdavad Peetri maja elanikud kõige rohkem selle pärast, et lund ei koristata maja eest.', false],
+        ['Peeter otsustab tavaliselt juba esimese kaebuse järel, kumb naaber on tülis süüdi.', false],
+        ['Enne ühist kohtumist räägib Peeter kummagi naabriga eraldi ja kuulab mõlemat.', true],
+        ['Peetri arvates on kõige parem arutada tüli selle naabri köögis, kes kaebuse esitas.', false],
+        ['Peetri sõnul aitab majagrupp tülisid kiiresti lahendada, sest kõik näevad sõnumeid kohe.', false],
+        ['Seda, et kaebusi majagrupis ei arutata, otsustasid naabrid üheskoos üldkoosolekul.', true],
+        ['Remondi ajal tohtis pere puurida ainult hommikul, enne kui alumine naaber magama läks.', false],
+      ].map(([text, ok]) => ({ text, answer: ok ? 'true' : 'false' })) }),
+      B.rubric('050_t_rubric', 'Rääkimise punktid ja kontrolli tulemus.', 'Eksamineerija hindab rääkimist neljas osas, igaüks 0–3 punkti; seejärel liidetakse kõik punktid kokku.', [
+        'Sõnavõtt (seisukoht, põhjus näitega, vastuargument) … / 3 · kokkulepe (tunne ja põhjus, mõistab teise huvi, reageerib uuele asjaolule, konkreetne kokkulepe) … / 3',
+        'Sõnavara (täpne, iseloomu ja tunde sõnad, sidendid) … / 3 · grammatika ja ladusus (omadus nimisõnana, tunde sõna kääne ja -ki / -gi, kaudne kõne, tingiv ettepanek ja tingimus; vead ei sega mõistmist) … / 3',
+        'Kuulamine … / 25 · rääkimine … / 12 · kokku … / 37. Harno: sooritatud alates 60 % (23/37) ja ükski osa ei ole 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (26/37), tunnistus alates 80 % (30/37) — sisemine lävi.',
+      ]),
+      retire('050_d_how', CUT_CONTROL),
+      retire('050_d_vocab', CUT_CONTROL),
+      retire('050_d_rpart', CUT_CONTROL),
+      retire('050_d_read', CUT_CONTROL),
+      retire('050_d_mc', CUT_CONTROL),
+      retire('050_d_para', CUT_CONTROL),
+      retire('050_d_cloze', CUT_CONTROL),
+      retire('050_d_bank', CUT_CONTROL),
+      retire('050_d_reply', CUT_CONTROL),
+    ],
+    practice: [
+      retire('050_p_how', CUT_CONTROL),
+      retire('050_p_kpart', CUT_CONTROL),
+      retire('050_p_fix', CUT_CONTROL),
+      retire('050_p_trans', CUT_CONTROL),
+      retire('050_p_notes', 'L1 is now 050_p_clips: eight clips of 35–45 s, each its own recording heard once (v5 G6, Harno L1)'),
+      retire('050_p_self', CUT_CONTROL),
+    ],
+    transfer: [
+      retire('050_t_situation', CUT_CONTROL),
+      retire('050_t_product', 'the module product is the talk 050_t_deal (v5 §5: one sheet, listening + speaking)'),
+      retire('050_t_wpart', CUT_CONTROL),
+      retire('050_t_letter', CUT_CONTROL),
+      retire('050_t_essay', CUT_CONTROL),
+      retire('050_t_present', 'speaking 1 is now the parallel new task 050_t_cold (same conditions as the cold task 046_d_cold, no phrases)'),
+      retire('050_t_debate', CUT_CONTROL),
+      retire('050_t_self', CUT_CONTROL),
+    ],
+  },
+}, {
+  'b1b2-046': 'LUGE R→S', 'b1b2-047': 'RÄÄK L→S', 'b1b2-048': 'KIRJ R→W', 'b1b2-049': 'PROJ L→S', 'b1b2-050': 'EKS',
+});
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
