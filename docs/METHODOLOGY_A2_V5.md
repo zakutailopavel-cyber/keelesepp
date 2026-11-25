@@ -1,5 +1,7 @@
 # A2 methodology v5 („lesson budget” for beginners) — the school methodologist's decisions, 2026-11-25
 
+> **Extended by `docs/METHODOLOGY_V6.md` (2026-11-26, gates G14–G25).** New and retrofitted modules follow both; start with its §0 checklist.
+
 Normative for the Estonian A2 course (A1 → A2, `a2-001 … a2-100`, 20 modules × 5 lessons, files
 `crm-v2/src/features/worksheet-generator/admin/course/a2/module01.js … module20.js`) for every module listed under `"a2"`
 in `strictModulesV5.json`. It is the A2 version of `docs/METHODOLOGY_B1_B2_V5.md`: the principles are the same, the numbers

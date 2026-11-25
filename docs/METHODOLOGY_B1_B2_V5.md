@@ -1,5 +1,7 @@
 # B1 / B2 methodology v5 („lesson budget”) — the school methodologist's decisions, 2026-11-25
 
+> **Extended by `docs/METHODOLOGY_V6.md` (2026-11-26, gates G14–G25).** New and retrofitted modules follow both; start with its §0 checklist.
+
 Normative for the Estonian courses B1 (A2→B1, `a2b1-*`) and B2 (B1→B2, `b1b2-*`). Where this document and older
 rules disagree (`CEFR_A2_B1_LEARNING_STANDARD.md` §2 „7–9 blocks per sheet” and §13 „≥ 25 min of closed drills”,
 `CODEX_TASKS_B1B2_IDEAL.md` „keep every old item, 40–55 min per sheet”), **this document wins** for every module listed
