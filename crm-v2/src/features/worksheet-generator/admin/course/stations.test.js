@@ -194,31 +194,29 @@ describe('old sheet rules are skipped only for station sheets', () => {
   });
 });
 
-describe('the pilot module (b1 module 12)', () => {
+describe('b1 module 12 — the former pilot, now a methodology v5 module (design v4 on the station engine)', () => {
   const mod = COURSE_MODULES.find((m) => m.MODULE.id === 'a2b1-module-12');
   const built = moduleSheets(mod);
-  it('is a station module; its mock exam keeps design v2 and template v4', () => {
+  it('is a station module; its control is one exam sheet', () => {
     expect(mod.MODULE.design).toBe('v3-stations');
-    expect(buildCourseSheet(mod, 'a2b1-056', 'discover').meta).toMatchObject({ design: 'v3-stations' });
-    expect(buildCourseSheet(mod, 'a2b1-056', 'discover').meta.template).toBeUndefined();
-    expect(buildCourseSheet(mod, 'a2b1-060', 'practice').meta).toMatchObject({ design: 'v2', template: 'v4', assessment: true });
-    expect(buildCourseSheet(mod, 'a2b1-060', 'practice').meta.teacherPage).toBeUndefined();
+    expect(buildCourseSheet(mod, 'a2b1-056', 'discover').meta).toMatchObject({ design: 'v3-stations', format: 'infogap' });
+    expect(Object.keys(built['a2b1-060'])).toEqual(['discover']);
+    expect(buildCourseSheet(mod, 'a2b1-060', 'discover').meta).toMatchObject({ format: 'exam', assessment: true });
   });
   it('passes every station gate', () => {
     expect(stationProblems(built)).toEqual([]);
   });
-  it('has 4–6 stations a lesson, one dependency in the module, four different final tasks', () => {
+  it('has exactly 4 stations a lesson, no dependency, four different final tasks', () => {
     const ids = ['a2b1-056', 'a2b1-057', 'a2b1-058', 'a2b1-059'];
     const lists = ids.map((id) => stationsOf(built[id]));
-    lists.forEach((list) => expect(list.length).toBeGreaterThanOrEqual(4));
-    expect(lists.flat().filter((s) => s.needs).length).toBe(1);
+    lists.forEach((list) => expect(list.length).toBe(4));
+    expect(lists.flat().filter((s) => s.needs).length).toBe(0);
     expect(lists.map((list) => list.find((s) => s.final).final)).toEqual(['decide', 'explain', 'complain', 'negotiate']);
   });
-  it('gives the teacher one page per lesson: core path of three stations ≈ 45 min, an alternative, errors', () => {
+  it('gives the teacher one page per lesson: core path of three stations, an alternative, errors', () => {
     const page = built['a2b1-058'].discover.meta.teacherPage;
     expect(page.core).toHaveLength(3);
-    expect(page.coreMinutes).toBeGreaterThanOrEqual(35);
-    expect(page.stations.find((s) => s.n === 6)).toMatchObject({ final: 'complain', needs: 5, core: true });
-    expect(teacherPageText(page, 'a2b1-058')).toMatch(/Ядро на 45 минут: станции 1, 5, 6/);
+    expect(page.stations.find((s) => s.n === 4)).toMatchObject({ final: 'complain', core: true });
+    expect(teacherPageText(page, 'a2b1-058')).toMatch(/станции 1, 2, 4|1, 2, 4/);
   });
 });
