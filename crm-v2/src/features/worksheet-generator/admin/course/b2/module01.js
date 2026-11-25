@@ -1,22 +1,29 @@
 // B2 course (B1 → B2 roadmap), module 1 „Igapäevaelu ja B1 lähtepunkt” (b1b2-001…005), stage B1+ (001: B1).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine; the sample module
-// every later module copies. Module goal (the learner): „Ma oskan oma B2-tee ise käima panna”; module product „Minu
-// B2-plaan” (005 Kasuta). Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice → rule → use) → 4 product in class (plan + first sentences) + exit check (2–3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Minu sõnad).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   001 quest   „Mitu keelt on sinu päevas?”         languages and the town      final plan: request to a language school (W13)
-//   002 facts   „Kes teeb kodus mida?”               home and family             final advise: reply to a friend (W05)
-//   003 debate  „Neli päeva tööd — kas see sobiks Eestile?”  work (the only work lesson)  final decide: debate + vote (S17)
-//   004 infogap „Õhtul või laupäeval — millal sina jõuad õppida?”  free time and money  final negotiate: week plan (S05)
-//   005 exam    Kontroll 1 in Harno B2 form + „Minu B2-plaan” as the S16 one-minute talk.
-// Grammar spiral of B1 (by discovery): polite request / conditional (001), linking words (002), time, frequency and
-// duration with the verb second (003), comparison (004). The one long text of the module (the topic opener, ≈ 380 words)
-// is in 001 station 2, after a 15-minute hook and pre-task and pre-taught words. The course's cast is not used.
-// Ids of reused recordings stay (001_p_call, 004_p_expert) although the blocks moved to another sheet.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, strictModulesV5.json) on the v3 station engine with the
+// v4 task formats (docs/COURSE_DESIGN_STATIONS.md §7): one real communicative outcome a lesson, ONE input, ≤ 4 / 4 / 5
+// blocks a sheet and ≤ 14 a lesson, a 75-min core in exactly 4 stations (hook 5 + input 20 + language 20 + product 25).
+//   Avasta  (4): station 1 a statement to agree or argue with (the learner speaks in the first minute), station 2 the
+//                lesson's words, one explanatory scheme and the ONE input — reading 400–600 words with ≥ 2 inference
+//                questions (001, 003) or listening 3–4 min with 2 voices and 10 items (002, 004), alternating.
+//   Harjuta (4): station 3 the rule, two form tasks of 8–10 items without a word bank (one of them in a coherent text) and
+//                one register task (the same thought to a friend and to an office).
+//   Kasuta  (5): station 4 the plan, the product (a phone call with hidden information, a 1-min voice message after 2 min
+//                of preparation, a debate with keyword cards, a negotiation with hidden information), the home writing of
+//                ~140 or ~180 words with the 1-min voice message, the analytic Harno B2 rubric (4 criteria, a borderline
+//                sample in the teacher's note) and the exit „Ma oskan …” with three success criteria.
+//   001 quest   „Mitu keelt on sinu päevas?”   languages  reading „Miks me vahetame keelt?”   polite request (conditional)
+//   002 facts   „Kes teeb kodus mida?”         home       radio talk, 2 voices, ~3.5 min      linking words in advice
+//   003 debate  „Neli päeva tööd …”            work       reading, opinion article            time, frequency, duration
+//   004 infogap „Õhtul või laupäeval …”        free time  radio talk, 2 voices, ~3.5 min      comparison
+//   005 exam    Kontroll 1: one sheet, 45 min, reading + speaking, raw points and the thresholds named one way.
+// Module requirements (v5 §2): cold task 001_d_cold (1-min talk, no phrases) ↔ parallel new task 005_t_mono; a writing
+// without phrases or opening 002_t_guide; hidden-information cards 001_t_more and 004_t_talk („Varjatud info:”); the link
+// task 001_t_mail (a real language course, integratsioon.ee / keeleklikk.ee); one scheme a teaching lesson; texts are
+// adapted learning texts without exact statistics („KeeleSepp õppetekst”, owner 2026-11-25); no story cast, no dictation.
+// Removed blocks stay in the file as hide(block, why) (blocks.js): off every sheet, ids and learners' answers kept; their
+// closed drills still feed the Harjuta practice engine (practice/engine/extract.js), with their old explanations.
+// The v4 file of 2026-11-17 is in git history (before this commit).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -27,71 +34,349 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every lesson (v4; hidden in v5: the home task is the letter on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 1. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
 const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the home voice message of v5 (§3): one line at the end of the home writing (a learner who cannot record says it in class)
+const VOICE_HOME = 'Salvesta ka 1-minutiline häälsõnum samal teemal.';
+
+// why a block left the sheet (v5 §4)
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_DRILL = 'closed drill / exit gaps → Harjuta (v5 §4: drills off the lesson sheet)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home task is the letter on the sheet with its 1-min voice message (v5 §3)';
+const CUT_TIP = '„Kas teadsid?” / exact statistics (v5 §4; owner 2026-11-25: no exact numbers)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, reading + speaking (v5 §5)';
+
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (tingiv kõneviis, sihitis, sõnajärg) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+// short: the one-line descriptors (the same four criteria), where the full ones would leave the self-check alone on a page
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = false) => {
+  const b = B.rubricW2(id, title);
+  return teach(purpose({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Analüütiline hindamisjuhend (Harno B2): neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Sama juhendiga kontrollid oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, 'Enne saatmist näed, mille eest hindaja punkte annab.'), sample);
+};
+// a home letter is written at home: fewer lines on the sheet, so the sheet ends on a full page
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
+// an exam part header of the control
+const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
 export const MODULE = { id: 'b1b2-module-01', course: 'b2', title: 'Igapäevaelu ja B1 lähtepunkt', level: 'B1+', design: 'v3-stations', template: 'v4' };
+
+// the explanations of the hidden blocks (the v4 EXPLAIN map), kept for the Harjuta practice engine
+const OLD_WHY = {
+  '001_d_sounds': [
+    'saada (pikk aa) = отправь; sada (lühike a) = сто.',
+    'linna (pikk nn) = в город; lina (lühike n) = простыня.',
+    'kalla (pikk ll) = налей; kala (lühike l) = рыба.',
+    'tüli (ü) = ссора; tuli (u) = огонь / пришёл.',
+    'süda (ü) = сердце; sõda (õ) = война.'
+  ],
+  '001_d_read': [
+    '1. lõik: 3,3 tundi on keskmine, kuhu lähevad arvesse ka lapsed, pensionärid, nädalavahetused ja puhkused.',
+    '2. lõik: naiste aeg majapidamisele on vähenenud „ligi poolteist tundi päevas”.',
+    '2. lõik: aitasid „poolvalmistoidud, toidukullerid ja kodutehnika”.',
+    '3. lõik: laua taga veedetakse „umbes kümme minutit päevas kauem”.',
+    '4. lõik: „Piirkonniti on vahed suured” — Viimsis on osa üle kahe korra suurem kui Narvas.',
+    '4. lõik: noortel on vene ja soome keel „asendunud inglise keelega”.'
+  ],
+  '001_p_call': [
+    'Teates: „Uued B2-kursused algavad jaanuari teisel nädalal.”',
+    'Teates: diagnostika „teisipäeviti ja neljapäeviti kell kümme hommikul”.',
+    'Teates: töötajatele „on neljapäeval lisaaeg kell viis õhtul”.',
+    'Teates: „Diagnostika kestab umbes kaks ja pool tundi.”',
+    'Teates: tulemuse saadetakse „järgmisel päeval e-postiga”.',
+    'Teates: kaasa võtta isikut tõendav dokument ja B1-tunnistus.',
+    'Teates: kui maksab tööandja, „saadame arve otse firmale”.'
+  ],
+  '001_t_exit': [
+    'Viisakas küsimus te-vormis: Kas te saaksite …?',
+    'soovin → sooviksin (tingiv, ma-vorm -ksin).',
+    'on → oleks: „Kas oleks võimalik …?”'
+  ],
+  '002_d_game': [
+    '57 minutit; kakskümmend aastat tagasi 95 (Statistikaamet, 20.12.2022).',
+    '7 minutit; varem 32 (Statistikaamet, 20.12.2022).',
+    'Umbes kolmandiku võrra rohkem (Statistikaamet, 20.12.2022).',
+    'Kauem, umbes kümme minutit päevas (Statistikaamet, 17.01.2023).',
+    'Umbes tund ja kümme minutit (Statistikaamet, 17.01.2023).'
+  ],
+  '002_d_poll': [
+    'Õige: ema ütleb: „Kuna mees jõuab koju varem, teeb tema õhtusöögi.”',
+    'Vale: „supp ei tule veel nii hea kui naisel”.',
+    'Õige: „igaüks koristab köögi kord nädalas”.',
+    'Vale: „ei jõua ma kunagi triikida”.',
+    'Vale: poes käiakse „koos laupäeval”.',
+    'Õige: „Enne kui poodi läheme, kirjutame nimekirja telefoni.”'
+  ],
+  '002_p_link': [
+    'Põhjus lause alguses → kuna (sest ei alusta lauset); siis kohe tegusõna: teevad.',
+    'Tunne ja fakt ei klapi → kuigi.',
+    'Tagajärg: paremad masinad → vähem aega → seetõttu; siis tegusõna: kulub.',
+    'Aeg: üks tegevus enne teist → enne kui.',
+    'Aeg: kõigepealt jäävad lapsed magama, siis tuleb minu aeg → pärast seda kui.',
+    'Põhjus lause keskel → sest (või kuna).',
+    'Kaks vastandlikku fakti → samas.',
+    'Tagajärg: töö on jagatud → nii et keegi ei tee kõike üksi.'
+  ],
+  '002_t_voice': [
+    'Sõnumis: „Ma lähen jaanuaris tagasi tööle.”',
+    'Sõnumis: „meil on kaks last, kolme- ja seitsmeaastane”.',
+    'Sõnumis: „Praegu teen mina kodus peaaegu kõik.”',
+    'Sõnumis: mees „ei tea, millest alustada”.',
+    'Sõnumis: „Kõige rohkem kardan hommikuid.”',
+    'Sõnumis: „vähemalt kaks korda nädalas trenni”.'
+  ],
+  '002_t_exit': [
+    'Põhjus lause alguses → kuna; siis kohe tegusõna: on.',
+    'Tagajärg → seetõttu; siis tegusõna teisel kohal: on.',
+    'Vastand (pesen, kuigi ei meeldi) → kuigi.'
+  ],
+  '003_d_radio': [
+    'Saatejuht: firma „proovis seda sügisel kolm kuud”.',
+    'Merit: „Meil oli kontor reedeti kinni.”',
+    'Merit: „Töötasin neljapäeval hilja õhtuni.”',
+    'Merit: „koosolek kestab kõige rohkem pool tundi”.',
+    'Merit: „Esmaspäeviti tulin tööle puhanuna.”',
+    'Merit: „kõik peavad uutest reeglitest kinni pidama, ka juhid”.'
+  ],
+  '003_t_exit': [
+    'Kord nädalas + tegusõna teisel kohal: käin ma.',
+    'Kestus: arv + osastav: kaheksa tundi.',
+    'Reedeti + tegusõna teisel kohal: lõpetame me.'
+  ],
+  '004_t_exit': [
+    '480 € > 420 € → keskvõrre: kallis → kallim kui.',
+    '390 € on kõige väiksem hind → ülivõrre: kõige odavam.',
+    '10 nädalat < 14 nädalat → lühike → lühem kui.'
+  ],
+  '005_d_read': [
+    '1. lõik: „me ei pea kogu aeg kiirustama”.',
+    '„Kõigepealt kustutas ta telefonist sotsiaalmeedia rakendused.”',
+    '2. lõik: „tundis, et jääb millestki ilma”.',
+    '2. lõik: „magab sügavamalt”, „suutis paremini keskenduda”.',
+    '2. lõik: „Kuu lõpuks oli Anneli lugenud viis raamatut.”',
+    '3. lõik: sotsiaalmeedia on „vajalik tööks ja sõpradega suhtlemiseks”.',
+    '3. lõik: aeglane elu = „teadlikumaid valikuid”.',
+    '4. lõik: „Kui inimene muudab korraga kõike, väsib ta kiiresti ja loobub.”'
+  ],
+  '005_d_gram': [
+    '„Eile” → lihtminevik: sõitsin.',
+    'Arv + osastav: kaks korda.',
+    'Iga laupäev → laupäeviti (lõpp -ti); lause alguses suur täht.',
+    'Kestus: arv + osastav: viis aastat.',
+    'kaua → keskvõrre kauem (võrdlus: rattaga kauem kui bussiga).',
+    'Ülivõrre: kõige raskem.',
+    'Kaudne kõne olevikus: ta ütles, et loeb.',
+    'võrreldes + -ga: bussiga.',
+    'Tingimus „kui mul oleks” → tingiv kõneviis: loeksin.',
+    'Tegija pole oluline → umbisikuline: kasutatakse.'
+  ],
+  '005_d_order': [
+    'Õhtuti (ajaväljend) + loeb (tegusõna teisel kohal) + Anneli.',
+    'Esimesel nädalal + haaras + ta.',
+    'Kuu lõpuks + oli + ta + lugenud (enneminevik: oli + -nud).',
+    'Vihmastel päevadel + sõidab + ta.',
+    'Nüüd + kasutab + ta; sihitis osastavas: sotsiaalmeediat.',
+    'Pärast kuigi-lauset tuleb kohe tegusõna: ei andnud ta alla.',
+    'Võrreldes eelmise kuuga + magab + Anneli.',
+    'Hommikuti + joob + ta.',
+    'Nädalavahetusel + käib + ta + jalutamas (ma-tegevusnimi -mas).',
+    'Seetõttu + on + tal.'
+  ],
+  '005_d_fix': [
+    '„kuigi” ja „aga” koos ei käi; pärast kuigi-lauset tuleb tegusõna: jätkas ta.',
+    'Mitu korda ajaühikus: nädalas (seesütlev), mitte „nädalal”.',
+    'võrreldes + -ga: bussiga.',
+    'Pooleli tegevus / määramata hulk → mitmuse osastav: raamatuid.',
+    'Kuu kõige raskem nädal: omastav (kuu) ees.',
+    'Pärast ajaväljendit on tegusõna teisel kohal: oli ta.',
+    'Kõik konkreetsed rakendused kustutati → täissihitis: rakendused.',
+    'Ajaväljend ees → tegusõna teisel kohal: sõidab ta.',
+    'Tegusõna teisel kohal (kasutab ta) ja kasutama + osastav: sotsiaalmeediat.',
+    'tähendama + osastav: teadlikke valikuid (mitmuse osastav).'
+  ],
+  '005_p_cloze': [
+    'Kellaaeg: kell kuus (põhivorm).',
+    'Enne kui + lihtminevik (lugu on minevikus): jõudsin.',
+    'Vastand (väsinud, kuigi maganud) → kuigi.',
+    'Kuhu? → sisseütlev: kööki.',
+    'Arv + osastav: kaks korda.',
+    'Millega? → kaasaütlev: rattaga.',
+    'Võrdlus (võrreldes …) → keskvõrre: rahulikum.',
+    'Iga esmaspäev → esmaspäeviti.',
+    'Võrdlus „kui varem” → keskvõrre: värskem.'
+  ],
+  '005_p_bank': [
+    'Kevadel tuli → esimestel nädalatel tekkis probleem (hiljaks jäämine).',
+    'Probleem (täis buss) → ta rääkis sellest juhile.',
+    '„Juht ei olnud vihane” → ta pakkus lahenduse.',
+    'Algus kell kümme → nii väldib ta tipptundi.',
+    'Kodus töötamise päevad → neil päevadel jõuab trenni.',
+    '„töö on parem” → põhjus: ei kiirusta, teeb vähem vigu. Üleliigne on lause töölt lahkumisest.'
+  ],
+  '005_p_fix': [
+    'jooma + osastav: teed (pooleli / määramata hulk); parem sõnajärg: joon ma.',
+    'Mitu korda ajaühikus: nädalas.',
+    'Keskvõrre on üks sõna: rahulikum.',
+    '„kuigi” ja „aga” koos ei käi.',
+    'Kestus kuni praeguseni: kaks aastat (ilma „tagasi”-ta); „tagasi” käib lihtminevikuga.',
+    'võrreldes + -ga: (oma) vennaga.',
+    'Ajaväljendid koos lause keskel või alguses, tegusõna teisel kohal.',
+    'Pärast kuna-lauset tuleb kohe tegusõna: jäin.',
+    '„lemmik” on juba ülivõrde tähendusega: lemmikpäev (ilma „kõige”-ta).',
+    'Võrdlus lause lõpus: … kui mina; tegusõna ei korrata.'
+  ],
+  '005_p_trans': [
+    'Kuigi-lause ees, siis kohe tegusõna: läksin.',
+    'Kuna-lause ees, siis kohe tegusõna: võtsin.',
+    'samas ühendab kaks vastandlikku fakti.',
+    'esmaspäev + neljapäev = kaks korda nädalas.',
+    'võrreldes + -ga: bussiga; tegusõna teisel kohal: on.',
+    'Järjekord: kõigepealt …, seejärel …; tegusõna kohe sõna järel.',
+    'Õhtuti + tegusõna loen teisel kohal.',
+    'Kuigi-lause ees, siis tegusõna: olin.',
+    'Keskvõrre + kui: rahulikum kui.',
+    'seetõttu + tegusõna teisel kohal: jäin.'
+  ],
+  '005_p_notes': [
+    'Teade 1: „iga kümne minuti järel”.',
+    'Teade 2: „tulge kümme minutit varem”.',
+    'Teade 2: „et täita ankeet”.',
+    'Teade 3: „treener on haige”.',
+    'Teade 4: suletud „remondi tõttu”.',
+    'Teade 4: tagastada „maja ees olevasse kasti”.'
+  ],
+  '005_p_listen': [
+    'Saatejuht: „Stuudios on unearst Merike Kask.”',
+    'Arst: „keskmiselt on meil magamisega üsna hästi”.',
+    'Arst: pühapäeviti „tund ja kümme minutit kauem”.',
+    'Arst: „on pühapäeva õhtul raske magama jääda”.',
+    'Arst: „Kindlasti ekraanid.”',
+    'Arst: telefon käest „vähemalt tund aega enne magamaminekut”.',
+    'Arst: „vett või taimeteed”.',
+    'Arst: „kofeiin mõjub kehas veel mitu tundi”.',
+    'Arst: magamistuba „pime ja vaikne”.'
+  ],
+  '005_p_tf': [
+    'Õige: „seitse kuni üheksa tundi”.',
+    'Vale: „see ei ole päris nii”.',
+    'Õige: „esmaspäev algab jälle väsinult”.',
+    'Vale: „Hommikune kohv ei ole” probleem.',
+    'Õige: sinine valgus „ütleb ajule, et on veel päev”.',
+    'Vale: vahetustega töötajatel „on kõige raskem”.',
+    'Vale: arst soovitab ärgata „iga päev samal ajal, ka nädalavahetusel”.',
+    'Õige: „järgmisel nädalal räägime sellest, kuidas toit und mõjutab”.',
+    'Õige: „kofeiin mõjub kehas veel mitu tundi”.',
+    'Vale: pärast kella kolme tasub kohvi asemel juua vett või taimeteed.'
+  ],
+  '005_t_read': [
+    '3. lõik: „nende lugudes tunneb iga kuulaja ennast ära”.',
+    '1. lõik: raadio otsib „kolme inimest”.',
+    '1. lõik: ootavad inimesi, kes on „kolinud, vahetanud töökohta või muutnud oma elurütmi”.',
+    '2. lõik: „järgmise kuu esimesel kolmapäeval kell kaksteist”.',
+    '2. lõik: „kaks kinopiletit”.',
+    '2. lõik: „hiljemalt järgmise reede õhtuks”.',
+    '2. lõik: „on võimalik anda intervjuu ka telefoni teel”.'
+  ]
+};
 
 export const LESSONS = withShapes({
   'b1b2-001': {
     title: 'Mitu keelt on sinu päevas?',
-    phases: grammar('Lähtediagnostika B1 · keel: viisakas palve (Kas te saaksite …? Ma sooviksin …)'),
+    phases: grammar('Lähtepunkt B1 → B2 · keel: viisakas palve tingivas kõneviisis (Kas te saaksite …? Ma sooviksin …) ja register'),
     format: 'quest',
     topic: 'languages',
-    canDo: 'Ma näitan, mida ma B1-tasemel oskan, ja kirjutan keelekoolile viisaka palve, et alustada B2-õpinguid.',
+    canDo: 'Ma räägin ühe minuti ilma abita, saan aru arvamusloost keelevahetuse kohta ning kirjutan keelekoolile umbes 140-sõnalise viisaka kirja, kus palun tingivas kõneviisis.',
     // entry diagnostic: measured at B1 (the course itself starts at B1+)
     level: 'B1',
     teacherPage: {
-      goal: 'Диагностика B1 как маршрут из 4 пунктов: говорение и звуки, чтение, вежливая просьба, аудирование и план письма. Ученик уходит с профилем и планом письма.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б (устал или слабый): пункт 1 — только 2 вопроса и 5 пар звуков; пункт 3; пункт 4 — аудио и план без двух предложений. Длинный текст (пункт 2) — дома, без вопросов на время.',
-      hook: '«Mõtle tänasele päevale. Mis keeles sa ütlesid täna esimese lause? Ja mis keeles poes?» Ответьте сами одной фразой о своём дне, потом ученик. Никаких исправлений в первые 5 минут.',
+      goal: 'Холодная задача (1 мин без опор), чтение статьи о смене языка (450 слов, выводы), вежливая просьба и звонок в школу со скрытой информацией; дома письмо 140 слов в реальную школу.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин); чтение — только абзацы 1, 4, 5 и вопросы 1, 5, 6; станция 3 — дома в Harjuta; звонок без второго препятствия.',
+      hook: '«Mõtle tänasele päevale: mis keeles sa ütlesid esimese lause? Kas keegi vahetas sinuga täna keelt?» Затем утверждение холодной задачи: 2 минуты подумать, 1 минута говорить. Вы не помогаете и не исправляете.',
       plan: [
-        '0–4: крючок — языки сегодняшнего дня, ученик отвечает сразу',
-        '4–15: пункт 1 — разговор о себе (диагностика речи, 4 мин) и 5 пар звуков',
-        '15–30: пункт 2 — слова до чтения (2 мин), вопрос-прогноз «Кто сейчас делает дома больше: мужчины или женщины?», чтение, 6 вопросов',
-        '30–42: пункт 3 — вежливая просьба: заметить → правило → 7 фраз',
-        '42–57: пункт 4 — автоответчик школы, план письма и 2 первых предложения',
-        '57–67: «Kui aega jääb» — ролевая игра: звонок в школу (по желанию)',
-        '67–75: проверка на выходе (3 фразы), «Ma oskan …», разбор 3 ошибок',
-        '75–82: домашнее задание: что дома, как записать 1 минуту, где слова',
-        '82–90: запас (вопрос «Mõtle kaasa» из текста)',
+        '0–5: станция 1 — холодная задача: утверждение, 2 мин подготовки, 1 мин речи; вы записываете (заметки храните до урока 005)',
+        '5–25: станция 2 — 10 слов (2 мин), схема регистра (2 мин), статья „Miks me vahetame keelt?” (8 мин), 7 вопросов, из них 3 на вывод (8 мин)',
+        '25–45: станция 3 — правило вежливой просьбы, 8 преобразований, письмо с 9 пропусками без банка, регистр: другу → в школу',
+        '45–70: станция 4 — план (3 мин), звонок в школу со скрытой информацией (8–10 мин), разбор по трём критериям, начало письма',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо в реальную школу и голосовое 1 мин',
+        'Kui aega jääb (75–90): ученик повторяет звонок с другой целью (курс для коллеги) или читает вслух первый абзац письма, вы отвечаете как администратор',
       ],
-      sources: 'Текст пункта 2 — Статистикаамет (исследование времени 2019–2021, перепись 2021), источники под текстом. Школа «Keelekool Sõna», цены и время — учебный сценарий, не реальные данные.',
-      groups: 'Пункт 1 — в парах: один спрашивает, другой отвечает, потом смена; вы слушаете по очереди. Звуки: один читает пару, другой выбирает. Пункты 2–4 каждый делает сам, план письма сравнивают в паре.',
+      sources: 'Статья — учебный текст KeeleSepp (адаптирован к B2, без точной статистики). Школа «Keelekool Sõna» и её условия — учебный сценарий. Для домашнего письма — реальные страницы: https://www.integratsioon.ee, https://www.keeleklikk.ee.',
+      groups: 'Холодная задача — по одному, остальные слушают и задают один вопрос «Miks?». Чтение — сам, вопросы на вывод сравнивают в паре. Звонок — пары «ученик — администратор», карточку администратора даёте вы; в 1:1 администратор — вы.',
       errors: [
         '«Kas te saaks…?» вместо «Kas te saaksite…?» (к «вы» — форма на -ksite).',
         '«Ma tahan / Ma tahaks» в письме звучит слишком прямо или разговорно → «Ma sooviksin…», «Kas oleks võimalik…?».',
-        'Долгота меняет смысл: «sada» (сто) ≠ «saada» (отправь), «lina» (простыня) ≠ «linna» (в город).',
+        '«Kas te saaksite mulle saata info» → «… mulle info saata?» (инфинитив в конце вопроса).',
         '«Hei!» в письме в школу слишком неформально → «Lugupeetud …!» … «Lugupidamisega».',
       ],
       notes: [
-        'Если ученик из Нарвы или Ида-Вирумаа, вопрос о Виймси и Нарве — повод спросить его опыт, без оценки («Kuidas see sinu linnas on?»).',
-        'Формат — квест: четыре пункта маршрута. В конце пункта скажите одно слово (tugev / keskmine / harjutan); ученик отмечает это в «Ma oskan …» в конце листа Kasuta. Пункты не зависят друг от друга.',
-        'Обратная связь, 2–3 цели: условное наклонение в просьбе; долгота гласных; глагол сразу после придаточного. На пункте 3 сначала подсказка («-ksite?»), рекаст — только если не исправил сам. На пунктах 1 и 4 не перебивайте, не больше трёх замечаний в конце.',
+        'Холодная задача — исходная точка модуля. Отметьте: позиция в первом предложении, причина и пример, контраргумент, связки, 2–3 повторяющиеся ошибки. В уроке 005 (005_t_mono) ученик делает параллельную задачу на новую тему, вы сравниваете.',
+        'Обратная связь, 2–3 цели: условное наклонение в просьбе; регистр (sa → te); вывод из текста с опорой на фразу из текста. На звонке не перебивайте, не больше трёх замечаний в конце.',
       ],
     },
     discover: [
-      station(B.text('001_d_hook', 'Sinu keeled', 'Mõtle tänasele päevale. Mis keeles sa ütlesid esimese lause? Mis keeles poes või bussis? Kas keegi vahetas sinuga keelt?'), 1, 15),
-      inLesson(teach(tag(purpose(B.speaking('001_d_talk', 'Räägi endast.', 'Vasta igale küsimusele: mis, miks ja üks näide.', [
+      station(inLesson(teach(tag(purpose(B.speaking('001_d_cold', 'Külm algus: üks minut ilma abita.', 'Väide: „Täiskasvanul on uut keelt raskem õppida kui lapsel.” Mõtle 2 minutit (märkmeid võib teha) ja räägi 1 minut: kas oled nõus? Valmis fraase ei ole.', [
+        'Kas oled väitega nõus, osaliselt nõus või ei ole nõus?',
+        'Mis on sinu peamine põhjus? Too üks näide oma elust.',
+        'Mida ütleks keegi, kes arvab teisiti, ja mida sina talle vastaksid?',
+      ], [60, 90]), 'Õpetaja paneb kirja, kust sinu B2-tee algab; mooduli lõpus võrdlete.'), { task: 'S16', fluency: true }),
+      'Mooduli külm ülesanne (algtase), 5 minutit. Ära aita, ära anna fraase ega paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu silda (seetõttu, samas …) ja 2–3 korduvat viga. Hoia märkmed alles: tunnis b1b2-005 teeb õppija paralleelse ülesande (005_t_mono) ja te võrdlete. Üks-ühele: sina oled kuulaja; pärast kõnet küsi ainult „Miks?”.')), 1, 5),
+      station(tag(B.vocab('001_d_vocab', 'Tunni sõnad.', ['keelt vahetama — переходить на другой язык', 'vestluskaaslane — собеседник', 'emakeelne kõneleja — носитель языка', 'kohanema — приспосабливаться', 'solvama — обижать', 'reageerima — реагировать', 'julgema — осмеливаться', 'etteheide — упрёк', 'palve — просьба', 'võimalust andma — давать возможность']), { topic: ['vestluskaaslane', 'etteheide', 'emakeelne kõneleja'] }), 2, 20),
+      purpose(B.diagram('001_d_scheme', 'flow', { title: 'Skeem: üks palve, viis registrit.', instruction: 'Vaata skeemi enne lugemist: sama palve liigub käsust ametliku kirjani. Lugedes leia tekstist kaks lauset, mis on palve, ja ütle, mis astmel need on.', nodes: 'Käsk sõbrale: Räägi minuga eesti keeles!\nPalve sõbrale: Kas sa saaksid minuga eesti keeles rääkida?\nViisakas palve võõrale: Kas me võiksime rääkida eesti keeles?\nAmetlik palve: Kas te saaksite mulle kursuse info saata?\nVäga viisakas kiri: Oleksin tänulik, kui saadaksite mulle kursuse info.' }, 'full', 'g_read'), 'Skeem näitab, kuidas sama palve kõlab sõbrale ja asutusele.'),
+      why(teach(tag(purpose(B.reading('001_d_text', 'Loe arvamuslugu.', 'Loe arvamuslugu (umbes 8 minutit) ja vasta küsimustele. Küsimustele 4–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Miks me vahetame keelt?', [
+        'Olukord on paljudele tuttav. Sa astud kohvikusse, ütled eesti keeles „Tere! Üks kohv, palun” ja müüja vastab sulle kohe inglise või vene keeles. Ta ei taha sind solvata, vastupidi: ta tahab aidata ja säästa sinu aega. Sinu jaoks on see aga kaotatud võimalus. Sa olid valmis rääkima, kuid vestlus lõppes enne, kui see jõudis alata. Kui see juhtub iga päev, hakkab inimene arvama, et tema eesti keel ei ole piisavalt hea, ja jääb vait.',
+        'Miks eestlased keelt vahetavad? Põhjusi on mitu. Esiteks on paljud harjunud, et väikese keele kõnelejana peavad just nemad teistega kohanema. Teiseks kardetakse, et vestlus muutub aeglaseks ja piinlikuks, eriti tööl, kus järjekord on pikk ja klient ootab. Kolmandaks peavad mõned keelevahetust lihtsalt viisakuseks: kui vestluskaaslane räägib aktsendiga, pakutakse talle keelt, mis on talle ilmselt lihtsam. Harva on põhjus selles, et keegi ei taha eesti keeles rääkida. Sageli ei märka inimene isegi, et ta keelt vahetas: see juhtub automaatselt, nagu ukse avamine teisele.',
+        'Täiskasvanud õppija vajab aga just neid lühikesi igapäevaseid vestlusi. Keelt ei õpita ainult tunnis ja õpikust. Kõige rohkem areneb kõne siis, kui tuleb kiiresti reageerida. Näiteks tuleb poes küsida, kas kaup on soodushinnaga, arstile selgitada, kus valutab, või naabriga kokku leppida, millal prügi välja viia. Iga selline vestlus on väike eksam, mille järel inimene tunneb, et ta saab hakkama. Pealegi ei ole tunnis kunagi nii palju üllatusi kui päris elus: õpetaja räägib selgelt ja ootab, müüja ja naaber aga mitte. Kui vestlusi ei tule, jääb keel passiivseks: inimene saab tekstist aru, kuid ei julge rääkida.',
+        'Mida siis teha? Minu arvates ei ole lahendus selles, et kedagi süüdistada. Õppija võib viisakalt ja lühidalt öelda, mida ta vajab: „Kas me võiksime rääkida eesti keeles? Ma õpin ja tahaksin harjutada.” Enamik inimesi on sellise palve üle pigem rõõmus. Oluline on toon: palve, mitte etteheide. Lause „Miks te minuga eesti keeles ei räägi?” võib kõlada rünnakuna, kuigi küsija mõtles sama asja.',
+        'Ka emakeelsed kõnelejad saavad aidata. Piisab sellest, kui nad räägivad veidi aeglasemalt, kasutavad lihtsamaid sõnu ja ootavad paar sekundit, enne kui appi tõttavad. Mõnes töökohas on kokku lepitud, et koosolekul räägitakse eesti keeles ka siis, kui see võtab rohkem aega. Mõni kolleeg pakub ise, et räägib õppijaga lõunapausil ainult eesti keeles, kuigi muidu suheldakse vene või inglise keeles. Selline kokkulepe näitab, et keelt peetakse ühiseks väärtuseks, mitte ainult eksami nõudeks.',
+        'Kokkuvõttes ei sõltu õppija edu ainult tema enda tööst, vaid ka sellest, kas teised annavad talle võimaluse rääkida. Kõige kiiremini areneb aga see, kes julgeb oma vajadusest viisakalt rääkida. Üks hästi sõnastatud palve avab sageli rohkem uksi kui kümme tundi grammatikat.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Mida teeb müüja esimeses lõigus ja miks on see õppijale kaotatud võimalus?', 'vastab inglise või vene keeles; õppija ei saa rääkida|vestlus lõpeb enne, kui algab'],
+        ['Nimeta kaks põhjust, miks eestlased autori sõnul keelt vahetavad.', 'on harjunud kohanema; kardavad aeglast või piinlikku vestlust; peavad seda viisakuseks'],
+        ['Mida tähendab teksti põhjal, et keel jääb passiivseks?', 'inimene saab tekstist aru, kuid ei julge rääkida'],
+        ['Miks nimetab autor igapäevast vestlust väikeseks eksamiks?', 'tuleb kiiresti reageerida ja pärast tunneb inimene, et saab hakkama'],
+        ['Kuidas suhtub autor neisse, kes keelt vahetavad? Millest sa seda järeldad?', 'ei süüdista neid; nad tahavad aidata ja harva ei taha nad eesti keeles rääkida'],
+        ['Miks võib küsimus „Miks te minuga eesti keeles ei räägi?” kõlada rünnakuna? Mida autor selle asemel soovitab?', 'see on etteheide, mitte palve; soovitab viisakat palvet tingivas kõneviisis'],
+        ['Mida tahab autor öelda viimase lausega, et üks palve avab rohkem uksi kui kümme tundi grammatikat?', 'julgus ja viisakas palve annavad rohkem harjutust kui ainult õppimine|tuleb ise rääkimisvõimalust küsida'],
+      ]), 'Pärast lugemist tead, miks vestlus katkeb ja kuidas seda viisakalt muuta.'), { task: 'R09', voice: 'opinion' }),
+      'Lugemine, 20 minutit koos sõnade ja skeemiga. Enne lugemist küsi pealkirja järgi: mida autor ilmselt arvab? Pärast: õpilane näitab tekstis kaks palvet ja ütleb skeemi järgi nende astme. Küsimused 4–7 on järeldusküsimused (autori hoiak, vihje): nõua põhjendust tekstist („kus seda on näha?”). Arvamuslugu on kohandatud õppetekst (B2 sõnavara ja lauseehitus), mitte faktiallikas.'), [
+        '1. lõik: müüja „vastab sulle kohe inglise või vene keeles”; „vestlus lõppes enne, kui see jõudis alata”.',
+        '2. lõik: „harjunud … kohanema”, „kardetakse, et vestlus muutub aeglaseks”, „peavad … viisakuseks” — kaks neist.',
+        '3. lõik: „inimene saab tekstist aru, kuid ei julge rääkida”.',
+        '3. lõik: „Iga selline vestlus on väike eksam, mille järel inimene tunneb, et ta saab hakkama.”',
+        'Järeldus 4. lõigust: „ei ole lahendus selles, et kedagi süüdistada”; 2. lõik: „Harva on põhjus selles, et keegi ei taha …”.',
+        'Järeldus 4. lõigust: lause on „etteheide”, autor soovitab „palve, mitte etteheide” (Kas me võiksime …?).',
+        'Järeldus 6. lõigust: edu sõltub sellest, kas „julgeb oma vajadusest viisakalt rääkida” — palve annab harjutust.',
+      ]),
+      hide(station(B.text('001_d_hook', 'Sinu keeled', 'Mõtle tänasele päevale. Mis keeles sa ütlesid esimese lause? Mis keeles poes või bussis? Kas keegi vahetas sinuga keelt?'), 1, 15), 'v5: the hook is the cold task 001_d_cold (station 1)'),
+      hide(inLesson(teach(tag(purpose(B.speaking('001_d_talk', 'Räägi endast.', 'Vasta igale küsimusele: mis, miks ja üks näide.', [
         'Kus ja kellega sa eesti keelt räägid?',
         'Mis on sinu eesti keele tugevus ja mis nõrkus?',
         'Kas täiskasvanul on keelt raskem õppida? Miks?',
       ], [180, 240], ['Minu arvates…', 'Näiteks…']), 'Pärast vestlust tead, mida sinu kõnes harjutada.'), { task: 'S01', fluency: true }),
-      'Üks-ühele: küsi päriselt edasi („Miks?”, „Too näide.”), ära paranda. Lõpus ütle üks tugevus ja üks asi, mida harjutada. Pensionärile või kodusele: „Kus sa eesti keelt kuuled — poes, arsti juures, teles?”')),
-      teach(tag(purpose(B.choice('001_d_sounds', 'Kuula ja vali.', 'Õpetaja ütleb igast reast ühe sõna. Märgi see.', [
+      'Üks-ühele: küsi päriselt edasi („Miks?”, „Too näide.”), ära paranda. Lõpus ütle üks tugevus ja üks asi, mida harjutada. Pensionärile või kodusele: „Kus sa eesti keelt kuuled — poes, arsti juures, teles?”')), 'v5: a 3–4 min monologue in class is above the B2 format (1 min after 2 min preparation); replaced by 001_d_cold'),
+      hide(why(teach(tag(purpose(B.choice('001_d_sounds', 'Kuula ja vali.', 'Õpetaja ütleb igast reast ühe sõna. Märgi see.', [
         ['Kuula õpetajat: millise sõna ta sellest reast ütles?', 'saada', 'sada', 'saata'],
         ['Kuula õpetajat: millise sõna ta sellest reast ütles?', 'linna', 'lina', 'linnu'],
         ['Kuula õpetajat: millise sõna ta sellest reast ütles?', 'kala', 'kõla', 'küla'],
         ['Kuula õpetajat: millise sõna ta sellest reast ütles?', 'süda', 'sõda', 'seda'],
         ['Kuula õpetajat: millise sõna ta sellest reast ütles?', 'tuli', 'tüli', 'tule'],
       ], 'full', 'g_listen'), 'Üks häälik muudab sõna tähendust; nii kuuled, mida harjutada.'), { task: 'L01' }),
-      'Ütle igast reast võtmesõna (saada, linna, kala, süda, tuli) üks kord tavalises tempos. Iga teine sõna erineb võtmesõnast ainult ühe hääliku poolest (pikkus või täishäälik). Siis ütleb õpilane rea kõik sõnad ise; kuula pikkust ja õ / ü vahet.'),
-      station(tag(B.vocab('001_d_vocab', 'Enne lugemist: sõnad.', ['ajakasutus — использование времени', 'uuring — исследование', 'keskmiselt — в среднем', 'võrdselt — поровну', 'võõrkeel — иностранный язык', 'oskus — навык', 'tugevus — сильная сторона', 'nõrkus — слабое место', 'palve — просьба', 'registreeruma — записаться']), { topic: ['ajakasutus'] }), 2, 15),
-      B.topicOpener('001_d_open', 'Moodul 1. Elu rütm: mida näitavad uuringud?', [
+      'Ütle igast reast võtmesõna (saada, linna, kala, süda, tuli) üks kord tavalises tempos. Iga teine sõna erineb võtmesõnast ainult ühe hääliku poolest (pikkus või täishäälik). Siis ütleb õpilane rea kõik sõnad ise; kuula pikkust ja õ / ü vahet.'), OLD_WHY['001_d_sounds']), CUT_DRILL),
+      hide(B.topicOpener('001_d_open', 'Moodul 1. Elu rütm: mida näitavad uuringud?', [
         'Kuhu kaob meie aeg? Sellele küsimusele otsib Statistikaamet vastust iga kümne aasta tagant. Viimases ajakasutuse uuringus aastatel 2019–2021 pidasid tuhanded vähemalt kümneaastased inimesed päevikut ja märkisid sinna kõik oma tegevused. Päevikut täitsid eri vanuse, hariduse ja elukorraldusega inimesed. Seejärel arvutati iga tegevuse keskmine aeg kõigi inimeste ja kõigi päevade kohta. Sellepärast on tasulise töö keskmine aeg ainult 3,3 tundi ööpäevas: arvesse lähevad ka lapsed, pensionärid ja töötud ning nädalavahetused ja puhkused.',
         'Kõige suurem muutus on toimunud kodus. Kahekümne aastaga on naiste aeg majapidamisele ja perele vähenenud ligi poolteist tundi päevas, meestel veidi vähem kui pool tundi. Eriti palju aega on vabanenud köögis: naised teevad süüa üle poole tunni vähem kui varem. Pesemine, triikimine ja riiete parandamine võtavad nüüd alla kümne minuti päevas. Statistikaameti analüütiku arvates aitasid sellele kaasa poolvalmistoidud, toidukullerid ja kodutehnika. Ainult ehitamine ja remont on jäänud peamiselt meeste tööks. Tasulist ja tasuta tööd kokku teevad naised ja mehed nüüd peaaegu võrdselt, kuid kodutöödele ja perele kulutavad naised endiselt umbes kolmandiku võrra rohkem aega kui mehed.',
         'Toidu valmistamine võtab vähem aega, söömine aga rohkem: laua taga veedetakse nüüd umbes kümme minutit päevas kauem kui kakskümmend aastat tagasi. Nädalavahetusel istutakse laua taga veidi kauem kui nädala sees. Kõige rahulikumalt söövad vanemaealised, kes kulutavad söömisele keskmiselt poolteist tundi päevas.',
@@ -102,20 +387,25 @@ export const LESSONS = withShapes({
         'Kuidas muutub kodutööde jagamine sinu arvates järgmise kahekümne aasta pärast?',
         'Kuidas jagatakse kodutöid riigis, mida sa hästi tead: kas samamoodi nagu Eestis?',
         'Mitut keelt sa igapäevaelus kasutad ja millal sa keelt vahetad?',
-      ]),
-      tag(purpose(B.table('001_d_read', 'Mida vastab uuring?', 'Vasta igale küsimusele ühe-kahe sõnaga, nagu tekst ütleb.', 'Küsimus, Vastus', [
+      ]), 'topic opener with exact statistics: replaced by the one input 001_d_text (v5: one input, owner: no exact numbers)'),
+      hide(why(tag(purpose(B.table('001_d_read', 'Mida vastab uuring?', 'Vasta igale küsimusele ühe-kahe sõnaga, nagu tekst ütleb.', 'Küsimus, Vastus', [
         'Sõber: „Kas 3,3 tundi on ühe töötaja tööpäev või kõigi inimeste keskmine?” | [keskmine/kõigi keskmine/kõigi inimeste keskmine]',
         'Naaber: „Kas naised teevad kodus nüüd rohkem või vähem tööd kui vanasti?” | [vähem]',
         'Kolleeg: „Kes teeb Eestis kodus remonti, mehed või naised?” | [mehed/peamiselt mehed]',
         'Ema: „Kas laua taga istutakse nüüd kauem või vähem kui varem?” | [kauem]',
         'Sõber: „Kus oskab suurem osa inimesi võõrkeeli, Viimsis või Narvas?” | [Viimsis/Viimsi vallas]',
         'Sinu laps: „Mis keel on noortel vene ja soome keele asemel?” | [inglise keel/inglise/inglise keelt]',
-      ], 'g_read'), 'Inimesed sinu ümber küsivad Eesti elu kohta; nüüd vastad faktiga.'), { task: 'R15' }),
-      tag(purpose(B.writing('001_d_think', 'Mõtle kaasa.', 'Kirjuta 2–3 lauset: üks fakt, mis sind üllatas, ja kas sinu elus on samamoodi.', [2, 3], [], 0, 'g_read'), 'Võrdled teksti oma eluga ja jätad fakti meelde.'), { task: 'W02', level: 3 }),
+      ], 'g_read'), 'Inimesed sinu ümber küsivad Eesti elu kohta; nüüd vastad faktiga.'), { task: 'R15' }), OLD_WHY['001_d_read']), 'questions of the hidden opener 001_d_open'),
+      hide(tag(purpose(B.writing('001_d_think', 'Mõtle kaasa.', 'Kirjuta 2–3 lauset: üks fakt, mis sind üllatas, ja kas sinu elus on samamoodi.', [2, 3], [], 0, 'g_read'), 'Võrdled teksti oma eluga ja jätad fakti meelde.'), { task: 'W02', level: 3 }), CUT_EXTRA),
     ],
     practice: [
-      station(B.notice('001_p_notice', 'Märka: viisakas palve', ['Otse: **Saada** mulle arve! → Viisakalt: **Kas te saaksite** mulle arve saata?', 'Tingiv kõneviis: tüvi + **-ksi-**: ma **saaksin**, sa **saaksid**, te **saaksite**; ta-vorm on lühike: **saaks**', 'Viisakad algused: **Kas te võiksite** …? · **Ma sooviksin** … · **Oleks tore, kui** … · **Kas oleks võimalik** …?', 'Eitus: ma **ei saaks**, see **ei oleks** (= poleks) võimalik'], 'full'), 3, 12),
-      purpose(B.transformation('001_p_polite', 'Ütle viisakamalt.', 'Tee käsust viisakas palve antud sõnadega.', [
+      station(B.notice('001_p_notice', 'Märka: viisakas palve ja register.', [
+        'Tekstist: Kas me **võiksime** rääkida eesti keeles? · Tingiv kõneviis: tüvi + **-ksi-**: ma **saaksin**, sa **saaksid**, me **saaksime**, te **saaksite**; ta-vorm on lühike: **saaks**',
+        'Viisakad algused: **Kas te võiksite** …? · **Ma sooviksin** … · **Oleks tore, kui** … · **Kas oleks võimalik** …? · **Oleksin tänulik, kui** …',
+        '**Sõnajärg**: viisakas küsimus lõpeb tegevusnimega — Kas te saaksite mulle arve **saata**? · Kas oleks võimalik kahes osas **maksta**?',
+        '**Register**: sõbrale **sa** ja „Tere!” · asutusele **te**, „Lugupeetud …!” ja „Lugupidamisega” · eitus: see **ei oleks** võimalik',
+      ], 'full'), 3, 20),
+      why(purpose(B.transformation('001_p_polite', 'Ütle viisakamalt.', 'Tee käsust viisakas palve märksõnas antud algusega. Pane tähele: tegevusnimi on küsimuse lõpus.', [
         ['Saada mulle kursuse arve e-postiga.', 'kas te saaksite', 'Kas te saaksite mulle kursuse arve e-postiga saata?|Kas te saaksite mulle e-postiga kursuse arve saata?'],
         ['Helista mulle homme pärast kella viit tagasi.', 'kas te võiksite', 'Kas te võiksite mulle homme pärast kella viit tagasi helistada?'],
         ['Ma tahan õhtukursusele registreeruda.', 'ma sooviksin', 'Ma sooviksin õhtukursusele registreeruda.|Ma sooviksin registreeruda õhtukursusele.'],
@@ -123,10 +413,70 @@ export const LESSONS = withShapes({
         ['Anna mulle perearsti juurde uus aeg.', 'kas ma saaksin', 'Kas ma saaksin perearsti juurde uue aja?|Kas ma saaksin uue aja perearsti juurde?'],
         ['Ma tahan kursuse eest maksta kahes osas.', 'kas oleks võimalik', 'Kas oleks võimalik kursuse eest maksta kahes osas?|Kas oleks võimalik kursuse eest kahes osas maksta?|Kas oleks võimalik maksta kursuse eest kahes osas?'],
         ['Diagnostika on neljapäeval pärast tööd.', 'oleks tore, kui', 'Oleks tore, kui diagnostika oleks neljapäeval pärast tööd.|Oleks tore, kui diagnostika toimuks neljapäeval pärast tööd.'],
-      ], 'full', 'g_use'), 'Viisakas palve avab uksi koolis, arsti juures ja naabri juures.'),
+        ['Räägi minuga eesti keeles.', 'kas me võiksime', 'Kas me võiksime rääkida eesti keeles?|Kas me võiksime eesti keeles rääkida?'],
+      ], 'full', 'g_use'), 'Viisakas palve avab uksi koolis, arsti juures ja naabri juures.'), [
+        'te-vorm tingivas kõneviisis: saaksite; saatma läheb lause lõppu: … saata?',
+        'võiksite + da-tegevusnimi: helistada; „te” on viisakam kui „sa”.',
+        'tahan → sooviksin (tingiv) + da-tegevusnimi: registreeruda.',
+        'Käsk → küsimus: Kas te saaksite … keerata?',
+        'saama + täissihitis: uue aja (omastav), mitte „uus aeg”.',
+        '„Kas oleks võimalik” + da-tegevusnimi: maksta.',
+        '„Oleks tore, kui” + tingiv: on → oleks (või toimuks).',
+        'me-vorm tingivas kõneviisis: võiksime + rääkida (tekstist: „Kas me võiksime rääkida eesti keeles?”).',
+      ]),
+      why(purpose(B.formtext('001_p_letter', 'Kiri keelekoolile: tingiv kõneviis tekstis.', 'Loe kirja ja kirjuta sulgudes olev tegusõna tingivas kõneviisis (sooviksin, saaksite …). Panka ei ole; vaata, kes teeb.', 'B2-kursuse kohta', [
+        'Lugupeetud keelekooli administraator!',
+        '',
+        'Olen B1-tasemel õppija ja [sooviksin] (soovima) jaanuaris alustada B2-kursusega. Kodulehel on kirjas, et kursus toimub teisipäeviti ja neljapäeviti kell 17.30. Kahjuks lõpeb mu tööpäev alles kell 17, nii et ma [jõuaksin] (jõudma) tundi umbes kümme minutit hiljem.',
+        '',
+        'Seetõttu on mul kaks palvet. Esiteks, kas te [saaksite] (saama) mulle öelda, kas sama kursus on ka hilisemal ajal? Teiseks, kas [oleks] (olema) võimalik maksta kahes osas? Mu tööandja [maksaks] (maksma) pool summat, kui ta saab arve otse firmale.',
+        '',
+        'Kui see ei ole võimalik, [tuleksin] (tulema) hea meelega ka laupäevasele kursusele. Me [võiksime] (võima) selle üle ka telefonis rääkida. [Oleksin] (olema) tänulik, kui te [vastaksite] (vastama) mulle selle nädala jooksul.',
+        '',
+        'Lugupidamisega',
+        'Sinu nimi',
+      ]), 'Sama kirja saad kodus kirjutada oma päris keelekoolile.'), [
+        'ma-vorm: soovima → sooviksin.',
+        'ma-vorm: jõudma → jõuaksin (tingimus: kui tunnid algavad kell 17.30).',
+        'te-vorm: saama → saaksite; viisakas küsimus asutusele.',
+        '„Kas oleks võimalik …?” — olema → oleks (ta-vorm on lühike).',
+        'ta-vorm: maksma → maksaks (tingimus: kui ta saab arve).',
+        'ma-vorm: tulema → tuleksin.',
+        'me-vorm: võima → võiksime.',
+        'ma-vorm: olema → oleksin; „Oleksin tänulik, kui …” on väga viisakas.',
+        'te-vorm kui-lauses: vastama → vastaksite.',
+      ]),
+      why(purpose(tag(B.table('001_p_register', 'Sõbrale või keelekoolile?', 'Vasakul on sõnum sõbrale. Paremas veerus on sama mõte kirjas keelekoolile. Kirjuta lünka puuduv sõna.', 'Sõbrale, Keelekoolile', [
+        'Hei! Kirjutan seoses kursusega. | [Lugupeetud] administraator! Kirjutan seoses B2-kursusega.',
+        'Tahan kursusele tulla. | [Sooviksin] registreeruda jaanuaris algavale kursusele.',
+        'Saada mulle info! | Kas te [saaksite] mulle kursuse info saata?',
+        'Kas sa tead, palju see maksab? | Kas te [oskaksite/võiksite] öelda, kui palju kursus maksab?',
+        'Ma ei saa teisipäeval tulla. | Kahjuks ei ole mul teisipäeviti [võimalik] tulla.',
+        'Kas saab kahes osas maksta? | Kas [oleks] võimalik maksta kahes osas?',
+        'Vasta kiiresti! | Oleksin [tänulik], kui vastaksite selle nädala jooksul.',
+        'Tšau! | [Lugupidamisega/Parimate soovidega]',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, millal sobib „sa” ja millal „te”, ja kirjutad asutusele õiges toonis.'), [
+        'Ametlik pöördumine: Lugupeetud …!',
+        'tahan → sooviksin (tingiv, viisakam).',
+        'Käsk → viisakas küsimus te-vormis: Kas te saaksite …?',
+        '„Kas te oskaksite / võiksite öelda …?” on viisakas küsimus.',
+        '„ei saa” → „ei ole võimalik” (ametlikum).',
+        '„Kas saab …?” → „Kas oleks võimalik …?”',
+        '„Vasta kiiresti!” → „Oleksin tänulik, kui vastaksite …”.',
+        'Ametlik lõpetus: Lugupidamisega (või Parimate soovidega).',
+      ]),
     ],
     transfer: [
-      station(tag(purpose(B.listening('001_p_call', 'Keelekooli infotelefon.', 'Kuula kaks korda ja kirjuta lünka sõna või number.', [
+      station(purpose(B.planning('001_t_plan', 'Kõne ja kirja plaan (3 minutit).', 'Kirjuta märksõnad: tahad jaanuarist B2-kursusele, päeval oled tööl, maksta saaksid kahes osas. Edukriteeriumid: 1) ütled kohe, miks helistad; 2) palud tingivas kõneviisis; 3) lõpus kordad kokkulepet.', ['Miks ma helistan / kirjutan:', 'Minu kaks palvet (tingiv kõneviis):', 'Mida ma kindlasti küsin:', 'Kokkulepe lõpus:'], 1), 'Plaan aitab sul kõnes ja kirjas oma eesmärgini jõuda.'), 4, 25, { final: 'plan' }),
+      teach(tag(purpose(B.rolecards('001_t_more', 'Kõne keelekooli (6–8 minutit).', 'Helista administraatorile ja registreeru kursusele viisakalt. Õpetaja on administraator.',
+        'Olukord: kirja asemel helistad keelekooli.\nSinu eesmärk: saada koht B2-kursusel ja sobiv diagnostika aeg.\nPiirang: päeval oled tööl või kodus ametis; raha maksad kahes osas.',
+        'Administraatori kaart on õpetajal: vabad ajad ja üks probleem.',
+        ['Kas te saaksite …?', 'Ma sooviksin …', 'Kas oleks võimalik …?'], ['Kahjuks …', 'Meil on vaba …', 'Kas teile sobiks …?']), 'Telefonis ei näe sa teise nägu: viisakus on ainult sinu sõnades.'), { task: 'S04', level: 4, main: true }),
+      'Õpetaja on administraator. Varjatud info: neljapäeva kella viie aeg on täis, vaba on teisipäeval kell 17.30; kahes osas maksmine on lubatud ainult siis, kui esimene osa tuleb enne kursuse algust. Takistused ükshaaval: 1) „Neljapäev on kahjuks täis.”; 2) „Kahes osas saab maksta ainult ühel tingimusel …” — ütle tingimus alles siis, kui õpilane küsib. Õnnestunud, kui õpilane kasutab vähemalt kolme viisakat vormi, küsib tingimuse üle ja kordab lõpus kokkulepet (aeg ja makse). Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.letter('001_t_mail', 'Kodus: kiri päris keelekoolile (umbes 140 sõna).', `Vali päris kursus (näiteks Integratsiooni Sihtasutus https://www.integratsioon.ee või Keeleklikk https://www.keeleklikk.ee) ja kirjuta talle 140–160 sõna: kes oled, mida soovid, kaks viisakat palvet, üks küsimus. ${VOICE_HOME}`, 'Lugupeetud …!', 'Lugupidamisega\n(sinu nimi)', [140, 160]), 'Päris kool vastab sinu kirjale: nii algab sinu B2-tee.'), 8)), { task: 'W13', main: true, harno: 'W1' }),
+      writingRubric('001_t_rubric', 'Hindamisjuhend: kiri keelekoolile (12 punkti).', 'Piiripealne näidis (7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma tahan tulla teie kursusele. Ma olen B1. Ma töötan päeval, seetõttu ma saan tulla ainult õhtul. Kas te saaks saata mulle info? Ja kas on võimalik maksta kaks korda? Ma ootan vastust. Aitäh. Tšau, Olga.” Hinnang: ülesanne 2 (palved on olemas, küsimus puudub, lõpp on liiga mitteametlik), ülesehitus 2 (järjekord on selge, kuid lõike ja sidendeid peaaegu ei ole), sõnavara 2 (lihtne, „tahan” ja „tšau” ei sobi asutusele), grammatika 1 („te saaks” → saaksite, „seetõttu ma saan” → seetõttu saan ma, „saata mulle info” → mulle info saata). Kui õppija parandab kolm vormi ja lõpu, saab ta 9/12 (75 %).'),
+      exitCheck(purpose(B.selfcheck('001_t_self', ['Ma ütlen kohe, miks ma helistan või kirjutan.', 'Ma palun tingivas kõneviisis: saaksite, sooviksin, oleks võimalik.', 'Ma valin adressaadi järgi „sa” või „te” ning sobiva alguse ja lõpu.'], 'Tee algab', 'Ma oskan viisakalt paluda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(why(station(tag(purpose(B.listening('001_p_call', 'Keelekooli infotelefon.', 'Kuula kaks korda ja kirjuta lünka sõna või number.', [
         'Tere! Olete helistanud keelekooli Sõna infotelefonile. Kõik administraatorid on praegu hõivatud, seepärast kuulake palun meie uusimat infot.',
         'Uued B2-kursused algavad jaanuari teisel nädalal. Enne kursust teeb iga õppija lähtediagnostika.',
         'Diagnostika toimub teisipäeviti ja neljapäeviti kell kümme hommikul. Neile, kes töötavad päeval, on neljapäeval lisaaeg kell viis õhtul.',
@@ -144,73 +494,113 @@ export const LESSONS = withShapes({
         'Tulemuse ja oskuste kaardi saadab kool [järgmisel päeval].',
         'Kaasa tuleb võtta isikut tõendav dokument ja [B1-tunnistus].',
         'Kui kursuse eest maksab tööandja, saadetakse arve [firmale|otse firmale].',
-      ]), 'Märkmed lähevad sinu kalendrisse: aeg, hind ja mida kaasa võtta.'), { task: 'L10' }), 4, 15, { final: 'plan' }),
-      teach(tag(purpose(B.letter('001_t_mail', 'Kiri keelekoolile: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: kiri lõpuni (kursus, aeg, kaks viisakat palvet).', 'Lugupeetud keelekooli administraator!', 'Lugupidamisega\n(sinu nimi)', [120, 150]), 'Kool vastab sinu kirjale: koht kursusel ja sobiv maksmise viis.'), { task: 'W13', main: true }),
-      'Kodutöö. Järgmises tunnis loe kiri kui administraator ja vasta suuliselt („Teile sobiks …, aga …”). Tagasiside: tingiv kõneviis palvetes, pöördumine ja lõpp, plaan on selge.'),
-      extension(teach(tag(purpose(B.rolecards('001_t_more', 'Rollimäng: helista keelekooli', 'Helista administraatorile ja registreeru kursusele viisakalt.',
-        'Olukord: kirja asemel helistad keelekooli.\nSinu eesmärk: saada koht B2-kursusel ja sobiv diagnostika aeg.\nPiirang: päeval oled tööl või kodus ametis; raha maksad kahes osas.',
-        'Administraatori kaart on õpetajal: vabad ajad ja üks probleem.',
-        ['Kas te saaksite …?', 'Ma sooviksin …', 'Kas oleks võimalik …?'], ['Kahjuks …', 'Meil on vaba …', 'Kas teile sobiks …?']), 'Telefonis ei näe sa teise nägu: viisakus on ainult sõnades.'), { task: 'S04', level: 4 }),
-      'Kui aega jääb (10 min). Õpetaja on administraator. Varjatud info: neljapäeva kella viie aeg on täis, vaba on teisipäeval kell 17.30; kahes osas maksmine on lubatud ainult siis, kui esimene osa tuleb enne kursuse algust. Õnnestunud, kui õpilane kasutab vähemalt kolme viisakat vormi ja lepib aja ning makse kokku.'), 10),
-      tag(exitCheck(purpose(B.gaps('001_t_exit', 'Kontrolli end: kolm palvet.', 'Kirjuta sulgudes olev sõna viisakas vormis.', [
+      ]), 'Märkmed lähevad sinu kalendrisse: aeg, hind ja mida kaasa võtta.'), { task: 'L10' }), 4, 15, { final: 'plan' }), OLD_WHY['001_p_call']), CUT_INPUT),
+      hide(why(tag(exitCheck(purpose(B.gaps('001_t_exit', 'Kontrolli end: kolm palvet.', 'Kirjuta sulgudes olev sõna viisakas vormis.', [
         '[Kas te saaksite] mulle diagnostika aja ka e-postiga saata? (kas te saate)',
         'Ma [sooviksin] registreeruda jaanuaris algavale B2-kursusele. (soovin)',
         'Kas [oleks] võimalik tulla diagnostikale neljapäeval pärast tööd? (on)',
-      ], '', 'full', 'g_use'), 'Kolm lauset näitavad, kas viisakas palve on käes.')), {}),
-      purpose(B.selfcheck('001_t_self', ['Ma räägin 3–4 minutit oma keeltest, ka võõrkeeltest, ning oma tugevusest ja nõrkusest.', 'Ma kuulen vahet: sada – saada, lina – linna.', 'Ma teen käsust viisaka palve (saaksite, sooviksin).', 'Ma panen kuulates kirja aja, hinna ja koha.'], 'Rada läbitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.speaking('001_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: kus sa eesti keelt kasutad ja milleks sul B2 vaja on.', [
+      ], '', 'full', 'g_use'), 'Kolm lauset näitavad, kas viisakas palve on käes.')), {}), OLD_WHY['001_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.speaking('001_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: kus sa eesti keelt kasutad ja milleks sul B2 vaja on.', [
         'Kus ja kellega sa eesti keelt räägid?',
         'Milleks sul B2-taset vaja on?',
-      ], [60, 120]), 'Õpetaja kuulab sinu sõnumi enne järgmist tundi ja annab ühe nõu.')), { task: 'S15' }),
-      homework('001_t_homework', ['1. Kiri keelekoolile, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      ], [60, 120]), 'Õpetaja kuulab sinu sõnumi enne järgmist tundi ja annab ühe nõu.')), { task: 'S15' }), CUT_HOME),
+      hide(homework('001_t_homework', ['1. Kiri keelekoolile, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
     ],
   },
 
   'b1b2-002': {
     title: 'Kes teeb kodus mida?',
-    phases: grammar('Keel: sidesõnad — kuna, kuigi, seetõttu, samas, enne kui, pärast seda kui'),
+    phases: grammar('Keel: sidesõnad nõuandes — kuna, kuigi, seetõttu, samas, nii et, enne kui; tegusõna koht pärast sidesõna'),
     format: 'facts',
     topic: 'home',
-    canDo: 'Ma kuulan, kuidas pered kodutöid jagavad, ja kirjutan sõbrale nõuande, kus seon laused vähemalt kuue sidesõnaga.',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest kodutööde jagamisest, annan sõbrale ühe minutiga nõu ja kirjutan umbes 140-sõnalise vastuse, kus seon mõtted sidesõnadega.',
     teacherPage: {
-      goal: 'Ученик сравнивает свой дом с данными Статистикаамета, понимает на слух, как семьи делят домашние дела, и пишет подруге совет с союзами.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б: игра — 3 вопроса; пункт 3 — только 4 предложения; пункт 4 — голосовое и план без двух предложений. Радио-опрос (пункт 2) — дома.',
-      hook: '«Угадаем: сколько минут в день эстонские женщины готовят еду?» Пусть ученик назовёт число первым, потом вы; ответ только после двух чисел. После каждого ответа: «Kas sinu kodus on teisiti?»',
+      goal: 'Ученик понимает радиобеседу (2 голоса, 3,5 мин) о распределении домашних дел и «невидимой работе», связывает мысли союзами и даёт подруге совет: 1 минута голосом и письмо 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–6; станция 3 — дома в Harjuta; голосовое без второй попытки.',
+      hook: '«Väide: kodutööd tuleb jagada täpselt pooleks.» Ученик сразу говорит, согласен ли он, и одну причину. Вы отвечаете последним и не спорите.',
       plan: [
-        '0–10: пункт 1 — игра «Arva ära!» (5 вопросов, счёт очков), ученик говорит с первой минуты',
-        '10–22: пункт 2 — слова (1 мин), прогноз «кто готовит у других?», радио-опрос дважды, верно / неверно',
-        '22–34: пункт 3 — союзы: заметить в фразах из радио → правило → график → 8 предложений',
-        '34–49: пункт 4 — голосовое подруги, план ответа и 2 первых предложения',
-        '49–59: «Kui aega jääb» — мини-дебаты «таблица дел: помогает или ссорит?»',
-        '59–67: проверка на выходе (3 союза), «Ma oskan …», разбор 3 ошибок',
-        '67–75: обсуждение графика («Почему так изменилось?»)',
-        '75–82: домашнее задание: ответ Кристиине, запись 1 минуты, слова',
-        '82–90: запас',
+        '0–5: станция 1 — утверждение и одна минута о своём доме',
+        '5–25: станция 2 — 10 слов (2 мин), схема-круг договорённости (2 мин), радиобеседа дважды (8 мин), 10 вопросов (8 мин)',
+        '25–45: станция 3 — союзы из радио, 8 предложений с союзом, совет-текст с 9 пропусками без банка, регистр: резко → вежливый совет',
+        '45–70: станция 4 — ситуация подруги и план (5 мин), 2 мин подготовки, голосовое 1 мин (ученик говорит вам), обратная связь, план письма',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо 140 слов и голосовое 1 мин',
+        'Kui aega jääb (75–90): мини-дебаты «Tabel külmkapil: aitab või tekitab tüli?» — вы берёте противоположную сторону',
       ],
-      sources: 'Ответы игры: Статистикаамет, исследование времени 2019–2021 (20.12.2022 и 17.01.2023) — см. карточку к пункту 1. График — тот же источник. Радио-опрос и голосовое — учебные тексты, не реальные люди.',
-      groups: 'Игра: каждый пишет свои числа, ближайший получает очко. Радио — каждый сам, проверка в паре. Пункт 4: план в паре («что посоветуешь ты?»), предложения каждый пишет сам.',
+      sources: 'Радиобеседа и подруга — учебные тексты KeeleSepp, вымышленные люди; цифр нет, есть общий вывод исследований времени («женщины всё ещё делают больше, разрыв меньше, чем 20 лет назад»).',
+      groups: 'Утверждение — каждый одной фразой. Радио — каждый сам, проверка в паре. Голосовое: один говорит, другой — «подруга» — задаёт один вопрос; потом смена. В 1:1 подруга — вы.',
       errors: [
         '«Kuna mees jõuab varem, ta teeb süüa» → «…, teeb ta süüa» (после придаточного глагол сразу).',
         '«Kuigi supp ei ole hea, aga ta kiidab» → без «aga» («хотя… но» не сочетаются).',
         '«Seetõttu ma ei jõua» → «Seetõttu ei jõua ma» (глагол на втором месте).',
-        '«Sest ma olin haige, ma ei tulnud» → «Kuna ma olin haige, ei tulnud ma…» (причина в начале — kuna).',
+        '«Sa pead tegema!» в совете звучит как приказ → «Sa võiksid …», «Ma soovitaksin …», «Kui ma oleksin sinu asemel, …».',
       ],
       notes: [
-        'Формат — анализ фактов: игра, радио, график, голосовое подруги. Тема — дом и семья. Если ученик живёт один: «Kuidas jagati kodutöid sinu lapsepõlve kodus?» или соседи по квартире.',
-        'Обратная связь, 2–3 цели: порядок слов после союза; разные союзы; ясный совет. На пункте 3 — подсказки («Kus on tegusõna?»), рекаст только если не исправил сам.',
+        'Формат — анализ фактов: радиобеседа с общим выводом исследований, без точных чисел. Если ученик живёт один: «Kuidas jagati kodutöid sinu lapsepõlve kodus?» или соседи по квартире.',
+        'Обратная связь, 2–3 цели: порядок слов после союза; разные союзы; ясный совет без приказа. В голосовом не перебивайте; после него — одна сильная сторона и одна поправка.',
       ],
     },
     discover: [
-      station(teach(purpose(B.table('002_d_game', 'Arva ära!', 'Paku arv, siis ütleb õpetaja tõe. Lähem pakkumine saab punkti.', 'Küsimus, Minu pakkumine, Õpetaja pakkumine', [
+      station(inLesson(teach(tag(purpose(B.speaking('002_d_talk', 'Väide: kodutööd tuleb jagada täpselt pooleks.', 'Kas oled väitega nõus? Ütle kohe oma seisukoht ja üks põhjus, siis räägi umbes minut oma kodust.', [
+        'Kas kodutööd peaksid olema jagatud täpselt pooleks? Miks?',
+        'Kes teeb teie kodus süüa, koristab ja käib poes?',
+      ], [60, 90]), 'Sinu enda kodu on vastuse kõige parem näide.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: räägi ka ise lühidalt oma kodust. Ära paranda; lõpus ütle üks sidesõna, mida õpilane juba kasutas. Kui õpilane elab üksi: „Kuidas oli sinu lapsepõlve kodus?”')), 1, 5),
+      station(tag(B.vocab('002_d_vocab', 'Tunni sõnad.', ['kodutööd — домашние дела', 'jagama — делить', 'nähtamatu töö — невидимая работа', 'koormus — нагрузка', 'vastutama — отвечать (за что-то)', 'meelde tuletama — напоминать', 'piisavalt hea — достаточно хорошо', 'süüdistus — обвинение', 'usaldama — доверять', 'kokku leppima — договориться']), { topic: ['kodutööd', 'nähtamatu töö'] }), 2, 20),
+      purpose(B.diagram('002_d_scheme', 'cycle', { title: 'Skeem: kodutööde kokkulepe on ring.', instruction: 'Vaata skeemi enne kuulamist. Kuulates märgi, millist sammu nõustaja kõige rohkem rõhutab.', center: 'Meie kodu, meie töö', nodes: 'Märka ka nähtamatut tööd\nJaga terveid ülesandeid\nLeppige kokku, mis on piisavalt hea\nVaadake kord kuus koos üle' }, 'full', 'g_read'), 'Skeem näitab, kuidas kodutööde kokkulepe ei jää paberile.'),
+      why(teach(tag(purpose(B.examListen('002_d_radio', 'Kuulamine: kes teeb kodus mida?', 'Raadiosaates „Kodu ja pere” räägib perenõustaja, kuidas pered kodutöid jagavad. Loe enne väited läbi. Kuula saadet kaks korda ja märgi, kas väide on õige või vale.', 'truefalse', [
+        'Piret: Tere õhtust, siin „Kodu ja pere”. Täna räägime teemal, mis tekitab peaaegu igas kodus aeg-ajalt tüli: kes teeb kodus mida. Stuudios on perenõustaja Toomas Raud. Toomas, kas kodutöid jagatakse Eestis tänapäeval võrdselt?',
+        'Toomas: Päris võrdselt mitte. Uuringud näitavad, et naised teevad kodus endiselt rohkem tööd, kuigi vahe on palju väiksem kui kakskümmend aastat tagasi. Mehed teevad nüüd sagedamini süüa ja käivad poes. Samas on üks töö, mida peaaegu keegi ei märka.',
+        'Piret: Milline töö?',
+        'Toomas: Mina nimetan seda nähtamatuks tööks. See on kõik, mida tuleb meeles pidada ja planeerida: millal on lapse arstiaeg, mis külmkapist puudu on, kellele tuleb sünnipäevaks kingitus osta. Seda tööd ei näe keegi, kuid see väsitab. Kui üks pereliige kannab kogu seda koormat, tunneb ta end üksi, isegi kui teine aitab nõusid pesta.',
+        'Piret: Sõna „aitab” kõlab teie suust nagu probleem.',
+        'Toomas: Just nii. Kui mees ütleb, et ta aitab naisel koristada, tähendab see, et koristamine on ikkagi naise töö. Parem oleks öelda: meie kodu, meie töö. See võib tunduda väike vahe, kuid see muudab vastutust.',
+        'Piret: Paljud pered teevad külmkapi ukse peale tabeli. Kas see aitab?',
+        'Toomas: Tabel aitab siis, kui see on koos tehtud ja kui seda aeg-ajalt muudetakse. Kui üks pereliige kirjutab tabeli üksi ja riputab seinale, tundub see teistele käsuna. Minu kogemuse järgi on kõige parem jagada terveid ülesandeid, mitte tükke. Näiteks vastutab üks kogu pesu eest, alates pesumasina täitmisest kuni riiete kappi panemiseni. Siis ei pea keegi teisele meelde tuletama.',
+        'Piret: Aga kui teine teeb tööd halvemini? Kuulajad kirjutavad, et mees küll koristab, aga mitte nii, nagu naine tahaks.',
+        'Toomas: Siis tuleb kokku leppida, mis on piisavalt hea. Kui iga töö järel tuleb kriitika, kaob teisel varsti tahtmine. Kas vannituba peab särama või piisab sellest, et see on puhas? Selle üle tasub rääkida enne, mitte pärast.',
+        'Piret: Ja lapsed? Mis vanuses peaks laps kodus kaasa aitama?',
+        'Toomas: Mida varem, seda parem. Kolmeaastane saab mänguasjad kokku korjata, kooliealine katab laua ja viib prügi välja. Teismeline võib kord nädalas terve õhtusöögi valmistada. Laps, kes teeb kodus midagi päriselt, tunneb, et teda usaldatakse.',
+        'Piret: Mida soovitate perele, kus kodutööde pärast juba tülitsetakse?',
+        'Toomas: Leppige kord kuus kokku lühike pereõhtu, umbes pool tundi, kus vaatate üle, mis töötab ja mis mitte. Rääkige rahulikult ja ilma süüdistusteta. Ja ärge unustage nähtamatut tööd: kirjutage ka see paberile. Sageli selgub, et pool tööst oli seni lihtsalt nähtamatu.',
+        'Piret: Aitäh, Toomas! Järgmises saates räägime sellest, kuidas pere raha planeerida.',
+      ], [
+        ['Nõustaja sõnul jagatakse kodutöid Eestis nüüd täpselt pooleks.', false],
+        ['Mehed teevad nüüd sagedamini süüa ja käivad poes kui varem.', true],
+        ['Nähtamatu töö on kõik, mida tuleb meeles pidada ja planeerida.', true],
+        ['Nõustaja arvates ei väsita nähtamatu töö, sest seda ei näe keegi.', false],
+        ['Lause „Ma aitan sind koristada” näitab, et koristamine jääb ikkagi teise inimese tööks.', true],
+        ['Kodutööde tabel aitab alati, ka siis, kui üks pereliige kirjutab selle üksi.', false],
+        ['Nõustaja soovitab jagada terveid ülesandeid, mitte tükke.', true],
+        ['Kui teine teeb tööd teisiti, tuleks teda iga kord kohe kritiseerida.', false],
+        ['Selle üle, mis on piisavalt hea, tasub rääkida enne, mitte pärast.', true],
+        ['Kolmeaastane laps võib nõustaja sõnul valmistada terve õhtusöögi.', false],
+        ['Laps, kes teeb kodus midagi päriselt, tunneb, et teda usaldatakse.', true],
+        ['Tülitsevale perele soovitab nõustaja iga päev pikka pereõhtut.', false],
+      ], 'g_read'), 'Kuuled, kuidas pered tööd jagavad, ja saad ideid nõuandeks sõbrale.'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Enne kuulamist loeb õpilane väited ja joonib alla võtmesõnad; pärast parandab ta iga vale väite õigeks lauseks. Pärast: õpilane näitab skeemil, millist sammu Toomas kõige rohkem rõhutas (nähtamatu töö), ja ütleb, millise nõuande ta annaks oma sõbrale. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Vale: „Päris võrdselt mitte. … naised teevad kodus endiselt rohkem tööd.”',
+        'Õige: „Mehed teevad nüüd sagedamini süüa ja käivad poes.”',
+        'Õige: „See on kõik, mida tuleb meeles pidada ja planeerida.”',
+        'Vale: „Seda tööd ei näe keegi, kuid see väsitab.”',
+        'Õige: „… tähendab see, et koristamine on ikkagi naise töö.”',
+        'Vale: „Kui üks pereliige kirjutab tabeli üksi …, tundub see teistele käsuna.”',
+        'Õige: „kõige parem on jagada terveid ülesandeid, mitte tükke”.',
+        'Vale: „Kui iga töö järel tuleb kriitika, kaob teisel varsti tahtmine.”',
+        'Õige: „Selle üle tasub rääkida enne, mitte pärast.”',
+        'Vale: kolmeaastane korjab mänguasjad kokku; õhtusöögi teeb teismeline.',
+        'Õige: „Laps, kes teeb kodus midagi päriselt, tunneb, et teda usaldatakse.”',
+        'Vale: „Leppige kord kuus kokku lühike pereõhtu, umbes pool tundi.”',
+      ]),
+      hide(why(station(teach(purpose(B.table('002_d_game', 'Arva ära!', 'Paku arv, siis ütleb õpetaja tõe. Lähem pakkumine saab punkti.', 'Küsimus, Minu pakkumine, Õpetaja pakkumine', [
         'Mitu minutit päevas teevad Eesti naised süüa? | |',
         'Mitu minutit kulub naistel pesule ja triikimisele? | |',
         'Kui palju rohkem aega kulutavad naised kodutöödele kui mehed? | |',
         'Kas laua taga istutakse nüüd kauem või vähem kui 20 aastat tagasi? | |',
         'Kui palju kauem magatakse pühapäeval kui tööpäeval? | |',
       ]), 'Mäng näitab, kas sinu kodu on Eesti keskmisest erinev.'),
-      'Õpetaja kaart (ütle alles pärast mõlemat pakkumist): 1) 57 minutit, kakskümmend aastat tagasi 95; 2) 7 minutit, varem 32; 3) umbes kolmandiku võrra rohkem; 4) kauem, umbes kümme minutit päevas; 5) umbes tund ja kümme minutit. Allikas: Statistikaamet, ajakasutuse uuring 2019–2021 („Mehe kodu on maailm, naise maailm on kodu?”, 20.12.2022; „Andmed paljastavad …”, 17.01.2023). Pärast iga vastust küsi: „Kas sinu kodus on teisiti?”'), 1, 10),
-      station(tag(purpose(B.examListen('002_d_poll', 'Raadio küsis: kes teie peres süüa teeb?', 'Kuula kaks korda: õige või vale?', 'truefalse', [
+      'Õpetaja kaart (ütle alles pärast mõlemat pakkumist): 1) 57 minutit, kakskümmend aastat tagasi 95; 2) 7 minutit, varem 32; 3) umbes kolmandiku võrra rohkem; 4) kauem, umbes kümme minutit päevas; 5) umbes tund ja kümme minutit. Allikas: Statistikaamet, ajakasutuse uuring 2019–2021 („Mehe kodu on maailm, naise maailm on kodu?”, 20.12.2022; „Andmed paljastavad …”, 17.01.2023). Pärast iga vastust küsi: „Kas sinu kodus on teisiti?”'), 1, 10), OLD_WHY['002_d_game']), CUT_TIP),
+      hide(why(station(tag(purpose(B.examListen('002_d_poll', 'Raadio küsis: kes teie peres süüa teeb?', 'Kuula kaks korda: õige või vale?', 'truefalse', [
         'Reporter: Tere! Täna küsime Tartu turul: kes teie peres süüa teeb ja kes koristab?',
         'Ema: Meil on kaks last ja mõlemad töötame. Kuna mees jõuab koju varem, teeb tema õhtusöögi. Mina pesen nõud ja aitan lastel koolitöid teha.',
         'Vanaisa: Meie ajal tegi naine kõik. Nüüd, kui olen pensionil, õppisin ise süüa tegema. Kuigi minu supp ei tule veel nii hea kui naisel, kiidab ta mind.',
@@ -229,18 +619,91 @@ export const LESSONS = withShapes({
         ['Vanemapuhkusel olev isa jõuab peale söögitegemise ja pesu ka triikida.', false],
         ['Ema pere käib poes iga päev pärast tööd ja lasteaeda.', false],
         ['Enne poodi minekut kirjutab ema pere ostunimekirja telefoni.', true],
-      ], 'g_listen'), 'Kuuled, kuidas teised pered tööd jagavad, ja saad ideid oma kodu jaoks.'), { voice: 'interview', task: 'L05' }), 2, 12),
-      inLesson(teach(tag(purpose(B.speaking('002_d_talk', 'Aga sinu kodus?', 'Räägi 2–3 minutit: kes teeb mida ja mis sulle selles meeldib või ei meeldi.', [
-        'Kes teeb teie kodus süüa, koristab ja käib poes?',
-        'Kas töö on teie kodus jagatud võrdselt? Miks nii?',
-      ], [150, 210], ['Kuna…, teeb …', 'Kuigi…', 'Seetõttu…']), 'Sinu enda kodu on vastuse kõige parem näide.'), { task: 'S02', fluency: true }),
-      'Üks-ühele: räägi ka ise lühidalt oma kodust. Ära paranda; lõpus ütle üks sidesõna, mida õpilane juba kasutas. Kui õpilane elab üksi: „Kuidas oli sinu lapsepõlve kodus?”')),
-      tag(B.vocab('002_d_vocab', 'Tunni sõnad.', ['kodutööd — домашние дела', 'jagama — делить', 'koristama — убирать', 'triikima — гладить', 'nõusid pesema — мыть посуду', 'kokku leppima — договориться', 'kuigi — хотя', 'seetõttu — поэтому', 'samas — в то же время', 'keskmiselt — в среднем']), { topic: ['kodutööd'] }),
+      ], 'g_listen'), 'Kuuled, kuidas teised pered tööd jagavad, ja saad ideid oma kodu jaoks.'), { voice: 'interview', task: 'L05' }), 2, 12), OLD_WHY['002_d_poll']), 'a 1-min radio poll with 5 voices: replaced by the 3.5-min radio talk 002_d_radio (v5 G4: B2 listening 3–4 min, 2 voices)'),
     ],
     practice: [
-      station(B.notice('002_p_notice', 'Märka: kuidas lauseid siduda?', ['Raadiost: **Kuna** mees jõuab koju varem, **teeb** tema õhtusöögi. (kuna-lause ees → tegusõna kohe)', 'Vastand: **kuigi**, **samas**: **Kuigi** supp ei tule nii hea, kiidab naine teda.', 'Tagajärg: **seetõttu**, **nii et**: **Seetõttu ei ole** meil enam tülisid. (tegusõna teisel kohal!)', 'Aeg: **enne kui**, **pärast seda kui**: **Enne kui** poodi läheme, kirjutame nimekirja.'], 'full'), 3, 12),
-      B.chart('002_p_chart', 'Naiste ajakulu kodutöödele (minutit päevas)', { kind: 'bar', unit: 'min', series: ['1999–2000', '2019–2021'], rows: ['Söögitegemine | 95 | 57', 'Pesu ja triikimine | 32 | 7'], source: 'Statistikaamet, „Mehe kodu on maailm, naise maailm on kodu?” (20.12.2022)' }),
-      purpose(B.gaps('002_p_link', 'Kodu ja numbrid.', 'Vali igasse lünka sidesõna. Üks jääb üle.', [
+      station(B.notice('002_p_notice', 'Märka: kuidas mõtteid siduda?', [
+        'Raadiost: **Kuigi** vahe on väiksem, **teevad** naised endiselt rohkem. (kuigi-lause ees → tegusõna kohe)',
+        'Põhjus: **kuna** (lause alguses), **sest** (lause keskel): **Kuna** tabel on koos tehtud, **ei tundu** see käsuna.',
+        'Vastand: **kuigi** (ilma „aga”-ta), **samas**, **teisest küljest**: **Samas on** üks töö, mida keegi ei märka.',
+        'Tagajärg: **seetõttu**, **nii et**, **mistõttu**: **Seetõttu ei pea** keegi teisele meelde tuletama. (tegusõna teisel kohal!)',
+        'Aeg: **enne kui**, **pärast seda kui**: Rääkige sellest **enne, kui** tüli tekib.',
+        'Nõuanne ilma käsuta: sa **võiksid** …, **ma soovitaksin** …, **tasuks** proovida …, **kui ma oleksin sinu asemel**, …',
+      ], 'full'), 3, 20),
+      why(purpose(B.transformation('002_p_join', 'Kaks lauset, üks sidesõna.', 'Ühenda kaks lauset märksõnas antud sidesõnaga. Pärast sidesõna või kõrvallauset tuleb tegusõna kohe.', [
+        ['Mees jõuab koju varem. Tema teeb õhtusöögi.', 'kuna', 'Kuna mees jõuab koju varem, teeb tema õhtusöögi.|Kuna mees jõuab koju varem, teeb ta õhtusöögi.'],
+        ['Supp ei tule veel nii hea. Naine kiidab teda.', 'kuigi', 'Kuigi supp ei tule veel nii hea, kiidab naine teda.'],
+        ['Tabel on seinal. Meil ei ole enam tülisid.', 'seetõttu', 'Tabel on seinal, seetõttu ei ole meil enam tülisid.|Tabel on seinal. Seetõttu ei ole meil enam tülisid.'],
+        ['Mees aitaks küll. Ta ei tea, millest alustada.', 'samas', 'Mees aitaks küll, samas ei tea ta, millest alustada.|Mees aitaks küll. Samas ei tea ta, millest alustada.'],
+        ['Üks vastutab kogu pesu eest. Keegi ei pea teisele meelde tuletama.', 'nii et', 'Üks vastutab kogu pesu eest, nii et keegi ei pea teisele meelde tuletama.'],
+        ['Külalised tulevad. Me koristame korteri ära.', 'enne kui', 'Enne kui külalised tulevad, koristame me korteri ära.|Enne kui külalised tulevad, koristame korteri ära.'],
+        ['Lapsed jäävad magama. Mul on lõpuks oma aeg.', 'pärast seda kui', 'Pärast seda kui lapsed magama jäävad, on mul lõpuks oma aeg.|Pärast seda, kui lapsed magama jäävad, on mul lõpuks oma aeg.'],
+        ['Kriitika tuleb iga töö järel. Teisel kaob tahtmine.', 'kui', 'Kui kriitika tuleb iga töö järel, kaob teisel tahtmine.'],
+      ], 'full', 'g_notice'), 'Sidesõnad teevad sinu nõuandest ühe loogilise mõttekäigu.'), [
+        'Põhjus lause alguses → kuna; kõrvallause järel tegusõna kohe: teeb.',
+        'Vastand → kuigi, ilma „aga”-ta; siis tegusõna: kiidab.',
+        'Tagajärg → seetõttu; tegusõna teisel kohal: ei ole meil.',
+        'samas + tegusõna teisel kohal: ei tea ta.',
+        'nii et ühendab tagajärje; sõnajärg jääb tavaliseks.',
+        'Aeg: enne kui-lause ees, siis tegusõna: koristame.',
+        'pärast seda kui-lause ees, siis tegusõna: on mul.',
+        'Tingimus: kui-lause ees, siis tegusõna: kaob.',
+      ]),
+      why(purpose(B.formtext('002_p_bridges', 'Nõuanne sõbrale: sidesõnad tekstis.', 'Loe sõbra vastust ja kirjuta igasse lünka sobiv sidesõna. Sulgudes on sidesõna ülesanne, panka ei ole.', 'Kuidas meil kodutööd käivad', [
+        'Tere! Sain su kirja kätte. [Kuna|Et] (põhjus) sa lähed jaanuaris tööle tagasi, peaksite kõigepealt koos läbi rääkima, kes mida teeb. Meil oli alguses samamoodi: mina tegin kõike, [kuigi|ehkki] (vastand) mees oli kodus sama palju kui mina.',
+        '',
+        '[Seetõttu|Seepärast|Sellepärast] (tagajärg) tegime ühel õhtul nimekirja kõigest, mida kodus tuleb teha. Selgus, et pool tööst oli nähtamatu. [Samas|Teisest küljest] (vastand) ei tahtnud me tabelit, mis ripub seinal nagu käsk.',
+        '',
+        'Nüüd vastutab mees hommikute eest: ta paneb lapsed riidesse ja viib nad lasteaeda, [nii et|mistõttu] (tagajärg) mina jõuan rahulikult tööle. [Enne kui|Kui] (aeg) ma õhtul koju jõuan, on ta juba poes käinud. Mina teen õhtusöögi ja vaatan üle laste koolitööd.',
+        '',
+        '[Kui] (tingimus) sa tahad kaks korda nädalas trenni minna, lepi need õhtud kohe kokku. [Muidu|Vastasel juhul] (tagajärg, kui seda ei tee) jääb trenn alati viimaseks. Ma soovitaksin ka kord kuus pool tundi koos üle vaadata, mis töötab, [sest|kuna] (põhjus) plaan muutub koos lastega.',
+      ]), 'Sama teksti mudel aitab sul kodus oma vastuse kirjutada.'), [
+        'Põhjus lause alguses → kuna (või et); siis tegusõna: peaksite.',
+        'Vastand kõrvallausega → kuigi / ehkki, ilma „aga”-ta.',
+        'Tagajärg lause alguses → seetõttu; tegusõna teisel kohal: tegime.',
+        'Vastand uue lause alguses → samas / teisest küljest; tegusõna teisel kohal: ei tahtnud.',
+        'Tagajärg lause keskel → nii et / mistõttu.',
+        'Aeg: enne kui (üks tegevus enne teist); siis tegusõna: on.',
+        'Tingimus → kui; pärast kui-lauset tegusõna: lepi.',
+        'Tagajärg, kui kokkulepet ei ole → muidu; siis tegusõna: jääb.',
+        'Põhjus lause keskel → sest (või kuna).',
+      ]),
+      why(purpose(tag(B.table('002_p_register', 'Käsust nõuandeks.', 'Vasakul on järsk käsk. Paremas veerus on sama mõte sõbralikus nõuandes. Kirjuta lünka puuduv sõna.', 'Järsk käsk, Sõbralik nõuanne', [
+        'Tee tabel! | Te [võiksite] koos ühe tabeli teha.',
+        'Ära tee kõike ise! | Ma [soovitaksin] sul mitte kõike ise teha.',
+        'Mees peab hommikuti lapsed lasteaeda viima. | Võib-olla [võiks/saaks] mees hommikuti lapsed lasteaeda viia?',
+        'Lõpeta virisemine! | Ma saan aru, et sul on [raske].',
+        'Mine trenni! | [Kui] ma oleksin sinu asemel, läheksin kaks korda nädalas trenni.',
+        'Räägi mehega! | [Tasuks/Tasub] mehega rahulikult läbi rääkida.',
+        'Ära karju lastega! | Proovi lastega [rahulikult] rääkida.',
+        'Sa teed valesti. | Mul on üks [mõte/idee/ettepanek]: …',
+      ], 'g_notice'), { task: 'W12' }), 'Nõuanne mõjub paremini, kui see ei kõla käsuna.'), [
+        'Käsk → tingiv „te võiksite” (pakkumine, mitte käsk).',
+        'Ma soovitaksin + sul + da-tegevusnimi.',
+        'Küsimus tingivas kõneviisis: võiks / saaks … viia?',
+        'Mõistmine enne nõuannet: Ma saan aru, et sul on raske.',
+        '„Kui ma oleksin sinu asemel, …” + tingiv: läheksin.',
+        '„Tasuks / tasub + da-tegevusnimi” on pehme nõuanne.',
+        'Käsu asemel „proovi” + viisi määrsõna: rahulikult.',
+        'Kriitika asemel ettepanek: Mul on üks mõte / idee.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('002_t_plan', 'Sinu nõu sõbrannale: plaan (4 minutit).', 'Loe sõbranna sõnumit rollikaardilt ja kirjuta märksõnad. Edukriteeriumid: 1) alguses näitad, et said murest aru; 2) kaks nõuannet põhjusega; 3) vähemalt kolm eri sidesõna.', ['Mida ma tema murest mõistan:', 'Nõuanne 1 ja põhjus:', 'Nõuanne 2 ja põhjus:', 'Üks näide minu kodust:'], 1), 'Plaan aitab sul anda nõu, mis sobib just sinu sõbrale.'), 4, 25, { final: 'advise' }),
+      teach(tag(purpose(B.rolecards('002_t_advice', 'Häälsõnum sõbrannale: üks minut.', 'Mõtle 2 minutit plaani järgi ja räägi sõbrannale 1-minutiline häälsõnum. Seejärel küsib sõbranna (õpetaja) ühe küsimuse ja sina vastad kahe-kolme lausega.',
+        'Sõbranna sõnum: „Lähen jaanuaris pärast vanemapuhkust tööle tagasi. Meil on kaks last, kolme- ja seitsmeaastane. Praegu teen kodus peaaegu kõik. Mees aitaks küll, aga ta ei tea, millest alustada. Kõige raskemad on hommikud. Tahaksin ka teisipäeviti ja neljapäeviti trenni minna. Mida sa soovitaksid?”\nSinu eesmärk: anda talle kaks nõuannet, mis sobivad just tema perele.',
+        'Sõbranna kaart on õpetajal: üks küsimus, mida sinu plaanis ei ole.',
+        [], []), 'Sõbranna kuuleb sinu häält ja saab kaks nõuannet, mida proovida.'), { task: 'S16' }),
+      'Õpetaja on sõbranna. Varjatud info: mees töötab õhtuti vahetustega, nii et õhtuti on ta kodus ainult kaks korda nädalas. Ütle see alles pärast häälsõnumit küsimusena: „Aga kui mees töötab õhtuti vahetustega?” Õpilane vastab ilma ettevalmistuseta. Õnnestunud, kui: alguses mõistmine, kaks nõuannet põhjusega, vähemalt kolm eri sidesõna ja tegusõna õigel kohal, vastus küsimusele. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('002_t_guide', 'Kodus: vastus sõbrannale (umbes 140 sõna).', `Kirjuta sõbrannale 140–160 sõna. Pöördumise ja lõpu vali ise, valmis fraase ei ole. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Vastus sõbrannale, kes läheb pärast vanemapuhkust tööle tagasi: kuidas teie kodus tööd jagatakse ja mida sa talle soovitad.',
+        points: ['kuidas teie kodus tööd jagatakse', 'mis aitab kiirel hommikul', 'kuidas mehega kokku leppida', 'kaks nõuannet koos põhjusega'],
+        words: [140, 160],
+      }), 'Sõbranna proovib sinu nõuandeid järgmisel nädalal oma peres.'), 5)), { main: true, task: 'W05', harno: 'W1' }),
+      writingRubric('002_t_rubric', 'Hindamisjuhend: vastus sõbrannale (12 punkti).', 'Piiripealne näidis (7/12 ≈ 58 %, veel mitte 60 %): „Tere! Kuidas läheb? Meil kodus mina teen süüa ja mees koristab. Hommikul on kiire ja lapsed ei taha minna. Sa pead rääkima mehega. Mees peab hommikul lapsed viima. Ja sa pead minema trenni, see on tähtis. Kuigi see on raske, aga sa saad hakkama. Kirjuta mulle! Kallistan.” Hinnang: ülesanne 2 (punktid on olemas, kuid nõuandeid ei põhjendata), ülesehitus 2 (lõike ei ole, sidendeid on vähe), sõnavara 2 („pead” kolm korda kõlab käsuna, mitte nõuandena), grammatika 1 („Meil kodus mina teen” → Meie kodus teen mina; „Kuigi …, aga” → ilma „aga”-ta). Kui õppija muudab käsud nõuanneteks (sa võiksid, ma soovitaksin) ja parandab sõnajärje, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('002_t_self', ['Ma saan raadiosaatest aru, mis on nähtamatu töö ja kuidas tööd jagada.', 'Ma seon mõtted sidesõnadega ja panen tegusõna õigesse kohta.', 'Ma annan sõbrale nõu ilma käsuta: võiksid, soovitaksin, tasuks.'], 'Nõu antud', 'Ma oskan nõu anda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(B.chart('002_p_chart', 'Naiste ajakulu kodutöödele (minutit päevas)', { kind: 'bar', unit: 'min', series: ['1999–2000', '2019–2021'], rows: ['Söögitegemine | 95 | 57', 'Pesu ja triikimine | 32 | 7'], source: 'Statistikaamet, „Mehe kodu on maailm, naise maailm on kodu?” (20.12.2022)' }), CUT_TIP),
+      hide(why(purpose(B.gaps('002_p_link', 'Kodu ja numbrid.', 'Vali igasse lünka sidesõna. Üks jääb üle.', [
         '[Kuna] poodides on palju valmistoitu, teevad pered kodus vähem süüa.',
         'Paljud tunnevad, et aega ei ole, [kuigi] vaba aega on kahekümne aastaga juurde tulnud.',
         'Pesumasinad on varasemast paremad, [seetõttu] kulub pesule vaid mõni minut päevas.',
@@ -249,10 +712,8 @@ export const LESSONS = withShapes({
         'Meie peres teeb isa süüa, [sest|kuna] tema töö lõpeb kõige varem.',
         'Toiduvalmistamine võtab vähem aega, [samas] laua taga istutakse kauem.',
         'Mina pesen nõud ja mees viib prügi välja, [nii et] keegi ei pea kõike üksi tegema.',
-      ], ['sest', 'kuna', 'kuigi', 'seetõttu', 'samas', 'enne kui', 'pärast seda kui', 'nii et', 'samal ajal kui'], 'full', 'g_notice'), 'Sidesõnad teevad faktidest ja oma kogemusest ühe loogilise loo.'),
-    ],
-    transfer: [
-      station(tag(purpose(B.listening('002_t_voice', 'Sõbranna häälsõnum.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna.', [
+      ], ['sest', 'kuna', 'kuigi', 'seetõttu', 'samas', 'enne kui', 'pärast seda kui', 'nii et', 'samal ajal kui'], 'full', 'g_notice'), 'Sidesõnad teevad faktidest ja oma kogemusest ühe loogilise loo.'), OLD_WHY['002_p_link']), 'single-sentence gaps with a bank = B1 format (HARNO_LEVEL_REQUIREMENTS); replaced by 002_p_bridges (gaps in a coherent text, no bank) and 002_p_join'),
+      hide(why(station(tag(purpose(B.listening('002_t_voice', 'Sõbranna häälsõnum.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna.', [
         'Tere, siin Kristiina! Mul on sinult üks nõu vaja.',
         'Ma lähen jaanuaris tagasi tööle ja meil on kaks last, kolme- ja seitsmeaastane.',
         'Praegu teen mina kodus peaaegu kõik: süüa, pesu, koristamise ja poes käimise.',
@@ -267,76 +728,94 @@ export const LESSONS = withShapes({
         'Mees aitaks küll, aga ta ei tea, millest [alustada].',
         'Kõige rohkem kardab Kristiina kiireid [hommikuid].',
         'Õhtuti tahaks ta vähemalt [kaks korda|2 korda] nädalas trenni minna.',
-      ], 'g_listen'), 'Sõbranna palub nõu; märkmed näitavad, millele vastata.'), { task: 'L03' }), 4, 15, { final: 'advise' }),
-      teach(tag(purpose(B.examWriting('002_t_guide', 'Vastus Kristiinale: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: 110–140 sõna, vähemalt kuus sidesõna.', 'jutt', {
-        situation: 'Vastus sõbrannale: kuidas teie kodus tööd jagatakse ja mida sa talle soovitad.',
-        points: ['kuidas teie kodus tööd jagatakse', 'mis aitab kiirel hommikul', 'kuidas mehega kokku leppida', 'kaks nõuannet'],
-        words: [110, 140],
-      }), 'Kristiina proovib sinu nõuandeid järgmisel nädalal oma peres.'), { main: true, task: 'W05' }),
-      'Kodutöö. Järgmises tunnis loe vastus kui Kristiina ja küsi üks täpsustav küsimus („Aga kui mees töötab õhtuti?”). Tagasiside: kuus eri sidesõna, tegusõna koht, kaks selget nõuannet.'),
-      extension(teach(tag(purpose(B.speaking('002_t_more', 'Mini-väitlus: kodutööde tabel külmkapil', 'Vali pool: tabel aitab või tabel tekitab tüli. Too kaks põhjust ja üks näide.', [
+      ], 'g_listen'), 'Sõbranna palub nõu; märkmed näitavad, millele vastata.'), { task: 'L03' }), 4, 15, { final: 'advise' }), OLD_WHY['002_t_voice']), CUT_INPUT),
+      hide(extension(teach(tag(purpose(B.speaking('002_t_more', 'Mini-väitlus: kodutööde tabel külmkapil', 'Vali pool: tabel aitab või tabel tekitab tüli. Too kaks põhjust ja üks näide.', [
         'Miks tabel aitab või ei aita?',
         'Mis juhtub, kui keegi oma korra vahele jätab?',
         'Mida teeksid sina oma kodus teisiti?',
       ], [120, 180], ['Kuna …, siis …', 'Kuigi …', 'Seetõttu …']), 'Mini-väitlus näitab, kas oskad oma seisukohta sidesõnadega põhjendada.'), { task: 'S11', fluency: true }),
-      'Kui aega jääb (10 min). Õpetaja võtab vastupidise poole ja ütleb ühe vastuargumendi („Tabel on nagu kontoris, kodu ei ole firma!”). Lõpus ütleb kumbki, mis teise argumendis oli kõige tugevam.'), 10),
-      tag(exitCheck(purpose(B.gaps('002_t_exit', 'Kontrolli end: kolm sidesõna.', 'Vali igasse lünka sidesõna. Üks jääb üle.', [
+      'Kui aega jääb (10 min). Õpetaja võtab vastupidise poole ja ütleb ühe vastuargumendi („Tabel on nagu kontoris, kodu ei ole firma!”). Lõpus ütleb kumbki, mis teise argumendis oli kõige tugevam.'), 10), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('002_t_exit', 'Kontrolli end: kolm sidesõna.', 'Vali igasse lünka sidesõna. Üks jääb üle.', [
         '[Kuna] meil on kaks väikest last, on meie hommikud alati kiired.',
         'Mees teeb õhtul kogu perele süüa, [seetõttu] on mul aega trenniks.',
         'Ma pesen pärast õhtusööki nõud ära, [kuigi] see mulle üldse ei meeldi.',
-      ], ['kuna', 'seetõttu', 'kuigi', 'enne kui'], 'full', 'g_notice'), 'Kolm lauset näitavad, kas sidesõnad on käes.')), {}),
-      purpose(B.selfcheck('002_t_self', ['Ma võrdlen oma kodu Eesti andmetega.', 'Ma saan raadiost aru, kuidas teised pered tööd jagavad.', 'Ma seon laused sidesõnadega ja panen tegusõna õigesse kohta.', 'Ma annan sõbrale kaks selget nõuannet.'], 'Faktid käes', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.speaking('002_t_home', 'Kodus: räägi Kristiinale 1 minut.', 'Salvesta 1 minut: üks nõu sinu enda kodust.', [
+      ], ['kuna', 'seetõttu', 'kuigi', 'enne kui'], 'full', 'g_notice'), 'Kolm lauset näitavad, kas sidesõnad on käes.')), {}), OLD_WHY['002_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.speaking('002_t_home', 'Kodus: räägi Kristiinale 1 minut.', 'Salvesta 1 minut: üks nõu sinu enda kodust.', [
         'Mis teie kodus hästi töötab?',
         'Kas kodutööd peaksid peres jagunema võrdselt? Miks?',
-      ], [60, 120]), 'Sõbranna kuuleb su häält ja õpetaja annab ühe nõu.')), { task: 'S15', fluency: true }),
-      homework('002_t_homework', ['1. Vastus Kristiinale, 110–140 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      ], [60, 120]), 'Sõbranna kuuleb su häält ja õpetaja annab ühe nõu.')), { task: 'S15', fluency: true }), CUT_HOME),
+      hide(homework('002_t_homework', ['1. Vastus Kristiinale, 110–140 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
     ],
   },
 
   'b1b2-003': {
     title: 'Neli päeva tööd — kas see sobiks Eestile?',
-    phases: grammar('Keel: aeg, sagedus ja kestus — ajaväljendi järel tegusõna teisel kohal (Kolmapäeviti töötan …)'),
+    phases: grammar('Keel: aeg, sagedus ja kestus — ajaväljendi järel tegusõna teisel kohal (Reedeti on kontor kinni …)'),
     format: 'debate',
     topic: 'work',
-    canDo: 'Ma räägin oma töönädalast ja kaitsen väitlusel oma seisukohta neljapäevase töönädala kohta; ajaväljendi järel panen tegusõna teisele kohale.',
+    canDo: 'Ma loen arvamusartiklit neljapäevasest töönädalast, järeldan autori seisukoha, kaitsen väitlusel oma poolt märksõnakaardi abil ja kirjutan umbes 180-sõnalise arvamusteksti; ajaväljendi järel panen tegusõna teisele kohale.',
     teacherPage: {
-      goal: 'Ученик говорит о частоте, времени и длительности (глагол на втором месте), читает опыт работника и ведёт дебаты о четырёхдневной неделе с голосованием.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б: голосование и 2 вопроса; пункт 3 — 4 предложения; дебаты — по 2 аргумента. Блог (пункт 2) — дома.',
+      goal: 'Ученик читает статью о четырёхдневной неделе (480 слов, выводы), говорит о частоте и длительности (глагол на втором месте) и ведёт дебаты по карточкам с ключевыми словами; дома текст-мнение 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: голосование (3 мин); чтение — абзацы 2, 3, 5 и вопросы 2, 4, 6; станция 3 — дома в Harjuta; дебаты 3 минуты.',
       hook: '«С января ты работаешь четыре дня в неделю, зарплата та же. За, против или не знаешь? Одна причина!» Голосуйте оба сразу, вы — с короткой причиной.',
       plan: [
-        '0–10: пункт 1 — голосование и разговор о своей неделе (ученик начинает ответы с выражения времени)',
-        '10–25: пункт 2 — слова (1 мин), блог работника: 6 предложений на место',
-        '25–37: пункт 3 — время и частота: заметить → правило → 7 исправлений, чтение вслух (ударение)',
-        '37–52: пункт 4 — карточки аргументов, дебаты, голосование',
-        '52–64: «Kui aega jääb» — игра «Mis muutuks?» (профессии, 30 секунд)',
-        '64–72: проверка на выходе, «Ma oskan …», 3 ошибки из дебатов',
-        '72–80: домашнее задание: выступление 1 минута, 5 предложений, слова',
-        '80–90: запас',
+        '0–5: станция 1 — голосование и одна минута о своей неделе (ответ начинается с выражения времени)',
+        '5–25: станция 2 — 10 слов (2 мин), схема «за / против» (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (8 мин)',
+        '25–45: станция 3 — время и частота: правило, 8 исправлений, текст «Minu töönädal» с 9 пропусками, регистр: спор → выступление на собрании',
+        '45–70: станция 4 — план аргумента (4 мин), дебаты по карточкам ≤ 4 мин, голосование, обратная связь',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: текст-мнение 180 слов и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «Mis muutuks?» — вы называете профессию, ученик за 30 секунд говорит, как работала бы четырёхдневная неделя',
       ],
-      sources: 'Карточки: Autonomy и Alda, отчёт об опытах в Исландии (2021) — сокращённые часы (35–36 вместо 40), около 2500 участников; Autonomy, результаты британского пилота (2023) — 61 фирма, 56 продолжили. Блог — учебный текст.',
-      groups: 'Голосование — все сразу, руки. Дебаты: две команды по 1–2 человека, вы ведёте время и голосуете последним. В 1:1 вы берёте сторону, которую ученик не выбрал.',
+      sources: 'Статья — учебный текст KeeleSepp (адаптирован, без точных чисел): в Европе проводились опыты с сокращённой неделей, в т. ч. в Исландии (сократили часы) и в Великобритании (часть фирм продолжила). Подробности — для учителя, ученику не нужны.',
+      groups: 'Голосование — все сразу. Дебаты: две стороны, каждый выбирает сам; вы ведёте время. В 1:1 вы берёте сторону, которую ученик не выбрал.',
       errors: [
-        '«Kolmapäeviti ma töötan kodus» → «Kolmapäeviti töötan ma kodus» (после выражения времени глагол на втором месте).',
+        '«Reedeti ma töötan kodus» → «Reedeti töötan ma kodus» (после выражения времени глагол на втором месте).',
         '«kaheksa tunnid» → «kaheksa tundi» (после числа — партитив ед. ч.).',
         '«kaks korda nädalal» → «kaks korda nädalas».',
-        'Ударение: всегда на первом слоге: «KOLmapäeviti», «NÄdalavahetusel».',
+        '«Minu arvates neli päeva on parem» → «Minu arvates on neli päeva parem» (после вводной фразы глагол тоже второй).',
       ],
       notes: [
-        'Формат — дебаты с голосованием. Ученик сам выбирает сторону; вы — другую. Голос в конце можно сменить, если назвать аргумент, который убедил. Не работающему ученику (пенсионер, мама в отпуске): «Mida see muudaks sinu pere või sõprade nädalas?»',
-        'Следите: в Исландии сократили часы, а не ввели четыре дня. Обратная связь: глагол на втором месте; партитив после числа; аргумент + пример. В дебатах не перебивайте, не больше трёх замечаний в конце.',
+        'Формат — дебаты с голосованием. Карточки дают 2–3 ключевых слова; аргумент и пример ученик строит сам. Не работающему ученику (пенсионер, мама в отпуске): «Mida see muudaks sinu pere või sõprade nädalas?»',
+        'Обратная связь: глагол на втором месте; партитив после числа; аргумент + пример + ответ на контраргумент. В дебатах не перебивайте, не больше трёх замечаний в конце.',
       ],
     },
     discover: [
-      station(B.text('003_d_hook', 'Hääleta kohe!', 'Kujuta ette: alates jaanuarist töötad neli päeva nädalas ja palk jääb samaks. Kas oled poolt, vastu või ei tea? Ütle üks põhjus.'), 1, 10),
-      inLesson(teach(tag(purpose(B.speaking('003_d_talk', 'Minu nädal.', 'Vasta ja alusta iga vastust ajaväljendiga (Tavaliselt …, Reedeti …).', [
+      station(inLesson(teach(tag(purpose(B.speaking('003_d_talk', 'Hääleta kohe: neli päeva tööd sama palgaga?', 'Kujuta ette: alates jaanuarist töötad neli päeva nädalas ja palk jääb samaks. Kas oled poolt, vastu või ei tea? Ütle üks põhjus ja räägi siis umbes minut oma nädalast. Alusta vastuseid ajaväljendiga.', [
+        'Kas oled poolt või vastu? Miks?',
         'Mida sa teed iga päev ja mida harva? Mitu päeva nädalas sa töötad, õpid või oled kodus ametis?',
-        'Mida sa teeksid ühe vaba päevaga rohkem?',
-        'Kellele ei sobiks neljapäevane nädal? Miks?',
-      ], [150, 210], ['Tavaliselt…', 'Aeg-ajalt…', 'Kolmapäeviti…']), 'Sinu nädal annab väitluseks esimese näite.'), { task: 'S02', fluency: true }),
-      'Üks-ühele: vasta ka ise ühele küsimusele. Ära paranda; lõpus ütle, mitu vastust algas ajaväljendiga ja kas tegusõna oli teisel kohal.')),
-      station(tag(purpose(B.listening('003_d_radio', 'Raadio: kolm kuud ilma reedeta.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna.', [
+      ], [60, 90]), 'Sinu nädal annab väitluseks esimese näite.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: hääletage mõlemad korraga, sina ütle ka lühike põhjus. Ära paranda; lõpus ütle, mitu vastust algas ajaväljendiga ja kas tegusõna oli teisel kohal.')), 1, 5),
+      station(tag(B.vocab('003_d_vocab', 'Tunni sõnad.', ['tööaeg — рабочее время', 'katse — эксперимент', 'keskenduma — сосредоточиться', 'vahetus — смена', 'asendamatu — незаменимый', 'pingeline — напряжённый', 'valves olema — дежурить', 'kehtestama — вводить (правило)', 'harjumus — привычка', 'tingimus — условие']), { topic: ['tööaeg', 'katse'] }), 2, 20),
+      purpose(B.diagram('003_d_scheme', 'compare', { title: 'Skeem: poolt ja vastu.', instruction: 'Vaata skeemi enne lugemist. Lugedes leia iga märksõna kohta tekstist üks lause ja ütle, kumba poolde autor lõpuks kaldub.', left: 'Poolt', right: 'Vastu', leftItems: 'tervis: kolm päeva puhkust\nkeskendumine: lühemad koosolekud\npere, trenn, õppimine', rightItems: 'haigla, pood, buss: keegi peab tööl olema\nväike firma: asendajat ei ole\nneli pikka päeva: väsimus kolib' }, 'full', 'g_read'), 'Skeem aitab sul tekstis argumendid ja vastuargumendid üles leida.'),
+      why(teach(tag(purpose(B.reading('003_d_read', 'Loe arvamusartiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 4–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Neli päeva tööd: unistus või uus kord?', [
+        'Kujuta ette, et sinu töönädal lõpeb neljapäeva õhtul ja palk jääb samaks. Mõne aasta eest tundus see unistusena, kuid nüüd proovivad seda mitmes Euroopa riigis nii väikesed firmad kui ka suured asutused. Katsetes ei vähendata tavaliselt palka, vaid tööaega: kaheksa tunni asemel töötatakse kas neli pikemat päeva või viis lühemat. Idee ei ole uus: juba sada aastat tagasi arvati, et masinad teevad inimeste tööpäeva lühemaks. Ka Eestis on mõned ettevõtted proovinud reedeti kontori kinni panna. Kas see sobiks ka meile?',
+        'Pooldajate peamine argument on tervis. Kes puhkab kolm päeva järjest, tuleb esmaspäeviti tööle värskemana ja jääb harvemini haigeks. Katsetes osalenud töötajad ütlevad sageli, et nad magavad paremini ja neil on rohkem aega lastele, trennile ja õppimisele. Teine argument on keskendumine. Kui aega on vähem, lõpetatakse pikad koosolekud ja tühi jutt. Üks projektijuht rääkis, et tema meeskond lubas koosolekuks kõige rohkem pool tundi ja hommikuti kaks tundi järjest vaikset tööd, kui keegi ei sega. Töö tulemus jäi samaks, kuid inimesed olid vähem väsinud. Mõnes firmas märgati ka, et töötajad ei vahetanud enam nii sageli töökohta, sest nad ei tahtnud paindlikust korrast loobuda.',
+        'Kriitikud vastavad, et kontoritöö ei ole kogu majandus. Haiglas, poes ja ühistranspordis peab keegi tööl olema ka viiendal päeval. Kui töötajaid juurde ei võeta, peavad teised tegema pikemaid vahetusi või töötama nädalavahetusel. Väikeses firmas, kus iga inimene on asendamatu, ei leidu reedeks kedagi, kes kliendile vastaks. Ka klient ei pruugi rõõmustada, kui tema küsimusele vastatakse alles esmaspäeval. Pealegi võib neli pikka päeva muutuda nii pingeliseks, et väsimus ei vähene, vaid lihtsalt kolib teise kohta.',
+        'Need, kes on katse läbi teinud, rõhutavad tingimusi. Kõigepealt tuleb kokku leppida, mida tähendab tulemus, sest muidu hakatakse lihtsalt kiiremini tegema sama tööd. Teiseks peavad reeglitest kinni pidama ka juhid: kui ülemus saadab reedel kirju, tunnevad teised, et nad peavad vastama. Kolmandaks on vaja valvesüsteemi, et klient ei jääks hätta. Mõnes firmas valivad töötajad vaba päeva ise, nii et kontor on avatud kõigil viiel päeval. Mõni firma loobus katsest juba paari kuu pärast, teised jätkasid ja ütlevad nüüd, et tagasi viiepäevasele nädalale nad ei läheks.',
+        'Huvitav on ka see, kuidas inimesed vaba päeva kasutasid. Paljud arvasid, et pikk nädalavahetus tähendab lihtsalt rohkem aega diivanil. Tegelikult tegid inimesed reedeti asju, mis muidu jäid tegemata: nad käisid arsti juures, tegid kodus remonti, õppisid uut keelt või viisid oma vanemaid poodi. Mõni lapsevanem ütles, et jõudis esimest korda aastate jooksul lapse kooli lahtiste uste päevale. Seega ei ole vaba päev ainult puhkus, vaid ka aeg, mis teeb ülejäänud nädala rahulikumaks.',
+        'Minu arvates tuleks küsida teisiti: mitte seda, kas neljapäevane nädal on hea või halb, vaid seda, millisele tööle see sobib. Programmeerijale või raamatupidajale võib see olla suur võit, bussijuhile või õele aga mitte, kui tööandja ei leia lisatöötajaid. Seetõttu ei peaks seda kehtestama kõigile korraga seadusega. Parem on lubada firmadel katsetada ja tulemusi ausalt võrrelda. Kui töö saab tehtud ja inimesed on tervemad, ei ole põhjust kinni hoida harjumusest, mis pärineb ajast, kui tehastes töötati kuus päeva nädalas.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Mida vähendatakse katsetes tavaliselt: palka või tööaega?', 'tööaega'],
+        ['Milliseid kahte argumenti toovad pooldajad?', 'tervis (puhkus, harvem haige) ja keskendumine (lühemad koosolekud)'],
+        ['Miks ei leidu väikeses firmas reedeks asendajat?', 'iga inimene on asendamatu|töötajaid on vähe'],
+        ['Mida tähendab lause, et väsimus „kolib teise kohta”?', 'neli pikka päeva väsitavad sama palju, ainult teistmoodi|väsimus ei kao'],
+        ['Miks peavad autori sõnul reeglitest kinni pidama ka juhid?', 'kui ülemus saadab reedel kirju, tunnevad teised, et peavad vastama'],
+        ['Kuidas suhtub autor seadusesse, mis kehtestaks neljapäevase nädala kõigile? Millest sa seda järeldad?', 'on vastu; parem lubada firmadel katsetada ja tulemusi võrrelda'],
+        ['Miks mainib autor viimases lauses tehaseid ja kuuepäevast nädalat? Mida ta sellega kaudselt ütleb?', 'töönädal on varem muutunud; ka viiepäevane nädal on ainult harjumus'],
+      ]), 'Artikkel annab väitluseks argumendid, vastuargumendid ja näited.'), { task: 'R09', voice: 'opinion' }),
+      'Lugemine, 20 minutit koos sõnade ja skeemiga. Enne lugemist: pealkirja järgi pakub õpilane, kas autor on poolt või vastu. Pärast: õpilane leiab skeemi iga märksõna kohta lause ja näitab autori seisukoha viimases lõigus. Küsimused 4–7 on järeldusküsimused: nõua tõestust tekstist. Artikkel on kohandatud õppetekst ilma täpsete arvudeta; Islandi ja Suurbritannia katsete üksikasjad on õpetaja lehel.'), [
+        '1. lõik: „Katsetes ei vähendata tavaliselt palka, vaid tööaega.”',
+        '2. lõik: „Pooldajate peamine argument on tervis.” · „Teine argument on keskendumine.”',
+        '3. lõik: „Väikeses firmas, kus iga inimene on asendamatu, ei leidu reedeks kedagi …”',
+        'Järeldus 3. lõigust: „neli pikka päeva võib muutuda nii pingeliseks, et väsimus ei vähene”.',
+        '4. lõik: „kui ülemus saadab reedel kirju, tunnevad teised, et nad peavad vastama”.',
+        'Järeldus 5. lõigust: „ei peaks seda kehtestama kõigile korraga seadusega. Parem on lubada firmadel katsetada”.',
+        'Järeldus 5. lõigust: kuuepäevane nädal tehastes näitab, et töönädal on varem muutunud — ka praegune kord on „harjumus”.',
+      ]),
+      hide(station(B.text('003_d_hook', 'Hääleta kohe!', 'Kujuta ette: alates jaanuarist töötad neli päeva nädalas ja palk jääb samaks. Kas oled poolt, vastu või ei tea? Ütle üks põhjus.'), 1, 10), 'v5: the hook is the vote in 003_d_talk (station 1)'),
+      hide(why(station(tag(purpose(B.listening('003_d_radio', 'Raadio: kolm kuud ilma reedeta.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna.', [
         'Saatejuht: Tere! Kas neli tööpäeva nädalas sama palga eest on unistus või tulevik? Stuudios on projektijuht Merit Laan, kelle firma proovis seda sügisel kolm kuud.',
         'Merit: Tere! Meil oli kontor reedeti kinni, aga palk jäi samaks. Alguses kartsin, et ma ei jõua nelja päevaga kõike teha.',
         'Saatejuht: Ja kas jõudsite?',
@@ -355,12 +834,17 @@ export const LESSONS = withShapes({
         'Pärast kokkulepet kestab koosolek kõige rohkem [pool tundi].',
         'Pärast pikka nädalavahetust tuli Merit esmaspäeviti tööle [puhanuna].',
         'Meriti tingimus: uutest reeglitest peavad kinni pidama ka [juhid].',
-      ]), 'Ühe töötaja päris kogemus annab väitluseks näite ja fakti.'), { voice: 'interview', task: 'L04' }), 2, 15),
-      tag(B.vocab('003_d_vocab', 'Tunni sõnad.', ['tööaeg — рабочее время', 'palk — зарплата', 'katse — эксперимент', 'sagedus — частота', 'kestus — продолжительность', 'aeg-ajalt — время от времени', 'harva — редко', 'kolmapäeviti — по средам', 'tingimus — условие', 'projektijuht — руководитель проекта']), { topic: ['kolmapäeviti', 'projektijuht'] }),
+      ]), 'Ühe töötaja päris kogemus annab väitluseks näite ja fakti.'), { voice: 'interview', task: 'L04' }), 2, 15), OLD_WHY['003_d_radio']), 'a 1-min radio clip as the main input: replaced by the reading 003_d_read (v5 G4: B2 input)'),
     ],
     practice: [
-      station(B.notice('003_p_notice', 'Märka: kui tihti, millal, kui kaua?', ['Raadiost: **Esmaspäeviti tulin** tööle puhanuna. **Hommikuti tegin** kaks tundi järjest ühte asja.', 'Kui tihti? **iga päev**, **kord nädalas**, **kaks korda kuus**, **aeg-ajalt**, **harva**, **mitte kunagi** (ei … kunagi)', 'Kui kaua? **kaheksa tundi**, **pool tundi** (arv + osastav), **kolm kuud**', 'Sõnajärg: ajaväljend lause alguses → tegusõna **teisel kohal**: **Reedeti oli** kontor kinni.', 'Hääldus: rõhk on alati **esimesel silbil**: KOLmapäeviti, NÄdalavahetusel.'], 'full'), 3, 12),
-      teach(purpose(B.errorfix('003_p_fix', 'Paranda väitleja märkmed.', 'Paranda viga ja loe lause valjusti: rõhk esimesel silbil.', [
+      station(B.notice('003_p_notice', 'Märka: kui tihti, millal, kui kaua?', [
+        'Tekstist: **Esmaspäeviti tuleb** puhanud inimene tööle värskemana. · **Hommikuti oli** kaks tundi vaikset tööd.',
+        'Kui tihti? **iga päev**, **kord nädalas**, **kaks korda kuus**, **aeg-ajalt**, **harva**, **mitte kunagi** (ei … kunagi)',
+        'Millal? **reedeti**, **hommikuti**, **nädalavahetusel**, **neljapäeva õhtul**, **paari kuu pärast**',
+        'Kui kaua? **kaheksa tundi**, **pool tundi**, **kolm päeva järjest** (arv + osastav)',
+        'Sõnajärg: ajaväljend või „minu arvates” lause alguses → tegusõna **teisel kohal**: **Reedeti on** kontor kinni. **Minu arvates ei ole** küsimus selles …',
+      ], 'full'), 3, 20),
+      why(teach(purpose(B.errorfix('003_p_fix', 'Paranda väitleja märkmed.', 'Igas lauses on üks viga: sõnajärg või vorm. Kirjuta lause õigesti.', [
         ['Kolmapäeviti ma töötan kodus, sest kontoris on liiga lärmakas.', 'Kolmapäeviti töötan ma kodus, sest kontoris on liiga lärmakas.|Kolmapäeviti töötan kodus, sest kontoris on liiga lärmakas.'],
         ['Kord nädalas meie meeskond peab pika koosoleku kogu nädala plaanidest.', 'Kord nädalas peab meie meeskond pika koosoleku kogu nädala plaanidest.'],
         ['Reedeti meie kontor lõpetab juba kell kolm pärastlõunal.', 'Reedeti lõpetab meie kontor juba kell kolm pärastlõunal.'],
@@ -368,37 +852,88 @@ export const LESSONS = withShapes({
         ['Minu õde teeb haiglas öövahetust kaks korda nädalal.', 'Minu õde teeb haiglas öövahetust kaks korda nädalas.'],
         ['Nädalavahetusel ma ei loe kunagi oma töökirju.', 'Nädalavahetusel ei loe ma kunagi oma töökirju.|Nädalavahetusel ei loe ma oma töökirju kunagi.'],
         ['Katse ajal palk ei muutunud ja töö jäi samaks.', 'Katse ajal ei muutunud palk ja töö jäi samaks.'],
+        ['Minu arvates neli pikka päeva on liiga pingelised.', 'Minu arvates on neli pikka päeva liiga pingelised.'],
       ], 'full', 'g_notice'), 'Väitluses kõlad kindlamalt, kui tegusõna on õiges kohas.'),
-      'Hääldus, 3 minutit: loe üks parandatud lause ise ette, siis loeb õpilane kõik. Kuula rõhku esimesel silbil. Paranda vihjega („Kus on rõhk?”).'),
+      'Hääldus, 3 minutit: loe üks parandatud lause ise ette, siis loeb õpilane kõik. Kuula rõhku esimesel silbil (KOLmapäeviti, NÄdalavahetusel). Paranda vihjega („Kus on tegusõna?”).'), [
+        'Ajaväljend kolmapäeviti on esimene, siis tegusõna töötan, siis ma.',
+        'Kord nädalas + tegusõna peab + alus meie meeskond.',
+        'Reedeti + tegusõna lõpetab + alus kontor.',
+        'Arv + osastav ainsus: kaheksa tundi.',
+        'Mitu korda ajaühikus: nädalas (seesütlev), mitte „nädalal”.',
+        'Nädalavahetusel + ei loe + ma: eitus ja tegusõna on koos teisel kohal.',
+        'Katse ajal (ajaväljend lause alguses) + ei muutunud + palk.',
+        '„Minu arvates” lause alguses → tegusõna teisel kohal: on neli pikka päeva.',
+      ]),
+      why(purpose(B.formtext('003_p_week', 'Minu töönädal: aeg ja sõnajärg tekstis.', 'Loe töötaja blogi ja kirjuta lünka sulgudes olev sõna õiges vormis. Kui lünk on lause alguses, tuleb järgmisena tegusõna. Panka ei ole.', 'Kolm kuud ilma reedeta', [
+        'Meie firma proovis neljapäevast nädalat [kolm kuud] (kolm kuu). Esimesel nädalal ei jõudnud ma kõike teha ja töötasin [neljapäeviti] (neljapäev, iga nädal) hilja õhtuni.',
+        '',
+        'Siis leppisime kokku, et koosolek kestab kõige rohkem [pool tundi] (pool tund). [Hommikuti] (hommik, iga päev) tegin kaks tundi järjest ainult ühte asja ja keegi ei seganud.',
+        '',
+        'Reedeti [oli] (olema, minevik) kontor kinni, kuid üks inimene oli alati valves. Mina olin valves [kord kuus] (üks kord, kuu). Nädalavahetusel [jõudsin] (jõudma, minevik) lõpuks ka trenni ja lastega metsa.',
+        '',
+        'Kokku töötasin nädalas [kolmkümmend kaks tundi] (32 tund, sõnadega). Kas ma tahaksin tagasi viiepäevasele nädalale? [Mitte kunagi] (mitte kunagi)!',
+      ]), 'Ajaväljendid teevad sinu väitluse näite täpseks ja selgeks.'), [
+        'Kestus: arv + osastav ainsus: kolm kuud.',
+        'Iga neljapäev → neljapäeviti (-ti); lause keskel väike täht.',
+        'Kestus: pool + osastav: pool tundi.',
+        'Iga hommik → hommikuti; järgmisena tegusõna: tegin.',
+        'Reedeti + tegusõna teisel kohal, minevik: oli.',
+        'Sagedus: kord + kuus (seesütlev): kord kuus.',
+        'Nädalavahetusel + tegusõna teisel kohal, minevik: jõudsin.',
+        'Arv + osastav ainsus: kolmkümmend kaks tundi.',
+        'Eitav vastus ilma tegusõnata: mitte kunagi.',
+      ]),
+      why(purpose(tag(B.table('003_p_register', 'Vaidlusest koosoleku sõnavõtuks.', 'Vasakul on kõnekeelne lause sõprade vaidlusest. Paremas veerus on sama mõte töökoha koosolekul. Kirjuta lünka puuduv sõna.', 'Vaidlus sõpradega, Sõnavõtt koosolekul', [
+        'See on täiesti jama! | Ma ei ole selle ideega päris [nõus].',
+        'Ma arvan, et see on super. | Minu [arvates] oleks see meie meeskonnale kasulik.',
+        'Aga mis siis haiglas saab? | Samas tuleb [arvestada], et haiglas peab keegi ka reedel tööl olema.',
+        'Kõik on ju nii väsinud! | Paljud töötajad on [väsinud] ja vajavad rohkem puhkust.',
+        'Ülemus ei luba nagunii. | Ma [kahtlen], kas juhtkond selle heaks kiidab.',
+        'Proovime ja vaatame! | Ma teen [ettepaneku] proovida seda kolm kuud.',
+        'No okei, sul on õigus. | Sinu argument [veenis] mind.',
+        'Lõpuks on kõik sama. | [Kokkuvõttes] ei muutu töö tulemus.',
+      ], 'g_notice'), { task: 'W12' }), 'Koosolekul kõlab sama mõte viisakalt ja veenvalt.'), [
+        '„jama” → viisakas eitus: ei ole päris nõus.',
+        '„Ma arvan, et super” → Minu arvates + tingiv: oleks kasulik.',
+        'Vastuargument: Samas tuleb arvestada, et …',
+        'Üldistus ilma emotsioonita: paljud töötajad on väsinud.',
+        '„nagunii ei luba” → Ma kahtlen, kas …',
+        '„Proovime!” → Ma teen ettepaneku + da-tegevusnimi.',
+        'Nõustumine: Sinu argument veenis mind.',
+        'Järeldus: Kokkuvõttes …; tegusõna teisel kohal.',
+      ]),
     ],
     transfer: [
-      station(B.text('003_t_sit', 'Väitlus ja hääletus', 'Teema: „Neli päeva tööd sama palga eest — kas see sobiks Eestile?” Vali pool. Kumbki ütleb kolm argumenti, igaühe juurde näite või fakti. Siis küsite teineteiselt ühe küsimuse. Lõpus hääletate ja põhjendate häält ühe lausega; häält võib muuta, kui ütled, mis sind veenis.'), 4, 15, { final: 'decide' }),
-      purpose(B.profiles('003_t_cards', 'Argumendikaardid.', 'Vali oma poolele kolm argumenti ja tõmba neile joon alla.', [
+      station(purpose(B.planning('003_t_plan', 'Argumendi plaan (4 minutit).', 'Vali pool ja kirjuta märksõnad; kasuta artikli argumente ja oma nädalat. Edukriteeriumid: 1) seisukoht on esimeses lauses; 2) igal argumendil on näide; 3) vastad vastuargumendile.', ['Minu seisukoht:', 'Kaks argumenti ja nende näited:', 'Vastaspoole tugevaim argument ja minu vastus:', 'Mille poolt ma lõpus hääletan:'], 1), 'Hea plaan teeb sinu väitluse selgeks ja veenvaks.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.rolecards('003_t_debate', 'Väitlus märksõnakaartidega (kuni 4 minutit).', 'Neli päeva tööd sama palgaga — kas see sobiks Eestile? Vali pool, õpetaja võtab teise. Kumbki ütleb 30 sekundiga seisukoha, siis vaielge kaartide ja näidetega. Lõpus hääleta ja põhjenda häält.',
+        'Kaart A (poolt): märksõnad, ehita neist ise argument ja too näide. 1) tervis — puhkus, harvem haige; 2) keskendumine — lühike koosolek; 3) pere — trenn, õppimine.',
+        'Kaart B (vastu): märksõnad, ehita neist ise argument ja too näide. 1) haigla, pood — viies päev; 2) väike firma — asendaja; 3) neli pikka päeva — väsimus.',
+        ['Minu arvates …', 'Toon näite oma nädalast: …'], ['Samas tuleb arvestada …', 'Ma hääletan poolt / vastu, sest …']), 'Tulemus: sinu selge hääl ja lause, mis seda põhjendab.'), { task: 'S17' }),
+      'Õpetaja kaitseb poolt, mida õpilane ei valinud. Ütle enne kolm edukriteeriumi. Väitluse keskel too vastuargument, mida kaardil ei ole: „Islandil lühendati ainult tunde, vaba reedet ei antud — kas see on sama asi?” Õpilane vastab näitega. Õnnestunud, kui: seisukoht esimeses lauses, kaks argumenti näitega, vastus vastuargumendile, vähemalt kolm ajaväljendit tegusõnaga teisel kohal, hääl ühe lausega. Aeg 4 minutit; siis 1 minut tagasisidet: üks tugevus, üks parandus. Hääleta lõpus ka ise.'),
+      tag(homeTask(homeLines(purpose(B.letter('003_t_essay', 'Kodus: arvamustekst (umbes 180 sõna).', `Kirjuta firma uudiskirja arvamustekst (170–190 sõna): seisukoht, kaks argumenti näitega, vastuargument koos vastusega, järeldus ja vähemalt neli ajaväljendit. ${VOICE_HOME}`, 'Pealkiri:', 'Sinu nimi, ametikoht', [170, 190]), 'Uudiskirja lugejad hääletavad pärast sinu teksti lugemist.'), 8)), { task: 'W14', main: true, harno: 'W2b' }),
+      writingRubric('003_t_rubric', 'Hindamisjuhend: arvamustekst (12 punkti).', 'Piiripealne näidis (7/12 ≈ 58 %, veel mitte 60 %): „Minu arvates neli päeva tööd on hea. Esiteks inimesed on vähem väsinud. Näiteks reedeti ma saan minna lastega metsa. Teiseks koosolekud on lühemad. Mõned inimesed ütlevad, et haiglas see ei tööta. See on õige. Kokkuvõttes neli päeva on hea, sest see on parem.” Hinnang: ülesanne 2 (seisukoht ja kaks argumenti on olemas, vastuargumendile ei vastata), ülesehitus 2 (esiteks / teiseks, kuid järeldus kordab algust), sõnavara 2 („hea” ja „parem” on üldised), grammatika 1 (sõnajärg pärast ajaväljendit ja silda on vale neli korda: „Minu arvates neli päeva on”, „Esiteks inimesed on”, „reedeti ma saan”, „Kokkuvõttes neli päeva on”). Kui õppija parandab sõnajärje, saab ta 8/12 (67 %).'),
+      exitCheck(purpose(B.selfcheck('003_t_self', ['Ma leian artiklist argumendid ja järeldan autori seisukoha.', 'Ma panen ajaväljendi või sillaga lause alguses tegusõna teisele kohale.', 'Ma kaitsen oma poolt näitega ja vastan vastuargumendile.'], 'Hääl antud', 'Ma oskan väidelda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(station(B.text('003_t_sit', 'Väitlus ja hääletus', 'Teema: „Neli päeva tööd sama palga eest — kas see sobiks Eestile?” Vali pool. Kumbki ütleb kolm argumenti, igaühe juurde näite või fakti. Siis küsite teineteiselt ühe küsimuse. Lõpus hääletate ja põhjendate häält ühe lausega; häält võib muuta, kui ütled, mis sind veenis.'), 4, 15, { final: 'decide' }), 'v5: the situation is in the debate card 003_t_debate'),
+      hide(purpose(B.profiles('003_t_cards', 'Argumendikaardid.', 'Vali oma poolele kolm argumenti ja tõmba neile joon alla.', [
         ['Poolt', ['Islandil prooviti aastatel 2015–2019 lühemat töönädalat (35–36 tundi 40 asemel) sama palgaga; katses osales umbes 2500 inimest.', 'Uurijate sõnul jäi töö tulemus enamasti samaks või paranes ja inimesed olid vähem väsinud.', 'Suurbritannias proovis 2022. aastal kuus kuud neljapäevast nädalat 61 firmat; 56 neist jätkas ka pärast katset.', 'rohkem aega perele, trennile ja õppimisele', 'Allikas: Autonomy ja Alda, Islandi katsete aruanne (2021); Autonomy, Suurbritannia katse tulemused (2023).'], []],
         ['Vastu', ['haiglas, poes ja ühistranspordis peab keegi ka viiendal päeval tööl olema', 'kui tööd jääb sama palju, võivad neli päeva olla pikemad ja pingelisemad', 'väikeses firmas leidub asendaja harva', 'projektijuhil ja kliendil on kiireid asju ka reedel', 'sinu enda näide: …'], []],
-      ], '2'), 'Faktiga argument veenab rohkem kui tunne.'),
-      teach(tag(purpose(B.rolecards('003_t_debate', 'Väitlus ja hääletus.', 'Kaitse oma poolt, õpetaja kaitseb teist. Lõpus hääleta ja põhjenda.',
-        'Olukord: väitlus „Neli päeva tööd, palk jääb samaks — kas see sobiks Eestile?”.\nSinu eesmärk: kaitsta oma poolt kolme argumendi ja näitega ning põhjendada lõpus oma häält ühe lausega.\nTingimus: üks näide tuleb sinu enda või sinu pere nädalast.',
-        'Õpetaja kaitseb teist poolt, tal on oma argumendid ja üks küsimus sulle.',
-        ['Esiteks…, teiseks…', 'Näiteks minu nädalas…', 'Kuigi…, on…', 'Ma hääletan poolt / vastu, sest…'], ['Ma ei ole päris nõus, sest…', 'Mul on ettepanek: …', 'Sinu argument veenis mind, sest…']), 'Tulemus: sinu selge hääl ja lause, mis seda põhjendab.'), { task: 'S17', main: true }),
-      'Õpetaja kaart: kaitse poolt, mida õpilane ei valinud. Varjatud info: Islandil lühendati tunde, mitte ei antud vaba reedet; Suurbritannia firmad olid vabatahtlikud ja enamasti kontorid. Takistused ükshaaval: 1) „Kes töötab reedel haiglas või bussis?”; 2) „Islandil ei olnud see päris neljapäevane nädal — kas see on sama asi?”; 3) „Kas sinu töökoht või pere jaksaks seda?” Õnnestunud, kui: kolm argumenti, vähemalt kaks näidet või fakti, vastus sinu argumendile, kolm ajaväljendit tegusõnaga teisel kohal, hääl ühe lausega. Hääleta lõpus ka ise.'),
-      extension(teach(tag(purpose(B.speaking('003_t_more', 'Mäng: mis muutuks?', 'Õpetaja ütleb ameti. Sul on 30 sekundit: kuidas see töö neljapäevase nädalaga käiks?', [
+      ], '2'), 'Faktiga argument veenab rohkem kui tunne.'), 'argument cards with full facts: replaced by keyword cards in 003_t_debate (owner: 2–3 keywords a card)'),
+      hide(extension(teach(tag(purpose(B.speaking('003_t_more', 'Mäng: mis muutuks?', 'Õpetaja ütleb ameti. Sul on 30 sekundit: kuidas see töö neljapäevase nädalaga käiks?', [
         'õde, bussijuht, õpetaja, kokk, programmeerija, müüja',
         'Alusta ajaväljendiga: Reedeti …, Kord nädalas …, Esmaspäeviti …',
       ], [120, 180], ['Reedeti …', 'Kord nädalas …', 'Siis peaks …']), 'Kiire mäng harjutab ajaväljendit ja tegusõna teisel kohal ilma ettevalmistuseta.'), { task: 'S14', fluency: true }),
-      'Kui aega jääb (10–12 min). Ütle üks amet korraga, hoia aega (30 s). Iga õige ajaväljend + tegusõna teisel kohal = punkt; pärast kuut ametit vahetage: õpilane ütleb ameti, õpetaja räägib.'), 12),
-      tag(exitCheck(purpose(B.gaps('003_t_exit', 'Kontrolli end: aeg ja sõnajärg.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+      'Kui aega jääb (10–12 min). Ütle üks amet korraga, hoia aega (30 s). Iga õige ajaväljend + tegusõna teisel kohal = punkt; pärast kuut ametit vahetage: õpilane ütleb ameti, õpetaja räägib.'), 12), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('003_t_exit', 'Kontrolli end: aeg ja sõnajärg.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
         'Kolmapäeviti [käin] ma pärast tööd alati ujumas. (käima)',
         'Mu vend töötab ehitusel [kaheksa tundi] päevas, vahel rohkem. (kaheksa tund)',
         'Aeg-ajalt [lõpetame] me reedel tööd juba lõuna ajal. (lõpetama)',
-      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas ajaväljend ja sõnajärg on käes.')), {}),
-      purpose(B.selfcheck('003_t_self', ['Ma räägin oma nädalast: kui tihti, millal, kui kaua.', 'Ma panen ajaväljendi järel tegusõna teisele kohale.', 'Ma ütlen kolm argumenti koos faktiga.', 'Ma põhjendan oma häält ühe lausega ja ütlen, millise tingimusega olen nõus.'], 'Hääl antud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(homeTask(purpose(B.speaking('003_t_home', 'Kodus: sõnavõtt koosolekul (1 minut).', 'Salvesta 1 minut nagu koosolekul: sinu seisukoht ja kaks põhjust.', [
+      ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas ajaväljend ja sõnajärg on käes.')), {}), OLD_WHY['003_t_exit']), CUT_DRILL),
+      hide(tag(homeTask(purpose(B.speaking('003_t_home', 'Kodus: sõnavõtt koosolekul (1 minut).', 'Salvesta 1 minut nagu koosolekul: sinu seisukoht ja kaks põhjust.', [
         'Mis on sinu seisukoht?',
         'Millised kaks argumenti on kõige tugevamad?',
         'Mis muutuks sinu nädalas?',
-      ], [60, 120]), 'See on B2-eksami sõnavõtu harjutus; õpetaja annab ühe nõu.')), { task: 'S16' }),
-      homework('003_t_homework', ['1. Sõnavõtt 1 minut (ülesanne lehel).', '2. Kirjuta 5 lauset oma nädalast; alusta iga lauset ajaväljendiga.', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      ], [60, 120]), 'See on B2-eksami sõnavõtu harjutus; õpetaja annab ühe nõu.')), { task: 'S16' }), CUT_HOME),
+      hide(homework('003_t_homework', ['1. Sõnavõtt 1 minut (ülesanne lehel).', '2. Kirjuta 5 lauset oma nädalast; alusta iga lauset ajaväljendiga.', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
     ],
   },
 
@@ -407,25 +942,22 @@ export const LESSONS = withShapes({
     phases: grammar('Keel: võrdlemine — keskvõrre + kui, kõige, võrreldes …-ga, erinevalt …-st, mida … seda'),
     format: 'infogap',
     topic: 'freetime',
-    canDo: 'Ma võrdlen kahte õppimise võimalust aja, raha ja väsimuse järgi ning lepin pereliikmega kokku nädalaplaani, kus on aega õppida.',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest töö kõrvalt õppimisest, võrdlen kursusi aja, raha ja väsimuse järgi, lepin pereliikmega kokku nädalaplaani ja kirjutan tööandjale umbes 140-sõnalise palve.',
     teacherPage: {
-      goal: 'Ученик сравнивает варианты учёбы (keskvõrre + kui, võrreldes + -ga, erinevalt + -st) и договаривается с членом семьи о недельном плане через информационный пробел.',
-      core: [1, 3, 4], alt: 2,
-      short: 'План Б: крючок и 2 вопроса; пункт 3 — 4 предложения; разговор — только выбор курса и один день недели. Радио (пункт 2) — дома.',
-      hook: '«У тебя в неделю один свободный вечер и одно свободное утро. Что отдашь учёбе? Что ради этого отменишь?» Ответьте сами коротко, потом ученик.',
+      goal: 'Радиобеседа (2 голоса, 3 мин) об учёбе без отрыва от работы, сравнение курсов (keskvõrre + kui, võrreldes + -ga), договорённость с семьёй со скрытой информацией; дома письмо работодателю 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–6; станция 3 — дома в Harjuta; разговор — только выбор курса и один день недели.',
+      hook: '«Väide: täiskasvanul ei ole aega õppida — see on ainult vabandus.» Ученик сразу говорит, согласен ли он, и одну причину. Ответьте сами коротко, потом спросите о его неделе.',
       plan: [
-        '0–10: пункт 1 — свободный вечер или утро, разговор о своей неделе',
-        '10–22: пункт 2 — слова (1 мин), прогноз «вечерний или субботний курс?», радио дважды, 6 вопросов',
-        '22–34: пункт 3 — сравнение: заметить → правило → 7 исправлений',
-        '34–49: пункт 4 — объявление школы, разговор-договорённость с «членом семьи»',
-        '49–59: «Kui aega jääb» — игра «Kumb on parem?» (20 секунд на пару)',
-        '59–67: проверка на выходе, «Ma oskan …», итог договорённости в трёх строках',
-        '67–75: начало письма в школу (2 предложения)',
-        '75–82: домашнее задание: письмо, запись 1 минуты, слова',
-        '82–90: запас',
+        '0–5: станция 1 — утверждение и одна минута о своей неделе',
+        '5–25: станция 2 — 10 слов (2 мин), формула сравнения (2 мин), радиобеседа дважды (8 мин), 10 вопросов (8 мин)',
+        '25–45: станция 3 — сравнение: правило, 8 преобразований, текст «Kolm kursust» с 9 пропусками без банка, регистр: семье → работодателю',
+        '45–70: станция 4 — объявление школы (3 мин), разговор-договорённость с «членом семьи» со скрытой информацией (10 мин), итог в трёх строках, обратная связь',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо работодателю 140 слов и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «Kumb on parem?» — вы называете две возможности, ученик за 20 секунд сравнивает в трёх пунктах',
       ],
-      sources: 'Радио: учебное интервью с консультантом по образованию взрослых (вымышленное лицо, советы общие). Объявление школы — учебный сценарий. Учебный отпуск в «Kas teadsid?» — закон об обучении взрослых, Eurydice.',
-      groups: 'Пункт 1 — в парах. Пункт 4: пары «ученик — член семьи» с карточкой, которую вы дадите второму; вы ходите и слушаете. В 1:1 член семьи — вы.',
+      sources: 'Радио: учебное интервью с консультантом по образованию взрослых (вымышленное лицо, советы общие). Объявление школы — учебный сценарий. Право на учебный отпуск — закон об обучении взрослых (для учителя; на листе не нужно).',
+      groups: 'Утверждение — в парах. Радио — каждый сам, проверка в паре. Разговор: пары «ученик — член семьи» с карточкой, которую вы дадите второму; вы ходите и слушаете. В 1:1 член семьи — вы.',
       errors: [
         '«rohkem paindlik» → «paindlikum» (сравнительная степень одним словом).',
         '«võrreldes eelmise aastale» → «võrreldes eelmise aastaga» (võrreldes + -ga).',
@@ -438,14 +970,14 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(B.text('004_d_hook', 'Õhtu või hommik?', 'Sul on nädalas üks vaba argipäeva õhtu ja üks vaba hommik. Kumma annaksid eesti keelele või mõnele teisele võõrkeelele? Mida jätaksid selle eest ära?'), 1, 10),
-      inLesson(teach(tag(purpose(B.speaking('004_d_week', 'Kumb sobib sulle?', 'Vasta ja võrdle: mis on parem, mis halvem ja miks.', [
-        'Mis on sinu nädala kõige vabam aeg?',
-        'Kas lühike tund mitu korda nädalas on parem kui üks pikk tund? Miks?',
-        'Kumba sa eelistad, ja kui suur on sinu kursuse eelarve kuus?',
-      ], [120, 180], ['… on … kui…', 'Võrreldes …-ga…', 'Mida…, seda…']), 'Pärast vestlust tead, millal sul õppimiseks tegelikult aega on.'), { task: 'S11', fluency: true }),
-      'Üks-ühele: kirjelda lühidalt ka oma nädalat. Ära paranda; lõpus ütle, mitu võrdlust õpilane tegi, ja palu tal nimetada oma kaks vaba aega.')),
-      station(tag(purpose(B.examListen('004_p_expert', 'Raadiosaade: kuidas töö kõrvalt õppida?', 'Kuula kaks korda ja vali õige vastus.', 'choice', [
+      station(inLesson(teach(tag(purpose(B.speaking('004_d_week', 'Väide: täiskasvanul ei ole aega õppida.', 'Väide: „Täiskasvanul ei ole aega õppida — see on ainult vabandus.” Kas oled nõus? Ütle seisukoht ja põhjus, siis võrdle umbes minut: mis aeg sobib sulle õppimiseks paremini?', [
+        'Kas oled väitega nõus? Miks?',
+        'Mis on sinu nädala kõige vabam aeg ja kas lühike tund mitu korda nädalas on parem kui üks pikk tund?',
+      ], [60, 90]), 'Pärast vestlust tead, millal sul õppimiseks tegelikult aega on.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: kirjelda lühidalt ka oma nädalat. Ära paranda; lõpus ütle, mitu võrdlust õpilane tegi, ja palu tal nimetada oma kaks vaba aega.')), 1, 5),
+      station(tag(B.vocab('004_d_vocab', 'Tunni sõnad.', ['argipäev — будний день', 'nädalavahetus — выходные', 'paindlik — гибкий', 'kohustus — обязанность', 'eelistama — предпочитать', 'loobuma — отказываться', 'võrreldes — по сравнению', 'erinevalt — в отличие от', 'eelarve — бюджет', 'kinni pidama — придерживаться']), {}), 2, 20),
+      purpose(B.diagram('004_d_scheme', 'formula', { title: 'Skeem: võrdluse valem.', instruction: 'Vaata valemit enne kuulamist. Kuulates märgi, mida nõustaja võrdleb ja millise järelduse ta teeb.', nodes: 'Mida võrdled? | Õhtune kursus\nMillest erineb? (keskvõrre) | on lühem ja sagedasem\nMillega? (kui / võrreldes …-ga) | kui laupäevane kursus\nMis on kõige …? (ülivõrre) | kõige paindlikum on veebikursus\nJäreldus (seetõttu) | Seetõttu sobib mulle …', note: 'Õhtune kursus on lühem ja sagedasem kui laupäevane kursus. Seetõttu sobib see mulle paremini.' }, 'full', 'g_read'), 'Valem aitab sul kaht võimalust selgelt ja lühidalt võrrelda.'),
+      why(teach(tag(purpose(B.examListen('004_d_radio', 'Kuulamine: kuidas töö kõrvalt õppida?', 'Raadiosaates räägib täiskasvanuhariduse nõustaja, kuidas töö kõrvalt õppida. Loe enne väited läbi. Kuula saadet kaks korda ja märgi, kas väide on õige või vale.', 'truefalse', [
         'Saatejuht: Tere! Paljud täiskasvanud tahavad õppida, aga ei tea, kuidas seda töö kõrvalt teha. Stuudios on täiskasvanuhariduse nõustaja Tiiu Saar. Tiiu, mis on kõige levinum viga?',
         'Tiiu: Inimesed teevad liiga suure plaani. Jaanuaris lubatakse õppida iga päev kaks tundi, aga veebruaris on plaan unustatud, sest töö ja pere kohustused ei kao kuhugi. Parem on väike plaan, mida jaksad ka väsinuna täita. Siis muutub õppimine harjumuseks.',
         'Saatejuht: Kumb on parem, õhtune või nädalavahetuse kursus?',
@@ -456,6 +988,62 @@ export const LESSONS = withShapes({
         'Tiiu: Rääkige oma juhiga. Paljud tööandjad toetavad õppimist, kui töötaja oskab selgitada, kuidas uus oskus tööd aitab. Kirjutage kokkulepe üles: eesmärk, aeg ja kuidas tulemust kontrollite.',
         'Saatejuht: Ja kui midagi läheb valesti?',
         'Tiiu: Siis ärge loobuge, vaid muutke plaani. Haigus või kiire kuu ei ole ebaõnnestumine. Tähtis on see, et kolme kuu pärast õpite ikka veel.',
+        'Saatejuht: Paljud valivad nüüd veebikursuse. Kas see on sama hea kui klassiruum?',
+        'Tiiu: Veebikursus on paindlikum, sest tunni ajal ei pea kuhugi sõitma. Samas on veebis lihtsam end ära peita: kaamera on kinni ja keegi ei märka, et sa ei räägi. Kui valite veebikursuse, lülitage kaamera sisse ja rääkige igas tunnis vähemalt korra. Rääkimist ei saa õppida ainult kuulates.',
+        'Saatejuht: Aga pere? Õhtune kursus tähendab, et keegi teine peab kodus rohkem tegema.',
+        'Tiiu: Just. Rääkige perega enne kursuse algust läbi, kes mida teeb ja millal. Kui pere teab, miks see teile oluline on, toetab ta teid palju meelsamini. Mõni pere paneb kursuse päevad ühisesse kalendrisse, nii et keegi ei planeeri samale õhtule midagi muud.',
+        'Saatejuht: Kas õppida tasub üksi või koos sõbraga?',
+        'Tiiu: Koos on lihtsam. Kui lepite sõbraga kokku, et räägite kord nädalas pool tundi ainult eesti keeles, ei jäta te harjutamist nii kergesti vahele. Sõber ootab teid ja see aitab ka siis, kui olete väsinud.',
+        'Saatejuht: Ja kuidas hoida motivatsiooni, kui esimene vaimustus on möödas?',
+        'Tiiu: Seadke väike ja nähtav eesmärk, näiteks: kolme kuu pärast räägin arsti juures ainult eesti keeles. Suur eesmärk, näiteks eksam, on samuti oluline, kuid see on kaugel. Väike eesmärk annab tunde, et liigute edasi.',
+        'Saatejuht: Aitäh, Tiiu!',
+      ], [
+        ['Nõustaja sõnul teevad täiskasvanud õppijad alguses sageli liiga suure plaani.', true],
+        ['Tema arvates on parem plaan, mida jaksab täita ka väsinuna.', true],
+        ['Nõustaja sõnul on nädalavahetuse kursus mälule alati parem kui õhtune.', false],
+        ['Kümme-viisteist minutit päevas on nõustaja arvates kasulikum kui kaks tundi pühapäeval.', true],
+        ['Korrata tasub peamiselt nii, et loed sama teksti mitu korda läbi.', false],
+        ['Tööandja toetab õppimist meelsamini, kui töötaja selgitab, kuidas uus oskus tööd aitab.', true],
+        ['Kui plaan haiguse tõttu ei tööta, soovitab nõustaja kursuse pooleli jätta.', false],
+        ['Veebikursusel on nõustaja sõnul lihtsam end ära peita ja mitte rääkida.', true],
+        ['Nõustaja arvates saab rääkimist õppida ka ainult kuulates.', false],
+        ['Kui õpid koos sõbraga, jätad harjutamise nõustaja sõnul kergemini vahele.', false],
+        ['Mõni pere paneb kursuse päevad ühisesse kalendrisse.', true],
+        ['Nõustaja arvates ei ole suur eesmärk, näiteks eksam, üldse oluline.', false],
+      ], 'g_read'), 'Asjatundja nõu aitab teha plaani, mida jaksad ka väsinuna täita.'), { voice: 'interview', task: 'L04', harno: 'L4' }),
+      'Kuulamine, 20 minutit koos sõnade ja valemiga (umbes 3 minutit, kaks korda). Enne kuulamist loeb õpilane väited ja joonib alla võtmesõnad; pärast parandab ta iga vale väite õigeks lauseks ja ütleb valemi järgi kaks võrdlust saatest („Õhtune kursus on sagedasem kui …”, „Võrreldes klassiruumiga on veebikursus …”). Saade on õppetekst, nõustaja on välja mõeldud.'), [
+        'Õige: „Inimesed teevad liiga suure plaani.”',
+        'Õige: „Parem on väike plaan, mida jaksad ka väsinuna täita.”',
+        'Vale: „Ühte õiget vastust ei ole”; õhtune kursus „aitab mälu”.',
+        'Õige: „kümme-viisteist minutit päevas on kasulikum kui kaks tundi pühapäeval”.',
+        'Vale: korrata tasub nii, „et ennast kontrollid, mitte ainult ei loe teksti uuesti läbi”.',
+        'Õige: „kui töötaja oskab selgitada, kuidas uus oskus tööd aitab”.',
+        'Vale: „ärge loobuge, vaid muutke plaani”.',
+        'Õige: „veebis on lihtsam end ära peita”.',
+        'Vale: „Rääkimist ei saa õppida ainult kuulates.”',
+        'Vale: koos sõbraga „ei jäta te harjutamist nii kergesti vahele”.',
+        'Õige: „Mõni pere paneb kursuse päevad ühisesse kalendrisse.”',
+        'Vale: suur eesmärk „on samuti oluline, kuid see on kaugel”.',
+      ]),
+      hide(why(teach(tag(purpose(B.examListen('004_p_expert', 'Raadiosaade: kuidas töö kõrvalt õppida?', 'Loe enne küsimused läbi. Kuula saadet kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Saatejuht: Tere! Paljud täiskasvanud tahavad õppida, aga ei tea, kuidas seda töö kõrvalt teha. Stuudios on täiskasvanuhariduse nõustaja Tiiu Saar. Tiiu, mis on kõige levinum viga?',
+        'Tiiu: Inimesed teevad liiga suure plaani. Jaanuaris lubatakse õppida iga päev kaks tundi, aga veebruaris on plaan unustatud, sest töö ja pere kohustused ei kao kuhugi. Parem on väike plaan, mida jaksad ka väsinuna täita. Siis muutub õppimine harjumuseks.',
+        'Saatejuht: Kumb on parem, õhtune või nädalavahetuse kursus?',
+        'Tiiu: Ühte õiget vastust ei ole. Õhtune kursus on sagedasem ja lühem, see aitab mälu. Nädalavahetusel on inimene värskem, aga nädal on pikk ja vahepeal ununeb palju.',
+        'Saatejuht: Mida teha, et ei ununeks?',
+        'Tiiu: Korrata lühidalt, aga tihti: kümme-viisteist minutit päevas on kasulikum kui kaks tundi pühapäeval. Ja korrata tasub nii, et ennast kontrollid, mitte ainult ei loe teksti uuesti läbi.',
+        'Saatejuht: Kuidas töö ja õppimine kokku sobitada?',
+        'Tiiu: Rääkige oma juhiga. Paljud tööandjad toetavad õppimist, kui töötaja oskab selgitada, kuidas uus oskus tööd aitab. Kirjutage kokkulepe üles: eesmärk, aeg ja kuidas tulemust kontrollite.',
+        'Saatejuht: Ja kui midagi läheb valesti?',
+        'Tiiu: Siis ärge loobuge, vaid muutke plaani. Haigus või kiire kuu ei ole ebaõnnestumine. Tähtis on see, et kolme kuu pärast õpite ikka veel.',
+        'Saatejuht: Paljud valivad nüüd veebikursuse. Kas see on sama hea kui klassiruum?',
+        'Tiiu: Veebikursus on paindlikum, sest tunni ajal ei pea kuhugi sõitma. Samas on veebis lihtsam end ära peita: kaamera on kinni ja keegi ei märka, et sa ei räägi. Kui valite veebikursuse, lülitage kaamera sisse ja rääkige igas tunnis vähemalt korra. Rääkimist ei saa õppida ainult kuulates.',
+        'Saatejuht: Aga pere? Õhtune kursus tähendab, et keegi teine peab kodus rohkem tegema.',
+        'Tiiu: Just. Rääkige perega enne kursuse algust läbi, kes mida teeb ja millal. Kui pere teab, miks see teile oluline on, toetab ta teid palju meelsamini. Mõni pere paneb kursuse päevad ühisesse kalendrisse, nii et keegi ei planeeri samale õhtule midagi muud.',
+        'Saatejuht: Kas õppida tasub üksi või koos sõbraga?',
+        'Tiiu: Koos on lihtsam. Kui lepite sõbraga kokku, et räägite kord nädalas pool tundi ainult eesti keeles, ei jäta te harjutamist nii kergesti vahele. Sõber ootab teid ja see aitab ka siis, kui olete väsinud.',
+        'Saatejuht: Ja kuidas hoida motivatsiooni, kui esimene vaimustus on möödas?',
+        'Tiiu: Seadke väike ja nähtav eesmärk, näiteks: kolme kuu pärast räägin arsti juures ainult eesti keeles. Suur eesmärk, näiteks eksam, on samuti oluline, kuid see on kaugel. Väike eesmärk annab tunde, et liigute edasi.',
         'Saatejuht: Aitäh, Tiiu!',
       ], [
         ['Mis on nõustaja sõnul kõige levinum viga, mida täiskasvanud õppijad töö kõrvalt teevad?', 'ta teeb alguses liiga suure plaani', 'ta teeb alguses liiga väikese plaani', 'ta valib liiga kalli kursuse'],
@@ -464,12 +1052,34 @@ export const LESSONS = withShapes({
         ['Kuidas tasub nõustaja arvates uusi sõnu ja grammatikat korrata, et need ei ununeks?', 'lühidalt ja tihti, nii et ennast ise kontrollid', 'kord nädalas kaks tundi järjest pühapäeval', 'õpikut ja vanu tekste mitu korda läbi lugedes'],
         ['Millal toetab tööandja nõustaja sõnul töötaja õppimist kõige meelsamini ja kõige paremini?', 'kui töötaja oskab selgitada, kuidas uus oskus tööd aitab', 'kui töötaja õpib ainult tööajal ja kontoris', 'kui kursus on töötajale täiesti tasuta'],
         ['Mida soovitab nõustaja teha siis, kui õppimise plaan haiguse või kiire kuu tõttu ei tööta?', 'plaani muuta, aga mitte õppimisest loobuda', 'kursus pooleli jätta ja puhata', 'oodata uue plaaniga järgmise aastani'],
-      ]), 'Asjatundja nõu aitab teha plaani, mida jaksad ka väsinuna täita.'), { voice: 'interview', task: 'L02' }), 2, 12),
-      tag(B.vocab('004_d_vocab', 'Tunni sõnad.', ['argipäev — будний день', 'nädalavahetus — выходные', 'paindlik — гибкий', 'kohustus — обязанность', 'eelistama — предпочитать', 'loobuma — отказываться', 'võrreldes — по сравнению', 'erinevalt — в отличие от', 'eelarve — бюджет', 'kinni pidama — придерживаться']), {}),
+        ['Mis on nõustaja sõnul veebikursuse peamine oht võrreldes klassiruumiga?', 'veebis on lihtne end ära peita ja mitte rääkida', 'veebis katkeb internet liiga tihti', 'veebikursus on klassiruumist kallim'],
+        ['Mida soovitab nõustaja teha neile, kes valivad veebikursuse?', 'lülitada kaamera sisse ja rääkida igas tunnis vähemalt korra', 'kuulata tunde hiljem salvestusena', 'kirjutada õpetajale iga päev'],
+        ['Miks tasub nõustaja arvates perega enne kursuse algust läbi rääkida?', 'pere toetab meelsamini, kui teab, miks õppimine on oluline', 'pere saab siis kursuse eest maksta', 'pere saab tulla samale kursusele'],
+        ['Miks soovitab nõustaja seada lisaks suurele eesmärgile ka väikese eesmärgi?', 'väike eesmärk annab tunde, et liigud edasi', 'eksam ei ole täiskasvanule oluline', 'väikest eesmärki ei pea perega arutama'],
+      ], 'g_read'), 'Asjatundja nõu aitab teha plaani, mida jaksad ka väsinuna täita.'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, 20 minutit koos sõnade ja valemiga (umbes 3,5 minutit, kaks korda). Enne kuulamist loeb õpilane küsimused ja joonib alla võtmesõnad. Pärast: õpilane ütleb kaks võrdlust saatest („Õhtune kursus on sagedasem kui …”, „Võrreldes klassiruumiga on veebikursus …”) ja ühe nõuande, mida ta ise kasutab. Saade on õppetekst, nõustaja on välja mõeldud.'), [
+        'Tiiu: „Inimesed teevad liiga suure plaani.”',
+        'Tiiu: õhtune kursus „on sagedasem ja lühem, see aitab mälu”.',
+        'Tiiu: „nädal on pikk ja vahepeal ununeb palju”.',
+        'Tiiu: „korrata lühidalt, aga tihti”, „nii, et ennast kontrollid”.',
+        'Tiiu: tööandja toetab, „kui töötaja oskab selgitada, kuidas uus oskus tööd aitab”.',
+        'Tiiu: „ärge loobuge, vaid muutke plaani”.',
+        'Tiiu: „veebis on lihtsam end ära peita: kaamera on kinni”.',
+        'Tiiu: „lülitage kaamera sisse ja rääkige igas tunnis vähemalt korra”.',
+        'Tiiu: „Kui pere teab, miks see teile oluline on, toetab ta teid palju meelsamini.”',
+        'Tiiu: „Väike eesmärk annab tunde, et liigute edasi.”',
+      ]), '10-item choice version of the same recording: the sheet uses the compact true / false 004_d_radio so the scheme and the recording fit one page (owner: no near-empty pages)'),
+      hide(station(B.text('004_d_hook', 'Õhtu või hommik?', 'Sul on nädalas üks vaba argipäeva õhtu ja üks vaba hommik. Kumma annaksid eesti keelele või mõnele teisele võõrkeelele? Mida jätaksid selle eest ära?'), 1, 10), 'v5: the hook is the statement in 004_d_week (station 1)'),
     ],
     practice: [
-      station(B.notice('004_p_notice', 'Märka: kuidas võrrelda?', ['Raadiost: argipäeva õhtune kursus on **sagedasem ja lühem**; nädalavahetusel on inimene **värskem**.', 'Keskvõrre + **kui**: lühike tund on **kasulikum kui** pikk. (hea → **parem**)', 'Ülivõrre: **kõige** + keskvõrre: **kõige rahulikum** aeg; lühike vorm: **parim**, **halvim**', '**Võrreldes** + **-ga**: **võrreldes laupäevase kursusega** · **Erinevalt** + **-st**: **erinevalt vennast**', '**Mida** sagedamini, **seda** parem.', 'Ma **eelistan** õhtut, sest õhtune tund on **lühem kui** laupäevane.'], 'full'), 3, 12),
-      purpose(B.transformation('004_p_trans', 'Võrdle ühe lausega.', 'Tee kahest faktist üks võrdlus antud sõnadega.', [
+      station(B.notice('004_p_notice', 'Märka: kuidas võrrelda?', [
+        'Raadiost: õhtune kursus on **sagedasem ja lühem**; veebikursus on **paindlikum**; kümme minutit päevas on **kasulikum kui** kaks tundi pühapäeval.',
+        'Keskvõrre + **kui**: lühike tund on **kasulikum kui** pikk. (hea → **parem**, palju → **rohkem**)',
+        'Ülivõrre: **kõige** + keskvõrre: **kõige paindlikum** kursus; lühike vorm: **parim**, **halvim**',
+        '**Võrreldes** + **-ga**: **võrreldes laupäevase kursusega** · **Erinevalt** + **-st**: **erinevalt veebikursusest**',
+        '**Mida** sagedamini, **seda** parem. · Ma **eelistan** õhtut, sest õhtune tund on **lühem kui** laupäevane.',
+      ], 'full'), 3, 20),
+      why(purpose(B.transformation('004_p_trans', 'Võrdle ühe lausega.', 'Tee kahest faktist üks võrdlus märksõnas antud sõnadega.', [
         ['Õhtukursus maksab 480 eurot. Laupäevane kursus maksab 420 eurot.', 'kallis … kui', 'Õhtukursus on kallim kui laupäevane kursus.|Õhtukursus on kallim kui laupäevane.|Õhtukursus on laupäevasest kursusest kallim.'],
         ['Õhtune tund kestab kaks tundi. Laupäevane tund kestab neli tundi.', 'lühike … kui', 'Õhtune tund on lühem kui laupäevane tund.|Õhtune tund on lühem kui laupäevane.|Õhtune tund on laupäevasest lühem.'],
         ['Veebikursus on paindlik. Laupäevane kursus ei ole nii paindlik.', 'võrreldes …-ga', 'Võrreldes laupäevase kursusega on veebikursus paindlikum.|Veebikursus on võrreldes laupäevase kursusega paindlikum.'],
@@ -477,33 +1087,84 @@ export const LESSONS = withShapes({
         ['Laupäeva hommik on minu nädalas rahulikum kui kõik teised ajad.', 'kõige', 'Laupäeva hommik on minu nädala kõige rahulikum aeg.|Laupäeva hommik on mu nädala kõige rahulikum aeg.'],
         ['Ma kordan sõnu sageli. Ma mäletan neid hästi.', 'mida … seda', 'Mida sagedamini ma sõnu kordan, seda paremini ma neid mäletan.|Mida sagedamini ma sõnu kordan, seda paremini neid mäletan.|Mida sagedamini kordan sõnu, seda paremini neid mäletan.'],
         ['Lühike tund mitu korda nädalas on kasulik. Üks pikk tund on vähem kasulik.', 'kasulik … kui', 'Lühike tund mitu korda nädalas on kasulikum kui üks pikk tund.'],
-      ], 'full', 'g_notice'), 'Pere vestluses kaalud eelarvet ja kohustusi; selge võrdlus aitab otsustada.'),
+        ['Klassiruumis räägin palju. Veebis räägin vähe.', 'rohkem … kui', 'Klassiruumis räägin rohkem kui veebis.|Klassiruumis räägin ma rohkem kui veebis.'],
+      ], 'full', 'g_notice'), 'Pere vestluses kaalud eelarvet ja kohustusi; selge võrdlus aitab otsustada.'), [
+        'kallis → kallim (keskvõrre) + kui; või: laupäevasest kursusest kallim.',
+        'lühike → lühem (keskvõrre) + kui.',
+        'võrreldes + kaasaütlev (-ga): laupäevase kursusega; siis keskvõrre paindlikum.',
+        'erinevalt + seestütlev (-st): vennast.',
+        'Ülivõrre: kõige + keskvõrre: kõige rahulikum aeg.',
+        'Paar „mida + keskvõrre …, seda + keskvõrre …”: sagedamini … paremini.',
+        'kasulik → kasulikum (keskvõrre) + kui, mitte „nagu”.',
+        'palju → rohkem (keskvõrre) + kui; „rohkem palju” ei ütle.',
+      ]),
+      why(teach(purpose(B.formtext('004_p_text', 'Kolm kursust: võrdlus tekstis.', 'Loe õppija blogi ja kirjuta lünka sulgudes oleva sõna õige vorm: keskvõrre, ülivõrre või käändevorm. Panka ei ole.', 'Kuidas ma kursuse valisin', [
+        'Jaanuaris pidin valima kolme B2-kursuse vahel. Õhtune kursus oli kõige [kallim] (kallis), kuid tunnid olid [lühemad] (lühike) ja toimusid kaks korda nädalas. Laupäevane kursus oli odavam, aga neli tundi järjest on [kauem] (kaua), kui ma jaksan keskenduda.',
+        '',
+        'Võrreldes [klassiruumiga] (klassiruum) on veebikursus palju paindlikum: hommikul kell pool kaheksa ei pea kuhugi sõitma. Erinevalt [laupäevasest] (laupäevane) kursusest kestab see 14 nädalat, nii et kordamiseks jääb rohkem aega.',
+        '',
+        'Proovisin kaks nädalat veebis ja märkasin, et räägin seal [vähem] (vähe) kui klassis. Seetõttu valisin lõpuks õhtuse kursuse. See ei olnud [odavaim|kõige odavam] (odav), aga minu jaoks oli see [parim|kõige parem] (hea).',
+        '',
+        'Nüüd tean: mida [sagedamini] (sageli) ma õpin, seda [rohkem] (palju) ma mäletan.',
+      ]), 'Sama mudeli järgi võrdled kursusi pereliikmega rääkides.'), 'Üks-ühele: õpilane täidab lüngad üksi, siis loeb blogi valjusti ette; sina küsid pärast iga lõiku „Miks just see vorm?”.'), [
+        'Kolmest kõige suurem hind → ülivõrre: kõige kallim.',
+        'Mitmus (tunnid) → keskvõrre mitmuses: lühemad.',
+        'Võrdlus „…, kui ma jaksan” → keskvõrre: kaua → kauem.',
+        'võrreldes + kaasaütlev: klassiruumiga.',
+        'erinevalt + seestütlev: laupäevasest (kursusest).',
+        'vähe → keskvõrre vähem + kui.',
+        'Ülivõrre lühivormis: odavaim (või kõige odavam).',
+        'hea → parim (või kõige parem).',
+        'mida + keskvõrre: sageli → sagedamini.',
+        'seda + keskvõrre: palju → rohkem.',
+      ]),
+      why(purpose(tag(B.table('004_p_register', 'Perele või tööandjale?', 'Vasakul on sama mõte pereliikmele. Paremas veerus on see kirjas tööandjale. Kirjuta lünka puuduv sõna.', 'Pereliikmele, Tööandjale', [
+        'Ma tahan kursusele minna. | [Sooviksin] osaleda jaanuaris algaval B2-kursusel.',
+        'Teisipäeviti pean varem ära minema. | Kas oleks [võimalik] teisipäeviti lahkuda kell 17?',
+        'Maksa mu kursus kinni! | Kas firma [saaks/võiks] kursuse eest osaliselt tasuda?',
+        'Siis räägin klientidega paremini. | B2-tase [aitaks] mul klientidega paremini suhelda.',
+        'Ma teen töö hiljem ära. | Puuduva aja [teeksin] tasa neljapäeviti.',
+        'See kursus on lihtsalt parem. | [Võrreldes] teiste kursustega sobib see mulle kõige paremini.',
+        'Ütle kiiresti, jah või ei. | Oleksin tänulik, kui [annaksite] mulle reedeks teada.',
+        'Aitäh, kallis! | [Tänan/Aitäh] teid toetuse eest.',
+      ], 'g_notice'), { task: 'W12' }), 'Kirjutad tööandjale sama palve viisakalt ja veenvalt.'), [
+        'tahan → sooviksin (tingiv, ametlik).',
+        '„pean ära minema” → „Kas oleks võimalik …?”',
+        'Käsk → küsimus tingivas kõneviisis: saaks / võiks.',
+        'Kasu tööle tingivas kõneviisis: aitaks.',
+        'Pakkumine: teeksin tasa (tingiv).',
+        'võrreldes + -ga: teiste kursustega.',
+        '„Oleksin tänulik, kui …” + te-vorm tingivas: annaksite.',
+        'Ametlik tänu: Tänan teid … eest.',
+      ]),
     ],
     transfer: [
-      station(B.text('004_t_ad', 'Kuulutus: B2-kursused jaanuarist', 'Keelekool Sõna avab jaanuaris uued B2-kursused täiskasvanutele.\n\nA) Õhtukursus argipäeva õhtul: teisipäeval ja neljapäeval kell 17.30–19.30, 12 nädalat, 480 eurot.\nB) Laupäevane kursus: kell 10–14, 10 nädalat, 420 eurot.\nC) Veebikursus: esmaspäeval ja kolmapäeval kell 7.30–8.30, 14 nädalat, 390 eurot, lisaks iseseisev töö.\n\nIgal kursusel on kuni kümme õppijat. Arve võib saata ka tööandjale.'), 4, 15, { final: 'negotiate' }),
-      B.know('004_t_know', ['Eesti seaduse järgi võib töötaja koolituses osalemiseks saada tööandjalt õppepuhkust 30 kalendripäeva aastas. Kui koolitus on tasemeõpe või tööga seotud, maksab tööandja 20 kalendripäeva eest keskmist töötasu.'], 'Euroopa Komisjon, Eurydice „Eesti: täiskasvanuharidus” (Eurypedia, 8. peatükk); täiskasvanute koolituse seadus (Riigi Teataja)', 'Kas teadsid? Õppepuhkus'),
-      teach(tag(purpose(B.rolecards('004_t_talk', 'Pere nädalaplaan.', 'Vali kuulutusest kursus ja lepi pereliikmega nädal kokku.',
+      station(B.text('004_t_ad', 'Kuulutus: B2-kursused jaanuarist', 'Keelekool Sõna avab jaanuaris uued B2-kursused täiskasvanutele.\n\nA) Õhtukursus argipäeva õhtul: teisipäeval ja neljapäeval kell 17.30–19.30, 12 nädalat, 480 eurot.\nB) Laupäevane kursus: kell 10–14, 10 nädalat, 420 eurot.\nC) Veebikursus: esmaspäeval ja kolmapäeval kell 7.30–8.30, 14 nädalat, 390 eurot, lisaks iseseisev töö.\n\nIgal kursusel on kuni kümme õppijat. Arve võib saata ka tööandjale.'), 4, 25, { final: 'negotiate' }),
+      teach(tag(purpose(B.rolecards('004_t_talk', 'Pere nädalaplaan (8–10 minutit).', 'Vali kuulutusest kursus ja lepi pereliikmega nädal kokku. Võrdle kursusi vähemalt kolmes punktis.',
         'Olukord: tahad jaanuarist B2-kursusele minna, aga pere nädal ja kohustused on niigi täis.\nSinu eesmärk: valida kursus ja leppida kokku nädalaplaan, kus sul on aega õppida.\nPiirang: pere plaane ja eelarvet tead ainult pereliige; küsi temalt.',
         'Pereliikme kaart on õpetajal: pere plaanid, eelarve ja üks mure.',
-        ['Võrreldes laupäevase kursusega…', 'Mul on üks palve: …', 'Kas oleks võimalik, et sina …?', 'Kas me suudame sellest kinni pidada?'], ['Teisipäeviti on mul trenn.', 'Kui palju see maksab?', 'Hea, aga siis …']), 'Tulemus: kursus ja kolmerealine kokkulepe, mida pere toetab.'), { task: 'S05', main: true, level: 4 }),
+        ['Võrreldes laupäevase kursusega…', 'Mul on üks palve: …', 'Kas oleks võimalik, et sina …?'], ['Teisipäeviti on mul trenn.', 'Kui palju see maksab?', 'Hea, aga siis …']), 'Tulemus: kursus ja kolmerealine kokkulepe, mida sinu pere toetab.'), { task: 'S05', main: true, level: 4 }),
       'Õpetaja kaart (pereliige; kui õpilane elab üksi, siis korterikaaslane või sõber). Ütle ainult seda, mida küsitakse. Varjatud info: teisipäeviti on sul õhtune vahetus ja auto on sinuga; neljapäeval kell 18 peab keegi lapse trenni viima; talvel on kursuse eelarve kuni 450 eurot, kui tööandja ei maksa; laupäeva hommikul tuleb vanaema külla. Takistused ükshaaval: 1) „Teisipäeval on auto minuga — kuidas sa linna saad?”; 2) „Laupäeval tuleb vanaema!”; 3) „480 eurot on meile praegu palju.” Õnnestunud, kui: õpilane küsib vähemalt neli küsimust, võrdleb kursusi vähemalt kolmes punktis (aeg, hind, väsimus), pakub kompromissi ja sõnastab kokkuleppe kolme reaga (kursus, kes mida teeb, millal kontrollime).'),
-      extension(teach(tag(purpose(B.speaking('004_t_more', 'Mäng: kumb on parem?', 'Õpetaja nimetab kaks võimalust. Võrdle 20 sekundiga kolmes punktis ja vali.', [
+      tag(homeTask(homeLines(purpose(B.letter('004_t_letter', 'Kodus: kiri tööandjale (umbes 140 sõna).', `Kirjuta oma juhile (kui sa ei tööta, siis valla sotsiaaltöötajale) 140–160 sõna: milline kursus, miks see sobib sulle paremini kui teised, kuidas B2 aitab sinu tööd ja üks viisakas palve. ${VOICE_HOME}`, 'Lugupeetud …!', 'Lugupidamisega\n(sinu nimi)', [140, 160]), 'Juht saab sinu palvega nõustuda ainult siis, kui põhjendus on selge.'), 8)), { task: 'W13', main: true, harno: 'W1' }),
+      writingRubric('004_t_rubric', 'Hindamisjuhend: kiri tööandjale (12 punkti).', 'Piiripealne näidis (7/12 ≈ 58 %, veel mitte 60 %): „Tere, Peeter! Ma tahan minna kursusele. Õhtukursus on rohkem hea kui laupäeva kursus, sest see on lühem. Mina pean teisipäeval ära minema kell viis. Firma peab maksma pool. Siis ma räägin klientidega paremini. Aitäh!” Hinnang: ülesanne 2 (kursus, põhjus ja palve on olemas, kasu tööle on ainult üks lause), ülesehitus 2 (lõike ja sidendeid peaaegu ei ole), sõnavara 1 („pean”, „peab” kõlavad nõudmisena, mitte palvena), grammatika 2 („rohkem hea” → parem; „laupäeva kursus” → laupäevane kursus). Kui õppija kirjutab palved tingivas kõneviisis (kas oleks võimalik, kas firma saaks) ja parandab võrdluse, saab ta 9/12 (75 %).'),
+      exitCheck(purpose(B.selfcheck('004_t_self', ['Ma saan raadiosaatest aru, kuidas töö kõrvalt õppida, ja kasutan üht nõuannet.', 'Ma võrdlen kursusi aja, hinna ja väsimuse järgi: kallim kui, kõige paindlikum, võrreldes …-ga.', 'Ma lepin pereliikmega kokku nädalaplaani ja ütlen kokkuleppe kolme reaga.'], 'Plaan kokku lepitud', 'Ma oskan võrrelda ja kokku leppida'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      hide(B.know('004_t_know', ['Eesti seaduse järgi võib töötaja koolituses osalemiseks saada tööandjalt õppepuhkust 30 kalendripäeva aastas. Kui koolitus on tasemeõpe või tööga seotud, maksab tööandja 20 kalendripäeva eest keskmist töötasu.'], 'Euroopa Komisjon, Eurydice „Eesti: täiskasvanuharidus” (Eurypedia, 8. peatükk); täiskasvanute koolituse seadus (Riigi Teataja)', 'Kas teadsid? Õppepuhkus'), CUT_TIP),
+      hide(extension(teach(tag(purpose(B.speaking('004_t_more', 'Mäng: kumb on parem?', 'Õpetaja nimetab kaks võimalust. Võrdle 20 sekundiga kolmes punktis ja vali.', [
         'buss või jalgratas; raamat või äpp; hommik või õhtu',
         'veebikursus või klassiruum; üksi või paaris; kallis või odav kursus',
       ], [120, 180], ['… on … kui …', 'Võrreldes …-ga …', 'Kõige parem on …']), 'Kiire võrdlemine teeb vormid kallim kui, kõige parem ja võrreldes …-ga automaatseks.'), { task: 'S12', fluency: true }),
-      'Kui aega jääb (10 min). Üks paar korraga, hoia aega (20 s). Iga õige võrdlusvorm = punkt. Lõpus võrdleb õpilane sinu kahte paari ja sina tema omi.'), 10),
-      tag(exitCheck(purpose(B.gaps('004_t_exit', 'Kontrolli end: kolm võrdlust.', 'Vaata kuulutust ja kirjuta sulgudes olev sõna õiges vormis.', [
+      'Kui aega jääb (10 min). Üks paar korraga, hoia aega (20 s). Iga õige võrdlusvorm = punkt. Lõpus võrdleb õpilane sinu kahte paari ja sina tema omi.'), 10), CUT_EXTRA),
+      hide(why(tag(exitCheck(purpose(B.gaps('004_t_exit', 'Kontrolli end: kolm võrdlust.', 'Vaata kuulutust ja kirjuta sulgudes olev sõna õiges vormis.', [
         'Kuulutuse järgi on argipäeva õhtukursus [kallim] kui laupäevane kursus. (kallis)',
         'Kolmest kursusest on hinna poolest veebikursus kõige [odavam]. (odav)',
         'Nädalate arvu järgi on laupäevane kursus [lühem] kui veebikursus. (lühike)',
-      ], '', 'full', 'g_read'), 'Kolm lauset näitavad, kas võrdlemine on käes.')), { task: 'R08' }),
-      purpose(B.selfcheck('004_t_self', ['Ma võrdlen kursusi aja, hinna ja väsimuse järgi.', 'Ma saan raadiost aru, kuidas töö kõrvalt õppida.', 'Ma kasutan vorme kallim kui, kõige odavam, võrreldes …-ga.', 'Ma lepin pereliikmega nädalaplaani kokku ja ütlen, mida eelistan.'], 'Plaan kokku lepitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(purpose(B.writing('004_t_reply', 'Kodus: kiri keelekoolile.', 'Kirjuta kodus 5–6 lauset: millisele kursusele registreerud, miks see on sulle parem kui teised ja üks küsimus.', [5, 6], ['kui', 'kõige', 'võrreldes', 'erinevalt'], 2, 'g_notice'), 'Koht kursusel kinnitub alles sinu kirjaga.'), { task: 'W08', level: 3 }),
-      tag(homeTask(purpose(B.speaking('004_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: sinu nädalaplaan ja miks see kursus sobib sulle kõige paremini.', [
+      ], '', 'full', 'g_read'), 'Kolm lauset näitavad, kas võrdlemine on käes.')), { task: 'R08' }), OLD_WHY['004_t_exit']), CUT_DRILL),
+      hide(tag(purpose(B.writing('004_t_reply', 'Kodus: kiri keelekoolile.', 'Kirjuta kodus 5–6 lauset: millisele kursusele registreerud, miks see on sulle parem kui teised ja üks küsimus.', [5, 6], ['kui', 'kõige', 'võrreldes', 'erinevalt'], 2, 'g_notice'), 'Koht kursusel kinnitub alles sinu kirjaga.'), { task: 'W08', level: 3 }), '5–6 sentences with given words (B1): replaced by the B2 letter 004_t_letter (~140 words, analytic rubric)'),
+      hide(tag(homeTask(purpose(B.speaking('004_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: sinu nädalaplaan ja miks see kursus sobib sulle kõige paremini.', [
         'Millal ja kui tihti sa õpid?',
         'Miks on see kursus sulle parem kui teised?',
-      ], [60, 120]), 'Õpetaja kuuleb sinu plaani ja annab ühe nõu.')), { task: 'S15' }),
-      homework('004_t_homework', ['1. Kiri keelekoolile, 5–6 lauset (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      ], [60, 120]), 'Õpetaja kuuleb sinu plaani ja annab ühe nõu.')), { task: 'S15' }), CUT_HOME),
+      hide(homework('004_t_homework', ['1. Kiri keelekoolile, 5–6 lauset (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]), CUT_HOME),
     ],
   },
 
@@ -511,42 +1172,42 @@ export const LESSONS = withShapes({
     title: 'Kontroll 1 — igapäevaelu',
     format: 'exam',
     assessment: true,
-    canDo: 'Ma lahendan eksami vormis lugemis- ja kuulamisülesandeid, kirjutan umbes 140-sõnalise kirja ja 180-sõnalise arutluse ning esinen koosolekul 1 minuti.',
+    canDo: 'Ma loen eksami vormis umbes 550-sõnalist arvamusartiklit ja lahendan selle ülesanded ning räägin pärast kahte minutit ettevalmistust ühe minuti ja arutlen; Harno lävi on 60 %.',
+    // module control (v5 §5): ONE sheet, 45 min, ≤ 10 blocks, two skills — reading (Harno B2 reading parts 1–2 on one long
+    // article) and speaking (the parallel new task of the cold task 001_d_cold + a discussion with keyword cards); raw
+    // points and the thresholds named one way. The old three sheets (37 blocks) stay hidden below.
     discover: [
-      B.text('005_d_intro', 'Kordamine enne kontrolli', 'See leht kordab tunde 1–4: sidusus, aeg ja sagedus, sõnajärg, võrdlemine. Tee kõik ülesanded ilma abita ja märgi kahtlased kohad.'),
-      B.vocab('005_d_vocab', 'Mooduli 1 põhisõnad', ['kõigepealt — сначала', 'seejärel — затем', 'kuigi — хотя', 'kuna — так как', 'võrreldes — по сравнению', 'samas — однако, в то же время', 'seetõttu — поэтому', 'korda nädalas — раз в неделю', 'aeg-ajalt — время от времени', 'pingeline — напряжённый'], '2'),
-      B.reading('005_d_read', 'Lugemisosa.', 'Loe tekst ja vasta. Mõned küsimused nõuavad järeldust.', 'Aeglane elu linnas',
-        'Viimastel aastatel räägitakse üha sagedamini aeglasest elust. Selle liikumise mõte on lihtne: me ei pea kogu aeg kiirustama. Aeglase elu pooldajad soovitavad teha korraga ainult üht asja, süüa rahulikult laua taga ja veeta rohkem aega looduses. Tallinnas elav Anneli otsustas proovida aeglast elu terve kuu. Kõigepealt kustutas ta telefonist sotsiaalmeedia rakendused. Seejärel hakkas ta tööle sõitma jalgrattaga, kuigi see võttis bussiga võrreldes kümme minutit kauem aega. Õhtuti ei vaadanud ta enam telerit, vaid luges raamatuid või kohtus sõpradega.\n\nEsimene nädal oli raske. Anneli tundis, et jääb millestki ilma, ja haaras harjumusest pidevalt telefoni järele. Teisel nädalal muutus olukord paremaks. Ta märkas, et magab sügavamalt ja ärkab puhanumana. Tööl suutis ta paremini keskenduda, sest ei vaadanud iga paari minuti tagant teateid. Kuu lõpuks oli Anneli lugenud viis raamatut, kuigi varem luges ta aastas vaid kaks-kolm.\n\nSamas ütleb Anneli, et kõike ta ei jätka. Sotsiaalmeedia on talle vajalik tööks ja sõpradega suhtlemiseks. Nüüd kasutab ta seda aga ainult kaks korda päevas kindlal ajal. Jalgrattaga sõidab ta edasi, välja arvatud vihmaste päevadel. Anneli arvates ei tähenda aeglane elu vähem tööd, vaid teadlikumaid valikuid. Tema eeskujul proovis aeglast elu ka kaks kolleegi. Üks neist loobus juba teisel päeval, teine aga jätkab siiani ja on sellega väga rahul.\n\nPsühholoogid kiidavad selliseid katseid, kuid hoiatavad liiga suurte lubaduste eest. Kui inimene muudab korraga kõike, väsib ta kiiresti ja loobub. Palju targem on alustada ühest väikesest harjumusest, näiteks õhtusest jalutuskäigust ilma telefonita, ja lisada uusi alles siis, kui esimene on muutunud loomulikuks. Nii jääb muutus püsima ka pärast katse lõppu.',
-        [['Mis on aeglase elu põhimõte?', 'me ei pea kogu aeg kiirustama'], ['Mida tegi Anneli kõigepealt?', 'kustutas sotsiaalmeedia rakendused'], ['Miks oli esimene nädal raske?', 'tundis, et jääb millestki ilma'], ['Mis muutus teisel nädalal?', 'magas sügavamalt, keskendus paremini'], ['Mitu raamatut luges ta kuu jooksul?', 'viis|5'], ['Miks ta sotsiaalmeediat täiesti ei jäta?', 'see on vajalik tööks ja suhtlemiseks'], ['Mida tähendab Anneli arvates aeglane elu?', 'teadlikumaid valikuid'], ['Miks hoiatavad psühholoogid liiga suurte lubaduste eest?', 'inimene väsib kiiresti ja loobub|kui muuta kõike korraga, ei jaksa']]),
-      B.gaps('005_d_gram', 'Kümme grammatikapunkti.', 'Kirjuta sulgudes olev sõna õiges vormis.', ['Eile [sõitsin] (sõitma) tööle rattaga.', 'Ma käin [kaks korda] (kaks kord) nädalas ujumas.', '[Laupäeviti] (laupäev) magan kauem.', 'Ma olen Tallinnas elanud [viis aastat] (viis aasta).', 'Rattaga võtab tee [kauem] (kaua) aega.', 'See oli kuu [kõige raskem] (raske) nädal.', 'Ta ütles, et [loeb] (lugema) nüüd rohkem.', 'Võrreldes [bussiga] (buss) on ratas tervislikum.', 'Kui mul oleks aega, [loeksin] (lugema) rohkem.', 'Telefoni [kasutatakse] (kasutama) liiga palju.']),
-      B.wordorder('005_d_order', 'Sõnajärg.', 'Pane laused kokku.', ['Õhtuti loeb Anneli nüüd raamatuid.', 'Esimesel nädalal haaras ta sageli telefoni järele.', 'Kuu lõpuks oli ta lugenud viis raamatut.', 'Vihmastel päevadel sõidab ta bussiga.', 'Nüüd kasutab ta sotsiaalmeediat kaks korda päevas.', 'Kuigi esimene nädal oli raske, ei andnud ta alla.', 'Võrreldes eelmise kuuga magab Anneli nüüd paremini.', 'Hommikuti joob ta kohvi ilma telefonita.', 'Nädalavahetusel käib ta perega metsas jalutamas.', 'Seetõttu on tal rohkem aega iseendale.']),
-      B.translation('005_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta loomulik eestikeelne lause.', ['Сначала она удалила приложения.', 'Хотя первая неделя была трудной, она не сдалась.', 'По сравнению с автобусом велосипед медленнее.', 'Теперь она пользуется соцсетями два раза в день.', 'Если бы у меня было время, я бы читал больше.', 'По выходным она гуляет в лесу.', 'Самое трудное — не брать телефон по утрам.', 'Так как она ездит на велосипеде, она реже болеет.', 'Через месяц она прочитала пять книг.', 'Медленная жизнь означает осознанный выбор.']),
-      B.speaking('005_d_mono', 'Monoloog 2–3 minutit.', 'Kas sina tahaksid elada aeglasemalt? Räägi ilma tekstita.', ['Milline on sinu elutempo praegu?', 'Mida muudaksid ja miks?', 'Mis takistab?'], [120, 180]),
-      B.writing('005_d_write', 'Kordamise tekst.', 'Kirjuta 6–8 lauset: üks kuu ilma millegita (telefon, auto, kohv…). Mis muutuks?', [6, 8], ['kõigepealt', 'kuigi', 'võrreldes', 'seetõttu'], 3),
-      B.errorfix('005_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Kuigi oli raske, aga ta jätkas.', 'Kuigi oli raske, jätkas ta. | Kuigi oli raske, ta jätkas.'], ['Ta sõidab rattaga kolm korda nädalal.', 'Ta sõidab rattaga kolm korda nädalas.'], ['Võrreldes buss on ratas aeglasem.', 'Võrreldes bussiga on ratas aeglasem.'], ['Õhtuti loeb ta raamatud.', 'Õhtuti loeb ta raamatuid.'], ['See oli kõige raskem nädal kuus.', 'See oli kuu kõige raskem nädal.'], ['Kuu lõpuks ta oli lugenud viis raamatut.', 'Kuu lõpuks oli ta lugenud viis raamatut.'], ['Ta kustutas telefonist kõik rakendusi.', 'Ta kustutas telefonist kõik rakendused.'], ['Vihmasel päeval ta sõidab bussiga tööle.', 'Vihmasel päeval sõidab ta bussiga tööle.'], ['Nüüd ta kasutab sotsiaalmeedia ainult õhtul.', 'Nüüd kasutab ta sotsiaalmeediat ainult õhtul.'], ['Aeglane elu tähendab teadlikud valikud.', 'Aeglane elu tähendab teadlikke valikuid.']]),
-    ],
-    // Harno format check, reading and listening (owner 2026-10-13): a long article with 4-option questions and
-    // statements ↔ paragraphs, an option cloze, a sentence bank with one extra, short notices and a radio interview
-    practice: [
-      B.tip('005_p_how', 'Kontrolltöö: lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno eksami lugemise ja kuulamise osa. Lugemises on neli osa, kuulamises kolm. Teateid loeb õpetaja üks kord, intervjuud kaks korda. Tee kõik ilma sõnaraamatuta.', 'full'),
-      B.reading('005_p_read', 'Lugemine 1: artikkel.', 'Loe arvamusartiklit. Vasta kahele küsimusele, siis tee osad 1 ja 2.', 'Ajapuudus – meie aja haigus?', [
-        '(A) Kui küsida inimestelt, mis on nende igapäevaelu suurim mure, vastavad paljud lühidalt: aega ei ole. Kuhu see aeg siis kaob? Statistikaamet uurib seda iga kümne aasta tagant. Viimases ajakasutuse uuringus aastatel 2019–2021 pidasid tuhanded inimesed päevikut, kuhu nad märkisid kõik oma tegevused. Uuringu järgi kulub tasulisele tööle keskmiselt 3,3 tundi ööpäevas. See arv tundub väike, kuid selles on arvestatud kõiki päevi ja kõiki inimesi alates kümnendast eluaastast, ka õpilasi, pensionäre, nädalavahetusi ja puhkusi. Täiskohaga töötaja tööpäev on muidugi palju pikem. Kui lisada sellele veel sõit, kodutööd ja uni, ei jää vaba aega kuigi palju. Seepärast ei tasu keskmist arvu oma nädalaga otse võrrelda: see näitab pigem, kuidas muutub kogu ühiskond, kui seda, kuidas elab üks konkreetne inimene.',
-        '(B) Huvitav on see, et kodus kulub meil praegu vähem aega kui varem. Kakskümmend aastat tagasi valmistasid naised süüa keskmiselt 95 minutit päevas, nüüd 57 minutit. Riiete pesemisele ja triikimisele kulus neil toona 32 minutit päevas, nüüd vaid 7. Abiks on olnud poolvalmistoidud, toidukullerid ja kodutehnika. Ka vaba aega on kahekümne aastaga juurde tulnud. Probleem ei ole seega ainult aja hulgas, vaid selles, kuidas me oma aega kasutame ja tajume.',
-        '(C) Üks põhjus on ekraanid. Ameerika teadlane Gloria Mark on üle kahekümne aasta mõõtnud, kui kaua inimesed ühele aknale või rakendusele keskenduvad. 2004. aastal oli see keskmiselt kaks ja pool minutit, viimastel aastatel aga vähem kui minut. Iga hüpe võtab vaid hetke, kuid päeva peale kogunevad need tundideks. Paljud ei märkagi seda, sest telefon on alati käepärast. Õhtul tundub, et vaba aega ei olnudki, sest see kadus märkamatult väikeste tükkidena.',
-        '(D) Teine põhjus on see, et me tahame liiga palju korraga. Lapsed käivad kolmes trennis, täiskasvanud õpivad keeli ja jõusaalis tuleb käia vähemalt kolm korda nädalas. Paljud planeerivad oma nädalavahetuse sama tihedaks kui tööpäeva: laupäeva hommikul turg, päeval remont, õhtul külalised. Nii muutub puhkus järjekordseks ülesandeks, mille saab nimekirjast maha tõmmata. Ka lastel on nädal sageli nii täis, et nad ei teagi enam, mis tunne on igavleda. Huvitav on see, et keegi ei plaani seda meelega. Iga trenn, kursus ja kohtumine tundub eraldi võttes mõistlik ja kasulik. Alles nädala lõpus selgub, et kõik need head asjad kokku ei jäta enam ruumi ei puhkusele ega ootamatustele.',
-        '(E) Mida siis teha? Minu arvates tasub alustada väikestest muudatustest. Esiteks võiks iga nädal jätta ühe õhtu täiesti tühjaks. Teiseks tasub telefon õhtul teise tuppa jätta. Kolmandaks on kasulik paar korda aastas üle vaadata, millised kohustused on päriselt olulised ja millest võiks loobuda. Töökohtades võiks kokku leppida, et õhtul saadetud kiri võib oodata hommikuni. Seadus on siin töötaja poolel: töölepingu seaduse järgi peab töötajal jääma iga 24 tunni jooksul vähemalt 11 tundi järjestikust puhkeaega.',
-        '(F) Aeglasem elu ei tähenda laiskust. Vastupidi, puhanud inimene teeb tööl vähem vigu ja suudab paremini keskenduda. Uneeksperdid soovitavad täiskasvanule 7–9 tundi und ning ajakasutuse uuringu järgi tuleb see aeg Eesti inimestel keskmiselt täis. Puhkus ei ole tasu, mille peab enne välja teenima, vaid töö ja elu loomulik osa, nagu toit või uni. Kõige raskem on minu kogemuse järgi esimene samm: lubada endale, et mõnikord ei pea midagi tegema. Ajapuudus ei ole haigus, mis tuleb väljastpoolt. Suure osa sellest loome ise ja seepärast saame selle ka ise ravida.',
-        'Allikas: Statistikaamet, ajakasutuse uuring 2019–2021 (ajakasutuse leht; „Mehe kodu on maailm, naise maailm on kodu?”, 20.12.2022; „Andmed paljastavad. Suur ülevaade Eesti inimeste tervislikust ajakasutusest”, 17.01.2023); G. Mark, „Attention Span” (2023); töölepingu seadus, § 51 (Riigi Teataja).',
-      ].join('\n\n'), [['Miks kulub kodutöödele praegu vähem aega kui varem?', 'poolvalmistoidud, toidukullerid ja kodutehnika|tänu poolvalmistoitudele, kulleritele ja tehnikale'], ['Kuidas mõjub puhkus autori sõnul tööle?', 'vähem vigu|keskendub paremini|töö läheb paremini'], ['Mida sina arvad: milline autori nõuanne sobiks sulle? Miks?']]),
-      B.choice('005_p_mc', 'Osa 1: vali õige vastus (6 punkti).', 'Vali artikli põhjal õige vastus.', [
+      B.text('005_d_intro', 'Kontroll 1: lugemine ja rääkimine (45 minutit)', 'Kontrollis on kaks osaoskust. Lugemine (25 minutit): üks arvamusartikkel ja kaks ülesannet ilma sõnaraamatuta, 16 punkti. Rääkimine (umbes 15 minutit): üheminutiline sõnavõtt pärast kahte minutit ettevalmistust ja arutelu märksõnakaartidega, 12 punkti. Kokku 28 punkti. Harno: sooritatud alates 60 % (vähemalt 17 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (20 punkti), meie tunnistus alates 80 % (23 punkti) — see on sisemine lävi.'),
+      PART('005_p_rpart', 'R', { minutes: 25, points: 16, tasks: 2, note: 'Artikkel umbes 550 sõna: osa 1 valikvastused (8 punkti), osa 2 väide ja lõik (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      B.reading('005_p_read', 'Lugemine: arvamusartikkel.', 'Loe artiklit (umbes 10 minutit). Seejärel tee osad 1 ja 2. Sõnaraamatut ei kasutata.', 'Ajapuudus – meie aja haigus?', [
+        '(A) Kui küsida inimestelt, mis on nende igapäevaelu suurim mure, vastavad paljud lühidalt: aega ei ole. Kuhu see aeg siis kaob? Statistikaamet uurib seda iga kümne aasta tagant: tuhanded inimesed peavad päevikut, kuhu nad märgivad kõik oma tegevused. Uuringu keskmine tööaeg tundub üllatavalt lühike, kuid selles on arvestatud kõiki päevi ja kõiki inimesi alates kümnendast eluaastast, ka õpilasi, pensionäre, nädalavahetusi ja puhkusi. Täiskohaga töötaja tööpäev on muidugi palju pikem. Seepärast ei tasu keskmist oma nädalaga otse võrrelda: see näitab pigem, kuidas muutub kogu ühiskond, kui seda, kuidas elab üks konkreetne inimene.',
+        '(B) Huvitav on see, et kodus kulub meil praegu vähem aega kui varem. Kakskümmend aastat tagasi kulus söögitegemisele peaaegu poole rohkem aega kui praegu, ning pesu pesemine ja triikimine võtavad nüüd vaid mõne minuti päevas. Abiks on olnud poolvalmistoidud, toidukullerid ja kodutehnika. Ka vaba aega on kahekümne aastaga juurde tulnud. Probleem ei ole seega ainult aja hulgas, vaid selles, kuidas me oma aega kasutame ja tajume.',
+        '(C) Üks põhjus on ekraanid. Teadlased on aastaid mõõtnud, kui kaua inimesed ühele aknale või rakendusele keskenduvad. Selgus, et see aeg on järjest lühenenud: varem mõni minut, nüüd sageli alla minuti. Iga hüpe võtab vaid hetke, kuid päeva peale kogunevad need tundideks. Paljud ei märkagi seda, sest telefon on alati käepärast. Õhtul tundub, et vaba aega ei olnudki, sest see kadus märkamatult väikeste tükkidena.',
+        '(D) Teine põhjus on see, et me tahame liiga palju korraga. Lapsed käivad kolmes trennis, täiskasvanud õpivad keeli ja jõusaalis tuleb käia vähemalt kolm korda nädalas. Paljud planeerivad oma nädalavahetuse sama tihedaks kui tööpäeva: laupäeva hommikul turg, päeval remont, õhtul külalised. Nii muutub puhkus järjekordseks ülesandeks, mille saab nimekirjast maha tõmmata. Ka lastel on nädal sageli nii täis, et nad ei teagi enam, mis tunne on igavleda. Keegi ei plaani seda meelega: iga trenn ja kursus tundub eraldi võttes mõistlik. Alles nädala lõpus selgub, et kõik need head asjad kokku ei jäta enam ruumi puhkusele.',
+        '(E) Mida siis teha? Minu arvates tasub alustada väikestest muudatustest. Esiteks võiks iga nädal jätta ühe õhtu täiesti tühjaks. Teiseks tasub telefon õhtul teise tuppa jätta. Kolmandaks on kasulik paar korda aastas üle vaadata, millised kohustused on päriselt olulised ja millest võiks loobuda. Töökohtades võiks kokku leppida, et õhtul saadetud kiri võib oodata hommikuni. Seadus on siin töötaja poolel: töötajal peab iga päev jääma piisavalt pikk järjestikune puhkeaeg.',
+        '(F) Aeglasem elu ei tähenda laiskust. Vastupidi, puhanud inimene teeb tööl vähem vigu ja suudab paremini keskenduda. Puhkus ei ole tasu, mille peab enne välja teenima, vaid töö ja elu loomulik osa, nagu toit või uni. Kõige raskem on minu kogemuse järgi esimene samm: lubada endale, et mõnikord ei pea midagi tegema. Ajapuudus ei ole haigus, mis tuleb väljastpoolt. Suure osa sellest loome ise ja seepärast saame selle ka ise ravida.',
+        'Allikas: KeeleSepp õppetekst (Statistikaameti ajakasutuse uuringu põhjal, arvud üldistatud).',
+      ].join('\n\n'), []),
+      why(B.choice('005_p_mc', 'Osa 1: vali õige vastus (8 punkti).', 'Vali artikli põhjal õige vastus.', [
         ['Mis on artikli järgi paljude inimeste suurim mure?', 'et neil ei jätku aega', 'et töönädal on liiga pikk', 'et poodides on pikad järjekorrad', 'et lapsed käivad liiga paljudes trennides'],
         ['Mida näitab ajakasutuse uuring kodutööde kohta?', 'Neile kulub vähem aega kui kakskümmend aastat tagasi.', 'Neile kulub rohkem aega kui kakskümmend aastat tagasi.', 'Kodutööde aeg ei ole kahekümne aastaga muutunud.', 'Kodutöid teevad nüüd peamiselt mehed.'],
         ['Miks tundub ekraani kasutajale õhtul, et vaba aega ei olnud?', 'Lühikesed hetked ekraani ees kogunevad tundideks.', 'Ta peab õhtul töökirjadele vastama.', 'Iga rakendus võtab umbes tunni.', 'Ta kasutab ekraane ainult õhtuti.'],
         ['Mida tähendab lause „Puhkus muutub järjekordseks ülesandeks”?', 'Ka vaba aeg planeeritakse liiga täis.', 'Inimesed töötavad ka puhkuse ajal.', 'Puhkusel tuleb teha palju kodutöid.', 'Puhkus tundub inimestele liiga igav.'],
         ['Milline järgmistest EI OLE autori soovitus?', 'loobuda trennidest täielikult', 'jätta üks õhtu nädalas tühjaks', 'jätta telefon õhtul teise tuppa', 'vaadata kohustused aeg-ajalt üle'],
+        ['Miks ei tasu autori arvates uuringu keskmist tööaega oma nädalaga otse võrrelda?', 'Keskmine näitab kogu ühiskonda, mitte üht inimest.', 'Uuringus osalesid ainult pensionärid.', 'Uuring tehti liiga ammu.', 'Täiskohaga töötajad ei pidanud päevikut.'],
+        ['Kuidas suhtub autor puhkusesse?', 'Puhkus on elu loomulik osa, mitte tasu.', 'Puhkuse peab enne välja teenima.', 'Puhkus on laiskuse märk.', 'Puhkust vajavad eelkõige lapsed.'],
         ['Mis on artikli peamine mõte?', 'Ajapuudus sõltub sellest, kuidas me aega kasutame.', 'Eesti inimesed töötavad teistest rohkem.', 'Telefoni ei tohiks üldse kasutada.', 'Laiskus on tänapäeval suur probleem.'],
-      ], 'full', 'g_read'),
-      B.table('005_p_para', 'Osa 2: väide ja lõik (8 punkti).', 'Loe väiteid 1–8. Kirjuta, millises artikli lõigus (A–F) see mõte on. Ühte lõiku võib sobida kaks väidet.', 'Väide, Lõik', [
+      ], 'full', 'g_read'), [
+        'Lõik A: paljud vastavad „aega ei ole”.',
+        'Lõik B: kodus kulub „vähem aega kui varem”.',
+        'Lõik C: „Iga hüpe võtab vaid hetke, kuid päeva peale kogunevad need tundideks.”',
+        'Lõik D: nädalavahetus planeeritakse „sama tihedaks kui tööpäev”.',
+        'Lõik E soovitab tühja õhtut, telefoni teise tuppa ja kohustuste ülevaatust; trennidest täielikult loobuda ei soovita.',
+        'Lõik A: keskmine „näitab pigem, kuidas muutub kogu ühiskond, kui seda, kuidas elab üks konkreetne inimene”.',
+        'Lõik F: „Puhkus ei ole tasu, mille peab enne välja teenima, vaid töö ja elu loomulik osa.”',
+        'Lõigud B ja F: probleem on selles, „kuidas me oma aega kasutame”; „suure osa sellest loome ise”.',
+      ]),
+      why(B.table('005_p_para', 'Osa 2: väide ja lõik (8 punkti).', 'Loe väiteid 1–8. Kirjuta, millises artikli lõigus (A–F) see mõte on. Ühte lõiku võib sobida kaks väidet.', 'Väide, Lõik', [
         '1. Varem võttis igapäevane majapidamine rohkem aega. | [B]',
         '2. Vaba aeg kaob väikeste tükkidena. | [C]',
         '3. Puhanud töötaja teeb oma tööd paremini. | [F]',
@@ -555,23 +1216,65 @@ export const LESSONS = withShapes({
         '6. Muutusi tasub alustada väikestest sammudest. | [E]',
         '7. Kõige raskem on lubada endale tegevusetust. | [F]',
         '8. Tihe graafik on ka lastel. | [D]',
-      ], 'g_read'),
-      B.cloze('005_p_cloze', 'Osa 3: vali lünka sobiv vorm (9 punkti).', 'Igas lüngas on neli valikut. Vali õige.', 'Minu uus hommik', [
+      ], 'g_read'), [
+        'Lõik B: söögitegemisele kulus varem „peaaegu poole rohkem aega”, pesule kulub nüüd „vaid mõne minuti”.',
+        'Lõik C: aeg „kadus märkamatult väikeste tükkidena”.',
+        'Lõik F: „puhanud inimene teeb tööl vähem vigu”.',
+        'Lõik A: arvestatud on „kõiki päevi ja kõiki inimesi”.',
+        'Lõik D: „me tahame liiga palju korraga”.',
+        'Lõik E: „tasub alustada väikestest muudatustest”.',
+        'Lõik F: „Kõige raskem … on esimene samm: lubada endale, et mõnikord ei pea midagi tegema.”',
+        'Lõik D: „Ka lastel on nädal sageli nii täis …”',
+      ]),
+      PART('005_t_spart', 'S', { minutes: 15, points: 12, tasks: 2, note: 'Sõnavõtt (2 minutit ettevalmistust, 1 minut kõnet) ja arutelu märksõnakaartidega (kuni 4 minutit): 4 kriteeriumi × 0–3 = 12 toorpunkti.' }),
+      teach(withInstruction(B.examiner('005_t_mono', 'aeg, töö, kodu ja õppimine', [
+        'Mis võtab sinu nädalas kõige rohkem aega ja miks?',
+        'Kas töökirjadele peaks vastama ka õhtul ja nädalavahetusel?',
+        'Kumb on sinu arvates parem: viis lühemat või neli pikemat tööpäeva nädalas?',
+        'Kuidas jagatakse kodutöid sinu peres ja kas see on õiglane?',
+        'Millal on sul aega eesti keelt õppida ja mis seda takistab?',
+        'Mida peaks tööandja tegema, et töötajatel oleks rohkem aega perele?',
+      ], 'B2', [60, 180]), 'Väide: „Ajapuudus on meie enda valik.” Mõtle 2 minutit (märkmeid võib teha) ja räägi 1 minut: kas oled nõus? Valmis fraase ei ole. Siis vastad eksamineerija küsimustele.'),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-001 (2 minutit mõtlemiseks, 1 minut kõneks, fraase ei ole), uus teema. Võrdle külma alguse märkmetega: seisukoht esimeses lauses, põhjus ja näide, vastuargument, sillad, korduvad vead. Ütle õppijale üks konkreetne areng ja üks järgmine samm. Pärast kõnet küsi 2–3 küsimust nimekirjast (kuni 4 minutit) ja esita ühele vastusele vastuargument, millele õpilane viisakalt vastab.'),
+      teach(B.rolecards('005_t_cards', 'Rääkimine 2: arutelu märksõnakaartidega (kuni 4 minutit).', 'Teema: kas meie töökohas peaks koosolekul olema telefonid keelatud? Öelge kõigepealt kumbki 30 sekundiga oma arvamus. Siis arutage kaartide ja oma näidetega ning leppige kokku ühine reegel.',
+        'Kaart A (poolt): märksõnad, ehita neist ise argument ja too näide. 1) lühem koosolek — keskendumine; 2) kuulamine — austus; 3) vähem vigu — otsused.',
+        'Kaart B (vastu): märksõnad, ehita neist ise argument ja too näide. 1) kiire kõne — klient, laps; 2) täiskasvanu — usaldus; 3) kalender — märkmed.',
+        ['Minu arvates …', 'Näiteks meie meeskonnas …'], ['Teisalt …', 'Kas võiksime kokku leppida, et …?']),
+      'Eksamineerija võtab poole, mida õppija ei valinud. Arutelu keskel too uus asjaolu: „Juht ise kasutab koosolekul telefoni kõige rohkem.” Õppija reageerib ja pakub kompromissi. Hinda: põhjendab näitega, reageerib partnerile, jõuab kokkuleppele.'),
+      B.rubric('005_t_rubric', 'Rääkimise punktid ja kontrolli tulemus.', 'Eksamineerija hindab rääkimist neljas osas, igaüks 0–3 punkti; seejärel liidetakse kõik punktid kokku.', [
+        'Sõnavõtt (seisukoht, põhjus näitega, vastuargument) … / 3 · arutelu (põhjendab, reageerib partnerile, kokkulepe) … / 3',
+        'Sõnavara (täpne, sillad) … / 3 · grammatika ja ladusus (vead ei sega mõistmist) … / 3',
+        'Lugemine … / 16 · rääkimine … / 12 · kokku … / 28. Harno: sooritatud alates 60 % (17/28) ja ükski osa ei ole 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (20/28), tunnistus alates 80 % (23/28) — sisemine lävi.',
+      ]),
+      hide(B.vocab('005_d_vocab', 'Mooduli 1 põhisõnad', ['kõigepealt — сначала', 'seejärel — затем', 'kuigi — хотя', 'kuna — так как', 'võrreldes — по сравнению', 'samas — однако, в то же время', 'seetõttu — поэтому', 'korda nädalas — раз в неделю', 'aeg-ajalt — время от времени', 'pingeline — напряжённый'], '2'), CUT_CONTROL),
+      hide(why(B.reading('005_d_read', 'Lugemisosa.', 'Loe tekst ja vasta. Mõned küsimused nõuavad järeldust.', 'Aeglane elu linnas',
+        'Viimastel aastatel räägitakse üha sagedamini aeglasest elust. Selle liikumise mõte on lihtne: me ei pea kogu aeg kiirustama. Aeglase elu pooldajad soovitavad teha korraga ainult üht asja, süüa rahulikult laua taga ja veeta rohkem aega looduses. Tallinnas elav Anneli otsustas proovida aeglast elu terve kuu. Kõigepealt kustutas ta telefonist sotsiaalmeedia rakendused. Seejärel hakkas ta tööle sõitma jalgrattaga, kuigi see võttis bussiga võrreldes kümme minutit kauem aega. Õhtuti ei vaadanud ta enam telerit, vaid luges raamatuid või kohtus sõpradega.\n\nEsimene nädal oli raske. Anneli tundis, et jääb millestki ilma, ja haaras harjumusest pidevalt telefoni järele. Teisel nädalal muutus olukord paremaks. Ta märkas, et magab sügavamalt ja ärkab puhanumana. Tööl suutis ta paremini keskenduda, sest ei vaadanud iga paari minuti tagant teateid. Kuu lõpuks oli Anneli lugenud viis raamatut, kuigi varem luges ta aastas vaid kaks-kolm.\n\nSamas ütleb Anneli, et kõike ta ei jätka. Sotsiaalmeedia on talle vajalik tööks ja sõpradega suhtlemiseks. Nüüd kasutab ta seda aga ainult kaks korda päevas kindlal ajal. Jalgrattaga sõidab ta edasi, välja arvatud vihmaste päevadel. Anneli arvates ei tähenda aeglane elu vähem tööd, vaid teadlikumaid valikuid. Tema eeskujul proovis aeglast elu ka kaks kolleegi. Üks neist loobus juba teisel päeval, teine aga jätkab siiani ja on sellega väga rahul.\n\nPsühholoogid kiidavad selliseid katseid, kuid hoiatavad liiga suurte lubaduste eest. Kui inimene muudab korraga kõike, väsib ta kiiresti ja loobub. Palju targem on alustada ühest väikesest harjumusest, näiteks õhtusest jalutuskäigust ilma telefonita, ja lisada uusi alles siis, kui esimene on muutunud loomulikuks. Nii jääb muutus püsima ka pärast katse lõppu.',
+        [['Mis on aeglase elu põhimõte?', 'me ei pea kogu aeg kiirustama'], ['Mida tegi Anneli kõigepealt?', 'kustutas sotsiaalmeedia rakendused'], ['Miks oli esimene nädal raske?', 'tundis, et jääb millestki ilma'], ['Mis muutus teisel nädalal?', 'magas sügavamalt, keskendus paremini'], ['Mitu raamatut luges ta kuu jooksul?', 'viis|5'], ['Miks ta sotsiaalmeediat täiesti ei jäta?', 'see on vajalik tööks ja suhtlemiseks'], ['Mida tähendab Anneli arvates aeglane elu?', 'teadlikumaid valikuid'], ['Miks hoiatavad psühholoogid liiga suurte lubaduste eest?', 'inimene väsib kiiresti ja loobub|kui muuta kõike korraga, ei jaksa']]), OLD_WHY['005_d_read']), CUT_CONTROL),
+      hide(why(B.gaps('005_d_gram', 'Kümme grammatikapunkti.', 'Kirjuta sulgudes olev sõna õiges vormis.', ['Eile [sõitsin] (sõitma) tööle rattaga.', 'Ma käin [kaks korda] (kaks kord) nädalas ujumas.', '[Laupäeviti] (laupäev) magan kauem.', 'Ma olen Tallinnas elanud [viis aastat] (viis aasta).', 'Rattaga võtab tee [kauem] (kaua) aega.', 'See oli kuu [kõige raskem] (raske) nädal.', 'Ta ütles, et [loeb] (lugema) nüüd rohkem.', 'Võrreldes [bussiga] (buss) on ratas tervislikum.', 'Kui mul oleks aega, [loeksin] (lugema) rohkem.', 'Telefoni [kasutatakse] (kasutama) liiga palju.']), OLD_WHY['005_d_gram']), CUT_CONTROL),
+      hide(why(B.wordorder('005_d_order', 'Sõnajärg.', 'Pane laused kokku.', ['Õhtuti loeb Anneli nüüd raamatuid.', 'Esimesel nädalal haaras ta sageli telefoni järele.', 'Kuu lõpuks oli ta lugenud viis raamatut.', 'Vihmastel päevadel sõidab ta bussiga.', 'Nüüd kasutab ta sotsiaalmeediat kaks korda päevas.', 'Kuigi esimene nädal oli raske, ei andnud ta alla.', 'Võrreldes eelmise kuuga magab Anneli nüüd paremini.', 'Hommikuti joob ta kohvi ilma telefonita.', 'Nädalavahetusel käib ta perega metsas jalutamas.', 'Seetõttu on tal rohkem aega iseendale.']), OLD_WHY['005_d_order']), CUT_CONTROL),
+      hide(B.translation('005_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta loomulik eestikeelne lause.', ['Сначала она удалила приложения.', 'Хотя первая неделя была трудной, она не сдалась.', 'По сравнению с автобусом велосипед медленнее.', 'Теперь она пользуется соцсетями два раза в день.', 'Если бы у меня было время, я бы читал больше.', 'По выходным она гуляет в лесу.', 'Самое трудное — не брать телефон по утрам.', 'Так как она ездит на велосипеде, она реже болеет.', 'Через месяц она прочитала пять книг.', 'Медленная жизнь означает осознанный выбор.']), CUT_CONTROL),
+      hide(B.speaking('005_d_mono', 'Monoloog 2–3 minutit.', 'Kas sina tahaksid elada aeglasemalt? Räägi ilma tekstita.', ['Milline on sinu elutempo praegu?', 'Mida muudaksid ja miks?', 'Mis takistab?'], [120, 180]), CUT_CONTROL),
+      hide(B.writing('005_d_write', 'Kordamise tekst.', 'Kirjuta 6–8 lauset: üks kuu ilma millegita (telefon, auto, kohv…). Mis muutuks?', [6, 8], ['kõigepealt', 'kuigi', 'võrreldes', 'seetõttu'], 3), CUT_CONTROL),
+      hide(why(B.errorfix('005_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Kuigi oli raske, aga ta jätkas.', 'Kuigi oli raske, jätkas ta. | Kuigi oli raske, ta jätkas.'], ['Ta sõidab rattaga kolm korda nädalal.', 'Ta sõidab rattaga kolm korda nädalas.'], ['Võrreldes buss on ratas aeglasem.', 'Võrreldes bussiga on ratas aeglasem.'], ['Õhtuti loeb ta raamatud.', 'Õhtuti loeb ta raamatuid.'], ['See oli kõige raskem nädal kuus.', 'See oli kuu kõige raskem nädal.'], ['Kuu lõpuks ta oli lugenud viis raamatut.', 'Kuu lõpuks oli ta lugenud viis raamatut.'], ['Ta kustutas telefonist kõik rakendusi.', 'Ta kustutas telefonist kõik rakendused.'], ['Vihmasel päeval ta sõidab bussiga tööle.', 'Vihmasel päeval sõidab ta bussiga tööle.'], ['Nüüd ta kasutab sotsiaalmeedia ainult õhtul.', 'Nüüd kasutab ta sotsiaalmeediat ainult õhtul.'], ['Aeglane elu tähendab teadlikud valikud.', 'Aeglane elu tähendab teadlikke valikuid.']]), OLD_WHY['005_d_fix']), CUT_CONTROL),
+    ],
+    practice: [
+      hide(B.tip('005_p_how', 'Kontrolltöö: lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno eksami lugemise ja kuulamise osa. Lugemises on neli osa, kuulamises kolm. Teateid loeb õpetaja üks kord, intervjuud kaks korda. Tee kõik ilma sõnaraamatuta.', 'full'), CUT_CONTROL),
+      hide(why(B.cloze('005_p_cloze', 'Osa 3: vali lünka sobiv vorm (9 punkti).', 'Igas lüngas on neli valikut. Vali õige.', 'Minu uus hommik', [
         'Veel aasta tagasi algas minu hommik alati ühtemoodi. Äratuskell helises {*kell kuus|kell kuuel|kella kuus|kuus kell} ja ma haarasin kohe telefoni. Enne kui ma {*jõudsin|jõuan|jõudma|jõudnud} hambad pesta, olin lugenud kõik uudised. Tööle jõudsin tavaliselt väsinuna, {*kuigi|sest|nii et|kuna} olin maganud kaheksa tundi.',
         'Ühel päeval otsustasin midagi muuta. Nüüd jätan telefoni õhtul {*kööki|köögis|köögist|köök} ja loen enne magamaminekut raamatut. Hommikuti käin {*kaks korda|kaks kord|kahte korda|kahe korra} nädalas jooksmas. Tööle sõidan {*rattaga|ratas|rattas|rattale}, kui ilm lubab.',
         'Võrreldes eelmise aastaga olen palju {*rahulikum|rahulik|rahulikem|kõige rahulikum}. {*Esmaspäeviti|Esmaspäev|Esmaspäeva|Esmaspäevani} on mul endiselt kiire, aga isegi siis leian hommikul viisteist minutit kohvi jaoks. Kolleeg ütles hiljuti, et ma näen nüüd {*värskem|värske|värskeim|värskemalt} välja kui varem.',
-      ].join('\n\n')),
-      B.gaps('005_p_bank', 'Osa 4: vali lause (6 punkti).', 'Vali igasse lünka sobiv lause. Üks lause jääb üle.', [
+      ].join('\n\n')), OLD_WHY['005_p_cloze']), CUT_CONTROL),
+      hide(why(B.gaps('005_p_bank', 'Osa 4: vali lause (6 punkti).', 'Vali igasse lünka sobiv lause. Üks lause jääb üle.', [
         'Uus kolleeg Marek tuli meie meeskonda kevadel. [Esimestel nädalatel jäi ta iga päev tööle hiljaks.]',
         'Ta elas linnast väljas ja sõitis bussiga, mis oli tihti täis. [Ühel hommikul rääkis ta oma murest juhile.]',
         'Juht ei olnud vihane. [Ta pakkus Marekule paindlikku tööaega.]',
         'Nüüd alustab Marek tööd kell kümme ja lõpetab kell kuus. [Nii väldib ta hommikust tipptundi.]',
         'Kaks päeva nädalas töötab ta kodus. [Neil päevadel jõuab ta ka lapsega trenni minna.]',
         'Marek ütleb, et tema töö on nüüd parem kui varem. [Ta ei pea enam kiirustama ja teeb vähem vigu.]',
-      ], ['Esimestel nädalatel jäi ta iga päev tööle hiljaks.', 'Ühel hommikul rääkis ta oma murest juhile.', 'Ta pakkus Marekule paindlikku tööaega.', 'Nii väldib ta hommikust tipptundi.', 'Neil päevadel jõuab ta ka lapsega trenni minna.', 'Ta ei pea enam kiirustama ja teeb vähem vigu.', 'Seepärast otsustas ta töölt lahkuda.'], 'full', 'g_read'),
-      B.errorfix('005_p_fix', 'Leia ja paranda viga.', 'Kirjuta lause õigesti.', [['Pärast ujumist ma joon alati kuuma tee.', 'Pärast ujumist ma joon alati kuuma teed. | Pärast ujumist joon ma alati kuuma teed.'], ['Ma käin kolm korda nädalal ujumas.', 'Ma käin kolm korda nädalas ujumas.'], ['Laupäev on rohkem rahulik kui reede.', 'Laupäev on rahulikum kui reede.'], ['Kuigi sadas vihma, aga ma läksin jalgsi.', 'Kuigi sadas vihma, läksin jalgsi. | Kuigi sadas vihma, läksin ma jalgsi. | Kuigi sadas vihma, ma läksin jalgsi.'], ['Ma olen siin elanud kaks aastat tagasi.', 'Ma olen siin elanud kaks aastat. | Ma olen siin elanud juba kaks aastat.'], ['Võrreldes minu vend olen ma pikem.', 'Võrreldes oma vennaga olen ma pikem. | Võrreldes minu vennaga olen ma pikem.'], ['Me kohtume aeg-ajalt kohvikus nädalavahetusel ja räägime palju.', 'Me kohtume nädalavahetusel aeg-ajalt kohvikus ja räägime palju. | Aeg-ajalt kohtume me nädalavahetusel kohvikus ja räägime palju.'], ['Kuna rong hilines, ma jäin koosolekule hiljaks.', 'Kuna rong hilines, jäin ma koosolekule hiljaks. | Kuna rong hilines, jäin koosolekule hiljaks.'], ['See on minu kõige lemmik päev.', 'See on minu lemmikpäev. | See on minu kõige armsam päev.'], ['Ta töötab rohkem tunde kui mina töötan nädalas.', 'Ta töötab nädalas rohkem tunde kui mina.']]),
-      B.transformation('005_p_trans', 'Teisenda.', 'Kirjuta lause antud sõnaga.', [['Ma olin väsinud. Ma läksin trenni.', 'kuigi', 'Kuigi olin väsinud, läksin trenni. | Kuigi ma olin väsinud, läksin trenni. | Kuigi ma olin väsinud, läksin ma trenni.'], ['Buss ei sõitnud. Ma võtsin takso.', 'kuna', 'Kuna buss ei sõitnud, võtsin takso.'], ['Tööpäev on pingeline. Pühapäev on rahulik.', 'samas', 'Tööpäev on pingeline, samas pühapäev on rahulik.'], ['Ma ujun esmaspäeval ja neljapäeval.', 'korda nädalas', 'Ma ujun kaks korda nädalas.'], ['Ratas on aeglasem. Buss on kiirem.', 'võrreldes', 'Võrreldes bussiga on ratas aeglasem.'], ['Ma lõpetan töö. Ma lähen jooksma.', 'kõigepealt … seejärel', 'Kõigepealt lõpetan töö, seejärel lähen jooksma. | Kõigepealt lõpetan ma töö, seejärel lähen jooksma.'], ['Ma loen raamatut.', 'alusta: Õhtuti', 'Õhtuti loen raamatut. | Õhtuti loen ma raamatut.'], ['Päev oli pikk. Ma olin rahul.', 'kuigi', 'Kuigi päev oli pikk, olin rahul. | Kuigi päev oli pikk, olin ma rahul.'], ['Tööpäevad on pingelised. Nädalavahetus on rahulik.', 'keskvõrre + kui', 'Nädalavahetus on rahulikum kui tööpäevad.'], ['Rong hilines. Ma jäin hiljaks.', 'seetõttu', 'Rong hilines, seetõttu jäin hiljaks. | Rong hilines, seetõttu jäin ma hiljaks.']]),
-      B.listening('005_p_notes', 'Kuulamine 1: lühikesed teated (6 punkti).', 'Õpetaja loeb iga teate üks kord. Kirjuta lünka 1–2 sõna.', [
+      ], ['Esimestel nädalatel jäi ta iga päev tööle hiljaks.', 'Ühel hommikul rääkis ta oma murest juhile.', 'Ta pakkus Marekule paindlikku tööaega.', 'Nii väldib ta hommikust tipptundi.', 'Neil päevadel jõuab ta ka lapsega trenni minna.', 'Ta ei pea enam kiirustama ja teeb vähem vigu.', 'Seepärast otsustas ta töölt lahkuda.'], 'full', 'g_read'), OLD_WHY['005_p_bank']), CUT_CONTROL),
+      hide(why(B.errorfix('005_p_fix', 'Leia ja paranda viga.', 'Kirjuta lause õigesti.', [['Pärast ujumist ma joon alati kuuma tee.', 'Pärast ujumist ma joon alati kuuma teed. | Pärast ujumist joon ma alati kuuma teed.'], ['Ma käin kolm korda nädalal ujumas.', 'Ma käin kolm korda nädalas ujumas.'], ['Laupäev on rohkem rahulik kui reede.', 'Laupäev on rahulikum kui reede.'], ['Kuigi sadas vihma, aga ma läksin jalgsi.', 'Kuigi sadas vihma, läksin jalgsi. | Kuigi sadas vihma, läksin ma jalgsi. | Kuigi sadas vihma, ma läksin jalgsi.'], ['Ma olen siin elanud kaks aastat tagasi.', 'Ma olen siin elanud kaks aastat. | Ma olen siin elanud juba kaks aastat.'], ['Võrreldes minu vend olen ma pikem.', 'Võrreldes oma vennaga olen ma pikem. | Võrreldes minu vennaga olen ma pikem.'], ['Me kohtume aeg-ajalt kohvikus nädalavahetusel ja räägime palju.', 'Me kohtume nädalavahetusel aeg-ajalt kohvikus ja räägime palju. | Aeg-ajalt kohtume me nädalavahetusel kohvikus ja räägime palju.'], ['Kuna rong hilines, ma jäin koosolekule hiljaks.', 'Kuna rong hilines, jäin ma koosolekule hiljaks. | Kuna rong hilines, jäin koosolekule hiljaks.'], ['See on minu kõige lemmik päev.', 'See on minu lemmikpäev. | See on minu kõige armsam päev.'], ['Ta töötab rohkem tunde kui mina töötan nädalas.', 'Ta töötab nädalas rohkem tunde kui mina.']]), OLD_WHY['005_p_fix']), CUT_CONTROL),
+      hide(why(B.transformation('005_p_trans', 'Teisenda.', 'Kirjuta lause antud sõnaga.', [['Ma olin väsinud. Ma läksin trenni.', 'kuigi', 'Kuigi olin väsinud, läksin trenni. | Kuigi ma olin väsinud, läksin trenni. | Kuigi ma olin väsinud, läksin ma trenni.'], ['Buss ei sõitnud. Ma võtsin takso.', 'kuna', 'Kuna buss ei sõitnud, võtsin takso.'], ['Tööpäev on pingeline. Pühapäev on rahulik.', 'samas', 'Tööpäev on pingeline, samas pühapäev on rahulik.'], ['Ma ujun esmaspäeval ja neljapäeval.', 'korda nädalas', 'Ma ujun kaks korda nädalas.'], ['Ratas on aeglasem. Buss on kiirem.', 'võrreldes', 'Võrreldes bussiga on ratas aeglasem.'], ['Ma lõpetan töö. Ma lähen jooksma.', 'kõigepealt … seejärel', 'Kõigepealt lõpetan töö, seejärel lähen jooksma. | Kõigepealt lõpetan ma töö, seejärel lähen jooksma.'], ['Ma loen raamatut.', 'alusta: Õhtuti', 'Õhtuti loen raamatut. | Õhtuti loen ma raamatut.'], ['Päev oli pikk. Ma olin rahul.', 'kuigi', 'Kuigi päev oli pikk, olin rahul. | Kuigi päev oli pikk, olin ma rahul.'], ['Tööpäevad on pingelised. Nädalavahetus on rahulik.', 'keskvõrre + kui', 'Nädalavahetus on rahulikum kui tööpäevad.'], ['Rong hilines. Ma jäin hiljaks.', 'seetõttu', 'Rong hilines, seetõttu jäin hiljaks. | Rong hilines, seetõttu jäin ma hiljaks.']]), OLD_WHY['005_p_trans']), CUT_CONTROL),
+      hide(why(B.listening('005_p_notes', 'Kuulamine 1: lühikesed teated (6 punkti).', 'Õpetaja loeb iga teate üks kord. Kirjuta lünka 1–2 sõna.', [
         '1. Head reisijad! Homsest sõidab buss number kaheksa hommikuti iga kümne minuti järel, mitte enam iga veerand tunni järel.',
         '2. Tere, siin hambaarst Mets. Teie aeg on homme kell üheksa, aga palun tulge kümme minutit varem, et täita ankeet.',
         '3. Spordiklubi teatab: laupäevane joogatund jääb ära, sest treener on haige. Pühapäeval toimub tund tavapäraselt.',
@@ -583,8 +1286,8 @@ export const LESSONS = withShapes({
         'Laupäevane joogatund jääb ära, sest treener on [haige].',
         'Raamatukogu on järgmisel nädalal suletud [remondi] tõttu.',
         'Raamatuid saab tagastada maja ees olevasse [kasti].',
-      ]),
-      B.listening('005_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Õpetaja loeb intervjuu kaks korda. Kirjuta lünka 1–2 sõna. Allikas: Statistikaamet, „Andmed paljastavad. Suur ülevaade Eesti inimeste tervislikust ajakasutusest” (17.01.2023).', [
+      ]), OLD_WHY['005_p_notes']), CUT_CONTROL),
+      hide(why(B.listening('005_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Õpetaja loeb intervjuu kaks korda. Kirjuta lünka 1–2 sõna. Allikas: Statistikaamet, „Andmed paljastavad. Suur ülevaade Eesti inimeste tervislikust ajakasutusest” (17.01.2023).', [
         'Saatejuht: Tere, kuulajad! Täna räägime unest. Stuudios on unearst Merike Kask. Merike, kui palju me tegelikult magame?',
         'Merike: Statistikaameti ajakasutuse uuringu järgi magavad kahekümne viie kuni kuuekümne nelja aastased keskmiselt umbes kaheksa ja pool tundi ööpäevas. Selles on ka uinumise aeg ja päevased uinakud. Uneeksperdid soovitavad täiskasvanule seitse kuni üheksa tundi, nii et keskmiselt on meil magamisega üsna hästi.',
         'Saatejuht: Ja nädalavahetusel?',
@@ -610,34 +1313,26 @@ export const LESSONS = withShapes({
         'Pärast kella kolme võiks kohvi asemel juua [vett|taimeteed].',
         'Kofeiin mõjub kehas veel [mitu tundi].',
         'Vahetustega töötaja magamistuba peaks olema pime ja [vaikne].',
-      ]),
-      B.truefalse('005_p_tf', 'Kuulamine 3: õige või vale? (10 punkti)', 'Õpetaja loeb intervjuu veel kord. Märgi, kas väide on õige või vale.', [
+      ]), OLD_WHY['005_p_listen']), CUT_CONTROL),
+      hide(why(B.truefalse('005_p_tf', 'Kuulamine 3: õige või vale? (10 punkti)', 'Õpetaja loeb intervjuu veel kord. Märgi, kas väide on õige või vale.', [
         ['Soovituslik uneaeg on seitse kuni üheksa tundi.', true], ['Nädalavahetusel saab arsti sõnul une täiesti tagasi teha.', false],
         ['Pikk uni laupäeval võib muuta esmaspäeva raskeks.', true], ['Hommikune kohv segab arsti arvates und.', false],
         ['Telefoni valgus paneb aju arvama, et on päev.', true], ['Vahetustega töötajatel on uneprobleeme vähem kui teistel.', false],
         ['Arst soovitab nädalavahetusel ärgata hiljem kui tööpäeval.', false], ['Järgmine saade räägib toidu mõjust unele.', true],
         ['Kofeiini mõju kestab mitu tundi.', true], ['Arsti meelest aitab une heaks ka kohv enne magamaminekut.', false],
-      ], 'full'),
-      B.examiner('005_p_say', 'minu igapäevaelu, ajakasutus ja keeled', ['Milline on sinu tavaline tööpäev või koolipäev?', 'Mis võtab sinu nädalas kõige rohkem aega ja miks?', 'Kuidas jagatakse kodutöid sinu peres?', 'Mitut keelt sa igapäevaelus kasutad ja kus?', 'Kas töökirjadele peaks vastama ka õhtul ja nädalavahetusel?', 'Kumb on sinu arvates parem: viis lühemat või neli pikemat tööpäeva nädalas?', 'Kuidas erineb elurütm Eestis ja sinu kodumaal?'], 'B2', [60, 180]),
+      ], 'full'), OLD_WHY['005_p_tf']), CUT_CONTROL),
+      hide(B.examiner('005_p_say', 'minu igapäevaelu, ajakasutus ja keeled', ['Milline on sinu tavaline tööpäev või koolipäev?', 'Mis võtab sinu nädalas kõige rohkem aega ja miks?', 'Kuidas jagatakse kodutöid sinu peres?', 'Mitut keelt sa igapäevaelus kasutad ja kus?', 'Kas töökirjadele peaks vastama ka õhtul ja nädalavahetusel?', 'Kumb on sinu arvates parem: viis lühemat või neli pikemat tööpäeva nädalas?', 'Kuidas erineb elurütm Eestis ja sinu kodumaal?'], 'B2', [60, 180]), CUT_CONTROL),
     ],
-    // Harno format check, writing and speaking: a semi-formal letter of ~140 words, an argument of ~180 words with
-    // pros and cons, a 1-minute speech at a meeting after 2 minutes' preparation and a discussion with argument cards
     transfer: [
-      B.text('005_t_situation', 'Lõpuülesanne (eksami vormis)', 'See leht on nagu Harno eksami kirjutamise ja rääkimise osa. Kohalik raadio teeb saadet „Kuidas me elame?”. Sa kirjutad raadiole ja arutled. Sõnavõtus esitled mooduli tulemust: oma B2-plaani, mille paned enne kirja kaardile „Minu B2-plaan”.'),
-      B.reading('005_t_read', 'Loe raadio kutset.', 'Loe ja vasta.', 'Raadio otsib saatekülalisi',
+      hide(B.text('005_t_situation', 'Lõpuülesanne (eksami vormis)', 'See leht on nagu Harno eksami kirjutamise ja rääkimise osa. Kohalik raadio teeb saadet „Kuidas me elame?”. Sa kirjutad raadiole ja arutled. Sõnavõtus esitled mooduli tulemust: oma B2-plaani, mille paned enne kirja kaardile „Minu B2-plaan”.'), CUT_CONTROL),
+      hide(why(B.reading('005_t_read', 'Loe raadio kutset.', 'Loe ja vasta.', 'Raadio otsib saatekülalisi',
         'Raadio Kodu otsib järgmisesse saatesse kolme inimest, kes on valmis rääkima oma igapäevaelust. Saate teema on „Kuidas me elame 2026. aastal?”. Meid huvitab, milline on teie tavaline nädal, kuidas veedate nädalavahetusi ja mis on viimastel aastatel teie elus muutunud. Eriti ootame inimesi, kes on hiljuti kolinud, vahetanud töökohta või muutnud oma elurütmi.\n\nSaade salvestatakse järgmise kuu esimesel kolmapäeval kell kaksteist meie stuudios Pärnu maanteel. Salvestus kestab umbes nelikümmend minutit ja saade läheb eetrisse sama nädala laupäeval. Kõik saatekülalised saavad tänutäheks kaks kinopiletit. Kui soovite osaleda, kirjutage meile hiljemalt järgmise reede õhtuks. Kirjutage lühidalt, kes te olete, milline on teie elu praegu ja miks olete just teie hea saatekülaline. Valime külalised välja kirjade põhjal ja võtame teiega ühendust telefoni teel. Kui te ei saa stuudiosse tulla, on võimalik anda intervjuu ka telefoni teel.\n\nEelmistes saadetes rääkisid oma elust näiteks noor ema, kes kolis Tartust maale, ja pensionär, kes õppis seitsmekümneaastaselt ujuma. Kuulajad kirjutasid pärast saadet, et just sellised lood annavad julgust ka teistele. Saatejuht ütleb, et kõige huvitavamad on tavalised inimesed, sest nende lugudes tunneb iga kuulaja ennast ära. Seetõttu ei pea te olema kuulus, et saatesse tulla. Piisab sellest, et teil on lugu, mida jagada, ja natuke julgust. Ootame teie kirju!\n\nSaate toimetaja lisab, et kirja võib kirjutada ka lihtsas keeles. Tähtis ei ole täiuslik grammatika, vaid huvitav ja aus lugu. Kui teie emakeel ei ole eesti keel, on see meie jaoks pigem pluss, sest kuulajad tahavad teada, kuidas eri taustaga inimesed Eestis elavad. Kõik kirjad loeb läbi saatejuht ise.',
-        [['Miks on saatejuhi arvates tavalised inimesed kõige huvitavamad?', 'nende lugudes tunneb iga kuulaja ennast ära'], ['Mitut inimest raadio otsib?', 'kolme|kolm|3'], ['Keda ootavad nad eriti?', 'inimesi, kes on kolinud, vahetanud tööd või muutnud elurütmi'], ['Millal salvestatakse saade?', 'järgmise kuu esimesel kolmapäeval kell kaksteist'], ['Mida saavad külalised?', 'kaks kinopiletit'], ['Mis on kirja tähtaeg?', 'järgmise reede õhtu'], ['Mida teha, kui ei saa stuudiosse tulla?', 'anda intervjuu telefoni teel']]),
-      B.planning('005_t_plan', 'Enne kirjutamist.', 'Kirjuta märksõnad.', ['Kiri: kes ma olen, mis minu elus muutus, miks see kuulajaid huvitab?', 'Arutlus: kaks argumenti poolt, kaks vastu, näited ja minu seisukoht.']),
-      // the module's product (docs/COURSE_DESIGN_STATIONS.md §7): the learner's own plan, built from 001–004
-      B.planning('005_t_product', 'Mooduli tulemus: minu B2-plaan.', 'Pane kirja oma plaan. Kasuta mooduli tundide tulemusi: keeleprofiil (tund 1), kursus ja kokkulepe (tund 4).', ['Minu eesmärk: milleks mul B2-taset vaja on ja mis ajaks?', 'Minu tugevus ja nõrkus: mida pean kõige rohkem harjutama?', 'Minu kursus: kus, millal ja kui tihti?', 'Kokkulepe tööandja või perega: aeg, raha, kes mind toetab?', 'Kuidas ma tulemust kontrollin (näiteks proovieksam) ja millal?'], 2),
-      B.letter('005_t_letter', 'Kirjutamine 1: kiri raadiole (umbes 140 sõna).', 'Kirjuta saate toimetajale: kes sa oled, mis sinu igapäevaelus viimasel ajal muutus ja miks see kuulajaid huvitaks.', 'Lugupeetud saate toimetaja!', 'Lugupidamisega', [125, 144]),
-      B.letter('005_t_essay', 'Kirjutamine 2: arutlus (umbes 180 sõna).', 'Kirjuta raadio veebilehele arutlus. Too kaks argumenti poolt ja kaks vastu, igaühele näide, ning lõpus oma seisukoht.', 'Kas nutitelefon võtab meie vaba aja?', 'Kokkuvõttes…', [170, 190]),
-      B.speaking('005_t_mono', 'Rääkimine 1: sõnavõtt koosolekul (1 minut).', 'Teemakaart: töökoha või kursuse koosolekul tutvustab igaüks oma selle aasta koolitusplaani. Mõtle 2 minutit oma kaardi „Minu B2-plaan” järgi, räägi 1 minut, siis vasta paarilise küsimusele.', ['Mis on sinu eesmärk ja milleks see tööl või elus vajalik on?', 'Millise kursuse valisid ja miks just selle?', 'Millal ja kui tihti sa õpid?', 'Kuidas sa tulemust kontrollid?'], [90, 120], ['Tahaksin tutvustada…', 'Esiteks… teiseks…', 'Kokkuvõttes…']),
-      B.rolecards('005_t_cards', 'Rääkimine 2: arutelu argumendikaartidega.', 'Öelge kõigepealt oma arvamus. Siis arutage 4 minutit ja leppige kokku ühine seisukoht.',
-        'Kaart A (poolt). Teema: kas meie töökohas peaks koosolekul olema telefonid keelatud? Argumendid: koosolekud on lühemad; inimesed kuulavad üksteist; tehakse vähem vigu. Lisa oma näide.', 'Kaart B (vastu). Teema: kas meie töökohas peaks koosolekul olema telefonid keelatud? Argumendid: kiire kõne võib jääda vastamata; täiskasvanuid ei pea kontrollima; telefonis on kalender ja märkmed. Lisa oma näide.',
-        ['Minu arvates…', 'Näiteks meie meeskonnas…', 'Ma saan aru, aga…'], ['Ma ei ole päris nõus, sest…', 'Teisalt…', 'Kas võiksime kokku leppida, et…?']),
-      B.rubric('005_t_rubric', 'Hindamine (Harno B2 vorm).', 'Märgi, mis on täidetud.', ['Kiri: kõik kolm punkti, sobiv pöördumine ja toon, umbes 140 sõna (10 punkti).', 'Arutlus: poolt ja vastu, näited, oma seisukoht, umbes 180 sõna (15 punkti).', 'Sõnavõtt: selge algus ja lõpp, 1 minut, vastus küsimusele (10 punkti).', 'Arutelu: põhjendasin, reageerisin paarilisele, jõudsime kokkuleppele (15 punkti).']),
-      B.selfcheck('005_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60% (30 / 50) ja üheski osas mitte 0 punkti.', 'Ma tean, mida järgmises moodulis harjutada.'], 'Moodul 1 tehtud'),
+        [['Miks on saatejuhi arvates tavalised inimesed kõige huvitavamad?', 'nende lugudes tunneb iga kuulaja ennast ära'], ['Mitut inimest raadio otsib?', 'kolme|kolm|3'], ['Keda ootavad nad eriti?', 'inimesi, kes on kolinud, vahetanud tööd või muutnud elurütmi'], ['Millal salvestatakse saade?', 'järgmise kuu esimesel kolmapäeval kell kaksteist'], ['Mida saavad külalised?', 'kaks kinopiletit'], ['Mis on kirja tähtaeg?', 'järgmise reede õhtu'], ['Mida teha, kui ei saa stuudiosse tulla?', 'anda intervjuu telefoni teel']]), OLD_WHY['005_t_read']), CUT_CONTROL),
+      hide(B.planning('005_t_plan', 'Enne kirjutamist.', 'Kirjuta märksõnad.', ['Kiri: kes ma olen, mis minu elus muutus, miks see kuulajaid huvitab?', 'Arutlus: kaks argumenti poolt, kaks vastu, näited ja minu seisukoht.']), CUT_CONTROL),
+      hide(B.planning('005_t_product', 'Mooduli tulemus: minu B2-plaan.', 'Pane kirja oma plaan. Kasuta mooduli tundide tulemusi: keeleprofiil (tund 1), kursus ja kokkulepe (tund 4).', ['Minu eesmärk: milleks mul B2-taset vaja on ja mis ajaks?', 'Minu tugevus ja nõrkus: mida pean kõige rohkem harjutama?', 'Minu kursus: kus, millal ja kui tihti?', 'Kokkulepe tööandja või perega: aeg, raha, kes mind toetab?', 'Kuidas ma tulemust kontrollin (näiteks proovieksam) ja millal?'], 2), 'module product „Minu B2-plaan”: the plan is written in 001 (cold task notes) and 004 (week plan); the control keeps two skills (v5 §5)'),
+      hide(B.letter('005_t_letter', 'Kirjutamine 1: kiri raadiole (umbes 140 sõna).', 'Kirjuta saate toimetajale: kes sa oled, mis sinu igapäevaelus viimasel ajal muutus ja miks see kuulajaid huvitaks.', 'Lugupeetud saate toimetaja!', 'Lugupidamisega', [125, 144]), CUT_CONTROL),
+      hide(B.letter('005_t_essay', 'Kirjutamine 2: arutlus (umbes 180 sõna).', 'Kirjuta raadio veebilehele arutlus. Too kaks argumenti poolt ja kaks vastu, igaühele näide, ning lõpus oma seisukoht.', 'Kas nutitelefon võtab meie vaba aja?', 'Kokkuvõttes…', [170, 190]), CUT_CONTROL),
+      hide(B.selfcheck('005_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60% (30 / 50) ja üheski osas mitte 0 punkti.', 'Ma tean, mida järgmises moodulis harjutada.'], 'Moodul 1 tehtud'), CUT_CONTROL),
     ],
   },
 }, {
@@ -645,284 +1340,6 @@ export const LESSONS = withShapes({
 });
 
 // Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
-  // 001
-  '001_d_sounds': [
-    'saada (pikk aa) = отправь; sada (lühike a) = сто.',
-    'linna (pikk nn) = в город; lina (lühike n) = простыня.',
-    'kalla (pikk ll) = налей; kala (lühike l) = рыба.',
-    'tüli (ü) = ссора; tuli (u) = огонь / пришёл.',
-    'süda (ü) = сердце; sõda (õ) = война.',
-  ],
-  '001_d_read': [
-    '1. lõik: 3,3 tundi on keskmine, kuhu lähevad arvesse ka lapsed, pensionärid, nädalavahetused ja puhkused.',
-    '2. lõik: naiste aeg majapidamisele on vähenenud „ligi poolteist tundi päevas”.',
-    '2. lõik: aitasid „poolvalmistoidud, toidukullerid ja kodutehnika”.',
-    '3. lõik: laua taga veedetakse „umbes kümme minutit päevas kauem”.',
-    '4. lõik: „Piirkonniti on vahed suured” — Viimsis on osa üle kahe korra suurem kui Narvas.',
-    '4. lõik: noortel on vene ja soome keel „asendunud inglise keelega”.',
-  ],
-  '001_p_polite': [
-    'te-vorm tingivas kõneviisis: saaksite; saatma läheb lause lõppu: … saata?',
-    'võiksite + da-tegevusnimi: helistada; „te” on viisakam kui „sa”.',
-    'tahan → sooviksin (tingiv) + liikumise tegusõna: tulla / minna.',
-    'Käsk → küsimus: Kas te saaksite … keerata?',
-    'saama + täissihitis: uue aja (omastav), mitte „uus aeg”.',
-    '„Kas oleks võimalik” + da-tegevusnimi: maksta.',
-    '„Oleks tore, kui” + tingiv: on → oleks (või toimuks).',
-  ],
-  '001_p_call': [
-    'Teates: „Uued B2-kursused algavad jaanuari teisel nädalal.”',
-    'Teates: diagnostika „teisipäeviti ja neljapäeviti kell kümme hommikul”.',
-    'Teates: töötajatele „on neljapäeval lisaaeg kell viis õhtul”.',
-    'Teates: „Diagnostika kestab umbes kaks ja pool tundi.”',
-    'Teates: tulemuse saadetakse „järgmisel päeval e-postiga”.',
-    'Teates: kaasa võtta isikut tõendav dokument ja B1-tunnistus.',
-    'Teates: kui maksab tööandja, „saadame arve otse firmale”.',
-  ],
-  '001_t_exit': [
-    'Viisakas küsimus te-vormis: Kas te saaksite …?',
-    'soovin → sooviksin (tingiv, ma-vorm -ksin).',
-    'on → oleks: „Kas oleks võimalik …?”',
-  ],
-  // 002
-  '002_d_game': [
-    '57 minutit; kakskümmend aastat tagasi 95 (Statistikaamet, 20.12.2022).',
-    '7 minutit; varem 32 (Statistikaamet, 20.12.2022).',
-    'Umbes kolmandiku võrra rohkem (Statistikaamet, 20.12.2022).',
-    'Kauem, umbes kümme minutit päevas (Statistikaamet, 17.01.2023).',
-    'Umbes tund ja kümme minutit (Statistikaamet, 17.01.2023).',
-  ],
-  '002_d_poll': [
-    'Õige: ema ütleb: „Kuna mees jõuab koju varem, teeb tema õhtusöögi.”',
-    'Vale: „supp ei tule veel nii hea kui naisel”.',
-    'Õige: „igaüks koristab köögi kord nädalas”.',
-    'Vale: „ei jõua ma kunagi triikida”.',
-    'Vale: poes käiakse „koos laupäeval”.',
-    'Õige: „Enne kui poodi läheme, kirjutame nimekirja telefoni.”',
-  ],
-  '002_p_link': [
-    'Põhjus lause alguses → kuna (sest ei alusta lauset); siis kohe tegusõna: teevad.',
-    'Tunne ja fakt ei klapi → kuigi.',
-    'Tagajärg: paremad masinad → vähem aega → seetõttu; siis tegusõna: kulub.',
-    'Aeg: üks tegevus enne teist → enne kui.',
-    'Aeg: kõigepealt jäävad lapsed magama, siis tuleb minu aeg → pärast seda kui.',
-    'Põhjus lause keskel → sest (või kuna).',
-    'Kaks vastandlikku fakti → samas.',
-    'Tagajärg: töö on jagatud → nii et keegi ei tee kõike üksi.',
-  ],
-  '002_t_voice': [
-    'Sõnumis: „Ma lähen jaanuaris tagasi tööle.”',
-    'Sõnumis: „meil on kaks last, kolme- ja seitsmeaastane”.',
-    'Sõnumis: „Praegu teen mina kodus peaaegu kõik.”',
-    'Sõnumis: mees „ei tea, millest alustada”.',
-    'Sõnumis: „Kõige rohkem kardan hommikuid.”',
-    'Sõnumis: „vähemalt kaks korda nädalas trenni”.',
-  ],
-  '002_t_exit': [
-    'Põhjus lause alguses → kuna; siis kohe tegusõna: on.',
-    'Tagajärg → seetõttu; siis tegusõna teisel kohal: on.',
-    'Vastand (pesen, kuigi ei meeldi) → kuigi.',
-  ],
-  // 003
-  '003_d_radio': [
-    'Saatejuht: firma „proovis seda sügisel kolm kuud”.',
-    'Merit: „Meil oli kontor reedeti kinni.”',
-    'Merit: „Töötasin neljapäeval hilja õhtuni.”',
-    'Merit: „koosolek kestab kõige rohkem pool tundi”.',
-    'Merit: „Esmaspäeviti tulin tööle puhanuna.”',
-    'Merit: „kõik peavad uutest reeglitest kinni pidama, ka juhid”.',
-  ],
-  '003_p_fix': [
-    'Ajaväljend kolmapäeviti on esimene, siis tegusõna töötan, siis ma.',
-    'Kord nädalas + tegusõna peab + alus meie meeskond.',
-    'Reedeti + tegusõna lõpetab + alus kontor.',
-    'Arv + osastav ainsus: kaheksa tundi.',
-    'Mitu korda ajaühikus: nädalas (seesütlev), mitte „nädalal”.',
-    'Nädalavahetusel + ei loe + ma: eitus ja tegusõna on koos teisel kohal.',
-    'Islandil (koht lause alguses) + tegusõna kestis + alus katse.',
-  ],
-  '003_t_exit': [
-    'Kord nädalas + tegusõna teisel kohal: käin ma.',
-    'Kestus: arv + osastav: kaheksa tundi.',
-    'Reedeti + tegusõna teisel kohal: lõpetame me.',
-  ],
-  // 004
-  '004_p_expert': [
-    'Tiiu: „Inimesed teevad liiga suure plaani.”',
-    'Tiiu: õhtune kursus „on sagedasem ja lühem, see aitab mälu”.',
-    'Tiiu: „nädal on pikk ja vahepeal ununeb palju”.',
-    'Tiiu: „korrata lühidalt, aga tihti”, „nii, et ennast kontrollid”.',
-    'Tiiu: tööandja toetab, „kui töötaja oskab selgitada, kuidas uus oskus tööd aitab”.',
-    'Tiiu: „ärge loobuge, vaid muutke plaani”.',
-  ],
-  '004_p_trans': [
-    'kallis → kallim (keskvõrre) + kui; või: laupäevasest kursusest kallim.',
-    'lühike → lühem (keskvõrre) + kui.',
-    'võrreldes + kaasaütlev (-ga): laupäevase kursusega; siis keskvõrre paindlikum.',
-    'erinevalt + seestütlev (-st): vennast.',
-    'Ülivõrre: kõige + keskvõrre: kõige rahulikum aeg.',
-    'Paar „mida + keskvõrre …, seda + keskvõrre …”: sagedamini … paremini.',
-    'kasulik → kasulikum (keskvõrre) + kui, mitte „nagu”.',
-  ],
-  '004_t_exit': [
-    '480 € > 420 € → keskvõrre: kallis → kallim kui.',
-    '390 € on kõige väiksem hind → ülivõrre: kõige odavam.',
-    '10 nädalat < 14 nädalat → lühike → lühem kui.',
-  ],
-  // 005
-  '005_d_read': [
-    '1. lõik: „me ei pea kogu aeg kiirustama”.',
-    '„Kõigepealt kustutas ta telefonist sotsiaalmeedia rakendused.”',
-    '2. lõik: „tundis, et jääb millestki ilma”.',
-    '2. lõik: „magab sügavamalt”, „suutis paremini keskenduda”.',
-    '2. lõik: „Kuu lõpuks oli Anneli lugenud viis raamatut.”',
-    '3. lõik: sotsiaalmeedia on „vajalik tööks ja sõpradega suhtlemiseks”.',
-    '3. lõik: aeglane elu = „teadlikumaid valikuid”.',
-    '4. lõik: „Kui inimene muudab korraga kõike, väsib ta kiiresti ja loobub.”',
-  ],
-  '005_d_gram': [
-    '„Eile” → lihtminevik: sõitsin.',
-    'Arv + osastav: kaks korda.',
-    'Iga laupäev → laupäeviti (lõpp -ti); lause alguses suur täht.',
-    'Kestus: arv + osastav: viis aastat.',
-    'kaua → keskvõrre kauem (võrdlus: rattaga kauem kui bussiga).',
-    'Ülivõrre: kõige raskem.',
-    'Kaudne kõne olevikus: ta ütles, et loeb.',
-    'võrreldes + -ga: bussiga.',
-    'Tingimus „kui mul oleks” → tingiv kõneviis: loeksin.',
-    'Tegija pole oluline → umbisikuline: kasutatakse.',
-  ],
-  '005_d_order': [
-    'Õhtuti (ajaväljend) + loeb (tegusõna teisel kohal) + Anneli.',
-    'Esimesel nädalal + haaras + ta.',
-    'Kuu lõpuks + oli + ta + lugenud (enneminevik: oli + -nud).',
-    'Vihmastel päevadel + sõidab + ta.',
-    'Nüüd + kasutab + ta; sihitis osastavas: sotsiaalmeediat.',
-    'Pärast kuigi-lauset tuleb kohe tegusõna: ei andnud ta alla.',
-    'Võrreldes eelmise kuuga + magab + Anneli.',
-    'Hommikuti + joob + ta.',
-    'Nädalavahetusel + käib + ta + jalutamas (ma-tegevusnimi -mas).',
-    'Seetõttu + on + tal.',
-  ],
-  '005_d_fix': [
-    '„kuigi” ja „aga” koos ei käi; pärast kuigi-lauset tuleb tegusõna: jätkas ta.',
-    'Mitu korda ajaühikus: nädalas (seesütlev), mitte „nädalal”.',
-    'võrreldes + -ga: bussiga.',
-    'Pooleli tegevus / määramata hulk → mitmuse osastav: raamatuid.',
-    'Kuu kõige raskem nädal: omastav (kuu) ees.',
-    'Pärast ajaväljendit on tegusõna teisel kohal: oli ta.',
-    'Kõik konkreetsed rakendused kustutati → täissihitis: rakendused.',
-    'Ajaväljend ees → tegusõna teisel kohal: sõidab ta.',
-    'Tegusõna teisel kohal (kasutab ta) ja kasutama + osastav: sotsiaalmeediat.',
-    'tähendama + osastav: teadlikke valikuid (mitmuse osastav).',
-  ],
-  '005_p_read': [
-    'Lõik B: abiks on olnud „poolvalmistoidud, toidukullerid ja kodutehnika”.',
-    'Lõik F: puhanud inimene „teeb tööl vähem vigu ja suudab paremini keskenduda”.',
-    'Oma arvamus: õpetaja hindab, kas valik on põhjendatud.',
-  ],
-  '005_p_mc': [
-    'Lõik A: paljud vastavad „aega ei ole”.',
-    'Lõik B: kodus kulub „vähem aega kui varem”.',
-    'Lõik C: „Iga hüpe võtab vaid hetke, kuid päeva peale kogunevad need tundideks.”',
-    'Lõik D: nädalavahetus planeeritakse „sama tihedaks kui tööpäev”.',
-    'Lõik E soovitab tühja õhtut, telefoni teise tuppa ja kohustuste ülevaatust; trennidest täielikult loobuda ei soovita.',
-    'Lõigud B ja F: probleem on selles, „kuidas me oma aega kasutame”; „suure osa sellest loome ise”.',
-  ],
-  '005_p_para': [
-    'Lõik B: 95 → 57 minutit söögitegemisele, 32 → 7 pesule.',
-    'Lõik C: aeg „kadus märkamatult väikeste tükkidena”.',
-    'Lõik F: „puhanud inimene teeb tööl vähem vigu”.',
-    'Lõik A: arvestatud on „kõiki päevi ja kõiki inimesi”.',
-    'Lõik D: „me tahame liiga palju korraga”.',
-    'Lõik E: „tasub alustada väikestest muudatustest”.',
-    'Lõik F: „Kõige raskem … on esimene samm: lubada endale, et mõnikord ei pea midagi tegema.”',
-    'Lõik D: „Ka lastel on nädal sageli nii täis …”',
-  ],
-  '005_p_cloze': [
-    'Kellaaeg: kell kuus (põhivorm).',
-    'Enne kui + lihtminevik (lugu on minevikus): jõudsin.',
-    'Vastand (väsinud, kuigi maganud) → kuigi.',
-    'Kuhu? → sisseütlev: kööki.',
-    'Arv + osastav: kaks korda.',
-    'Millega? → kaasaütlev: rattaga.',
-    'Võrdlus (võrreldes …) → keskvõrre: rahulikum.',
-    'Iga esmaspäev → esmaspäeviti.',
-    'Võrdlus „kui varem” → keskvõrre: värskem.',
-  ],
-  '005_p_bank': [
-    'Kevadel tuli → esimestel nädalatel tekkis probleem (hiljaks jäämine).',
-    'Probleem (täis buss) → ta rääkis sellest juhile.',
-    '„Juht ei olnud vihane” → ta pakkus lahenduse.',
-    'Algus kell kümme → nii väldib ta tipptundi.',
-    'Kodus töötamise päevad → neil päevadel jõuab trenni.',
-    '„töö on parem” → põhjus: ei kiirusta, teeb vähem vigu. Üleliigne on lause töölt lahkumisest.',
-  ],
-  '005_p_fix': [
-    'jooma + osastav: teed (pooleli / määramata hulk); parem sõnajärg: joon ma.',
-    'Mitu korda ajaühikus: nädalas.',
-    'Keskvõrre on üks sõna: rahulikum.',
-    '„kuigi” ja „aga” koos ei käi.',
-    'Kestus kuni praeguseni: kaks aastat (ilma „tagasi”-ta); „tagasi” käib lihtminevikuga.',
-    'võrreldes + -ga: (oma) vennaga.',
-    'Ajaväljendid koos lause keskel või alguses, tegusõna teisel kohal.',
-    'Pärast kuna-lauset tuleb kohe tegusõna: jäin.',
-    '„lemmik” on juba ülivõrde tähendusega: lemmikpäev (ilma „kõige”-ta).',
-    'Võrdlus lause lõpus: … kui mina; tegusõna ei korrata.',
-  ],
-  '005_p_trans': [
-    'Kuigi-lause ees, siis kohe tegusõna: läksin.',
-    'Kuna-lause ees, siis kohe tegusõna: võtsin.',
-    'samas ühendab kaks vastandlikku fakti.',
-    'esmaspäev + neljapäev = kaks korda nädalas.',
-    'võrreldes + -ga: bussiga; tegusõna teisel kohal: on.',
-    'Järjekord: kõigepealt …, seejärel …; tegusõna kohe sõna järel.',
-    'Õhtuti + tegusõna loen teisel kohal.',
-    'Kuigi-lause ees, siis tegusõna: olin.',
-    'Keskvõrre + kui: rahulikum kui.',
-    'seetõttu + tegusõna teisel kohal: jäin.',
-  ],
-  '005_p_notes': [
-    'Teade 1: „iga kümne minuti järel”.',
-    'Teade 2: „tulge kümme minutit varem”.',
-    'Teade 2: „et täita ankeet”.',
-    'Teade 3: „treener on haige”.',
-    'Teade 4: suletud „remondi tõttu”.',
-    'Teade 4: tagastada „maja ees olevasse kasti”.',
-  ],
-  '005_p_listen': [
-    'Saatejuht: „Stuudios on unearst Merike Kask.”',
-    'Arst: „keskmiselt on meil magamisega üsna hästi”.',
-    'Arst: pühapäeviti „tund ja kümme minutit kauem”.',
-    'Arst: „on pühapäeva õhtul raske magama jääda”.',
-    'Arst: „Kindlasti ekraanid.”',
-    'Arst: telefon käest „vähemalt tund aega enne magamaminekut”.',
-    'Arst: „vett või taimeteed”.',
-    'Arst: „kofeiin mõjub kehas veel mitu tundi”.',
-    'Arst: magamistuba „pime ja vaikne”.',
-  ],
-  '005_p_tf': [
-    'Õige: „seitse kuni üheksa tundi”.',
-    'Vale: „see ei ole päris nii”.',
-    'Õige: „esmaspäev algab jälle väsinult”.',
-    'Vale: „Hommikune kohv ei ole” probleem.',
-    'Õige: sinine valgus „ütleb ajule, et on veel päev”.',
-    'Vale: vahetustega töötajatel „on kõige raskem”.',
-    'Vale: arst soovitab ärgata „iga päev samal ajal, ka nädalavahetusel”.',
-    'Õige: „järgmisel nädalal räägime sellest, kuidas toit und mõjutab”.',
-    'Õige: „kofeiin mõjub kehas veel mitu tundi”.',
-    'Vale: pärast kella kolme tasub kohvi asemel juua vett või taimeteed.',
-  ],
-  '005_t_read': [
-    '3. lõik: „nende lugudes tunneb iga kuulaja ennast ära”.',
-    '1. lõik: raadio otsib „kolme inimest”.',
-    '1. lõik: ootavad inimesi, kes on „kolinud, vahetanud töökohta või muutnud oma elurütmi”.',
-    '2. lõik: „järgmise kuu esimesel kolmapäeval kell kaksteist”.',
-    '2. lõik: „kaks kinopiletit”.',
-    '2. lõik: „hiljemalt järgmise reede õhtuks”.',
-    '2. lõik: „on võimalik anda intervjuu ka telefoni teel”.',
-  ],
-};
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
