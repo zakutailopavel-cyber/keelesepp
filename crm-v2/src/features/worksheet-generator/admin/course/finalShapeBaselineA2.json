@@ -14,6 +14,12 @@
   "a2-008|*|V11-input",
   "a2-009|*|V11-input"
  ],
+ "a2-module-03": [
+  "a2-011|*|V11-input",
+  "a2-012|*|V11-input",
+  "a2-013|*|V11-input",
+  "a2-014|*|V11-input"
+ ],
  "a2-module-06": [
   "a2-026|transfer|V2"
  ],

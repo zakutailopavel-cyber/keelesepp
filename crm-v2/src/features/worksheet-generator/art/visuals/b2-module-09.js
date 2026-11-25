@@ -2,12 +2,13 @@
 // Learner-facing text (alt, caption, prompts) without the course cast since 2026-11-19 (task-based module 9,
 // docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. The same five pictures, retargeted
 // to the new lessons (the food label, the pharmacy, movement or rest, the 8-week plan, the exam letter); no new picture was
-// needed. Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by
+// needed. 2026-11-25 (v5): 041 before the shop deal, 044 before the plan formula, 045 before the writing part. Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by
 // KeeleSeppArt/import_art.py.
 export default [
   {
     id: "b1b2-041-kasuta-1",
-    phase: "transfer",
+    // 2026-11-25 (v5): on Avasta after the article, before the scheme „habit → result” (page fill ≥ 70 %)
+    phase: "discover",
     format: "scene",
     cast: ["Markus", "Jaan"],
     // 2026-11-19 (v4): the same picture (habit cards: sleep, water, food, a phone pause; the daily-walk card with an
@@ -15,11 +16,11 @@ export default [
     scene: "Laual on hallid une, vee, toidu ja telefonipausi kaardid; üks inimene tõstab esile keskse igapäevase kõnni kaardi ja teine osutab sellelt energia ja parema enesetunde sümbolini viivale noolele.",
     accent: "the daily-walk habit card and its cause-effect arrow",
     text: [],
-    place: "041_t_chart",
-    learningJob: "siduda harjumus ja selle tagajärg (tänu millele, mille tõttu) enne kokkuvõtet joonisest",
+    place: "041_d_scheme",
+    learningJob: "siduda harjumus ja selle tagajärg (tuleneb millest, viib milleni) enne kokkulepet poes",
     alt: "Laual on harjumuste kaardid; nool viib kõnni kaardilt energia ja parema enesetunde märgini.",
     caption: "Pilt 1. Harjumus → tagajärg.",
-    prompts: ["Milliseid harjumusi kaardid laual näitavad?", "Mida näitab nool kõnni kaardilt energia märgini? Ütle see tänu-lausega.", "Milline sinu toiduharjumus mõjub sinu enesetundele kõige rohkem ja miks?"],
+    prompts: ["Milliseid harjumusi kaardid laual näitavad?", "Mida näitab nool kõnni kaardilt energia märgini? Ütle see lausega „… viib …ni”.", "Milline sinu toiduharjumus mõjub sinu enesetundele kõige rohkem ja miks?"],
   },
   {
     id: "b1b2-042-kasuta-1",
@@ -39,7 +40,8 @@ export default [
   },
   {
     id: "b1b2-043-kasuta-1",
-    phase: "transfer",
+    // 2026-11-25 (v5): on Avasta after the article, before the scheme „what tired you?” (page fill ≥ 70 %)
+    phase: "discover",
     format: "scene",
     cast: ["Anna", "Markus"],
     // 2026-11-19 (v4): the same picture (a café corner: grey symbols of overload are gathered into one card of feasible
@@ -47,7 +49,7 @@ export default [
     scene: "Vaikses kohvikunurgas räägivad kaks inimest väsimusest. Laual on hallid sümbolid pikkade päevade, hilise e-kirja ja kadunud vaba aja kohta; need koondatakse kesksele kaardile, kus on mõned teostatavad muudatused.",
     accent: "the feasible change-plan card",
     text: [],
-    place: "043_t_debate",
+    place: "043_d_scheme",
     learningJob: "leida väitluse lõpus kompromiss: mida väsinud inimene pigem teeb ja millest loobub",
     alt: "Kaks inimest koondavad väsimuse põhjused laual ühele teostatavate muudatuste kaardile.",
     caption: "Pilt 1. Väsimusest kompromissini.",
@@ -63,12 +65,19 @@ export default [
     scene: "Nõustamislaua juures koostavad kaks inimest kolme kuu plaani. Hallid algseisu kaardid näitavad pikka istumist, hilist magamaminekut ja kiirtoitu; nende juurest viib samm-sammuline rada kõnni, regulaarse une ja koduse toiduni ning lõpuks energilisema enesetundeni.",
     accent: "the connected step-by-step lifestyle route",
     text: [],
-    place: "044_d_radio",
+    // 2026-11-25 (v5): right before the radio show (the formula stands before it; 044_d_radio is hidden)
+    place: "044_d_show",
     learningJob: "siduda algseis, eesmärk, väikesed sammud ja oodatav tulemus üheks plaaniks",
     alt: "Rada viib istumise, hilise une ja kiirtoidu kaartidelt väikeste sammude kaudu parema enesetundeni.",
     caption: "Pilt 1. Väikeste sammudega harjumuseni.",
     prompts: ["Milline on algseis ja milline on eesmärk pildil?", "Miks on rada jagatud väikesteks sammudeks? Kontrolli raadiost.", "Milline samm oleks sinu enda elus kõige raskem ja mis aitaks?"],
   },
+];
+
+// Retired from the sheets in the methodology v5 rewrite (2026-11-25): the control is one sheet (reading + writing) and the
+// picture of the old exam letter (045_t_letter, hidden) left its last page a third full (page fill ≥ 70 %); the file stays
+// in public/textbook-art/ and can return when a lesson needs it.
+export const RETIRED = [
   {
     id: "b1b2-045-kasuta-1",
     phase: "transfer",
@@ -80,9 +89,9 @@ export default [
     accent: "the situation-specific response card",
     text: [],
     place: "045_t_letter",
-    learningJob: "kirjutada kiri, mis arvestab adressaadi olukorda: seisukoht, põhjus, mure ja ettepanek",
+    learningJob: "kirjutada tekst, mis arvestab lugeja olukorda: probleem, eesmärk, sammud ja plaan B",
     alt: "Kaks inimest koostavad laua taga vastust, mis sobib lugeja olukorraga.",
-    caption: "Pilt 1. Hea kiri arvestab lugejaga.",
-    prompts: ["Mida näitavad kaks kaarti laual?", "Mida peab hea kiri ühistu juhatusele sisaldama?", "Mis on sinu ettepanek oma maja hoovi jaoks?"],
+    caption: "Pilt 1. Hea tekst arvestab lugejaga.",
+    prompts: ["Mida näitavad kaks kaarti laual?", "Mida peab sisaldama hea tekst plaanist, mida loevad teised kursuslased?", "Mis on sinu kaheksa nädala muutuse esimene samm?"],
   },
 ];
