@@ -1,3 +1,4 @@
+import { keepsWithNext } from './examMode.js';
 import { canShrink, canSplit, canStack, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 
 // a row of n items, each `step` mm tall, under a head of `head` mm
@@ -123,5 +124,22 @@ describe('page split', () => {
     // small items (10 mm) still keep two on each side
     expect(packPages([{ h: 65 }, listRow(6)], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1]]);
     expect(canSplit({ id: 'c', type: 'choice', data: { questions: [{ q: 1 }, { q: 2 }] } })).toBe(true);
+  });
+
+  it('keeps a picture on the page of the task under it', () => {
+    const image = { id: 'i', type: 'image', data: {} };
+    const tip = { id: 't', type: 'tip', data: {} };
+    const speaking = { id: 's', type: 'speaking', data: {} };
+    expect(keepsWithNext({ meta: {} }, [image, tip], [speaking])).toBe(true);
+    expect(keepsWithNext({ meta: {} }, [image], [speaking])).toBe(true);
+    expect(keepsWithNext({ meta: {} }, [image, tip], [image])).toBe(false);
+    expect(keepsWithNext({ meta: {} }, [tip], [speaking])).toBe(false);
+    expect(keepsWithNext({ meta: {} }, [image, speaking], [speaking])).toBe(false);
+    expect(keepsWithNext({ meta: {} }, [image], undefined)).toBe(false);
+    // 60 mm left: a smaller picture (60) would fit, but its task (25) would start the next page → both move (60 + 25 do not fit)
+    const pic = { h: 70, shrink: { photo: 60, others: 30 }, keepWithNext: true };
+    expect(packPages([{ h: 40 }, pic, { h: 25 }], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1, 2]]);
+    // the task's first part fits under the picture: both stay
+    expect(packPages([{ h: 10 }, { h: 30, keepWithNext: true }, listRow(10)], { firstCap: 100, nextCap: 100 }).pages[0]).toEqual([0, 1, { row: 2, from: 0, to: 3 }]);
   });
 });

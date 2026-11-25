@@ -25,10 +25,14 @@ export const isExamSheet = (doc) => Boolean(doc?.meta?.exam);
 export const onScreenContinuous = (doc, mode) => isExamSheet(doc) && (mode === 'interactive' || mode === 'review');
 
 // Rows that must start on the same printed page as the row after them (pageSplit.js packPages keepWithNext): a word
-// strip and the task under it (every sheet); on an exam sheet also a chart and the task that asks about it (W2).
+// strip and the task under it (every sheet); a picture (alone or with its tip / notice) and the task under it, which
+// is about it (2026-11-25: „Jutusta pildi järgi” must not start a page after its comic); on an exam sheet also a chart
+// and the task that asks about it (W2).
+const PICTURE_ROW = new Set(['image', 'tip', 'notice']);
 export const keepsWithNext = (doc, row, next) => {
   const type = row?.[0]?.type;
   if (type === 'wordstrip') return true;
+  if (row?.some((b) => b.type === 'image') && row.every((b) => PICTURE_ROW.has(b.type)) && next?.some((b) => !PICTURE_ROW.has(b.type))) return true;
   return Boolean(next?.length) && isExamSheet(doc) && type === 'chart';
 };
 
