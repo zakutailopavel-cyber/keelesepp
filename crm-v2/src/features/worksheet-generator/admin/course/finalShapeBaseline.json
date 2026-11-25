@@ -14,5 +14,14 @@
   "a2b1-006|*|V11-input",
   "a2b1-007|*|V11-input",
   "a2b1-009|*|V11-input"
+ ],
+ "a2b1-module-03": [
+  "*|*|V3-skill-R",
+  "*|*|V3-skill-L",
+  "*|*|V4-type-speaking",
+  "*|*|V4-type-writing",
+  "a2b1-011|*|V11-input",
+  "a2b1-012|*|V11-input",
+  "a2b1-013|*|V11-input"
  ]
 }

@@ -1,6 +1,72 @@
 // Visual briefs of a2b1 module 03; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Methodology v5 rewrite (2026-11-25): one learning visual per teaching lesson (011 two floor plans, 012 the new flat,
+// 013 the empty lot, 014 the way from the station). They are line drawings the content agent made from hand-written SVG
+// (not generated) as working pictures in the palette of TEXTBOOK_ART_BIBLE.md §2 (black line, white, one lime accent,
+// pale-lime blob, grey); Codex may redraw them from the same briefs. The places and people are made up and are not the
+// continuing story's cast. The earlier pictures (Codex, built-in image generation; cast scenes) are in RETIRED below;
+// their files stay in public/.
 export default [
+  {
+    id: "a2b1-011-avasta-2",
+    phase: "discover",
+    format: "scene",
+    cast: [],
+    scene: "Kaks korteri plaani kõrvuti, ülal tähed A ja B ning pealkirjad. A „Pelgulinn · uus maja”: ELUTUBA ja MAGAMISTUBA päikeseikooniga, väike KÖÖK, LIFT (nooltega kast), läbikriipsutatud käpp (lemmikloomad keelatud), all RÕDU. B „Kalamaja · vana puumaja”: ELUTUBA päikesega, MAGAMISTUBA kuuga ja kirjaga „aken hoovi poole”, KÖÖK vanade kappidega, TREPP (lifti ei ole), käpp linnukesega (kass lubatud), all HOOV jalgratta ja kirjaga „rattakuur”. Omadussõnu plaanil ei ole — need ütleb õppija ise.",
+    accent: "the letter badges A and B",
+    text: ["A", "B", "Pelgulinn · uus maja", "Kalamaja · vana puumaja", "ELUTUBA", "MAGAMISTUBA", "KÖÖK", "väike", "LIFT", "RÕDU", "aken hoovi poole", "vanad kapid", "TREPP", "HOOV", "rattakuur"],
+    learningJob: "kirjeldada korterit liitega omadussõnadega plaani järgi (elutuba on päikeseline, magamistuba on rahulik, köök on ebamugav) ja võrrelda kahte korterit",
+    place: "011_d_plan",
+    alt: "Kahe korteri plaan: Pelgulinna uues majas on kaks päikeselist tuba, väike köök, lift ja rõdu, lemmikloomad on keelatud; Kalamaja puumajas on päikeseline elutuba, vaikne magamistuba hoovi poole, vanade kappidega köök, trepp ja rattakuur, kass on lubatud.",
+    caption: "Kaks korterit.",
+    prompts: ["Milline on korteri A elutuba? Aga korteri B magamistuba?", "Mis on korteris B ebamugav?", "Kumma korteri sina valiksid ja miks?"],
+  },
+  {
+    id: "a2b1-012-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Uue korteri plaan: ESIK, ELUTUBA (aken), MAGAMISTUBA (aken), KÖÖK, HOOV jalgratta ja kirjaga „rattakuur” ning hall KELDER. Tubades on kuus nummerdatud kohta 1–6. Paremal kaart „Mis kuhu läheb?” ikoonidega: kapp, diivan, laud, raamaturiiul, kastid, jalgratas.",
+    accent: "the numbered spots 1–6",
+    text: ["ESIK", "ELUTUBA", "MAGAMIS-", "TUBA", "KÖÖK", "HOOV", "KELDER", "rattakuur", "1", "2", "3", "4", "5", "6", "Mis kuhu läheb?", "kapp", "diivan", "laud", "raamaturiiul", "kastid", "jalgratas"],
+    learningJob: "leppida paarilisega kokku ja kirjutada, kuhu iga asi läheb (kuhu-vorm: kapp läheb esikusse, diivan elutuppa, kastid keldrisse) ja kus see siis on (kus-vorm)",
+    place: "012_t_note",
+    alt: "Uue korteri plaan esiku, elutoa, magamistoa, köögi, hoovi ja keldriga, kuus nummerdatud kohta ning kõrval kapp, diivan, laud, raamaturiiul, kastid ja jalgratas.",
+    caption: "Uus korter: kuhu mis läheb?",
+    prompts: ["Kuhu sina paneksid kapi ja diivani? Miks?", "Kuhu lähevad kastid ja jalgratas?", "Mis on kohas number 3, kui kõik on paigas?"],
+  },
+  {
+    id: "a2b1-013-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Linnaosa kaart ülalt: tänavarist, tänaval palju autosid; PARK puude ja mänguväljakuga, RAAMATUKOGU, POOD, MAJAD, trammipeatus T. Ristmiku nurgal kriipsjoonega TÜHI KRUNT suure küsimärgiga. All neli ideekaarti ikoonidega: MÄNGUVÄLJAK, PARKLA, AED, PINGID.",
+    accent: "the empty lot",
+    text: ["PARK", "mänguväljak", "RAAMATUKOGU", "POOD", "MAJAD", "T", "TÜHI KRUNT", "?", "MÄNGUVÄLJAK", "PARKLA", "P", "AED", "PINGID"],
+    learningJob: "teha ettepanek, mida tühjale krundile teha, põhjendada seda sest- või kuna-lausega (Kuna autosid on palju, …) ja vastata teise arvamusele",
+    place: "013_t_meeting",
+    alt: "Linnaosa kaart pargi, raamatukogu, poe, majade ja autodest täis tänavaga; nurgal on tühi krunt küsimärgiga, all neli ideed: mänguväljak, parkla, aed ja pingid.",
+    caption: "Tühi krunt.",
+    prompts: ["Mis linnaosas on ja mis on puudu?", "Mida sina krundile teeksid? Põhjenda.", "Millega sa ei ole nõus ja miks?"],
+  },
+  {
+    id: "a2b1-014-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Lihtne kaart: all raudtee, vasakul JAAM ja TURG, nende kõrval „turu tänav”, mis viib üles RISTMIKUNI; ristmikust idas PARK puudega ja väravaga lääne poolel; pargist lõunas parkla P; pargist põhjas üle „meie tänava” bussipeatus „buss 80”; pargi taga (idas) kirik ja maja number 7; „meie tänaval” tõke kirjaga SULETUD. Põhjasuuna nool N.",
+    accent: "house number 7",
+    text: ["N", "JAAM", "TURG", "turu tänav", "RISTMIK", "PARK", "värav", "P", "buss", "80", "meie tänav", "kirik", "7", "SULETUD", "raudtee"],
+    learningJob: "juhatada telefonis teed käskiva kõneviisiga (minge mööda turu tänavat kuni ristmikuni, pöörake paremale, ärge minge üle raudtee) ja leida koos helistajaga, kus ta tegelikult on",
+    place: "014_t_call",
+    alt: "Kaart jaamast majani: jaam ja turg, turu tänav ristmikuni, park väravaga, parkla, bussipeatus 80, kirik ja maja number 7, suletud tänav.",
+    caption: "Jaamast majani.",
+    prompts: ["Kuidas minna jaamast majani number 7?", "Kuidas minna bussipeatusest 80 majani?", "Kuhu jätta auto ja miks?"],
+  },
+];
+
+// Retired from the sheets in the methodology v5 rewrite (2026-11-25): cast scenes that did not carry the new lessons'
+// tasks; the files stay in public/textbook-art/b1/ and can return when a lesson needs them.
+export const RETIRED = [
   {
     id: "a2b1-011-avasta-1",
     phase: "discover",
