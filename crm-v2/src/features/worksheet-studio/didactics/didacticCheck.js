@@ -6,7 +6,7 @@ import { groupItems } from '../engine/schema.js';
 // Returns { level, label, checks[], score, issues[] } — issues never block publishing (warning / tip only).
 import { BLOCKS } from '../engine/registry.js';
 import { isExamSheet } from '../engine/examMode.js';
-import { HARNO, LEVELS, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
+import { HARNO, LEVELS, LEVEL_ORDER, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
 import { dialogueGaps, isExitCheck, isListeningRow, isStationSheet, isTaskDesign } from './stations.js';
 
@@ -156,8 +156,17 @@ export function sheetPhase(doc) {
 // answer, …) and the constructor's own errors still are. Older sheets (no meta.exam) are checked as before.
 export const EXAM_EXEMPT = ['items', 'example', 'bank', 'closed-share', 'productive', 'progression', 'instruction', 'reading-len', 'reading-inf', 'sentence-avg', 'sentence-max', 'vocabulary'];
 
+// methodology v5 in the B2 course (meta.methodV5 on a b1b2-* sheet, docs/METHODOLOGY_B1_B2_V5.md §3, methodV5.js G3):
+// every lesson keeps the B2 exam lengths (reading 400–600 words, writing ~140 / ~180, a 1-min talk after 2 min of
+// preparation), so a sheet of the B1 / B1+ stage is read with the B2- norms
+export const v5B2Level = (doc) => {
+  const level = doc?.meta?.level;
+  if (!doc?.meta?.methodV5 || !/^ws_b1b2-/.test(String(doc?.id || ''))) return level;
+  return LEVEL_ORDER.indexOf(levelKey(level)) < LEVEL_ORDER.indexOf('B2-') ? 'B2-' : level;
+};
+
 // `forms`: the EKI level vocabularies (levelVocabulary.js loadLevelForms); without them the vocabulary is not checked
-export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhase(doc), forms = null } = {}) {
+export function didacticCheck(doc, { level = v5B2Level(doc), phase = sheetPhase(doc), forms = null } = {}) {
   const key = levelKey(level);
   const norm = LEVELS[key];
   const tasks = (doc?.blocks || []).filter((b) => BLOCKS[b.type]?.task);
