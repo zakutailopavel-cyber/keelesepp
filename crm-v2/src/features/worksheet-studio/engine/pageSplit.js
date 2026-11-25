@@ -56,6 +56,36 @@ export const SPLITTABLE = Object.freeze({
     count: (d) => lineList(d.sentences).length,
     slice: (d, from, to) => ({ data: { ...d, sentences: lineList(d.sentences).slice(from, to).join('\n'), audio: from === 0 ? d.audio : null, partOf: from > 0 }, start: from }),
   },
+  // a speaking task (owner 2026-11-25: „полупустые страницы”): its questions; the phrase tip and the recorder go with
+  // the last part, after the last question. A task with a picture beside the questions keeps its two-column layout.
+  speaking: {
+    items: '.ws-speak .ws-bullets > li',
+    when: (d) => !d.img?.src,
+    count: (d) => lineList(d.questions).length,
+    slice: (d, from, to) => {
+      const last = to >= lineList(d.questions).length;
+      return { data: { ...d, questions: lineList(d.questions).slice(from, to).join('\n'), tipTitle: last ? d.tipTitle : '', noRecorder: !last }, start: from };
+    },
+  },
+  // „Kontrolli end”: its statements stand two to a line, so an item is one line of two; the stamp stays with the last
+  // part. One line on each side is enough (a self-check has 4–6 statements).
+  selfcheck: {
+    min: 1,
+    items: (card) => {
+      const labels = [...card.querySelectorAll('.ws-self-items > label')].map((l) => l.getBoundingClientRect());
+      const out = [];
+      for (let i = 0; i < labels.length; i += 2) {
+        const pair = labels.slice(i, i + 2);
+        out.push({ top: Math.min(...pair.map((r) => r.top)), bottom: Math.max(...pair.map((r) => r.bottom)) });
+      }
+      return out;
+    },
+    count: (d) => Math.ceil(lineList(d.items).length / 2),
+    slice: (d, from, to) => {
+      const all = lineList(d.items);
+      return { data: { ...d, items: all.slice(from * 2, to * 2).join('\n'), stamp: to * 2 >= all.length ? d.stamp : '' }, start: from * 2 };
+    },
+  },
   // free writing: its ruled lines, on paper only (owner 2026-10-18: a 12-line task took a page of its own)
   writing: {
     printOnly: true,
@@ -86,9 +116,12 @@ export const SPLITTABLE = Object.freeze({
   },
 });
 export const MIN_ITEMS = 2;
-// split only when the free space is worth it: at least this many mm and this share of the page
-const MIN_FREE_MM = 35;
-const MIN_FREE_SHARE = 0.15;
+// items left on each side of a split: MIN_ITEMS, or the type's own `min`
+export const minItemsOf = (block) => SPLITTABLE[block?.type]?.min || MIN_ITEMS;
+// split only when the free space is worth it: at least this many mm and this share of the page (35 mm ≈ 10 % of a
+// page; 2026-11-25 the share went from 15 % to 10 %: a 14 %-empty page bottom was left empty before)
+export const MIN_FREE_MM = 35;
+export const MIN_FREE_SHARE = 0.1;
 
 export function itemCount(block) {
   const spec = SPLITTABLE[block?.type];
@@ -99,8 +132,19 @@ export function itemCount(block) {
 export const canSplit = (block, mode = 'print') => {
   const spec = SPLITTABLE[block?.type];
   if (!spec || mode === 'edit' || (spec.printOnly && mode !== 'print')) return false;
-  return !(Number(block.opts?.cols) > 1) && !block.minHeightMm && itemCount(block) >= MIN_ITEMS * 2;
+  if (spec.when && !spec.when(block.data || {})) return false;
+  return !(Number(block.opts?.cols) > 1) && !block.minHeightMm && itemCount(block) >= minItemsOf(block) * 2;
 };
+
+// Side by side tasks that may be drawn one under the other, each over the whole width, when their row does not fit on
+// the page and the page still has room (packPages `stack`): the first task then fills that room and the second
+// follows. Their order stays as it is — nothing moves past a numbered task. Only list tasks: a picture, a scheme, a
+// table of pictures or a tip next to a picture keeps its row (made full width it would change size and meaning).
+const STACKABLE = new Set(['gaps', 'wordorder', 'choice', 'truefalse', 'wordforms', 'errorfix', 'transformation', 'translation', 'listening', 'match', 'manymatch', 'categorize', 'selfcheck', 'writing', 'dialogue']);
+export const canStack = (row, mode = 'print') => mode !== 'edit' && Array.isArray(row) && row.length > 1
+  && row.every((b) => (STACKABLE.has(b.type) || (b.type === 'speaking' && !b.data?.img?.src)) && !b.minHeightMm && !b.joined);
+// a member of a stacked row drawn on its own line
+export const stackedBlock = (block) => ({ ...block, span: 12, width: 'full' });
 
 // the block with only items [from, to), and the answer-key offset of that part
 export function sliceBlock(block, from, to) {
@@ -113,9 +157,13 @@ export const shiftKey = (key, from) => (from ? String(key).replace(/^\d+/, (n) =
 
 /*
  * Packs measured rows into pages.
- * rows[i] = { h, split?: { head, tail, items: [{ top, bottom }], whole? }, breakBefore }   (mm)
- * split.whole: the row's height when it is split (a reading changes to one column); h is its height on one page.
- * A page entry is a row index, or { row, from, to } for a part of a split row.
+ * rows[i] = { h, split?: { head, tail, items: [{ top, bottom }], whole?, min? }, breakBefore, keepWithNext,
+ *             stack?: [{ h, split? }, …] }   (mm)
+ * split.min: items kept on each side (default MIN_ITEMS).
+ * stack: the row's blocks measured each alone over the whole width (canStack): when the row does not fit, the page has
+ * room worth filling and the first block (or its first part) fits there, the blocks are placed one under the other.
+ * A page entry is a row index, { row, from, to } for a part of a split row, or { row, member, from?, to? } for a
+ * block of a stacked row (from/to when that block is split as well).
  * Returns { pages, tall } — tall[p] when a page holds more than it can (one unsplittable very tall row).
  */
 export function packPages(rows, { firstCap, nextCap, gap = 0 }) {
@@ -124,61 +172,75 @@ export function packPages(rows, { firstCap, nextCap, gap = 0 }) {
   let used = 0;
   const cap = () => (pages.length === 1 ? firstCap : nextCap);
   const newPage = () => { pages.push([]); used = 0; };
+  const isEmpty = () => pages[pages.length - 1].length === 0;
+  const worthFilling = (room) => room >= MIN_FREE_MM && room >= cap() * MIN_FREE_SHARE;
   const put = (entry, h) => {
     pages[pages.length - 1].push(entry);
     used += h + gap;
     if (used - gap > cap()) tall[pages.length - 1] = true;
   };
-  // a word strip belongs to the task below it: when that task (or its first part) would start on the next page, the
-  // strip goes along instead of staying alone at the bottom
+  const minOf = (s) => s?.min || MIN_ITEMS;
+  const splits = (s) => Boolean(s) && s.items.length >= minOf(s) * 2;
+  // the height of the smallest first part of a row (the whole row when it does not split)
   const firstPart = (row) => {
     const s = row?.split;
-    if (!s || s.items.length < MIN_ITEMS * 2) return row?.h || 0;
-    return s.head + (s.items[MIN_ITEMS - 1].bottom - s.items[0].top) + s.tail;
+    if (!splits(s)) return row?.h || 0;
+    return s.head + (s.items[minOf(s) - 1].bottom - s.items[0].top) + s.tail;
   };
-  rows.forEach((row, index) => {
-    if (row.breakBefore && pages[pages.length - 1].length) newPage();
-    if (row.keepWithNext && rows[index + 1] && pages[pages.length - 1].length) {
-      const next = rows[index + 1];
-      const room = cap() - used - row.h - gap;
-      const whole = next.h <= room;
-      const part = next.split && firstPart(next) <= room && room >= MIN_FREE_MM && room >= cap() * MIN_FREE_SHARE;
-      if (!whole && !part) newPage();
-    }
+  // places one row (or one block of a stacked row); entry(from, to) makes its page entry, entry() the whole one
+  const place = (row, entry) => {
     const s = row.split;
-    const fits = () => used + row.h <= cap() || (!pages[pages.length - 1].length && row.h <= cap());
-    if (!s || s.items.length < MIN_ITEMS * 2 || fits()) {
-      if (pages[pages.length - 1].length && used + row.h > cap()) newPage();
-      put(index, row.h);
+    const fits = () => used + row.h <= cap() || (isEmpty() && row.h <= cap());
+    if (!splits(s) || fits()) {
+      if (!isEmpty() && used + row.h > cap()) newPage();
+      put(entry(), row.h);
       return;
     }
     const n = s.items.length;
+    const min = minOf(s);
     // height of items [from, to) with the card's head (title, bank) and tail (padding)
     const height = (from, to) => s.head + (s.items[to - 1].bottom - s.items[from].top) + s.tail;
     let from = 0;
     while (from < n) {
-      const empty = pages[pages.length - 1].length === 0;
+      const empty = isEmpty();
       const room = cap() - used;
       // on a fresh page the whole block is shown as it is, when it fits
-      if (from === 0 && empty && row.h <= cap()) { put(index, row.h); return; }
+      if (from === 0 && empty && row.h <= cap()) { put(entry(), row.h); return; }
       if (from > 0 && (height(from, n) <= room || (empty && height(from, n) <= cap()))) {
-        put({ row: index, from, to: n }, height(from, n));
+        put(entry(from, n), height(from, n));
         return;
       }
-      // the largest part that fits, leaving at least MIN_ITEMS on both sides
+      // the largest part that fits, leaving at least `min` items on both sides
       let to = 0;
-      const worth = empty || (room >= MIN_FREE_MM && room >= cap() * MIN_FREE_SHARE);
-      if (worth) for (let k = n - MIN_ITEMS; k >= from + MIN_ITEMS; k -= 1) if (height(from, k) <= room) { to = k; break; }
+      if (empty || worthFilling(room)) for (let k = n - min; k >= from + min; k -= 1) if (height(from, k) <= room) { to = k; break; }
       if (!to) {
         if (!empty) { newPage(); continue; }
-        // even a page cannot hold MIN_ITEMS: the rest goes on one growing page (whole, if nothing was split yet)
-        put(from ? { row: index, from, to: n } : index, from ? height(from, n) : row.h);
+        // even a page cannot hold `min` items: the rest goes on one growing page (whole, if nothing was split yet)
+        put(from ? entry(from, n) : entry(), from ? height(from, n) : row.h);
         return;
       }
-      put({ row: index, from, to }, height(from, to));
+      put(entry(from, to), height(from, to));
       newPage();
       from = to;
     }
+  };
+  rows.forEach((row, index) => {
+    if (row.breakBefore && !isEmpty()) newPage();
+    // a word strip belongs to the task below it: when that task (or its first part) would start on the next page, the
+    // strip goes along instead of staying alone at the bottom
+    if (row.keepWithNext && rows[index + 1] && !isEmpty()) {
+      const next = rows[index + 1];
+      const room = cap() - used - row.h - gap;
+      const whole = next.h <= room;
+      const part = splits(next.split) && firstPart(next) <= room && worthFilling(room);
+      if (!whole && !part) newPage();
+    }
+    const room = cap() - used;
+    if (row.stack?.length > 1 && !isEmpty() && row.h > room && worthFilling(room) && firstPart(row.stack[0]) <= room) {
+      row.stack.forEach((member, k) => place(member, (from, to) => (from === undefined ? { row: index, member: k } : { row: index, member: k, from, to })));
+      return;
+    }
+    place(row, (from, to) => (from === undefined ? index : { row: index, from, to }));
   });
   return { pages, tall };
 }

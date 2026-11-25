@@ -1,4 +1,4 @@
-import { canSplit, packPages, shiftKey, sliceBlock } from './pageSplit.js';
+import { canSplit, canStack, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 
 // a row of n items, each `step` mm tall, under a head of `head` mm
 const listRow = (n, { head = 20, step = 10, tail = 4 } = {}) => {
@@ -58,5 +58,45 @@ describe('page split', () => {
     expect(canSplit(letter, 'interactive')).toBe(false);
     expect(sliceBlock(letter, 0, 5).block.data).toMatchObject({ lines: 5, opening: 'Tere', closing: '' });
     expect(sliceBlock(letter, 5, 12).block.data).toMatchObject({ lines: 7, opening: '', closing: 'Lugupidamisega' });
+  });
+
+  it('fills a free page bottom of 10 % or more (35 mm floor)', () => {
+    // page 400 mm: a 350 mm row leaves 50 mm (12.5 %): a list starts there; 30 mm is not worth it
+    expect(packPages([{ h: 350 }, listRow(10)], { firstCap: 400, nextCap: 400 }).pages[0]).toEqual([0, { row: 1, from: 0, to: 2 }]);
+    expect(packPages([{ h: 370 }, listRow(10)], { firstCap: 400, nextCap: 400 }).pages).toEqual([[0], [1]]);
+  });
+
+  it('a type may keep one item on each side (split.min)', () => {
+    const row = listRow(3, { step: 15 });
+    row.split.min = 1;
+    // 40 mm left: head 20 + one line 15 + tail 4 = 39 fits
+    expect(packPages([{ h: 60 }, row], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0, { row: 1, from: 0, to: 1 }], [{ row: 1, from: 1, to: 3 }]]);
+  });
+
+  it('stacks side by side tasks when their row does not fit and the page has room', () => {
+    // 60 mm left; the pair is 70 mm high side by side; alone over the whole width they are 40 and 50 mm
+    const pair = { h: 70, stack: [{ h: 40 }, { h: 50 }] };
+    expect(packPages([{ h: 40 }, pair], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0, { row: 1, member: 0 }], [{ row: 1, member: 1 }]]);
+    // the pair fits: it stays side by side
+    expect(packPages([{ h: 20 }, pair], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0, 1]]);
+    // too little room (25 mm): the pair moves whole
+    expect(packPages([{ h: 75 }, pair], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1]]);
+    // the first task does not fit the room and does not split: the pair moves whole
+    expect(packPages([{ h: 55 }, { h: 70, stack: [{ h: 50 }, { h: 30 }] }], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1]]);
+    // the first task is a list: its first part fills the room, the rest and the second task follow
+    const list = listRow(10);
+    const out = packPages([{ h: 40 }, { h: 130, stack: [list, { h: 6 }] }], { firstCap: 100, nextCap: 100 }).pages;
+    expect(out).toEqual([[0, { row: 1, member: 0, from: 0, to: 3 }], [{ row: 1, member: 0, from: 3, to: 10 }, { row: 1, member: 1 }]]);
+  });
+
+  it('stacks only list tasks, never while editing, never a picture or a tip', () => {
+    const gaps = { id: 'a', type: 'gaps', data: {} };
+    const choice = { id: 'b', type: 'choice', data: {} };
+    expect(canStack([gaps, choice])).toBe(true);
+    expect(canStack([gaps, choice], 'edit')).toBe(false);
+    expect(canStack([gaps])).toBe(false);
+    expect(canStack([{ id: 'i', type: 'image', data: {} }, { id: 't', type: 'tip', data: {} }])).toBe(false);
+    expect(canStack([gaps, { id: 's', type: 'speaking', data: { img: { src: 'x' } } }])).toBe(false);
+    expect(canStack([gaps, { ...choice, joined: true }])).toBe(false);
   });
 });

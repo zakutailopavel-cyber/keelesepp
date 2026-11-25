@@ -57,8 +57,9 @@ export const speaking = {
       <div>
         <ul className="ws-bullets">{String(data.questions || '').split('\n').filter(Boolean).map((q, i) => <li key={i}><Md text={q} /></li>)}</ul>
         {data.tipTitle && <div className="ws-tip"><Speech /><div><b>{data.tipTitle}</b><br />{String(data.tipText || '').split('\n').map((x) => x.trim()).filter(Boolean).join(' · ')}</div></div>}
-        {ctx.interactive && <Recorder ctx={ctx} target={[Number(data.minSec) || 60, Number(data.maxSec) || 120]} />}
-        {ctx.review && (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">Salvestus puudub.</div>)}
+        {/* a part of a task split over pages (pageSplit.js): the recorder is drawn once, under the last questions */}
+        {ctx.interactive && !data.noRecorder && <Recorder ctx={ctx} target={[Number(data.minSec) || 60, Number(data.maxSec) || 120]} />}
+        {ctx.review && !data.noRecorder && (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">Salvestus puudub.</div>)}
       </div>
       {data.img?.src && <Photo img={data.img} aspect={data.aspect} alt="">{data.bubble && <div className="ws-bubble">{data.bubble}</div>}</Photo>}
     </div>

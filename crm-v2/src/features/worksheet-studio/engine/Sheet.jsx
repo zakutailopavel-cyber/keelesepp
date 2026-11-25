@@ -21,7 +21,7 @@ import { courseBadge } from '../../curriculum/courseNames.js';
 // Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
 const RichInlineEditor = lazyComponent(() => import('./RichInlineEditor.jsx'));
 import { themeClass, themedTone } from './look.js';
-import { SPLITTABLE, canSplit, itemCount, packPages, shiftKey, sliceBlock } from './pageSplit.js';
+import { SPLITTABLE, canSplit, canStack, itemCount, minItemsOf, packPages, shiftKey, sliceBlock, stackedBlock } from './pageSplit.js';
 import { focusNextField } from '../sheetFlow.js';
 import { answerFontClass, useAnswerFont } from '../answerFont.js';
 import { TranscriptContext, hasCheck, hasTranscript } from './transcript.js';
@@ -411,23 +411,38 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       const nextCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - RUNHEAD;
       // a list task alone in its row may continue on the next page (pageSplit.js); not while editing, where a text is
       // edited by its line number in the whole block
+      const splitOf = (block, holder) => {
+        const spec = SPLITTABLE[block.type];
+        if (!holder) return null;
+        const box = holder.getBoundingClientRect();
+        const scale = holder.offsetHeight ? box.height / holder.offsetHeight : 1;
+        const at = (y) => (y - box.top) / (scale || 1) / mm;
+        const card = holder.querySelector('.ws-card');
+        const raw = typeof spec.items === 'function' ? spec.items(card, block) : [...holder.querySelectorAll(spec.items)].map((it) => it.getBoundingClientRect());
+        const items = raw.map((b) => ({ top: at(b.top), bottom: at(b.bottom) }));
+        if (!items.length || items.length !== itemCount(block)) return null;
+        return { head: items[0].top, tail: holder.offsetHeight / mm - items[items.length - 1].bottom, items, min: minItemsOf(block) };
+      };
       const measured = rowEls.map((r, i) => {
         const h = r.offsetHeight / mm;
         const row = { h, breakBefore: Boolean(rows[i]?.[0]?.pageBreakBefore), keepWithNext: keepsWithNext({ meta: doc.meta }, rows[i], rows[i + 1]) };
+        // side by side tasks: each also measured alone over the whole width, to be placed one under the other when
+        // their row does not fit (pageSplit.js canStack)
+        if (canStack(rows[i], mode)) {
+          const stack = rows[i].map((b, k) => {
+            const m = el.querySelector(`.ws-measure-member[data-row="${i}"][data-member="${k}"]`);
+            if (!m) return null;
+            const wide = stackedBlock(b);
+            const split = canSplit(wide, mode) && !SPLITTABLE[b.type].stacked ? splitOf(wide, m) : null;
+            return { h: m.offsetHeight / mm, ...(split ? { split } : {}) };
+          });
+          return stack.every(Boolean) ? { ...row, stack } : row;
+        }
         const block = rows[i]?.length === 1 ? rows[i][0] : null;
         if (!block || !canSplit(block, mode)) return row;
-        const spec = SPLITTABLE[block.type];
         // a reading is split in its one-column form, drawn once more for measuring
-        const el2 = spec.stacked ? el.querySelector(`.ws-measure-stack[data-row="${i}"]`) : r;
-        if (!el2) return row;
-        const box = el2.getBoundingClientRect();
-        const scale = el2.offsetHeight ? box.height / el2.offsetHeight : 1;
-        const at = (y) => (y - box.top) / (scale || 1) / mm;
-        const card = el2.querySelector('.ws-card');
-        const raw = typeof spec.items === 'function' ? spec.items(card, block) : [...el2.querySelectorAll(spec.items)].map((it) => it.getBoundingClientRect());
-        const items = raw.map((b) => ({ top: at(b.top), bottom: at(b.bottom) }));
-        if (!items.length || items.length !== itemCount(block)) return row;
-        return { ...row, split: { head: items[0].top, tail: el2.offsetHeight / mm - items[items.length - 1].bottom, items } };
+        const split = splitOf(block, SPLITTABLE[block.type].stacked ? el.querySelector(`.ws-measure-stack[data-row="${i}"]`) : r);
+        return split ? { ...row, split } : row;
       });
       const { pages: out, tall } = packPages(measured, { firstCap, nextCap, gap });
       setPages(out);
@@ -538,6 +553,16 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     </div>
   );
 
+  // a page entry (pageSplit.js packPages): a row, a part of a split row, or one block of a stacked row (whole or a part)
+  const entryView = (e) => {
+    if (typeof e === 'number') return rows[e] && rowView(rows[e], e);
+    const row = rows[e.row];
+    if (!row) return null;
+    if (e.member === undefined) return rowView(row, `${e.row}:${e.from}`, false, e);
+    const block = row[e.member];
+    return block && rowView([stackedBlock(block)], `${e.row}.${e.member}:${e.from ?? ''}`, false, e.from === undefined ? null : e);
+  };
+
   const richEditor = rich ? <Suspense fallback={null}><RichInlineEditor key={`${rich.blockId}:${rich.path.join('.')}`} rect={rich.rect} value={rich.value} multiline={rich.multiline} textStyle={rich.textStyle}
     onCommit={(next) => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); onEditText?.(rich.blockId, rich.path, next); }}
     onCancel={() => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); }} /></Suspense> : null;
@@ -569,13 +594,14 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i, true)}</div>)}
         {rows.map((row, i) => (row.length === 1 && SPLITTABLE[row[0].type]?.stacked && canSplit(row[0], mode)
           ? <div className="ws-measure-stack" data-row={i} key={`s${i}`}>{rowView(row, `s${i}`, true, { from: 0, to: itemCount(row[0]) })}</div> : null))}
+        {rows.map((row, i) => (canStack(row, mode) ? row.map((b, k) => <div className="ws-measure-member" data-row={i} data-member={k} key={`m${i}:${k}`}>{rowView([stackedBlock(b)], `m${i}:${k}`, true)}</div>) : null))}
       </div></div>}
       {shownPages.map((idxs, p) => (
         <div className={`ws-page${shownTall[p] ? ' is-tall' : ''}${continuous ? ' is-continuous' : ''}`} key={p}>
           {p === 0
             ? <>{running ? <RunHead meta={doc.meta} running={running} /> : null}{lead}<Header key={`head:${rev}`} meta={doc.meta} /></>
             : <RunHead meta={doc.meta} running={running} />}
-          <div className="ws-flow">{idxs.map((e) => (typeof e === 'number' ? rows[e] && rowView(rows[e], e) : rows[e.row] && rowView(rows[e.row], `${e.row}:${e.from}`, false, e)))}</div>
+          <div className="ws-flow">{idxs.map(entryView)}</div>
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
           {dnd && mode === 'edit' && idxs.length > 0 ? <PageTailDrop page={p} lastId={lastBlockOf(rows, idxs)} /> : null}
           <Footer meta={doc.meta} page={p + 1} pages={shownPages.length} bookPage={startPage ? startPage + p : undefined} running={running} />
