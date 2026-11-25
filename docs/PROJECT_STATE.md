@@ -1,3 +1,13 @@
+## 2026-11-25 — B1 moodul 2 metoodika v5 järgi (agent/b1-m2-v5)
+
+- Main: a22261b (2026-11-25, sisaldab #1305 väravad, #1307 B2 m17, #1308 B1 m1). Haru `agent/b1-m2-v5` (mooduli 1 mall); draft-PR „B1 module 2 to methodology v5”. Deploy'd ega production'i kirjutusi pole.
+- `b1/module02.js` (design v3-stations + v4, tase A2): 006 case „Pere ja lähedased” (mooduli KÜLM ÜLESANNE, teema avaleht = Tatjana perepilt ≈ 110 sõna, sugupuu, pildilugu 30–60 sõna), 007 game „Milline inimene ta on?” (kuulutus, kes-laused, „Neli inimest” kirjeldamismäng + kokkulepe), 008 infogap „Kadunud asi” (teade = lugemine 8 lühivastusega, näidiskõne, kõne büroosse VARJATUD INFOGA), 009 project „Teeme peo!” (häälsõnum 62 s, kaks korda; pere nõupidamine; kodus häälsõnum-kutse PÄRIS inimesele = seosülesanne `realAddressee`), 010 kontroll ühel lehel (10 plokki ≈ 46 min: kuulamine 14 p lukus, rääkimine 10 p = tunni 6 külma stardi paralleel, kirjutamine 8 p, lävendid). Tunnis 12–13 plokki (oli 24–26), lehel ≤ 5/4/5. Loo tegelasi pole (inimesed välja mõeldud, üks tund). Vanad plokid `hide()` (109 tk), kõik 132 vana id-d alles; dikteerimist pole.
+- Uus: heli `public/audio/a2b1-009/009_d_msg.mp3` (TartuNLP, 62 s), `010_p_l3` uuesti (nimed ilma tegelasteta, 47 s); neli õpipilti (käsitsi SVG → WebP, paleti järgi) `public/textbook-art/b1/a2b1-00{6,7,8,9}/…-2.webp`, lähteülesanded `art/visuals/b1-module-02.js` (vanad tegelastega pildid `RETIRED`, failid alles); `b1/lessonGoals.js` 006–010; `strictModulesV5.json` b1 + `a2b1-module-02`.
+- Baseline'id (v5 eelarvega vastuolus, nähtav): `finalShapeBaseline.json` V3-skill-L, V4-type-writing, V5-pairs, V11-input (006, 007, 009).
+- Kontrollid: `node tools/course-audit/method-v5.mjs --course b1 --module 2` → 0; `npx vitest run src/features/worksheet-generator src/features/practice` 97 faili läbi (1 skip), 1673 testi (pärast rebase'i main'ile a22261b); EstNLTK `tools/course-audit/language.py`: 0 tundmatut väiketähega sõna. Ekraanipildid enne/pärast scratchpad `mock/b1m2/`.
+- Piirangud: pildid on tööpildid (Codex võib üle joonistada); aja hinnang `timeEstimate.js` ≈ 30–36 min tunnis (paaritöö ja teine katse hindamata), autori plaan 65 min + väljund; kontrolli eksamiosade päis näitab Harno B1 skaalat (nagu moodulis 1).
+- Järgmine samm: omanik vaatab 006 ja 010 lehti (enne/pärast) ja annab OK; siis sama mall moodulile 3.
+
 ## 2026-11-25 — B1 moodul 1 metoodika v5 järgi, pilootmoodul (agent/b1-m1-v5)
 
 - Main: 2c12977 (2026-11-25). Haru `agent/b1b2-method-v5` + ühendatud `origin/agent/b1b2-gates-v5` (draft-PR #1305) peale; draft-PR „B1 module 1 to methodology v5 (pilot)”. Deploy'd ega production'i kirjutusi pole.

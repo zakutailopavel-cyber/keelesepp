@@ -6,5 +6,13 @@
   "*|*|V4-type-writing",
   "a2b1-002|*|V11-input",
   "a2b1-004|*|V11-input"
+ ],
+ "a2b1-module-02": [
+  "*|*|V3-skill-L",
+  "*|*|V4-type-writing",
+  "*|*|V5-pairs",
+  "a2b1-006|*|V11-input",
+  "a2b1-007|*|V11-input",
+  "a2b1-009|*|V11-input"
  ]
 }
