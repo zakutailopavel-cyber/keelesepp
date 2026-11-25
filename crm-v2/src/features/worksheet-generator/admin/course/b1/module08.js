@@ -44,7 +44,7 @@
 // B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): rektsioon — verb + case and postposition (036, again in 039:
 // puuduma millest, maha jääma millest, keskenduma millele, paluma kellelt); ma- or da-infinitive (037); sest, kuna,
 // seepärast and the word order after them (038); polite requests with -ksin / -ksite (039, after module 6).
-import { B, fullSentences, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
 // the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
