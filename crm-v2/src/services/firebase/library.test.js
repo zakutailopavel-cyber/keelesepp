@@ -5,6 +5,8 @@ const firestore = vi.hoisted(() => ({
   doc: vi.fn((name, ...path) => (path.length > 1 ? [name, ...path].join('/') : `${name}-new-document`)),
   getDocs: vi.fn(),
   getDoc: vi.fn(),
+  query: vi.fn((name, ...filters) => ({ name, filters })),
+  where: vi.fn((field, op, value) => ({ field, op, value })),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
@@ -25,6 +27,7 @@ describe('libraryService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     firestore.writeBatch.mockReturnValue(firestore.batch);
+    firestore.getDocs.mockResolvedValue({ docs: [] });
     storageApi.uploadBytesResumable.mockReturnValue({
       snapshot: { ref: 'uploaded-storage-ref' },
       on: vi.fn((_event, progress, _error, complete) => {
@@ -107,6 +110,60 @@ describe('libraryService', () => {
     await libraryService.assign({ item, sheets: ['practice'], students: [{ id: 'student-1', name: 'Matvei' }], user: { uid: 'teacher-1' } });
     expect(firestore.getDoc).toHaveBeenCalledTimes(1);
     await expect(libraryService.assign({ item, sheets: [], students: [{ id: 'student-1' }], user: { uid: 't' } })).rejects.toThrow('Vali vähemalt üks tööleht.');
+  });
+
+  describe('a lesson sheet the student still has open (audit 2026-11-24, finding 05)', () => {
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    const worksheetDoc = { schema: 'keelesepp.worksheet/2', meta: { title: 'Tee küsimine' }, blocks: [{ id: 'b1', type: 'choice', data: {} }] };
+    const item = { kind: 'curriculum', type: 'worksheet', sourceId: 'a2-07', phase: 'practice', title: 'Tee küsimine ja juhatamine · Harjuta', source: { worksheetDoc } };
+    const students = [{ id: 'student-1', name: 'Mari' }, { id: 'student-2', name: 'Jaan' }];
+    const stored = (id, data) => ({ id, data: () => ({ lessonId: 'a2-07', phase: 'practice', status: 'new', answers: {}, assignedAt: '2026-11-10T10:00:00Z', ...data }) });
+    beforeEach(() => {
+      firestore.getDocs.mockResolvedValue({ docs: [stored('open-1', { studentId: 'student-1', answers: { q: 'x' } }), stored('done-2', { studentId: 'student-2', status: 'done' })] });
+    });
+    const sheetWrites = () => firestore.batch.set.mock.calls.filter(([ref]) => ref === 'worksheetAssignments-new-document').map(([, data]) => data);
+
+    it('reads the students\' assignments 5 cards a query', async () => {
+      await libraryService.assign({ item, students, user });
+      expect(firestore.where).toHaveBeenCalledWith('studentId', 'in', ['student-1', 'student-2']);
+    });
+    it('„ask” lists the open copy and writes nothing', async () => {
+      const error = await libraryService.assign({ item, students, user, repeats: 'ask' }).catch((caught) => caught);
+      expect(error.code).toBe('assignment/repeat');
+      expect(error.repeats).toEqual([expect.objectContaining({ studentId: 'student-1', lessonId: 'a2-07', phase: 'practice', existing: expect.objectContaining({ id: 'open-1', answered: 1 }) })]);
+      expect(firestore.batch.commit).not.toHaveBeenCalled();
+    });
+    it('„continue” (the default) keeps the open copy and gives only the others a sheet; a done copy makes the new one try 2', async () => {
+      const result = await libraryService.assign({ item, students, user });
+      expect(result).toMatchObject({ count: 2, created: 1, continued: 1 });
+      expect(result.assignments).toEqual([{ id: 'open-1', studentId: 'student-1', studentName: 'Mari', existing: true }, expect.objectContaining({ studentId: 'student-2', attempt: 2 })]);
+      expect(sheetWrites().map((data) => [data.studentId, data.attempt])).toEqual([['student-2', 2]]);
+      const log = firestore.batch.set.mock.calls.find(([, data]) => data.type === 'learning_material.assigned')[1];
+      expect(log.meta.studentIds).toEqual(['student-2']);
+      // the open copy itself is never written
+      expect(firestore.batch.set.mock.calls.some(([ref]) => String(ref).includes('open-1'))).toBe(false);
+    });
+    it('„new” writes a new try marked attempt 2 beside the open copy', async () => {
+      await libraryService.assign({ item, students: [students[0]], user, repeats: 'new' });
+      expect(sheetWrites()).toEqual([expect.objectContaining({ studentId: 'student-1', attempt: 2, status: 'new' })]);
+    });
+    it('when every student continues, nothing is committed', async () => {
+      const result = await libraryService.assign({ item, students: [students[0]], user });
+      expect(result).toMatchObject({ created: 0, continued: 1, assignments: [{ id: 'open-1', existing: true }] });
+      expect(firestore.batch.commit).not.toHaveBeenCalled();
+    });
+    it('a failed read assigns as before', async () => {
+      firestore.getDocs.mockRejectedValue(new Error('permission-denied'));
+      await libraryService.assign({ item, students: [students[0]], user, repeats: 'ask' });
+      expect(sheetWrites()).toEqual([expect.not.objectContaining({ attempt: expect.anything() })]);
+    });
+    it('a whole lesson asks once for all its sheets before reading any of them', async () => {
+      const lesson = { kind: 'curriculum', type: 'plan', sourceId: 'a2-07', title: 'Tee küsimine ja juhatamine', source: { roadmapManaged: true, worksheetPhases: { discover: { status: 'published' }, practice: { status: 'published' } } } };
+      const error = await libraryService.assign({ item: lesson, students, user, repeats: 'ask' }).catch((caught) => caught);
+      expect(error.code).toBe('assignment/repeat');
+      expect(error.repeats.map((entry) => entry.phase)).toEqual(['practice']);
+      expect(firestore.getDoc).not.toHaveBeenCalled();
+    });
   });
 
   it('snapshots a Worksheet Studio document into every assignment', async () => {

@@ -75,6 +75,26 @@ describe('RoomWorksheetPanel', () => {
     await waitFor(() => expect(homework.subscribeWorksheetAssignment).toHaveBeenCalledWith('as-9', expect.any(Function), expect.any(Function)));
   });
 
+  it('a curriculum sheet the student still has open: asks, „Jätka olemasolevat” puts his open copy on the board (audit 05)', async () => {
+    const { RepeatAssignmentError } = await import('../homework/assignmentRepeats.js');
+    const homework = { ...homeworkRepo(), adoptPreparedWorksheets: vi.fn().mockResolvedValue(0), listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([]) };
+    const library = {
+      list: vi.fn().mockResolvedValue({ curriculumLessons: [{ id: 'l-1', title: 'Minu päev', level: 'A2', worksheetDoc }] }),
+      assign: vi.fn(async ({ repeats }) => {
+        if (repeats === 'ask') throw new RepeatAssignmentError([{ studentId: 'st-1', studentName: 'Mari', lessonId: 'l-1', phase: '', existing: { id: 'open-7' } }]);
+        return { count: 1, created: 0, continued: 1, assignments: [{ id: 'open-7', studentId: 'st-1', existing: true }] };
+      }),
+    };
+    render(<MemoryRouter><RoomWorksheetPanel invitation={invitation} role="teacher" user={user} homework={homework} library={library} lessonWorksheets={{ list: vi.fn() }} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Lisa tahvlile: Minu päev' }));
+    const question = await screen.findByRole('alertdialog', { name: 'Leht on juba antud' });
+    expect(homework.openWorksheetInRoom).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Jätka olemasolevat' }));
+    await waitFor(() => expect(homework.openWorksheetInRoom).toHaveBeenCalledWith({ assignmentId: 'open-7', roomKey: 'inv-1' }));
+    expect(library.assign.mock.calls.map(([call]) => call.repeats)).toEqual(['ask', 'continue']);
+    await waitFor(() => expect(question).not.toBeInTheDocument());
+  });
+
   it('puts the student\'s next curriculum lesson on the board with one click', async () => {
     const homework = { ...homeworkRepo(), adoptPreparedWorksheets: vi.fn().mockResolvedValue(0), listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([]) };
     const phases = { discover: { title: 'Avasta 2', publishedVersion: 1 }, practice: { title: 'Harjuta 2', publishedVersion: 1 } };

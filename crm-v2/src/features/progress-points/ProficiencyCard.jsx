@@ -1,33 +1,47 @@
 import ProficiencyChart from './ProficiencyChart.jsx';
-import { changeText, curveSummary, formatPercent, pointLabel } from './proficiencyCurve.js';
+import { changeText, curveSummary, doneSheetCount, formatPercent, isThinCurve, pointLabel } from './proficiencyCurve.js';
 import { useLevelCurve } from './useLevelCurve.js';
+import { useStudentWords } from '../vocabulary/useStudentWords.js';
+import { wordGrowth } from '../vocabulary/wordGrowth.js';
 import './proficiency.css';
 import { LoadingState } from '../../components/ui/index.js';
 
 const Ru = ({ children }) => <span className="pd-ru" lang="ru"> · {children}</span>;
 const WORDS = {
-  parent: { title: (level, name) => `${name ? `${name} ` : ''}${level} keeleoskus`, ru: (level) => `владение языком ${level}`, who: 'laps oskab', empty: 'Kõver tekib, kui laps on teinud kursuse töölehti või õpetaja on märkinud alguspunkti.' },
-  student: { title: (level) => `Sinu ${level} keeleoskus`, ru: (level) => `твоё владение языком ${level}`, who: 'sa oskad', empty: 'Kõver tekib, kui oled teinud kursuse töölehti või õpetaja on märkinud alguspunkti.' },
+  parent: { title: (level, name) => `${name ? `${name} ` : ''}${level} keeleoskus`, ru: (level) => `владение языком ${level}`, who: 'laps oskab', did: 'Laps on juba teinud', thin: 'Protsent tekib, kui laps on teinud vähemalt kolm kursuse töölehte ja mõni eesmärk on kahes lehes õnnestunud.', empty: 'Kõver tekib, kui laps on teinud kursuse töölehti või õpetaja on märkinud alguspunkti.' },
+  student: { title: (level) => `Sinu ${level} keeleoskus`, ru: (level) => `твоё владение языком ${level}`, who: 'sa oskad', did: 'Sa oled juba teinud', thin: 'Protsent tekib, kui oled teinud vähemalt kolm kursuse töölehte ja mõni eesmärk on kahes lehes õnnestunud.', empty: 'Kõver tekib, kui oled teinud kursuse töölehti või õpetaja on märkinud alguspunkti.' },
 };
 
 /**
  * The level curve for the family or the learner (owner 2026-11-04, quiet version): one heading line (level, the value
  * now, the change since the start), the chart, „Mida see näitab?” and the table behind small toggles.
  */
-export function ProficiencyView({ curve, level = '', loading = false, audience = 'parent', name = '' }) {
+export function ProficiencyView({ curve, level = '', loading = false, audience = 'parent', name = '', doneSheets = 0, learnedWords = 0 }) {
   const words = WORDS[audience] || WORDS.parent;
   const title = level ? words.title(level, name) : 'Keeleoskus';
   const line = curve?.line || [];
   const exams = curve?.exams || [];
   const summary = curveSummary(curve);
   const { latest } = summary;
+  // too few measurements: no percentage (a 0 % would read as „knows nothing”), what was done instead
+  const thin = isThinCurve(curve);
   const head = <header className="pf-head">
     <h2>{title}{level ? <Ru>{words.ru(level)}</Ru> : null}</h2>
-    {latest ? <p className="pf-now"><strong>{formatPercent(latest.percent)}</strong>{summary.change !== null ? <b className={summary.change >= 0 ? 'is-up' : 'is-down'}>{changeText(summary)}</b> : null}</p> : null}
+    {latest && !thin ? <p className="pf-now"><strong>{formatPercent(latest.percent)}</strong>{summary.change !== null ? <b className={summary.change >= 0 ? 'is-up' : 'is-down'}>{changeText(summary)}</b> : null}</p> : null}
   </header>;
   if (loading) return <section className="pf-card" aria-label="Areng">{head}<LoadingState inline className="pf-empty" label="Laen…" /></section>;
   if (!line.length && !exams.length) return <section className="pf-card" aria-label="Areng">{head}
     <p className="pf-empty"><span>Andmeid veel pole.<Ru>данных пока нет</Ru></span><small>{words.empty}</small></p>
+  </section>;
+  if (thin) return <section className="pf-card" aria-label="Areng">{head}
+    <div className="pf-empty pf-thin" role="status">
+      <span>Andmeid on veel vähe.<Ru>данных пока мало</Ru></span>
+      {doneSheets || learnedWords ? <ul className="pf-did" aria-label={words.did}>
+        {doneSheets ? <li><strong>{doneSheets}</strong> {doneSheets === 1 ? 'tööleht tehtud' : 'töölehte tehtud'}<Ru>листов сделано</Ru></li> : null}
+        {learnedWords ? <li><strong>{learnedWords}</strong> sõna selgeks õpitud<Ru>слов выучено</Ru></li> : null}
+      </ul> : null}
+      <small>{words.thin}</small>
+    </div>
   </section>;
   return <section className="pf-card" aria-label="Areng">{head}
     {line.length + exams.length < 2
@@ -52,7 +66,9 @@ export function ProficiencyView({ curve, level = '', loading = false, audience =
 }
 
 // the page passes the learner's card ids, his sheets (already read) and the target level
-export default function ProficiencyCard({ studentIds = [], assignments = [], targetLevel = '', service, loadGoals, audience = 'parent', name = '' }) {
+// `wordsService`: the live word lists (studentWords), for the „learned words” of the neutral state
+export default function ProficiencyCard({ studentIds = [], assignments = [], targetLevel = '', service, loadGoals, wordsService, audience = 'parent', name = '' }) {
   const { curve, level, loading } = useLevelCurve({ studentIds, assignments, targetLevel, ...(service ? { service } : {}), ...(loadGoals ? { loadGoals } : {}) });
-  return <ProficiencyView curve={curve} level={level} loading={loading} audience={audience} name={name} />;
+  const words = useStudentWords(isThinCurve(curve) ? studentIds : [], ...(wordsService ? [wordsService] : []));
+  return <ProficiencyView curve={curve} level={level} loading={loading} audience={audience} name={name} doneSheets={doneSheetCount(assignments)} learnedWords={wordGrowth(words).learned} />;
 }

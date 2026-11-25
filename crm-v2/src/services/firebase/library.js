@@ -1,9 +1,25 @@
-import { collection, doc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { isUnpublishedWorksheet, lessonPhaseLabel } from '../../features/library/libraryModel.js';
 import { publishedPhaseDoc } from '../../features/worksheet-studio/bookProgram.js';
+import { REPEAT_CHOICE, RepeatAssignmentError, nextAttempt, openRepeats } from '../../features/homework/assignmentRepeats.js';
+
+// the students' worksheet assignments, read to find a sheet given again (assignmentRepeats.js). 5 cards a query, as
+// homework.js reads them (the rules check every card). A failed read finds nothing: the sheet is assigned as before.
+async function assignmentsOf(db, students = []) {
+  const ids = [...new Set(students.map((student) => student.id).filter(Boolean))];
+  try {
+    const chunks = Array.from({ length: Math.ceil(ids.length / 5) }, (_, index) => ids.slice(index * 5, index * 5 + 5));
+    const snapshots = await Promise.all(chunks.map((group) => getDocs(query(collection(db, 'worksheetAssignments'), where('studentId', 'in', group)))));
+    return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
+  } catch {
+    return [];
+  }
+}
+const repeatOf = (assignments, student, sheet) => openRepeats(assignments, { studentId: student.id, ...sheet })[0] || null;
+const repeatEntry = (student, sheet, existing, title) => ({ studentId: student.id, studentName: student.name || '', ...sheet, title, existing: { id: existing.id, assignedAt: existing.assignedAt || '', answered: Object.keys(existing.answers || {}).length } });
 
 export class WorksheetPublicationError extends Error {
   constructor(id) {
@@ -172,20 +188,34 @@ export const libraryService = {
       exercises: records(exercises),
     };
   },
-  async assign({ item, students, dueDate = '', note = '', user, sheets }) {
+  // `repeats` (assignmentRepeats.js): what to do when a student already has this lesson sheet open —
+  //   'continue' (default): nothing new for him, his open copy is returned (`existing: true`);
+  //   'new': a new assignment with `attempt: n`;
+  //   'ask': throws RepeatAssignmentError listing the open copies, before anything is written.
+  async assign({ item, students, dueDate = '', note = '', user, sheets, repeats = REPEAT_CHOICE.CONTINUE, known = null }) {
     if (!students.length) throw new Error('Vali vähemalt üks õpilane.');
     const choices = lessonSheetChoices(item);
     if (choices.length) {
       const wanted = choices.filter((choice) => !sheets || sheets.includes(choice.id));
       if (!wanted.length) throw new Error('Vali vähemalt üks tööleht.');
       const { db } = requireFirebaseClient();
-      const merged = { count: 0, mode: 'worksheet', assignments: [], sheets: [] };
+      const existing = known || await assignmentsOf(db, students);
+      if (repeats === REPEAT_CHOICE.ASK) {
+        const open = wanted.flatMap((choice) => students.map((student) => {
+          const found = repeatOf(existing, student, { lessonId: item.sourceId, phase: choice.id });
+          return found ? repeatEntry(student, { lessonId: item.sourceId, phase: choice.id }, found, `${item.title} · ${choice.label}`) : null;
+        }).filter(Boolean));
+        if (open.length) throw new RepeatAssignmentError(open);
+      }
+      const merged = { count: 0, created: 0, continued: 0, mode: 'worksheet', assignments: [], sheets: [] };
       for (const choice of wanted) {
         const snapshot = await getDoc(doc(db, 'curriculumLessons', item.sourceId, 'worksheets', choice.id));
         const sheet = publishedPhaseDoc(snapshot.exists() ? snapshot.data() : null);
         if (!sheet) throw new Error(`Lehel „${choice.label}” pole avaldatud versiooni.`);
-        const result = await this.assign({ item: { ...item, type: 'worksheet', phase: choice.id, title: `${item.title} · ${choice.label}`, level: sheet.meta?.level || item.level, source: { ...item.source, worksheetData: null, worksheetDoc: sheet, publishedWorksheetDoc: sheet, worksheetDocStatus: 'published' } }, students, dueDate, note, user });
+        const result = await this.assign({ item: { ...item, type: 'worksheet', phase: choice.id, title: `${item.title} · ${choice.label}`, level: sheet.meta?.level || item.level, source: { ...item.source, worksheetData: null, worksheetDoc: sheet, publishedWorksheetDoc: sheet, worksheetDocStatus: 'published' } }, students, dueDate, note, user, repeats: repeats === REPEAT_CHOICE.ASK ? REPEAT_CHOICE.CONTINUE : repeats, known: existing });
         merged.count = result.count;
+        merged.created += result.created || 0;
+        merged.continued += result.continued || 0;
         merged.assignments.push(...(result.assignments || []));
         merged.sheets.push(choice.label);
       }
@@ -206,15 +236,39 @@ export const libraryService = {
     if (assignmentMode === 'worksheet' && docBytes * students.length > 9 * 1024 * 1024) {
       throw new Error(`Tööleht on suur: määra see korraga kuni ${Math.max(1, Math.floor((9 * 1024 * 1024) / docBytes))} õpilasele.`);
     }
+    // a lesson sheet a student already has open (assignmentRepeats.js): only a course lesson's sheet has a lessonId
+    const sheetRef = { lessonId: item.sourceId || '', phase: item.phase || '', ...(item.block ? { block: item.block } : {}) };
+    const checkRepeats = assignmentMode === 'worksheet' && Boolean(sheetRef.lessonId);
+    const existing = checkRepeats ? (known || await assignmentsOf(db, students)) : [];
+    if (checkRepeats && repeats === REPEAT_CHOICE.ASK) {
+      const open = students.map((student) => {
+        const found = repeatOf(existing, student, sheetRef);
+        return found ? repeatEntry(student, sheetRef, found, item.title) : null;
+      }).filter(Boolean);
+      if (open.length) throw new RepeatAssignmentError(open);
+    }
     const created = [];
+    let continued = 0;
     for (const student of students) {
       if (assignmentMode === 'worksheet') {
+        const repeat = checkRepeats ? repeatOf(existing, student, sheetRef) : null;
+        if (repeat && repeats !== REPEAT_CHOICE.NEW) {
+          continued += 1;
+          created.push({ id: repeat.id, studentId: student.id, studentName: student.name || '', existing: true });
+          continue;
+        }
+        // a second (third …) copy of the sheet says which try it is; the first copy has no number, as before
+        const attempt = checkRepeats ? nextAttempt(existing, { studentId: student.id, ...sheetRef }) : 0;
+        const numbered = attempt > 1 ? attempt : 0;
         const assignmentRef = doc(collection(db, 'worksheetAssignments'));
-        created.push({ id: assignmentRef.id, studentId: student.id, studentName: student.name || '' });
+        created.push({ id: assignmentRef.id, studentId: student.id, studentName: student.name || '', ...(numbered ? { attempt: numbered } : {}) });
         batch.set(assignmentRef, {
           lessonId: item.sourceId,
           lessonTitle: item.title,
           ...(item.phase ? { phase: item.phase } : {}),
+          // one task of the sheet given alone: not the same work as the whole sheet (assignmentRepeats.js)
+          ...(item.block ? { block: item.block } : {}),
+          ...(numbered ? { attempt: numbered } : {}),
           subject: item.subject,
           level: item.level,
           topic: item.topic,
@@ -267,6 +321,7 @@ export const libraryService = {
       }
     }
 
+    const reused = new Set(created.filter((entry) => entry.existing).map((entry) => entry.studentId));
     batch.set(doc(collection(db, 'activityLog')), {
       type: 'learning_material.assigned',
       label: 'Õppevara määratud',
@@ -277,7 +332,7 @@ export const libraryService = {
         title: item.title,
         curriculumId: item.curriculumId || '',
         curriculumTitle: item.curriculum || '',
-        studentIds: students.map((student) => student.id),
+        studentIds: students.filter((student) => !reused.has(student.id)).map((student) => student.id),
       },
       studentId: students.length === 1 ? students[0].id : '',
       studentName: students.length === 1 ? students[0].name || '' : '',
@@ -287,8 +342,10 @@ export const libraryService = {
       createdAt: now,
       date,
     });
+    const written = students.length - continued;
+    if (!written) return { count: students.length, created: 0, continued, mode: assignmentMode, assignments: created };
     await batch.commit();
-    return { count: students.length, mode: assignmentMode, assignments: created };
+    return { count: students.length, created: written, continued, mode: assignmentMode, assignments: created };
   },
   async saveMaterial({ item = null, values, user }) {
     const title = String(values.title || '').trim();
