@@ -699,7 +699,7 @@ export const LESSONS = withShapes({
     title: 'Teade majale, kiri sõbrale',
     canDo: 'Ma kirjutan majale 50-sõnalise teate talgutest ja sõbrale 90–110-sõnalise kirja ning toimetan oma kirja rubriigi järgi.',
     discover: [
-      B.review('084_d_review', [['Mis kuupäeval on Sofia eksami kirjalik osa ja mida tuleb sinna kaasa võtta?', 'a2b1-083'], ['Kelle käpajäljed olid tegelikult Männi 8 värskelt värvitud trepil?', 'a2b1-063'], 'Kellele sa viimati kirja või pika sõnumi kirjutasid ja miks?']),
+      B.review('084_d_review', [['Mis kuupäeval on Sofia eksami kirjalik osa ja mida tuleb sinna kaasa võtta?', 'a2b1-083'], ['Miks oli Kooli tänava pagariäri tegelikult kinni?', 'a2b1-063'], 'Kellele sa viimati kirja või pika sõnumi kirjutasid ja miks?']),
       B.text('084_d_hook', 'Teade ja kiri', 'On aprilli keskpaik. Valgevase 7 maja on uue värviga ja tellingud võetakse maha. Tiina tahab laupäeval, 22. aprillil teha hoovis talgud ja palub Sofial kirjutada majale teate: „Sa kirjutad ju eksamiks, harjuta päris tekstiga!” Samal nädalal sai Sofia pika kirja oma sõbrannalt Lenalt Berliinist. Täna kuulad raadiost, kuidas head teadet ja kirja kirjutada, ning kirjutad mõlemad.'),
       B.vocab('084_d_vocab', 'Tunni sõnad.', ['kiri — письмо', 'sõnum — сообщение', 'tervitus — приветствие', 'sisu — содержание', 'lause — предложение', 'parandama — исправлять', 'viisakas — вежливый', 'talgud — субботник', 'kutsuma — приглашать', 'kirjeldama — описывать', 'teema — тема', 'osalema — участвовать']),
       B.examListen('084_d_radio', 'Raadio: kuidas kirjutada head teadet ja kirja?', 'Kuula intervjuud kaks korda. Otsusta iga väite kohta, kas see on õige või vale.', 'truefalse', [

@@ -296,7 +296,7 @@ describe('G2: the old sheet norms are off for a v5 sheet', () => {
     expect(isMethodV5({ MODULE: { id: 'a2b1-module-01', course: 'b1' } })).toBe(STRICT_V5.b1.includes('a2b1-module-01'));
     expect(isMethodV5({ MODULE: { id: 'a2-module-01', course: 'a2' } })).toBe(STRICT_V5.a2.includes('a2-module-01'));
     expect(isMethodV5({ MODULE: { id: 'a2-module-02', course: 'a2' } })).toBe(STRICT_V5.a2.includes('a2-module-02'));
-    expect(isMethodV5({ MODULE: { id: 'a2-module-04', course: 'a2' } })).toBe(false);
+    expect(isMethodV5({ MODULE: { id: 'a2-module-05', course: 'a2' } })).toBe(false);
   });
 });
 
