@@ -1771,8 +1771,8 @@
   },
   "a2b1-032:032_d_visit": {
     "src": "/audio/a2b1-032/032_d_visit.mp3",
-    "seconds": 129.6,
-    "hash": "07ada0c45961a99d99a4711a2358cc40ec322740"
+    "seconds": 88.9,
+    "hash": "4d76ffa007ba440711cd564d84c7a9dc2602e36b"
   },
   "a2b1-032:032_p_pharmacy": {
     "src": "/audio/a2b1-032/032_p_pharmacy.mp3",
@@ -1798,6 +1798,11 @@
     "src": "/audio/a2b1-034/034_d_radio.mp3",
     "seconds": 133.6,
     "hash": "1bbe6f31564666b8b6448e61d022397c833ab1ff"
+  },
+  "a2b1-034:034_d_talk": {
+    "src": "/audio/a2b1-034/034_d_talk.mp3",
+    "seconds": 88.4,
+    "hash": "d0eb9cdbecd631759d405d63be6e7c440cd706a2"
   },
   "a2b1-035:035_p_l1": {
     "src": "/audio/a2b1-035/035_p_l1.mp3",

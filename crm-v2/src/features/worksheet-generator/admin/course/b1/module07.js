@@ -1,68 +1,164 @@
-// B1 course (A2 → B1 roadmap), module 7 „Tervis ja enesetunne” (a2b1-031…035), stage B1-. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md; how: docs/FINAL_SHAPE_AUTHORING.md). One storyline: a November flu wave in Sofia's
-// office and in Jaan's family; Markus's two-week cough, Viktor's bicycle fall, the office challenge „30 päeva
-// tervemalt” led by Liis, the new colleague Kristjan. The goal, said on the first sheet: at the end the learner writes
-// the story of his or her own 30 days for the office newsletter (034 Kasuta).
-// Book themes (owner 2026-11-01, topics and task types only, all texts ours): wellbeing in 033 (enesetunne, meeleolu, hakkama
-// saama, alla andma, abi otsima, pöörduma), sport and lifestyle in 034 (käin ujumas, tegelen ujumisega, malet, dieeti pidama,
-// kaalust alla võtma, loobuma + -st, näksima, rämpstoit, vormis olema), reused in the exam 035. Tasks: statements on a long
-// text with the false ones corrected (034_p_sport), a personal-question set with reasons (034_d_survey), versus cards (034_t_new).
-//   031 KUUL L→W  „Kui keegi jääb haigeks” — Anna falls ill at the office (picture, dialogue), the paediatrician
-//                 Kadri's column (true / false / not said), first look at the translative of change (jäin haigeks);
-//                 Eksaminurk L3a (short answers, the format is introduced here): dr Kersti Kask on the radio; Anna's
-//                 voicemail → notes, the call back, the tasks shared with Liis, the letter to Anna (main).
-//   032 LUGU R→S  „Köha, mis ei tahtnud ära minna” — Markus's story in three episodes: his two weeks (reading, a
-//                 cliffhanger), the visit to dr Kask (listening, the picture), the pharmacy; the translative in focus
-//                 (läks hullemaks, jäi kähedaks, muutus tugevamaks); Eksaminurk R1 (where to turn); episode 3: Markus
-//                 loses his voice — his message, the call to the health centre for him (main), the get-well card.
-//   033 AVAS L→S  „Pange jalg padjale!” — test first (pane / pange / ära pane), Viktor at the trauma clinic, the
-//                 rule of the imperative (sina / teie, ära / ärge), short public notices; Kadri's fridge note, the
-//                 physiotherapy leaflet, a pharmacy problem; Eksaminurk S1a; Kasuta: Markus cannot sleep (picture) —
-//                 his sleep diary, the plan agreed with Anna (main), a written reply with advice.
-//   034 KIRJ R→W  „30 päeva tervemalt” — Liis's invitation (predict), Jaan's model story with headings, a radio
-//                 talk on habits; editing, joining sentences, notices; 8 minutes of non-stop writing; Eksaminurk W1a
-//                 (the challenge questionnaire, introduced here); Kasuta: the results cards, Kristjan's first day,
-//                 the newsletter story (main) and its rewrite with the rubric.
-//   035 EKS       module exam in Harno A2 form with B1 tasks (R1, R2, R3a, L1, L3a, L4, W1a, W2a, S0, S1a, S2), timed
-//                 parts, target 80 % in every part; Sofia's letter to Helgi closes the story (the weekend in Võrumaa).
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md; topic „tervis”, secondary „teenused”): topic opener 031_d_open
-// (family doctor, Tervisekassa health insurance, referrals, 1220, 112, where to turn); „Kas teadsid?” 031_p_know (sick
-// leave and care leave), 033_t_know (sleep, TAI 2025), 034_d_know (WHO: 150 min of movement a week); popsci 032_d_antibio
-// (antibiotics and resistance, Ravimiamet / Terviseamet); fiction 033_p_story „Lambad” (own short story with imperatives);
-// examiner set 035_d_warm; one retelling left (033_d_432), record-at-home 2 (032_t_rec, 034_t_rec); Kasuta chain only in
-// 031 and 032. Facts and sources: the PR of agent/av-b1-module-07.
-// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): the translative of change (saav kääne) — first look in
-// 031 (olen haige → jäin haigeks), in focus in 032 (jääma / minema / muutuma / saama + -ks, comparatives), used again in
-// 034 (uni läks paremaks, sain kohvisõbrast teesõbraks); the imperative (sina / teie, ära / ärge) in 033. Cast facts
-// kept: Viktor hurt his knee cycling; family doctor dr Kersti Kask; nurse Kati (advice line 1220); radio sleep expert
-// dr Toomas Tamm; new colleague Kristjan; Kadri is a paediatrician, Mia is in the kindergarten group Päikese rühm.
-// New: trauma doctor Tarmo Kivi, pharmacist Piret, Markus has bronchitis (no pneumonia), the client Lepik from Pärnu.
-// Earlier versions: archive/v3/b1/module07.js, archive/v1/b1/module07.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 7 „Tervis ja enesetunne” (a2b1-031…035), stage A2+ (lessons 021–040).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1–6: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, 45 min). A2+ stage: text 120–180
+// words, audio ≤ 2 min, writing 50–80 words, speech 60–90 s.
+//   031 case    „Kui keegi jääb haigeks” — the module's COLD TASK first (60–90 s: what one does when one falls ill, no
+//               help), the topic opener „Mida teha, kui jääd haigeks?” (≈ 130 words: home care, the family doctor, the
+//               advice line 1220, sick leave, 112; olek ↔ muutus: olen haige → jäin haigeks, palavik läks kõrgeks).
+//               Outcome: a 50–80-word message to one's manager — I fell ill, what changed, how long I stay at home, who
+//               does my work (the learning visual „Minu kolm päeva” stands directly above the task, or the learner's
+//               own case; no given opening — the module's free writing).
+//   032 infogap „Aeg perearsti juurde” — a model dialogue at the pharmacy, then a patient's call to a health centre
+//               (≈ 89 s, heard twice; the translative of change in focus: hääl jäi kähedaks, köha muutus tugevamaks,
+//               läks hullemaks). Harjuta: the rule, a Harno R1 corner „Kuhu pöörduda?” (the -ks drill went to
+//               Harjuta in the student cabinet) and the learner's own sentences. Outcome:
+//               the learner phones the health centre with a HIDDEN-INFORMATION card (the free time on the calendar is
+//               gone, no doctor on Friday, the nurse today, a video call) and the visual „Perearstikeskuse nädal”;
+//               second attempt without phrases: the call for a child or an older family member.
+//   033 debate  „Kuidas paremini magada?” — a health page „Viis nõuannet hea une jaoks” (≈ 130 words; käskiv kõneviis:
+//               minge, ärge jooge, pange ära; sina: mine, ära joo) and a model dialogue of two friends (advice, an
+//               objection, an agreement — the pair task's worked example). Outcome: with the visual „Kaks õhtut” one partner
+//               tells a bad evening, the other advises for 60–90 s, the pair agrees a one-week plan; second attempt
+//               about their own evenings without phrases. At home the module's LINK TASK: the real page „Parema une
+//               nõuanded” on Peaasi.ee (https://peaasi.ee/parema-une-nouanded/).
+//   034 project „30 päeva tervemalt” — a radio programme: three listeners tell what they changed in 30 days (≈ 88 s,
+//               heard twice, gap sentences — the Harno L3 corner; käin ujumas, hakkasin trepist käima, tegelen joogaga, loobusin magusast, uni läks
+//               paremaks). Outcome: a 50–80-word story for a newsletter (the visual „Minu 30 päeva” directly above the
+//               task, or the learner's own habit), read to a partner acting as editor, second version with one more
+//               change and one piece of advice.
+//   035 EKS     Control 7 (one sheet): listening (a radio interview with an advice-line nurse, right / wrong; a
+//               trainer's voicemail, short answers; both locked to two plays), speaking — task 1 is the PARALLEL NEW
+//               TASK of 031's cold task (same criteria, new content), task 2 a call to the health centre — and one
+//               message; thresholds named one way.
+// The continuing story (the November flu in Sofia's office, Markus's cough, Viktor's knee, Liis's challenge „30 päeva
+// tervemalt”, Kristjan …) is not used in this module: the people of the texts are made up and appear in one lesson
+// only. Drills (crossword, matching, sorting, word order, „Mäletad?”) are off the sheets: the removed blocks stay in
+// this file as hide(block, why) — ids and learners' answers are kept, and the practice engine
+// (practice/engine/extract.js) still builds Harjuta items from their form tasks. Owner 2026-11-25: texts adapted to A2+,
+// facts need not be real or checked, no hard numbers; the topic opener 031_d_open (283 words) is rewritten to ≈ 130.
+// The previous version (design v2, „final shape” storyline) is in git history (main before this PR); earlier ones are
+// archive/v3/b1/module07.js and archive/v1/b1/module07.js.
+// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): the translative of change (saav kääne) — first look in 031
+// (olen haige → jäin haigeks, palavik läks kõrgeks), in focus in 032 (jääma / minema / muutuma / saama + -ks,
+// comparatives: tugevamaks, hullemaks), used again in 034 (uni läks paremaks); the imperative (sina / teie, ära / ärge)
+// in 033; käima + -mas, hakkama + -ma, tegelema + -ga, loobuma + -st in 034.
+import { B, fullSentences, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-07', course: 'b1', title: 'Tervis ja enesetunne', level: 'B1-', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-07', course: 'b1', title: 'Tervis ja enesetunne', level: 'A2+', design: 'v3-stations', template: 'v4', theme: 'health' };
+
+// theme: a themed module gives every lesson its theme's topic, each with its own sub-topic (§7.3, v4Tasks.test.js)
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 7). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6); in the control heard twice and locked
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// a writing form of n ruled lines: the picture stands directly above the task and both fit on one page
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 031 case: telling the manager I fell ill (olek ↔ muutus)
   'a2b1-031': {
     title: 'Kui keegi jääb haigeks',
-    canDo: 'Ma kirjutan haigeks jäänud kolleegile 80–100-sõnalise kirja: mis tööl juhtus, mida ma tema eest tegin ja mida ma soovitan.',
+    phases: grammar('Keel: olek ja muutus — olen haige → jäin haigeks, sain terveks · palavik läks kõrgeks (omastav + -ks)'),
+    format: 'case',
+    topic: 'health',
+    subtopic: 'sick-leave',
+    canDo: 'Ma kirjutan juhile 50–80-sõnalise sõnumi: et jäin haigeks, mis muutus, kui kauaks jään koju ja kes teeb minu töö.',
+    teacherPage: {
+      goal: 'Ученик понимает текст «что делать, если заболел» и пишет руководителю 50–80 слов: заболел, что изменилось, сколько будет дома (olen haige ↔ jäin haigeks, läks kõrgeks).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 60–90 секунд) → текст «Mida teha, kui jääd haigeks?» и 7 вопросов → пункт 4: сообщение руководителю по картинке «Minu kolm päeva» или о своём случае. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 7: ученик 60–90 секунд без помощи рассказывает, что он делает, когда заболевает, и куда обращается. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja / aga / sest / kui, формы: olen haige ↔ jäin haigeks, -ks). Урок 35 начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт «Mida sa teed, kui jääd haigeks?» 60–90 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), текст «Mida teha, kui jääd haigeks?» (состояние и изменение в контексте), 7 вопросов, в паре: «Millal helistada 1220? Mida teha, kui ei saa tööle minna?»',
+        '25–40: пункт 3 — заметить → правило (olek: olen haige; muutus: jäin haigeks, läks kõrgeks, sain terveks; omastav + -ks) → 8 форм → 5–7 своих предложений о последней болезни',
+        '40–65: пункт 4 — сообщение руководителю 50–80 слов по картинке «Minu kolm päeva» (понедельник–среда: горло, температура, кашель; врач: дома до пятницы; совещание в четверг) или о своём случае, без помощи; вторая попытка: партнёр-руководитель звонит, ученик говорит то же без текста',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как в его стране оформляют больничный и куда идут с температурой',
+        '72–90: запас',
+      ],
+      sources: 'Текст (пункт 2) и картинка «Minu kolm päeva» — учебные, люди выдуманы, цифры примерные. Номера 1220 и 112 — настоящие номера Эстонии, остальное проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4: каждый пишет сам, потом читает партнёру; партнёр — руководитель и задаёт два вопроса («Kas sa käisid arsti juures?», «Kes teeb neljapäeva koosoleku?»). Один на один вы — руководитель и звоните ученику.',
+      errors: [
+        '«Ma olen haigeks» вместо «Ma olen haige» / «Ma jäin haigeks» (состояние — olema + nimetav, изменение — jääma + -ks).',
+        '«Palavik läks kõrge» вместо «Palavik läks kõrgeks» (после minema / jääma / saama / muutuma — -ks).',
+        '«Ma sain terve» вместо «Ma sain terveks».',
+        '«punaneks» вместо «punaseks» (-ks прибавляется к родительному падежу: punane → punase → punaseks).',
+      ],
+      notes: [
+        'Холодный старт и урок 35 — пара «до / после»: те же три заметки, другая тема (случай, когда ученик болел). Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: olek ↔ muutus и форма -ks от родительного падежа. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('031_d_review', [['Mida pakkus Kiire Kõht alguses ja mida Sofia lõpuks firmalt sai?', 'a2b1-030'], ['Millised on viisaka kaebuse neli sammu? Too igaühe kohta näide.', 'a2b1-029'], ['Kes aitasid Sofial kolida ja mis jäi vanasse korterisse maha?', 'a2b1-012'], 'Kuidas sa end täna tunned?']),
-      B.topicOpener('031_d_open', 'Teema avaleht: kuidas Eestis arsti juurde saab?', [
-        'Eesti tervishoius on kõige tähtsam inimene perearst. Perearsti nimistusse saavad end kirja panna Eesti kodanikud ja inimesed, kes elavad Eestis elamisloa või elamisõiguse alusel. Perearsti võib ka vahetada: selleks tuleb uuele perearstile kirjutada avaldus. Kui uue arsti nimistu on täis, võib ta keelduda. Perearst või pereõde on tavaliselt esimene, kelle poole haigusega pöördutakse. Perearsti vastuvõtt on ravikindlustusega inimesele tasuta, koduvisiit võib maksta kuni viis eurot.',
-        'Ravikindlustust korraldab Tervisekassa. Raha tuleb sotsiaalmaksust, mida tööandja maksab töötaja palgalt. Sotsiaalmaks on 33 % ja sellest 13 % läheb ravikindlustusse. Kindlustatud on töötajad, kelle eest makstakse sotsiaalmaksu, aga ka näiteks lapsed ja pensionärid. Oma kindlustust saab kontrollida terviseportaalis või portaalis eesti.ee.',
-        'Eriarsti juurde on tavaliselt vaja perearsti saatekirja. Digisaatekiri kehtib vaikimisi kuus kuud. Ilma saatekirjata võib minna silmaarsti, günekoloogi, psühhiaatri ning naha- ja suguhaiguste arsti juurde. Kui sa ei tea, kuhu oma murega pöörduda, helista perearsti nõuandeliinile 1220: seal annavad perearstid ja pereõed ööpäev läbi nõu eesti ja vene keeles. Kui kellegi elu on ohus, helista kohe hädaabinumbrile 112.',
-        'Alati ei ole vaja kohe arsti juurde minna. Kergema mure korral, näiteks nohu, köha või kurguvalu puhul, piisab sageli kodusest ravist ja apteekri nõust. Kui haigustunnused nädalaga ei kao või lähevad hullemaks, võta ühendust oma perearstikeskusega. Erakorralise meditsiini osakonda ehk EMOsse mine siis, kui seisund võib olla eluohtlik või jätta tervisele püsiva kahju.',
-      ], 'Terviseportaal, „Perearstiabi” ja „Kuhu oma tervisemurega pöörduda”; Tervisekassa, „Ravikindlustus”; Maksu- ja Tolliamet, „Sotsiaalmaks”; Rahandusministeerium, „Tegevuspõhise eelarvestamise käsiraamat: maksutulud”', [
-        'Kas sul on Eestis perearst? Kuidas sa ta leidsid?',
-        'Kuidas saab arsti juurde sinu kodumaal ja mis on Eestis teisiti?',
-        'Kas sinu meelest peaks arsti juures käimine olema kõigile tasuta? Miks?',
-        'Kas sa helistaksid pigem nõuandeliinile või läheksid kohe arsti juurde? Miks?',
+      station(teach(tag(purpose(B.speaking('031_d_cold', 'Külm start: kui ma jään haigeks', 'Räägi 60–90 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Mida sa teed, kui jääd haigeks? Kuhu sa pöördud, kes sind aitab ja kui kauaks sa koju jääd?',
+      ], [60, 90]), 'Nii räägid sa tervisest mooduli alguses. Kontrollis (tund 35) on sarnane ülesanne: siis näed, kui palju rohkem sa oskad.'), { task: 'S02', harno: 'S1a', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 7 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest, kui); 3) vormid: olek ja muutus (olen haige ↔ jäin haigeks), -ks (läks paremaks, sain terveks). Hoia märkmed alles: tunnis 35 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(B.vocab('031_d_vocab', 'Tunni sõnad.', ['haige — больной', 'terve — здоровый', 'palavik — температура', 'köha — кашель', 'nohu — насморк', 'kurk — горло', 'valutama — болеть', 'perearst — семейный врач', 'nõuandeliin — линия консультаций', 'haigusleht — больничный лист']), { topic: ['haigusleht', 'nõuandeliin'] }), 2, 17),
+      B.topicOpener('031_d_open', 'Mida teha, kui jääd haigeks?', [
+        'Sügisel ja talvel jääb haigeks palju inimesi. Tavaliselt algab kõik väikesest murest: hommikul hakkab kurk valutama või tuleb nohu. Siis piisab sageli kodusest ravist. Joo palju sooja teed, puhka ja küsi apteegist nõu.',
+        'Kui palavik läheb kõrgeks või köha muutub tugevamaks, helista oma perearstikeskusesse. Kui sa ei tea, mida teha, helista perearsti nõuandeliinile 1220. Seal annavad õed nõu ööpäev läbi, ka vene keeles.',
+        'Kui sa jääd haigeks ja ei saa tööle minna, ütle seda kohe oma juhile. Perearst võib avada sulle haiguslehe. Kui laps jääb haigeks, saab vanem jääda tema juurde koju.',
+        'Kui haigus läheb väga hulluks ja inimesel on raske hingata, helista kohe hädaabinumbrile 112. Ja kui sa oled jälle terveks saanud, ära tee kohe liiga palju tööd. Puhka veel paar päeva!',
+      ], 'KeeleSepa õppetekst', [
+        'Kuhu sina pöördud, kui jääd haigeks?',
+        'Kas sa lähed nohuga tööle? Miks?',
+        'Kuidas on haiguslehega sinu kodumaal?',
       ]),
-      B.text('031_d_goal', 'Moodul 7: tervis ja enesetunne', 'Novembris jääb Sofia kontoris üks inimene teise järel haigeks. Selles moodulis räägid sümptomitest, arsti juures käimisest, apteegist, nõuannetest ja headest harjumustest. Mooduli lõpus kirjutad kontori infolehte loo sellest, kuidas sinu harjumused kuu ajaga muutusid. Täna kuulad, mis juhtus Annaga, ja kirjutad lõpuks haigele kolleegile kirja.'),
-      B.listening('031_d_office', 'Esmaspäev kontoris.', 'Kuula Sofia ja Anna vestlust kaks korda. Kirjuta igasse lünka üks sõna.', [
+      tag(purpose(why(B.choice('031_d_read', 'Mida teha, kui jääd haigeks?', 'Loe teksti ja vali õige vastus.', [
+        ['Kuidas haigus tavaliselt algab?', 'Kurk hakkab valutama või tuleb nohu.', 'Palavik läheb kohe väga kõrgeks.', 'Inimesel on kohe raske hingata.'],
+        ['Mida teha väikese mure korral?', 'juua sooja teed, puhata ja küsida apteegist nõu', 'minna kohe haiglasse', 'helistada numbrile 112'],
+        ['Millal tuleb helistada perearstikeskusesse?', 'kui palavik läheb kõrgeks või köha muutub tugevamaks', 'kui kurk natuke valutab', 'kui sa oled terveks saanud'],
+        ['Mis on 1220?', 'perearsti nõuandeliin', 'hädaabinumber', 'apteegi telefon'],
+        ['Mida teha, kui sa ei saa haigena tööle minna?', 'öelda seda kohe juhile', 'kirjutada apteeki', 'helistada numbrile 112'],
+        ['Millal tuleb helistada numbrile 112?', 'kui haigus läheb väga hulluks ja on raske hingata', 'kui tuleb nohu', 'kui on vaja haiguslehte'],
+        ['Mida soovitab tekst pärast haigust?', 'mitte kohe liiga palju tööd teha', 'kohe trenni minna', 'uuesti arsti juurde minna'],
+      ], 'full', 'g_read'), [
+        'Esimene lõik: „hommikul hakkab kurk valutama või tuleb nohu”.',
+        'Esimene lõik: „Joo palju sooja teed, puhka ja küsi apteegist nõu.”',
+        'Teine lõik: „Kui palavik läheb kõrgeks või köha muutub tugevamaks, helista …”',
+        'Teine lõik: „helista perearsti nõuandeliinile 1220”.',
+        'Kolmas lõik: „ütle seda kohe oma juhile”.',
+        'Neljas lõik: „Kui haigus läheb väga hulluks ja inimesel on raske hingata, helista kohe … 112.”',
+        'Neljas lõik: „ära tee kohe liiga palju tööd”.',
+      ]), 'Enne kui sa ise juhile kirjutad, näed, mida teha ja kellele öelda, kui jääd haigeks.'), { task: 'R13' }),
+      teach(tag(purpose(B.speaking('031_d_retell', 'Mida teha? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mida teha, kui kurk hakkab valutama?',
+        'Millal helistada perearstikeskusesse või numbrile 1220?',
+        'Mida teha, kui sa ei saa haigena tööle minna?',
+        'Millal tuleb helistada numbrile 112?',
+        'Kas Eestis ja sinu kodumaal minnakse nohuga tööle? Mis sa arvad, kas see on õige? Miks?',
+      ], [60, 90], '', 'g_read'), 'Ütled, mida teha ja kuhu pöörduda, kui jääd haigeks.'), { task: 'S06', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Nohuga tuleb kohe helistada 112”) ja õpilane parandab sind teksti järgi.'),
+      // the warm-up of the old storyline, rewritten to the v5 module 6 (docs/PROJECT_STATE.md 2026-11-25: it asked about Kiire Kõht)
+      hide(B.review('031_d_review', [['Mida ja kui palju sa ostad, kui sulle tuleb kuus külalist?', 'a2b1-026'], ['Kuidas sa telefonis restoranis viisakalt lauda broneerid? Ütle kaks lauset.', 'a2b1-027'], ['Millised on viisaka kaebuse neli sammu? Too igaühe kohta näide.', 'a2b1-029'], 'Kuidas sa end täna tunned?']), V5_DRILL),
+      hide(B.text('031_d_goal', 'Moodul 7: tervis ja enesetunne', 'Novembris jääb Sofia kontoris üks inimene teise järel haigeks. Selles moodulis räägid sümptomitest, arsti juures käimisest, apteegist, nõuannetest ja headest harjumustest. Mooduli lõpus kirjutad kontori infolehte loo sellest, kuidas sinu harjumused kuu ajaga muutusid. Täna kuulad, mis juhtus Annaga, ja kirjutad lõpuks haigele kolleegile kirja.'), V5_CUT),
+      hide(B.listening('031_d_office', 'Esmaspäev kontoris.', 'Kuula Sofia ja Anna vestlust kaks korda. Kirjuta igasse lünka üks sõna.', [
         'Sofia: Anna, sa oled täna nii vaikne. Kas kõik on korras?',
         'Anna: Ei tea. Hommikul tundsin end veel hästi, aga pärast lõunat jäin äkki väga väsinuks.',
         'Sofia: Sa näed tõesti väsinud välja. Kas sul on palavik?',
@@ -90,9 +186,8 @@ export const LESSONS = withShapes({
         'Sofia soovitab juua kuuma teed sidruni ja [meega|meega ja sidruniga].',
         'Õhtul käib Brunoga jalutamas Anna [naaber].',
         'Kui palavik läheb kõrgeks, jääb Anna paariks päevaks [koju].',
-      ]),
-      B.vocab('031_d_vocab', 'Tunni sõnad.', ['haige — больной', 'terve — здоровый', 'palavik — температура', 'köha — кашель', 'nohu — насморк', 'kurk — горло', 'valutama — болеть', 'väsinud — уставший', 'puhkama — отдыхать', 'tervis — здоровье', 'paranema — поправляться', 'apteek — аптека']),
-      tag(B.reading('031_d_kadri', 'Lastearsti nõuanded.', 'Loe lastearst Kadri kirjutist lasteaia infolehes. Märgi iga väite juurde õige, vale või ei selgu; viimasele küsimusele vasta oma sõnadega.', 'Gripp või külmetus?', [
+      ]), V5_CUT),
+      hide(tag(B.reading('031_d_kadri', 'Lastearsti nõuanded.', 'Loe lastearst Kadri kirjutist lasteaia infolehes. Märgi iga väite juurde õige, vale või ei selgu; viimasele küsimusele vasta oma sõnadega.', 'Gripp või külmetus?', [
         'Novembris on meie lasteaias igal hommikul mitu tühja tooli. Paljud vanemad küsivad minult kui lastearstilt, kas nende lapsel on gripp või tavaline külmetus. Seda ei ole alati lihtne öelda, aga mõned märgid aitavad.',
         '',
         'Külmetus algab tavaliselt aeglaselt. Kõigepealt tuleb nohu, siis hakkab kurk valutama ja tekib kerge köha. Palavik on madal või seda ei ole üldse. Laps on küll natuke väsinud, aga mängib ja sööb peaaegu nagu tavaliselt.',
@@ -114,15 +209,8 @@ export const LESSONS = withShapes({
         ['Kui laps ei joo, tuleb kohe arstile helistada.', 'õige'],
         ['Kadri enda lapsed on praegu gripi tõttu kodus.', 'ei selgu'],
         ['Miks ei tohi haiget last lasteaeda tuua?', 'teised lapsed ja õpetajad jäävad haigeks|haigus levib'],
-      ]), { task: 'R06' }),
-      B.notice('031_d_notice', 'Märka: olen haige või jäin haigeks?', [
-        'Olek — kuidas on? Ma **olen haige**. Ma **olen väsinud**. Mul **on** palavik.',
-        'Muutus — mis juhtus? Ma **jäin haigeks**. Ma **jäin väsinuks**. Palavik **läks kõrgeks**. Nina **läks punaseks**.',
-        'Muutuse lõpp: Ma **sain terveks**. Hommikuks **läks paremaks**.',
-        'Muutuse vorm on **saav kääne**: omastav + **-ks** — haige → haige**ks**, punane → punase → punase**ks**, parem → parema → parema**ks**.',
-        'Muutuse tegusõnad: **jääma**, **saama**, **minema**, **muutuma** + -ks.',
-      ], 'full'),
-      B.table('031_d_rule', 'Leia reegel: milline → milleks?', 'Täida tabeli lüngad. Võrdle vorme Anna ja Sofia vestluse ning Kadri kirjutisega.', 'Olek (milline?), Omastav (millise?), Muutus (milleks?)', [
+      ]), { task: 'R06' }), V5_CUT),
+      hide(B.table('031_d_rule', 'Leia reegel: milline → milleks?', 'Täida tabeli lüngad. Võrdle vorme Anna ja Sofia vestluse ning Kadri kirjutisega.', 'Olek (milline?), Omastav (millise?), Muutus (milleks?)', [
         'haige | [haige] | jäi [haigeks]',
         'terve | [terve] | sai [terveks]',
         'väsinud | [väsinu] | jäi [väsinuks]',
@@ -133,18 +221,45 @@ export const LESSONS = withShapes({
         'vaikne | [vaikse] | jäi [vaikseks]',
         'kahvatu | [kahvatu] | muutus [kahvatuks]',
         'nõrk | [nõrga] | jäi [nõrgaks]',
-      ], 'g_notice'),
-      teach(tag(B.speaking('031_d_picture', 'Anna kontoris.', 'Kirjelda pilti paarilisele umbes üks minut. Siis küsib paariline „Mis veel muutus?” ja sina lisad kaks uut sümptomit või muutust.', ['Kus Anna on ja mida ta teeb?', 'Mis tal valutab ja mis tal on?', 'Kuidas ta end tunneb ja mis on muutunud?', 'Mida Anna peaks praegu tegema?', 'Mida sina teed, kui jääd tööl haigeks?'], [70, 120], ['Annal valutab…', 'Ta jäi…ks', 'Tema nina läks…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti õpetajale umbes minut; õpetaja küsib „Mis veel muutus?” ja õpilane lisab kaks muutust (jäi …ks, läks …ks).'),
-      teach(tag(B.speaking('031_d_opinion', 'Kas tulla nohuga tööle?', 'Arutage paarilisega. Ütle oma arvamus, too näide oma elust ja küsi, mida paariline arvab.', ['Kas sina lähed nohuga tööle? Miks?', 'Millal peab kindlasti koju jääma?', 'Kas kodus saab haigena töötada?', 'Kuidas on sellega sinu kodumaal?', 'Mida peaks ülemus haigele töötajale ütlema?'], [70, 150], ['Minu arvates…, sest…', 'Kui palavik on kõrge, …', 'Näiteks eelmisel talvel…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpilane vastab ja põhjendab; õpetaja ütleb vahel vastupidise arvamuse („Nohuga võib ju tööle tulla!”) ja räägib neljanda küsimuse juures, kuidas haiguslehega Eestis on, õpilane võrdleb oma kodumaaga.'),
+      ], 'g_notice'), V5_DRILL),
+      hide(teach(tag(B.speaking('031_d_picture', 'Anna kontoris.', 'Kirjelda pilti paarilisele umbes üks minut. Siis küsib paariline „Mis veel muutus?” ja sina lisad kaks uut sümptomit või muutust.', ['Kus Anna on ja mida ta teeb?', 'Mis tal valutab ja mis tal on?', 'Kuidas ta end tunneb ja mis on muutunud?', 'Mida Anna peaks praegu tegema?', 'Mida sina teed, kui jääd tööl haigeks?'], [70, 120], ['Annal valutab…', 'Ta jäi…ks', 'Tema nina läks…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti õpetajale umbes minut; õpetaja küsib „Mis veel muutus?” ja õpilane lisab kaks muutust (jäi …ks, läks …ks).'), V5_CUT),
+      hide(teach(tag(B.speaking('031_d_opinion', 'Kas tulla nohuga tööle?', 'Arutage paarilisega. Ütle oma arvamus, too näide oma elust ja küsi, mida paariline arvab.', ['Kas sina lähed nohuga tööle? Miks?', 'Millal peab kindlasti koju jääma?', 'Kas kodus saab haigena töötada?', 'Kuidas on sellega sinu kodumaal?', 'Mida peaks ülemus haigele töötajale ütlema?'], [70, 150], ['Minu arvates…, sest…', 'Kui palavik on kõrge, …', 'Näiteks eelmisel talvel…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpilane vastab ja põhjendab; õpetaja ütleb vahel vastupidise arvamuse („Nohuga võib ju tööle tulla!”) ja räägib neljanda küsimuse juures, kuidas haiguslehega Eestis on, õpilane võrdleb oma kodumaaga.'), V5_CUT),
     ],
     practice: [
-      B.match('031_p_pairs', 'Mis käib kokku?', 'Ühenda lause algus ja lõpp, nii et tekiks haige inimese tavaline tegevus.', [
+      station(B.notice('031_d_notice', 'Märka: olen haige või jäin haigeks?', [
+        'Tekstist: kui sa **jääd haigeks** · palavik **läheb kõrgeks** · köha **muutub tugevamaks** · kui sa oled **terveks saanud**',
+        'Olek — kuidas on? Ma **olen haige**. Ma **olen väsinud**. Mul **on** palavik.',
+        'Muutus — mis juhtus? Ma **jäin haigeks**. Palavik **läks kõrgeks**. Ma **sain terveks**.',
+        'Muutuse vorm: omastav + **-ks** — haige → haige**ks** · kõrge → kõrge**ks** · terve → terve**ks** · punane → punase → punase**ks**',
+        'Muutuse tegusõnad: **jääma**, **minema**, **muutuma**, **saama** + -ks (tunnis 32 lähemalt).',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('031_p_forms', 'Leia reegel: olek või muutus?', 'Kirjuta sulgudes olev sõna õiges vormis. Mõtle iga kord: kas see on olek (jääb samaks) või muutus (saab -ks)?', [
+        'Eile õhtul jäin ma [haigeks] (haige).',
+        'Täna olen ma ikka veel [haige] (haige).',
+        'Öösel läks palavik [kõrgeks] (kõrge).',
+        'Mu nina läks nuuskamisest [punaseks] (punane).',
+        'Hommikul olin ma väga [väsinud] (väsinud).',
+        'Pärast lõunat jäin ma äkki [väsinuks] (väsinud).',
+        'Kolme päeva pärast sain ma [terveks] (terve).',
+        'Kas sa oled juba [terve] (terve)?',
+      ], '', 'full', 'g_notice'), [
+        'muutus: jääma + -ks → haigeks.',
+        'olek: olema + nimetav → haige.',
+        'muutus: minema + -ks → kõrgeks.',
+        'muutus: omastav punase + -ks → punaseks.',
+        'olek: olema + nimetav → väsinud.',
+        'muutus: omastav väsinu + -ks → väsinuks.',
+        'muutuse lõpp: saama + -ks → terveks.',
+        'olek: olema + nimetav → terve.',
+      ]), 'Kaheksa lauset näitavad, millal on olek ja millal muutus.'), { task: 'G02' }),
+      tag(purpose(B.writing('031_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: millal sa viimati haigeks jäid, mis sul oli ja mis muutus (palavik läks kõrgeks, köha muutus tugevamaks, sain terveks).', [5, 7]), 'Oma laused on sinu sõnumi materjal.'), { task: 'W11' }),
+      hide(B.match('031_p_pairs', 'Mis käib kokku?', 'Ühenda lause algus ja lõpp, nii et tekiks haige inimese tavaline tegevus.', [
         ['Anna mõõtis õhtul kaks korda', 'palavikku.'], ['Apteegist ostis ta pudeli', 'köhasiirupit.'], ['Arst soovitas jääda paariks päevaks', 'koju.'], ['Ta jõi terve päeva kuuma teed', 'sidruni ja meega.'], ['Õhtul helistas Anna oma', 'perearstile.'],
         ['Hommikul kirjutas ta ülemusele lühikese', 'sõnumi.'], ['Haige inimene peab palju puhkama ja', 'magama.'], ['Soolaveega võib iga päev loputada', 'kurku.'], ['Gripi ajal tuleb sageli pesta', 'käsi.'], ['Lapse palavikku alandab kõige kiiremini', 'palavikurohi.'],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.listening('031_p_radio', 'Eksaminurk: raadio „Päevateema” (Harno B1 kuulamine 3)', 'Kuula raadiosaadet kaks korda. Vasta igale küsimusele ühe või kahe sõnaga.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.listening('031_p_radio', 'Eksaminurk: raadio „Päevateema” (Harno B1 kuulamine 3)', 'Kuula raadiosaadet kaks korda. Vasta igale küsimusele ühe või kahe sõnaga.', [
         'Ülle: Tere, kuulajad! Saates „Päevateema” räägime täna gripist. Stuudios on perearst Kersti Kask Kalamaja perearstikeskusest. Tere!',
         'Kersti: Tere, Ülle! Tere, kuulajad!',
         'Ülle: Doktor Kask, kas grippi on sel sügisel palju?',
@@ -176,8 +291,8 @@ export const LESSONS = withShapes({
         'Mis on doktor Kase sõnul gripi vastu kõige parem kaitse? [vaktsiin]',
         'Mida peaks töökohas sageli tuulutama? [ruume|tube]',
       ]), { task: 'L03', harno: 'L3a' }),
-      'Eksaminurk (Harno B1 kuulamine 3, ~9 min), formaati tutvustatakse siin. Strateegia: 1) enne kuulamist loe küsimused ja mõtle, kas vastus on arv, koht, inimene või asi; 2) esimesel korral kirjuta lühike vastus (1–2 sõna), mitte terve lause; 3) teisel korral kontrolli. Eksamil loeb sisu, väike kirjaviga ei võta punkti, kui sõna on arusaadav. Üks-ühele: pärast kontrolli kuulake üks lõik uuesti ja leidke sõna, mis andis vastuse.'),
-      B.formtext('031_p_jaan', 'Jaani sõnum Helgile.', 'Jaan kirjutab emale Miast. Kirjuta sulgudes olev sõna sobivas vormis: olek jääb samaks, muutus saab -ks.', 'Meie väike patsient', [
+      'Eksaminurk (Harno B1 kuulamine 3, ~9 min), formaati tutvustatakse siin. Strateegia: 1) enne kuulamist loe küsimused ja mõtle, kas vastus on arv, koht, inimene või asi; 2) esimesel korral kirjuta lühike vastus (1–2 sõna), mitte terve lause; 3) teisel korral kontrolli. Eksamil loeb sisu, väike kirjaviga ei võta punkti, kui sõna on arusaadav. Üks-ühele: pärast kontrolli kuulake üks lõik uuesti ja leidke sõna, mis andis vastuse.'), V5_CUT),
+      hide(B.formtext('031_p_jaan', 'Jaani sõnum Helgile.', 'Jaan kirjutab emale Miast. Kirjuta sulgudes olev sõna sobivas vormis: olek jääb samaks, muutus saab -ks.', 'Meie väike patsient', [
         'Tere, ema! Kirjutan sulle, sest Mia jäi eile õhtul [haigeks] (haige). Päeval oli ta veel täiesti [terve] (terve) ja joonistas lasteaias pingviine.',
         '',
         'Õhtusöögi ajal muutus ta äkki [vaikseks] (vaikne) ega tahtnud isegi oma lemmiksuppi. Kadri mõõtis palavikku: 38,2 kraadi. Öösel läks palavik veel [kõrgemaks] (kõrgem).',
@@ -187,8 +302,8 @@ export const LESSONS = withShapes({
         'Kadri ütleb, et see on gripp ja Mia peab nädala kodus olema. Loodan, et ta saab pühapäevaks [terveks] (terve). Oskar ütleb, et tema ei jää kunagi [haigeks] (haige), sest ta sööb palju porgandeid.',
         '',
         'Kas sa tuled laupäeval meile? Kui ilm läheb [külmaks] (külm), võta soe mantel kaasa! Sinu Jaan',
-      ]),
-      B.dialogue('031_p_chat', 'Teisipäeva sõnumid.', 'Anna on kodus ja Sofia kirjutab talle. Kirjuta igasse lünka üks sobiv sõna.', 'Sofia', 'Anna', [
+      ]), V5_DRILL),
+      hide(B.dialogue('031_p_chat', 'Teisipäeva sõnumid.', 'Anna on kodus ja Sofia kirjutab talle. Kirjuta igasse lünka üks sobiv sõna.', 'Sofia', 'Anna', [
         ['A', 'Tere, Anna! Kuidas sa ennast täna [tunned]?'],
         ['B', 'Natuke paremini. Öösel oli palavik 38,9, aga hommikuks see [langes].'],
         ['A', 'Kas sa käisid ka arsti [juures]?'],
@@ -199,28 +314,45 @@ export const LESSONS = withShapes({
         ['B', 'Kui saad, too apteegist üks pakk [kurgutablette].'],
         ['A', 'Selge. Ja ära muretse koosoleku pärast, see läks väga [hästi].'],
         ['B', 'Aitäh! Sa oled tõeline [sõber].'],
-      ], 'g_read'),
-      B.translation('031_p_ru', 'Ütle eesti keeles.', 'Tõlgi laused eesti keelde. Mõtle, kas lauses on olek või muutus.', [
+      ], 'g_read'), V5_CUT),
+      hide(B.translation('031_p_ru', 'Ütle eesti keeles.', 'Tõlgi laused eesti keelde. Mõtle, kas lauses on olek või muutus.', [
         'Я заболела вчера сразу после обеда.', 'Утром мне стало немного лучше.', 'У меня болит горло и голова.', 'Ночью температура поднялась ещё выше.', 'Я останусь дома на два-три дня.',
         'Измерь, пожалуйста, ребёнку температуру ещё раз.', 'Выздоравливай скорее и много спи!', 'От насморка нос стал совсем красным.', 'Врач сказал, что мне нужно больше отдыхать.', 'Я не хочу заразить своих коллег.',
-      ], 'full'),
-      B.crossword('031_p_cross', 'Ristsõna: haige inimese sõnad.', 'Loe vihjeid ja kirjuta ristsõnasse tervise või haiguse sõna.', [
+      ], 'full'), V5_DRILL),
+      hide(B.crossword('031_p_cross', 'Ristsõna: haige inimese sõnad.', 'Loe vihjeid ja kirjuta ristsõnasse tervise või haiguse sõna.', [
         ['Seda mõõdetakse termomeetriga.', 'palavik'], ['Kui see on haige, on raske neelata.', 'kurk'], ['Nina on kinni ja tuleb sageli nuusata.', 'nohu'], ['Koht, kus müüakse ravimeid.', 'apteek'], ['Vastand sõnale „haige”.', 'terve'],
         ['Sellega me kuuleme.', 'kõrv'], ['Sellega me haistame lõhnu.', 'nina'], ['Haigus, mis algab äkki ja kõrge palavikuga.', 'gripp'], ['Kuum jook, mida haige joob meega.', 'tee'], ['See tuleb kurgust ja ei lase öösel magada.', 'köha'],
-      ], 'half', 'g_vocab'),
-      B.know('031_p_know', [
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(B.know('031_p_know', [
         'Kui töötaja jääb haigeks, avab arst talle töövõimetuslehe ehk haiguslehe. Haigushüvitis on 70 % töötaja keskmisest palgast. Tööandja maksab hüvitist haiguse 4.–8. päeval ja Tervisekassa alates 9. päevast; esimese kolme päeva eest hüvitist ei maksta. Reede õhtul, nädalavahetusel ja riigipühadel kell 8–22 saab haiguslehe avada ka perearsti nõuandeliini 1220 kaudu.',
         'Kui haigeks jääb alla 12-aastane laps, võib vanem jääda tema juurde koju hoolduslehega. Hooldushüvitis on 80 % ja Tervisekassa maksab seda juba esimesest päevast.',
-      ], 'Terviseportaal, „Hüvitiste võrdlus” ja „Perearstiabi”', 'Kas teadsid? Haigusleht ja hooldusleht'),
-      B.examWriting('031_p_note', 'Sõnum ülemusele.', 'Anna on haige. Kirjuta tema nimel Liisile sõnum 40–60 sõnaga ja käsitle kõiki nelja punkti.', 'teade', {
+      ], 'Terviseportaal, „Hüvitiste võrdlus” ja „Perearstiabi”', 'Kas teadsid? Haigusleht ja hooldusleht'), V5_CUT),
+      hide(B.examWriting('031_p_note', 'Sõnum ülemusele.', 'Anna on haige. Kirjuta tema nimel Liisile sõnum 40–60 sõnaga ja käsitle kõiki nelja punkti.', 'teade', {
         situation: 'Teisipäeva hommikul on Annal palavik 38,9. Ta ei saa tööle tulla.',
         points: ['mis juhtus ja kuidas sa end tunned', 'kui kauaks sa koju jääd', 'mis töö jäi pooleli ja kes saab aidata', 'kuidas sinuga ühendust saab'],
         words: [40, 60], opening: 'Tere, Liis!', closing: 'Anna',
-      }),
+      }), V5_CUT),
     ],
     transfer: [
-      B.text('031_t_sit', 'Anna on ikka haige', 'Kolmapäeva hommikul on Anna ikka veel haige. Ta jättis Sofiale pika häälsõnumi: mida tema eest tööl teha. Kuula sõnumit ja tee märkmed, helista Annale tagasi, leppige Liisiga kokku, kes mida teeb, ja kirjuta reede õhtul Annale kiri.'),
-      tag(B.listening('031_t_voice', 'Anna häälsõnum.', 'Kuula Anna sõnumit kaks korda. Märgi üles kõik, mida Sofia peab teadma ja tegema.', [
+      station(teach(tag(purpose(rows(B.examWriting('031_t_letter', 'Sõnum juhile: ma jäin haigeks', 'Sa jäid haigeks ja ei saa tööle tulla. Kirjuta juhile 50–80 sõna (pilt üleval või oma olukord). Algus ja lõpp on sinu oma.', 'teade', {
+        points: ['mis juhtus ja mis muutus', 'kui kauaks sa koju jääd', 'kes teeb sinu töö või mis võib oodata'],
+        words: [50, 80],
+      }), 6), 'Juht teab, mis juhtus, kui kauaks sa ära oled ja kes sinu töö teeb.'), { task: 'W02', main: true, level: 4 }),
+      'Õpilane kirjutab tunnis 12–15 minutit ilma abita, siis loeb paarilisele (või sulle) ette; kuulaja on juht ja küsib kaks küsimust („Kas sa käisid arsti juures?”, „Kes teeb neljapäeva koosoleku?”). Teine katse: juht küsib suuliselt ja õpilane räägib sama ilma tekstita (60–90 sekundit). Parandatud versioon on kodutöö. Kontrolli: kolm sisupunkti, olek ja muutus (olen haige, jäin haigeks), -ks (palavik läks kõrgeks, köha muutus tugevamaks).'), 4, 25, { final: 'explain' }),
+      tag(exitCheck(why(purpose(B.gaps('031_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Reedel jäi minu kolleeg [haigeks] (haige).',
+        'Õhtuks läks tema palavik [kõrgeks] (kõrge).',
+        'Täna on ta veel [haige] (haige).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas olek ja muutus on käes.'), ['muutus: jääma + -ks → haigeks.', 'muutus: minema + -ks → kõrgeks.', 'olek: olema + nimetav → haige.'])), {}),
+      purpose(B.selfcheck('031_t_self', ['Ma ütlen, kas on olek või muutus: olen haige, jäin haigeks.', 'Ma kasutan -ks-vormi: palavik läks kõrgeks, sain terveks.', 'Ma saan aru tekstist, mida teha, kui jääd haigeks.', 'Ma kirjutan juhile, et jäin haigeks ja kui kauaks koju jään.'], 'Sõnum saadetud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('031_t_rec', 'Kodus: mis mind aitab?', 'Salvesta 60–90 sekundit.', [
+        'Mida sa teed, et kiiremini terveks saada?',
+        'Mida sa soovitad kolleegile, kes jäi haigeks?',
+        'Millal sa tead, et oled jälle terveks saanud?',
+      ], [60, 90]), 'Õpetaja ütleb, kas olek, muutus ja -ks tulid õigesti.')), { task: 'S15', fluency: true }),
+      homework('031_t_homework', ['1. Paranda sõnum ja saada see õpetajale.', '2. Salvesta, mis sind aitab (ülesanne üleval).', '3. Loe tunni teksti veel kord ja leia kolm muutust (-ks).', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('031_t_sit', 'Anna on ikka haige', 'Kolmapäeva hommikul on Anna ikka veel haige. Ta jättis Sofiale pika häälsõnumi: mida tema eest tööl teha. Kuula sõnumit ja tee märkmed, helista Annale tagasi, leppige Liisiga kokku, kes mida teeb, ja kirjuta reede õhtul Annale kiri.'), V5_CUT),
+      hide(tag(B.listening('031_t_voice', 'Anna häälsõnum.', 'Kuula Anna sõnumit kaks korda. Märgi üles kõik, mida Sofia peab teadma ja tegema.', [
         'Anna: Tere, Sofia! Siin Anna. Mu hääl on veel kähe, vabanda. Palavik läks öösel jälle kõrgeks, nii et täna ma tööle ei tule.',
         'Anna: Mul on sulle mõned palved. Esiteks: neljapäeval kell kümme tuleb klient Pärnust, härra Lepik. Tema kaust on minu laua sahtlis, see on sinine kaust.',
         'Anna: Teiseks: Liis ootab reedeks kuu aruannet. Tabel on valmis, aga kokkuvõte on veel kirjutamata. Palun saada see Liisile reede lõunaks.',
@@ -243,33 +375,113 @@ export const LESSONS = withShapes({
         'Õe sõnul peab Anna kodus olema vähemalt [reedeni].',
         'Reedel võiks Sofia Annale tuua mõne hea [raamatu].',
         'Annale tuleb tagasi helistada pärast kella [kolme|15].',
-      ]), { task: 'L07' }),
-      teach(B.rolecards('031_t_call', 'Kõne Annale.', 'A on Sofia ja küsib, B on Anna ja vastab. Täpsustage kõik, mis häälsõnumis jäi segaseks.',
+      ]), { task: 'L07' }), V5_CUT),
+      hide(teach(B.rolecards('031_t_call', 'Kõne Annale.', 'A on Sofia ja küsib, B on Anna ja vastab. Täpsustage kõik, mis häälsõnumis jäi segaseks.',
         'Oled Sofia. Helistad Annale kell 15.30. Küsi kõigepealt, kuidas ta end tunneb. Siis täpsusta: kus on kliendiga koosolek, mis peab aruande kokkuvõttes olema ja kust leiad kullerfirma telefoninumbri. Paku lõpuks oma abi.',
         'Oled Anna. Tunned end natuke paremini, palavik on 37,8. Koosolek on neljapäeval kell 10 väikeses koosolekuruumis. Kokkuvõttes peab olema kolm asja: müük, kulud ja järgmise kuu plaan. Kulleri number on sinu laual kollasel paberil. Raamatut tahaksid väga, kõige parem oleks krimilugu.',
         ['Kuidas sa end täna tunned?', 'Kas ma sain õigesti aru, et…?', 'Kas ma saan veel midagi teha?'], ['Tänan, juba natuke paremini.', 'Jah, täpselt nii.', 'Oleks väga tore, kui…']),
-      'Üks-ühele: õpetaja on Anna ja vastab ainult sellele, mida õpilane küsib; kahte asja (koosolekuruum, kulleri number) ütleb õpetaja alles siis, kui õpilane täpsustab. Siis vahetage rollid.'),
-      teach(tag(B.speaking('031_t_rec', 'Teata juhile, et oled haige.', 'Sa oled haige. Helista juhile ja räägi umbes üks minut: mis sul on, kui kaua oled kodus ja kes teeb sinu töö.', ['Mis sul on?', 'Kas sa käisid arsti juures?', 'Kui kaua sa oled kodus?', 'Mis töö on pooleli?', 'Kes saab sind aidata?'], [60, 120], ['Tere! Ma olen haige: mul on…', 'Arst ütles, et…', 'Minu töö võib teha…']), { task: 'S15', level: 3 }),
-        'Tunnis: õpetaja on juht, võtab kõne vastu ja küsib kaks täpsustavat küsimust („Kas sa käisid arsti juures?”, „Kes saab kliendile vastata?”).'),
-      teach(B.ideaCard('031_t_share', 'Kes teeb Anna töö?', 'Sofia ja Liis jagavad Anna tööd. Arutage ideekaarti ja leppige kokku, kes mida ja millal teeb.', 'Anna on reedeni haige. Markus köhib juba teist nädalat ja tal on endal palju tööd. Sofial on neljapäeval koolitus kella 9–11.', ['kliendi koosolek neljapäeval kell 10', 'kuu aruande kokkuvõte reedeks', 'kõne kullerfirmale', 'Anna lille kastmine', 'raamat ja sidrunid Annale', 'koosoleku edasilükkamine'], 'Kes teeb mida ja millal? Kas mõni asi võib oodata?'),
-        'Üks-ühele: õpetaja on Liis ja tahab alguses, et Sofia teeks kõike üksi; õpilane põhjendab (koolitus, Markus on haige) ja pakub kompromissi. Lõpus ütleb õpilane kokkulepe ühe lausega.'),
-      tag(B.examWriting('031_t_letter', 'Kiri Annale.', 'Kirjuta reede õhtul Annale kiri 90–110 sõnaga. Kirjuta igast viiest punktist vähemalt üks-kaks lauset.', 'kiri', {
-        situation: 'Nädal on läbi. Anna on ikka kodus, aga palavikku tal enam ei ole.',
-        points: ['kuidas läks koosolek kliendiga', 'mida sa tema eest veel tegid', 'kes kontoris veel haigeks jäi', 'kaks nõuannet, et ta kiiremini terveks saaks', 'millal ja kuidas sa teda külastad'],
-        words: [90, 110], opening: 'Kallis Anna!', closing: 'Saa ruttu terveks! Sofia',
-      }), { main: true }),
-      B.rubricW2('031_t_rubric', 'Hindamine: kiri Annale (12 punkti).'),
-      B.selfcheck('031_t_self', ['Ma nimetan vähemalt kuus sümptomit.', 'Ma ütlen, mis muutus: jäin haigeks, läks paremaks, sain terveks.', 'Ma kirjutan kuulamise ajal lühikesi vastuseid ja märkmeid.', 'Ma kirjutan haigele kolleegile kirja kõigist punktidest.'], 'Kui keegi jääb haigeks'),
+      'Üks-ühele: õpetaja on Anna ja vastab ainult sellele, mida õpilane küsib; kahte asja (koosolekuruum, kulleri number) ütleb õpetaja alles siis, kui õpilane täpsustab. Siis vahetage rollid.'), V5_CUT),
+      hide(teach(B.ideaCard('031_t_share', 'Kes teeb Anna töö?', 'Sofia ja Liis jagavad Anna tööd. Arutage ideekaarti ja leppige kokku, kes mida ja millal teeb.', 'Anna on reedeni haige. Markus köhib juba teist nädalat ja tal on endal palju tööd. Sofial on neljapäeval koolitus kella 9–11.', ['kliendi koosolek neljapäeval kell 10', 'kuu aruande kokkuvõte reedeks', 'kõne kullerfirmale', 'Anna lille kastmine', 'raamat ja sidrunid Annale', 'koosoleku edasilükkamine'], 'Kes teeb mida ja millal? Kas mõni asi võib oodata?'),
+        'Üks-ühele: õpetaja on Liis ja tahab alguses, et Sofia teeks kõike üksi; õpilane põhjendab (koolitus, Markus on haige) ja pakub kompromissi. Lõpus ütleb õpilane kokkulepe ühe lausega.'), V5_CUT),
+      hide(B.rubricW2('031_t_rubric', 'Hindamine: kiri Annale (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 032 infogap: an appointment at the health centre (-ks of change)
   'a2b1-032': {
-    title: 'Köha, mis ei tahtnud ära minna',
-    canDo: 'Ma helistan Markuse eest perearstikeskusse, räägin, kuidas tema haigus on muutunud, ja broneerin talle sobiva aja.',
+    title: 'Aeg perearsti juurde',
+    phases: grammar('Keel: muutus + -ks — jäi kähedaks, muutus tugevamaks, läks hullemaks, sai terveks'),
+    format: 'infogap',
+    topic: 'health',
+    subtopic: 'doctor',
+    canDo: 'Ma helistan perearstikeskusesse, räägin, kuidas mu haigus on muutunud, ja lepin kokku sobiva aja.',
+    teacherPage: {
+      goal: 'Ученик понимает звонок в центр семейных врачей, говорит, как менялась болезнь (muutus tugevamaks, läks hullemaks), и по телефону со скрытой информацией договаривается о приёме.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → звонок в perearstikeskus (2 раза) и 7 вопросов → пункт 4: звонок в регистратуру со скрытой информацией по картинке «Perearstikeskuse nädal». Пункт 3 — дома в «Harjuta».',
+      hook: '«Millal sa viimati arsti juures käisid? Kuidas sa aja said?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 31 без записей: что изменилось, когда ты последний раз заболел (jäin haigeks, läks paremaks).',
+      plan: [
+        '0–8: пункт 1 — последний визит к врачу; одно предложение olek ↔ muutus (повторение урока 31)',
+        '8–25: пункт 2 — слова, звонок «Kesklinna perearstikeskus, tere!» (2 раза; -ks изменения в контексте), 7 вопросов, в паре: «Kuidas köha muutus? Mis aja ta sai?»',
+        '25–40: пункт 3 — заметить → правило (jääma / minema / muutuma / saama + -ks; сравнительная степень: tugevamaks, hullemaks) → уголок экзамена R1 «Kuhu pöörduda?» (6 ситуаций) → 5–7 своих предложений: как менялась болезнь (8 форм -ks — в «Harjuta»)',
+        '40–65: пункт 4 — звонок в регистратуру по картинке «Perearstikeskuse nädal»; у учителя скрытая информация (время в четверг уже занято, в пятницу врача нет, сегодня есть медсестра, видеозвонок); вторая попытка без фраз — звонок за ребёнка или пожилого родственника',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как в его стране записываются к врачу',
+        '72–90: запас',
+      ],
+      sources: 'Звонок (пункт 2), perearstikeskus и картинка «Perearstikeskuse nädal» — учебные, люди и время выдуманы, реальных данных нет.',
+      groups: 'Пункт 4 в паре: B получает карточку регистратуры (копия вашей), A её не видит; потом смена ролей с карточкой «за ребёнка». Один на один вы — регистратор.',
+      errors: [
+        '«Köha muutus tugevam» вместо «Köha muutus tugevamaks» (после muutuma / minema / jääma / saama — -ks).',
+        '«Läks halvem» / «läks hulluks» вместо «läks halvemaks / hullemaks» (сравнение: halvem → halvema → halvemaks).',
+        '«Hääl jäi kähe» вместо «Hääl jäi kähedaks» (kähe → kähe-da → kähedaks).',
+        '«Ma tahan aega» звучит резко; вежливее «Ma sooviksin aega …», «Kas … sobiks?» (урок 27).',
+      ],
+      notes: [
+        'Скрытая информация даёт настоящую задачу: ученик видит на картинке свободное время, но узнаёт, что его уже нет, только когда спросит. Сначала предлагайте неудобное.',
+        'Обратная связь, 2 цели: -ks после глаголов изменения и сравнительная степень в -ks. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('032_d_review', [['Mis Annaga kontoris juhtus ja mida sa talle kirjas soovitasid?', 'a2b1-031'], ['Kus Anna oma rohelise koti kaotas ja kuidas ta selle tagasi sai?', 'a2b1-024'], 'Millal sa viimati arsti juures käisid ja miks?']),
-      B.text('032_d_hook', 'Markuse lugu', 'Markus ei jää kunagi haigeks — nii arvas ta ise. Täna loed ja kuulad tema lugu kolmes osas: kuidas väike nohu muutus kahe nädalaga tõsiseks haiguseks, mida ütles perearst ja mis juhtus neljapäeva hommikul. Tunni lõpus helistad Markuse eest perearstikeskusse, sest Markus ise ei saa rääkida.'),
-      B.reading('032_d_story', 'Esimene osa: kaks nädalat.', 'Loe Markuse lugu. Vasta küsimustele; viimasele küsimusele vasta oma arvamuse põhjal.', 'Köha, mis ei tahtnud ära minna', [
+      station(teach(tag(purpose(half(B.speaking('032_d_warm', 'Millal sa viimati arsti juures käisid?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Millal sa viimati arsti juures käisid? Miks? Kuidas sa aja said?',
+        'Ütle ilma märkmeteta: mis muutus, kui sa viimati haigeks jäid?',
+      ], [60, 90])), 'Sinu enda kogemus on tänase tunni algus: lõpus helistad perearstikeskusesse ja lepid kokku aja.'), { task: 'S09', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris arstikülastusest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Kas aega oli kerge saada?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('032_d_vocab', 'Tunni sõnad.', ['registratuur — регистратура', 'vastuvõtt — приём', 'vaba aeg — свободное время', 'õde — медсестра', 'kestma — длиться', 'hääl — голос', 'hingama — дышать', 'tugev — сильный', 'halvem — хуже', 'isikukood — личный код'], '1')), { topic: ['vastuvõtt', 'registratuur', 'halvem'] }), 2, 17),
+      teach(tag(purpose(half(B.dialogue('032_d_model', 'Enne kuulamist: apteegis.', 'Loe paarilisega rollides. Leia laused, mis ütlevad, kuidas haigus muutus.', 'Klient', 'Apteeker', [
+        ['B', 'Tere! Kuidas saan aidata?'],
+        ['A', 'Mul on kolm päeva köha. Alguses oli see kerge, aga nüüd muutus tugevamaks.'],
+        ['B', 'Kas teil on ka palavikku?'],
+        ['A', 'Eile õhtul läks palavik kõrgeks. Täna hommikul läks natuke paremaks.'],
+        ['B', 'Kas hääl on ka muutunud?'],
+        ['A', 'Jah, hääl jäi kähedaks.'],
+        ['B', 'Võtke seda siirupit kolm korda päevas. Kui läheb hullemaks, minge perearsti juurde.'],
+        ['A', 'Aitäh! Loodan, et saan kiiresti terveks.'],
+      ], 'g_read')), 'Enne kõnet kuuled ja ütled ise, kuidas rääkida sellest, mis muutus.'), { task: 'R12' }),
+      'Üks-ühele: loe sina apteekri rolli, õpilane kliendi rolli; siis vahetage. Õpilane näitab muutuse laused (muutus tugevamaks, läks kõrgeks, läks paremaks, jäi kähedaks, saan terveks) ja ütleb, milline tegusõna on igaühes.'),
+      tag(purpose(why(ownText(twice(B.examListen('032_d_visit', 'Kõne perearstikeskusesse.', 'Loe enne küsimused läbi. Siis kuula kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Registraator: Kesklinna perearstikeskus, tere! Kuidas saan aidata?',
+        'Patsient: Tere! Minu nimi on Rein Tamm. Ma sooviksin aega perearsti juurde. Mul on juba kümme päeva köha.',
+        'Registraator: Kuidas köha on muutunud?',
+        'Patsient: Alguses oli ainult nohu. Siis jäi hääl kähedaks ja köha muutus iga päevaga tugevamaks.',
+        'Registraator: Kas teil on ka palavikku?',
+        'Patsient: Eile õhtul läks palavik kõrgeks. Ja trepil muutub hingamine raskeks.',
+        'Registraator: Selge. Perearsti juures on täna kõik ajad täis. Kas homme hommikul kell kaheksa sobiks?',
+        'Patsient: Kahjuks mitte, ma viin hommikul lapse lasteaeda. Kas pärastlõunal oleks midagi?',
+        'Registraator: Täna kell kolm saab tulla pereõe juurde. Õde kuulab kopse ja ütleb, kas on vaja arsti.',
+        'Patsient: See sobib. Kas ma pean midagi kaasa võtma?',
+        'Registraator: Ainult ID-kaardi. Ja kui hingamine läheb hullemaks, helistage kohe numbrile 112.',
+        'Patsient: Aitäh! Kas ma saan ka haiguslehe?',
+        'Registraator: Haiguslehe avab õde või arst vastuvõtul. Niisiis täna kell kolm, pereõde, tuba kaksteist.',
+        'Patsient: Aitäh, kohtumiseni!',
+      ], [
+        ['Miks Rein helistab?', 'Tal on juba kümme päeva köha.', 'Ta vajab lapsele haiguslehte.', 'Ta kukkus trepil.'],
+        ['Kuidas köha on muutunud?', 'See muutus iga päevaga tugevamaks.', 'See läks paremaks.', 'See jäi samaks.'],
+        ['Mis juhtus eile õhtul?', 'Palavik läks kõrgeks.', 'Hääl sai jälle korda.', 'Köha kadus ära.'],
+        ['Miks ei sobi homme hommikul?', 'Ta viib lapse lasteaeda.', 'Ta on hommikul tööl.', 'Perearst on puhkusel.'],
+        ['Kelle juurde Rein täna läheb?', 'pereõe juurde', 'perearsti juurde', 'haiglasse'],
+        ['Mis kell on tema aeg?', 'kell kolm', 'kell kaheksa', 'kell kaksteist'],
+        ['Mida teha, kui hingamine läheb hullemaks?', 'helistada kohe numbrile 112', 'tulla homme uuesti', 'minna apteeki'],
+      ], 'g_read'))), [
+        'Patsient: „Mul on juba kümme päeva köha.”',
+        'Patsient: „köha muutus iga päevaga tugevamaks”.',
+        'Patsient: „Eile õhtul läks palavik kõrgeks.”',
+        'Patsient: „ma viin hommikul lapse lasteaeda”.',
+        'Registraator: „Täna kell kolm saab tulla pereõe juurde.”',
+        'Registraator: „Niisiis täna kell kolm, pereõde, tuba kaksteist.”',
+        'Registraator: „kui hingamine läheb hullemaks, helistage kohe numbrile 112”.',
+      ]), 'Enne kui sa ise helistad, kuuled, kuidas patsient räägib, mis muutus, ja aja kokku lepib.'), { task: 'L01' }),
+      teach(tag(purpose(B.speaking('032_d_retell', 'Mida patsient ütles? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+        'Miks patsient helistas ja kuidas tema köha muutus?',
+        'Mis juhtus eile õhtul?',
+        'Mis aja ta lõpuks sai ja miks mitte homme hommikul?',
+        'Kas sina helistad perearstile või paned aja internetis kinni? Miks?',
+      ], [60, 90], '', 'g_read'), 'Ütled, kuidas haigus muutus ja mis kokku lepiti.'), { task: 'S05', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Köha läks paremaks”) ja õpilane parandab sind kõne järgi.'),
+      hide(B.review('032_d_review', [['Mis Annaga kontoris juhtus ja mida sa talle kirjas soovitasid?', 'a2b1-031'], ['Kus Anna oma rohelise koti kaotas ja kuidas ta selle tagasi sai?', 'a2b1-024'], 'Millal sa viimati arsti juures käisid ja miks?']), V5_DRILL),
+      hide(B.text('032_d_hook', 'Markuse lugu', 'Markus ei jää kunagi haigeks — nii arvas ta ise. Täna loed ja kuulad tema lugu kolmes osas: kuidas väike nohu muutus kahe nädalaga tõsiseks haiguseks, mida ütles perearst ja mis juhtus neljapäeva hommikul. Tunni lõpus helistad Markuse eest perearstikeskusse, sest Markus ise ei saa rääkida.'), V5_CUT),
+      hide(B.reading('032_d_story', 'Esimene osa: kaks nädalat.', 'Loe Markuse lugu. Vasta küsimustele; viimasele küsimusele vasta oma arvamuse põhjal.', 'Köha, mis ei tahtnud ära minna', [
         'Kõik algas kaks nädalat tagasi, pärast jalgpallitrenni. Õhtul oli ilm külm ja tuuline, aga ma läksin koju ilma mütsita. Järgmisel hommikul oli mul kerge nohu. „Pole hullu,” mõtlesin, „see läheb ise üle.”',
         '',
         'Esimesel nädalal käisin tavaliselt tööl. Jõin palju kohvi ja vähe vett. Köha muutus iga päevaga tugevamaks, eriti öösiti. Naaber koputas isegi seinale, sest ma ei lasknud tal magada.',
@@ -292,57 +504,13 @@ export const LESSONS = withShapes({
         ['Mis muutus esmaspäeva õhtul?', 'palavik tõusis ja hingamine muutus raskeks|läks hullemaks'],
         ['Millal sai Markus arsti juurde aja?', 'teisipäeval kell 8.20|teisipäeva hommikul'],
         ['Mis on sinu arvates Markusel ja mida arst talle ütleb? Miks sa nii arvad?', ''],
-      ]),
-      B.vocab('032_d_vocab', 'Tunni sõnad.', ['arst — врач', 'perearst — семейный врач', 'hääl — голос', 'kestma — длиться', 'tõsine — серьёзный', 'hingama — дышать', 'ravim — лекарство', 'retsept — рецепт', 'tablett — таблетка', 'aeg — время / приём', 'muutuma — меняться', 'tugev — сильный']),
-      B.notice('032_d_notice', 'Märka: kuidas haigus muutus?', [
-        '**jääma** + -ks — midagi jääb uude olekusse: hääl **jäi kähedaks**, Markus **jäi haigeks**.',
-        '**minema** + -ks — olukord läheb kuhugi: **läks hullemaks**, palavik **läks kõrgeks**, ilm **läks külmaks**.',
-        '**muutuma** + -ks — muutus samm-sammult: köha **muutus tugevamaks**, hingamine **muutus raskeks**.',
-        '**saama** + -ks — tulemus: Markus **sai terveks**, töö **sai valmis**.',
-        'Võrdlusega: tugevam → tugevama → tugevama**ks**, halvem → halvema**ks**, kergem → kergema**ks**.',
-      ], 'full'),
-      tag(B.categorize('032_d_sort', 'Leia reegel: olek, muutus või tulemus?', 'Loe laused Markuse loost. Pane iga lause veergu: kas see kirjeldab olekut, muutust või tulemust?', [
+      ]), V5_CUT),
+      hide(tag(B.categorize('032_d_sort', 'Leia reegel: olek, muutus või tulemus?', 'Loe laused Markuse loost. Pane iga lause veergu: kas see kirjeldab olekut, muutust või tulemust?', [
         ['olek: olema + milline?', ['Ilm oli külm ja tuuline.', 'Mul oli kerge nohu.', 'Markus on juba teist nädalat haige.', 'Kaks nädalat köha ei ole normaalne.']],
         ['muutus: jääma, minema, muutuma + -ks', ['Köha muutus iga päevaga tugevamaks.', 'Teisel nädalal jäi mu hääl kähedaks.', 'Esmaspäeva õhtul läks aga hullemaks.', 'Hingamine muutus trepil raskeks.']],
         ['tulemus: saama + -ks', ['Nädala pärast sai Markus terveks.', 'Mia sai pühapäevaks terveks.', 'Viktori põlv sai lõpuks jälle terveks.', 'Pärast puhkust sai Markus jälle tugevaks.']],
-      ], 'full', 'g_notice'), { task: 'G02' }),
-      B.examListen('032_d_visit', 'Teine osa: doktor Kase juures.', 'Mida räägivad perearst ja Markus? Kuula kaks korda ja otsusta iga väite kohta: õige või vale.', 'truefalse', [
-        'Kersti: Tere, Markus! Istuge, palun. Mis teid täna siia toob?',
-        'Markus: Tere! Mul on juba kaks nädalat köha. Alguses oli ainult nohu, aga nüüd on köha väga tugev.',
-        'Kersti: Kas köha on kuiv või tuleb ka röga?',
-        'Markus: Öösel on kuiv, hommikul tuleb natuke röga.',
-        'Kersti: Kas teil on olnud palavikku?',
-        'Markus: Esimesel nädalal mitte. Aga eile õhtul oli 38,4 ja trepil jäi hingamine raskeks.',
-        'Kersti: Kas olete midagi võtnud?',
-        'Markus: Ainult kurgutablette ja palju kohvi.',
-        'Kersti: Kohv ei ole ravim! Kas teil on mõne ravimi vastu allergia?',
-        'Markus: Ravimite vastu ei ole. Aga mul on piimaallergia.',
-        'Kersti: Selge. Hingake nüüd sügavalt sisse… ja välja. Veel kord, palun.',
-        'Kersti: Kopsudes on kuulda bronhiiti. Kopsupõletikku ei ole, see on hea uudis.',
-        'Markus: Kas ma pean antibiootikume võtma?',
-        'Kersti: Ei pea. Ma kirjutan teile e-retsepti köhasiirupile. Võtke seda kolm korda päevas pärast sööki.',
-        'Kersti: Ja kõige tähtsam: viis päeva puhkust. Ma avan teile töövõimetuslehe reedeni.',
-        'Markus: Aga reedel on mul koosolek Riias!',
-        'Kersti: Riiga te sel nädalal ei sõida. Kui palavik läheb üle 39 või hingamine muutub raskemaks, helistage kohe mulle või numbril 1220.',
-        'Markus: Kas ma pean töövõimetuslehe ise tööandjale viima?',
-        'Kersti: Ei pea, see läheb ise elektrooniliselt. Teie tööandja näeb seda portaalis.',
-        'Markus: Ja kust ma siirupi saan?',
-        'Kersti: Igast apteegist. Öelge apteegis oma isikukood, retsept on juba süsteemis. Ja jooge palju sooja vett, mitte kohvi.',
-        'Markus: Hästi… Kas ma võin vähemalt kodus arvutiga töötada?',
-        'Kersti: Kui olete haige, siis te puhkate. Arvuti võib oodata. Tulge esmaspäeval kontrolli, kell 9.40.',
-      ], [
-        ['Markuse köha algas tavalisest nohust.', true],
-        ['Hommikuti on Markuse köha täiesti kuiv.', false],
-        ['Esimesel nädalal oli Markusel kõrge palavik.', false],
-        ['Markus ravis end kurgutablettide ja kohviga.', true],
-        ['Markusel on mõne ravimi vastu allergia.', false],
-        ['Arst leidis Markuse kopsudes kopsupõletiku.', false],
-        ['Markus ei pea antibiootikume võtma.', true],
-        ['Köhasiirupit tuleb võtta enne sööki.', false],
-        ['Arsti arvates võib Markus kodus arvutiga töötada.', false],
-        ['Esmaspäeval peab Markus uuesti arsti juurde minema.', true],
-      ]),
-      tag(B.reading('032_d_antibio', 'Populaarteadus: antibiootikumid.', 'Miks ei kirjuta arst igale haigele antibiootikumi? Loe teksti ja vasta küsimustele lühidalt, 1–4 sõnaga.', 'Miks antibiootikum gripi vastu ei aita?', [
+      ], 'full', 'g_notice'), { task: 'G02' }), V5_DRILL),
+      hide(tag(B.reading('032_d_antibio', 'Populaarteadus: antibiootikumid.', 'Miks ei kirjuta arst igale haigele antibiootikumi? Loe teksti ja vasta küsimustele lühidalt, 1–4 sõnaga.', 'Miks antibiootikum gripi vastu ei aita?', [
         'Talvel küsivad paljud haiged arstilt antibiootikumi. Aga antibiootikum ei ole ravim kõige vastu. Antibiootikumid ravivad haigusi, mida tekitavad bakterid, näiteks kopsupõletikku või põiepõletikku. Gripp ja tavaline külmetus on aga viirushaigused ning viiruste vastu antibiootikumid ei toimi.',
         '',
         'Miks see on tähtis? Bakterid võivad muutuda antibiootikumide suhtes vastupidavaks. Siis ravim enam ei aita ja tavalisest põletikust võib saada ohtlik haigus. Seda nimetatakse antibiootikumiresistentsuseks. Maailma Terviseorganisatsioon peab seda üheks suurimaks ohuks inimeste tervisele kogu maailmas.',
@@ -361,14 +529,61 @@ export const LESSONS = withShapes({
         ['Kes peab antibiootikumi välja kirjutama?', 'arst'],
         ['Kuhu viia üle jäänud ravimid?', 'kogumiskohta'],
         ['Kas sinu kodumaal saab antibiootikume osta ilma retseptita? Mis sa sellest arvad?', ''],
-      ]), { task: 'R19', voice: 'popsci' }),
-      teach(tag(B.speaking('032_d_retell', 'Markuse lugu kahele kuulajale.', 'Jutusta Markuse kahe nädala lugu kahele kuulajale. Esimesel korral on aega kaks minutit, teisel ainult üks.', ['Kuidas ja millal haigus algas?', 'Kuidas köha ja hääl muutusid?', 'Mis läks esmaspäeval hullemaks?', 'Mida arst ütles ja mida ta keelas?', 'Mida sina teed, kui sul on samasugune köha?'], [90, 150], ['Köha muutus tugevamaks.', 'Hääl jäi kähedaks.', 'Arst ütles, et…']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega (2 min, siis 1 min). Teisel korral peab lugu tulema sujuvamalt, aga kõik muutused (jäi, läks, muutus) peavad alles jääma.'),
-      teach(tag(B.speaking('032_d_talk', 'Arsti juures ja apteegis.', 'Vasta küsimustele kahele kuulajale järjest. Teisel korral räägi kiiremini ja lisa üks uus näide.', ['Millal sa viimati haigeks jäid? Kuidas haigus muutus?', 'Kas sa lähed kohe arsti juurde või ootad? Miks?', 'Mida sa teed, kui köha ei lähe üle?', 'Kas apteegis on lihtne nõu küsida? Miks?', 'Kuidas saab arsti juurde aja sinu kodumaal ja kuidas Eestis?'], [90, 150], ['Kõigepealt…, siis läks…', 'Mul jäi…', 'Eestis…, aga minu kodumaal…']), { fluency: true }),
-        'Üks-ühele: õpilane vastab õpetajale kaks korda; teisel korral on õpetaja „uus kuulaja” ja hoiab aega (vähem kui esimesel korral).'),
+      ]), { task: 'R19', voice: 'popsci' }), V5_CUT),
+      hide(teach(tag(B.speaking('032_d_talk', 'Arsti juures ja apteegis.', 'Vasta küsimustele kahele kuulajale järjest. Teisel korral räägi kiiremini ja lisa üks uus näide.', ['Millal sa viimati haigeks jäid? Kuidas haigus muutus?', 'Kas sa lähed kohe arsti juurde või ootad? Miks?', 'Mida sa teed, kui köha ei lähe üle?', 'Kas apteegis on lihtne nõu küsida? Miks?', 'Kuidas saab arsti juurde aja sinu kodumaal ja kuidas Eestis?'], [90, 150], ['Kõigepealt…, siis läks…', 'Mul jäi…', 'Eestis…, aga minu kodumaal…']), { fluency: true }),
+        'Üks-ühele: õpilane vastab õpetajale kaks korda; teisel korral on õpetaja „uus kuulaja” ja hoiab aega (vähem kui esimesel korral).'), V5_CUT),
     ],
     practice: [
-      B.choice('032_p_form', 'Olek või muutus?', 'Kas lauses on olek või muutus? Vali igasse lausesse sobiv vorm.', [
+      station(B.notice('032_d_notice', 'Märka: kuidas haigus muutus?', [
+        'Kõnest: hääl **jäi kähedaks** · köha **muutus** iga päevaga **tugevamaks** · palavik **läks kõrgeks** · kui hingamine **läheb hullemaks**',
+        '**jääma** + -ks — uus olek: **jäi kähedaks**, **jäi haigeks** · **minema** + -ks — olukord läheb kuhugi: **läks kõrgeks**, **läks hullemaks**',
+        '**muutuma** + -ks — samm-sammult: **muutus tugevamaks**, **muutus raskeks** · **saama** + -ks — tulemus: **sai terveks**',
+        'Võrdlus: tugevam → tugevama → tugevama**ks** · parem → parema**ks** · halvem → halvema**ks** · hullem → hullema**ks**',
+      ], 'full'), 3, 15),
+      teach(tag(purpose(why(B.adsmatch('032_p_where', 'Eksaminurk: kuhu pöörduda? (Harno B1 lugemine 1)', 'Leia igale olukorrale sobiv teade ja kirjuta selle täht. Üks teade võib sobida mitmele olukorrale.', [
+        ['Apteek', 'Nõu nohu ja kurguvalu kohta. Paljud ravimid ilma retseptita.'],
+        ['Perearstikeskus', 'Kui köha läheb hullemaks, pane aeg perearsti või pereõe juurde.'],
+        ['Nõuandeliin 1220', 'Õde annab nõu ööpäev läbi, ka öösel. Saab rääkida ka vene keeles.'],
+        ['Hädaabinumber 112', 'Kui inimesel on raske hingata või ta kukkus ja ei saa tõusta, helista kohe.'],
+        ['Hambaarst', 'Kui hammas valutab, saad aja juba samal päeval.'],
+        ['Töötajale', 'Kui jääd haigeks, teata juhile samal hommikul.'],
+      ], [
+        ['Sul on kerge nohu ja sa tahad osta midagi ilma retseptita.', 'A'],
+        ['Lapsel on öösel kõrge palavik ja sa ei tea, mida teha.', 'C'],
+        ['Sul on juba nädal aega köha ja see läheb hullemaks.', 'B'],
+        ['Vanaisa kukkus trepil ega saa enam püsti tõusta.', 'D'],
+        ['Sul hakkas õhtul hammas väga valutama.', 'E'],
+        ['Sa jäid haigeks ja ei saa homme tööle minna.', 'F'],
+      ], 'g_read'), [
+        'Apteek: „Paljud ravimid ilma retseptita.”',
+        'Nõuandeliin 1220: „Õde annab nõu ööpäev läbi, ka öösel.”',
+        'Perearstikeskus: „Kui köha läheb hullemaks, pane aeg perearsti … juurde.”',
+        'Hädaabinumber 112: „ta kukkus ja ei saa tõusta, helista kohe”.',
+        'Hambaarst: „Kui hammas valutab, saad aja juba samal päeval.”',
+        'Töötajale: „Kui jääd haigeks, teata juhile samal hommikul.”',
+      ]), 'Enne kui sa helistad, tead, kuhu iga murega pöörduda. Eksamil (Harno B1 lugemine 1) on sama ülesanne.'), { task: 'R01', harno: 'R1' }),
+      'Eksaminurk (Harno B1 lugemine 1, ~8 min). Kordab tunni 31 teksti teemat. Strateegia: 1) loe kõigepealt olukorrad ja jooni alla võtmesõna (ilma retseptita, öösel, läheb hullemaks); 2) otsi teatest sama mõte teiste sõnadega (öösel → ööpäev läbi); 3) üks teade võib sobida mitmele. Üks-ühele: esimese olukorra lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise.'),
+      hide(purpose(why(B.wordforms('032_p_forms', 'Mis muutus?', 'Kirjuta sõna -ks-vormis nii, et see sobiks lausesse.', [
+        ['kähe', 'Kahe päeva pärast jäi mu hääl …', 'kähedaks'],
+        ['tugevam', 'Köha muutus iga päevaga …', 'tugevamaks'],
+        ['kõrge', 'Õhtul läks palavik …', 'kõrgeks'],
+        ['hullem', 'Esmaspäeval läks kõik …', 'hullemaks'],
+        ['raske', 'Trepil muutus hingamine …', 'raskeks'],
+        ['parem', 'Pärast ravimit läks …', 'paremaks'],
+        ['terve', 'Nädala pärast sain ma …', 'terveks'],
+        ['nõrk', 'Pärast haigust jäi ta veel …', 'nõrgaks'],
+      ], 'full', 'g_notice'), [
+        'jääma + -ks: kähe → kähedaks.',
+        'muutuma + -ks, võrdlus: tugevama + -ks → tugevamaks.',
+        'minema + -ks: kõrgeks.',
+        'minema + -ks, võrdlus: hullema + -ks → hullemaks.',
+        'muutuma + -ks: raskeks.',
+        'minema + -ks, võrdlus: parema + -ks → paremaks.',
+        'saama + -ks: terveks.',
+        'jääma + -ks: nõrk → nõrga → nõrgaks.',
+      ]), 'Kaheksa lauset näitavad, kuidas muutust öelda.'), V5_DRILL),
+      tag(purpose(rows(B.writing('032_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: kuidas sinu või pereliikme haigus päev-päevalt muutus (jääma, minema, muutuma, saama + -ks). Ühenda laused sõnadega alguses, siis, aga ja sest.', [5, 7]), 5), 'Oma laused on sinu kõne materjal.'), { task: 'W09' }),
+      hide(B.choice('032_p_form', 'Olek või muutus?', 'Kas lauses on olek või muutus? Vali igasse lausesse sobiv vorm.', [
         ['Pärast külma trenni jäi Markus kergelt …', 'haigeks', 'haige', 'haigena'],
         ['Iga päevaga läks tema köha …', 'tugevamaks', 'tugevam', 'tugevama'],
         ['Kui kaua sa oled juba … olnud?', 'haige', 'haigeks', 'haigele'],
@@ -379,13 +594,8 @@ export const LESSONS = withShapes({
         ['Kui palavik läheb …, helista kohe arstile.', 'kõrgeks', 'kõrge', 'kõrgel'],
         ['Kas su tervis on vahepeal … läinud?', 'paremaks', 'parem', 'paremini'],
         ['Pärast pikka päeva oli Markus jälle väga …', 'väsinud', 'väsinuks', 'väsinut'],
-      ], 'full', 'g_notice'),
-      B.wordforms('032_p_forms', 'Milleks muutus?', 'Kirjuta sõna muutuse vormi (-ks), nii et lause saaks valmis.', [
-        ['punane', 'Köhimisest läksid Markuse silmad …', 'punaseks'], ['kuiv', 'Öösel muutus tema köha jälle …', 'kuivaks'], ['halb', 'Esmaspäeva õhtul läks olukord väga …', 'halvaks'],
-        ['rahulik', 'Pärast arsti sõnu jäi Markus …', 'rahulikuks'], ['soe', 'Kütte tõttu läks tuba liiga …', 'soojaks'], ['tõsine', 'Anna nägu muutus äkki …', 'tõsiseks'],
-        ['kergem', 'Pärast siirupit läks hingamine …', 'kergemaks'], ['vaikne', 'Ilma Markuseta jäi kontor väga …', 'vaikseks'], ['tugev', 'Kevadeks tahab Markus jälle … saada.', 'tugevaks'], ['pikk', 'Haiguse ajal läksid päevad väga …', 'pikaks'],
-      ], 'full'),
-      teach(tag(B.adsmatch('032_p_ads', 'Eksaminurk: kuhu pöörduda? (Harno B1 lugemine 1)', 'Kuhu peaks iga inimene pöörduma? Kirjuta olukorra juurde sobiva teate täht; üks teade võib sobida mitmele.', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(teach(tag(B.adsmatch('032_p_ads', 'Eksaminurk: kuhu pöörduda? (Harno B1 lugemine 1)', 'Kuhu peaks iga inimene pöörduma? Kirjuta olukorra juurde sobiva teate täht; üks teade võib sobida mitmele.', [
         ['Kalamaja perearstikeskus', 'Vastuvõtt E–R kell 8–18, aja saab broneerida telefonil 640 2211 või portaalis. Ägeda haigusega patsiendid võtame vastu samal päeval kella 8–10, kui helistate enne kella üheksat. Gripivaktsiin tööpäeviti ilma ajata. Õhtuti ja nädalavahetusel on keskus suletud.'],
         ['Perearsti nõuandeliin 1220', 'Nõu ööpäev läbi, ka nädalavahetusel ja pühadel. Perearst või pereõde küsib sümptomite kohta ja ütleb, kas peate minema arsti juurde või piisab kodusest ravist. Vastame eesti ja vene keeles, iga päev mõnel tunnil ka inglise keeles.'],
         ['Mustamäe traumapunkt', 'Kukkumised, nikastused, väiksemad haavad ja põletused. Avatud iga päev kell 8–22, aega ei pea kinni panema. Võtke kaasa isikut tõendav dokument. Lapsed tulevad koos vanemaga.'],
@@ -404,8 +614,8 @@ export const LESSONS = withShapes({
         ['Markuse naaber Igor räägib veel halvasti eesti keelt ja tahab nõu vene keeles.', 'B'],
         ['Jaan tahab teada, kas köhasiirup sobib ka kuueaastasele lapsele.', 'E'],
       ]), { harno: 'R1' }),
-      'Eksaminurk (Harno B1 lugemine 1, ~9 min). Meenuta moodulist 6: kõigepealt olukorrad ja võtmesõnad, siis sama mõte teates teiste sõnadega (kukkus → kukkumised; õe nõu → õde ütleb). Uus nipp: kui kaks teadet tunduvad sobivat, loe veel kord, mis seal on keelatud või piiratud (EMO: ainult eluohtlik). Üks-ühele: õpilane lahendab 9 minutiga, siis põhjendab kahte vastust valjusti.'),
-      B.transformation('032_p_how', 'Kuidas see olek tekkis?', 'Kirjuta lause minevikus nii, et olek muutub muutuseks. Kasuta antud tegusõna.', [
+      'Eksaminurk (Harno B1 lugemine 1, ~9 min). Meenuta moodulist 6: kõigepealt olukorrad ja võtmesõnad, siis sama mõte teates teiste sõnadega (kukkus → kukkumised; õe nõu → õde ütleb). Uus nipp: kui kaks teadet tunduvad sobivat, loe veel kord, mis seal on keelatud või piiratud (EMO: ainult eluohtlik). Üks-ühele: õpilane lahendab 9 minutiga, siis põhjendab kahte vastust valjusti.'), V5_CUT),
+      hide(B.transformation('032_p_how', 'Kuidas see olek tekkis?', 'Kirjuta lause minevikus nii, et olek muutub muutuseks. Kasuta antud tegusõna.', [
         ['Pärast külma trenni on Markus haige.', 'jääma', 'Pärast külma trenni jäi Markus haigeks.'],
         ['Teisel nädalal on Markuse hääl kähe.', 'jääma', 'Teisel nädalal jäi Markuse hääl kähedaks.'],
         ['Täna on köha tugevam kui eile.', 'muutuma', 'Täna muutus köha tugevamaks kui eile.'],
@@ -416,8 +626,8 @@ export const LESSONS = withShapes({
         ['Ilma Markuseta on kontor täiesti vaikne.', 'jääma', 'Ilma Markuseta jäi kontor täiesti vaikseks.'],
         ['Hommikul on Markuse nägu kahvatu.', 'muutuma', 'Hommikul muutus Markuse nägu kahvatuks.'],
         ['Helgi on uudise pärast väga murelik.', 'muutuma', 'Helgi muutus uudise pärast väga murelikuks.'],
-      ]),
-      tag(B.reading('032_p_leaflet', 'Köhasiirupi infoleht.', 'Loe ravimi infolehte. Vasta küsimustele lühidalt; mõne vastuse pead ise järeldama.', 'Köhasiirup Pehmo: pakendi infoleht', [
+      ]), V5_DRILL),
+      hide(tag(B.reading('032_p_leaflet', 'Köhasiirupi infoleht.', 'Loe ravimi infolehte. Vasta küsimustele lühidalt; mõne vastuse pead ise järeldama.', 'Köhasiirup Pehmo: pakendi infoleht', [
         'Mis see ravim on? Taimne siirup, mis teeb kuiva köha pehmemaks ja aitab röga välja köhida. Ravim sobib täiskasvanutele ja üle kuue aasta vanustele lastele.',
         '',
         'Kuidas võtta? Täiskasvanud: 10 ml kolm korda päevas pärast sööki. Lapsed 6–12 aastat: 5 ml kolm korda päevas. Pudeliga on kaasas mõõtelusikas. Raputage pudelit enne kasutamist hoolikalt. Ravimit võib võtta kuni kaks nädalat; kui vajate seda kauem, küsige nõu arstilt.',
@@ -438,8 +648,8 @@ export const LESSONS = withShapes({
         ['Millal peab Markus uuesti arsti poole pöörduma?', 'kui köha ei lähe nädalaga kergemaks|kui palavik on üle 39|kui hingamine muutub raskeks'],
         ['Markus avas pudeli 1. detsembril. Kas ta võib seda aprillis kasutada?', 'ei, avatud pudel kõlbab kolm kuud|ei'],
         ['Miks peab Markus pudeli kõrgele panema, kui Mia tuleb külla?', 'ravimit tuleb hoida lastele kättesaamatus kohas|lapsed ei tohi seda kätte saada'],
-      ], 'g_vocab'), { task: 'R07', level: 2 }),
-      B.examListen('032_p_pharmacy', 'Apteegis.', 'Markus ostab apteegist ravimeid. Kuula apteekrit ja ühenda iga toode sellega, kuidas seda kasutada.', 'match', [
+      ], 'g_vocab'), { task: 'R07', level: 2 }), V5_CUT),
+      hide(B.examListen('032_p_pharmacy', 'Apteegis.', 'Markus ostab apteegist ravimeid. Kuula apteekrit ja ühenda iga toode sellega, kuidas seda kasutada.', 'match', [
         'Piret: Tere! Kuidas saan teid aidata?',
         'Markus: Tere! Arst kirjutas mulle e-retsepti. Minu isikukood on sellel paberil.',
         'Piret: Aitäh. Jah, siin on teie köhasiirup. Võtke seda kolm korda päevas, alati pärast sööki.',
@@ -467,16 +677,32 @@ export const LESSONS = withShapes({
       ], [
         ['köhasiirup', 'kolm korda päevas pärast sööki'], ['kurgutabletid', 'kuni kuus tükki päevas'], ['ninasprei', 'mitte kauem kui viis päeva'], ['palavikurohi', 'ainult üle 38 kraadi palaviku korral'], ['D-vitamiin', 'üks kapsel hommikul koos söögiga'],
         ['taimetee', 'üks tass enne magamaminekut'], ['soolalahus', 'nina loputamiseks hommikul ja õhtul'], ['termomeeter', 'palavik hommikul ja õhtul üles kirjutada'], ['salv', 'õhtul rinnale määrida'], ['mask', 'kanda poes ja bussis'],
-      ], 'g_vocab'),
-      tag(B.examWriting('032_p_client', 'Kiri Riia kliendile.', 'Markus ei saa reedel Riiga sõita. Kirjuta kliendile tema asemel viisakas e-kiri 40–60 sõnaga, teie-vormis.', 'teade', {
+      ], 'g_vocab'), V5_CUT),
+      hide(tag(B.examWriting('032_p_client', 'Kiri Riia kliendile.', 'Markus ei saa reedel Riiga sõita. Kirjuta kliendile tema asemel viisakas e-kiri 40–60 sõnaga, teie-vormis.', 'teade', {
         situation: 'Markus kirjutas Sofiale: „Ütle Riia kliendile, et ma olen haige ja koosolek jääb ära. Paku uus aeg!” Kliendile tuleb kirjutada ametlikult.',
         points: ['miks reedene koosolek ära jääb', 'vabandus', 'kaks uut aega järgmisel nädalal', 'palve vastata, milline aeg sobib'],
         words: [40, 60], opening: 'Lugupeetud härra Ozols!', closing: 'Lugupidamisega, Sofia Mets',
-      }), { task: 'W12' }),
+      }), { task: 'W12' }), V5_CUT),
     ],
     transfer: [
-      B.text('032_t_sit', 'Kolmas osa: neljapäeva hommik', 'Neljapäeva hommikul ärkas Markus ja ei saanud rääkida. Öösel oli palavik läinud üle 39 kraadi. Arst käskis siis kohe helistada, aga kuidas helistada ilma hääleta? Markus kirjutas Sofiale. Loe tema sõnumit, valmista kõne ette, helista tema eest perearstikeskusse ja leppige Liisiga kokku, mis töö võib oodata.'),
-      B.insertion('032_t_msg', 'Markuse sõnum Sofiale.', 'Markuse sõnumist on välja võetud kuus lauset. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Sofia, palun aita!', [
+      station(teach(tag(purpose(B.rolecards('032_t_appt', 'Helista perearstikeskusesse: aeg arsti juurde.', 'Sinu köha läheb hullemaks. Vaata pilti üleval ja helista registratuuri (õpetaja). Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: köha on nädal aega ja muutus tugevamaks, õhtul läks palavik kõrgeks. Sa töötad kella 9–17.\nEesmärk: ütle, kuidas haigus muutus, ja lepi kokku sobiv aeg.\nSiis uus olukord: helistad lapse või vanema pereliikme eest.',
+        'Registraatori kaart on õpetajal: kes millal vastu võtab ja üks probleem. Küsi ja kuula.',
+        ['Tere! Ma sooviksin …', 'Mul on … ja see läks …', 'Kas … sobiks?'], []), 'Pärast kõnet on sul aeg, mis sulle sobib, ja sa tead, mida kaasa võtta.'), { task: 'S04', main: true, level: 4 }),
+      'Üks-ühele, õpetaja kaart (registraator). Varjatud info: neljapäeva kell 8.20 (pildil vaba) võeti just ära; reedel on perearst koolitusel ja vastuvõttu ei ole; perearsti järgmine vaba aeg on alles esmaspäeval kell 16.40; pereõde võtab täna vastu kell 17.30 (pildil ei ole); reedel kell 12.00 saab arstiga rääkida videokõnes; kaasa tuleb võtta ID-kaart. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Neljapäeva hommik on kahjuks juba kinni.” 2) „Reedel arsti ei ole.” 3) „Arsti juurde saab alles esmaspäeval.” 4) „Kas teil on raske hingata?” (kui jah: „Helistage kohe 112.”). Õnnestunud, kui õpilane ütleb, mis tal on ja kuidas haigus muutus (läks hullemaks, muutus tugevamaks, läks kõrgeks), reageerib takistustele (küsib õe aega, videokõnet või teist päeva), kordab kokkuleppe üle (päev, kell, kelle juurde) ja küsib, mida kaasa võtta. Teine katse ilma fraasideta (lehel „uus olukord”): õpilane helistab lapse või vanema pereliikme eest. Varjatud info: haigel on kolm päeva palavik ja ta joob vähe; registraator küsib vanust, annab täna kell 15.00 aja ja palub öösel helistada nõuandeliinile 1220. Õnnestunud, kui õpilane ütleb vanuse ja sümptomid, saab aja ja kordab selle üle.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.gaps('032_t_exit', 'Kontrolli end: kolm muutust.', 'Kirjuta sulgudes olev sõna -ks-vormis.', [
+        'Köha muutus iga päevaga [tugevamaks] (tugevam).',
+        'Esmaspäeval läks kõik [hullemaks] (hullem).',
+        'Nädala pärast sain ma [terveks] (terve).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas muutus ja -ks on käes.'), ['muutuma + -ks, võrdlus: tugevamaks.', 'minema + -ks, võrdlus: hullemaks.', 'saama + -ks: terveks.'])), {}),
+      purpose(B.selfcheck('032_t_self', ['Ma ütlen, kuidas haigus muutus: jäi kähedaks, läks hullemaks, muutus tugevamaks.', 'Ma kasutan võrdlust -ks-vormis: paremaks, tugevamaks, hullemaks.', 'Ma saan aru kõnest perearstikeskusega.', 'Ma helistan perearstikeskusesse ja lepin kokku aja, mis mulle sobib.'], 'Aeg kokku lepitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('032_t_rec', 'Kodus: kuidas haigus muutus?', 'Salvesta 60–90 sekundit.', [
+        'Räägi ühest korrast, kui sa olid haige: kuidas see algas ja mis päev-päevalt muutus?',
+        'Kuidas sa terveks said?',
+      ], [60, 90]), 'Õpetaja ütleb, kas muutus ja -ks tulid õigesti.')), { task: 'S15', fluency: true }),
+      homework('032_t_homework', ['1. Kirjuta oma kokkulepe (päev, kell, kelle juurde, mida kaasa võtta) kolme lausega üles.', '2. Salvesta, kuidas su haigus muutus (ülesanne üleval).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('032_t_sit', 'Kolmas osa: neljapäeva hommik', 'Neljapäeva hommikul ärkas Markus ja ei saanud rääkida. Öösel oli palavik läinud üle 39 kraadi. Arst käskis siis kohe helistada, aga kuidas helistada ilma hääleta? Markus kirjutas Sofiale. Loe tema sõnumit, valmista kõne ette, helista tema eest perearstikeskusse ja leppige Liisiga kokku, mis töö võib oodata.'), V5_CUT),
+      hide(B.insertion('032_t_msg', 'Markuse sõnum Sofiale.', 'Markuse sõnumist on välja võetud kuus lauset. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Sofia, palun aita!', [
         'Tere, Sofia! Mul on suur palve. [[Täna hommikul ärkasin ja avastasin, et mu hääl on täiesti kadunud.]] Ma saan ainult sosistada ja isegi see teeb kurgule haiget.',
         '',
         'Öösel läks palavik üle 39 kraadi ja ma ei saanud üldse magada. [[Doktor Kask ütles teisipäeval, et sel juhul tuleb kohe helistada.]] Aga kuidas ma helistan, kui ma ei saa rääkida?',
@@ -490,35 +716,121 @@ export const LESSONS = withShapes({
         'Arvutit ma ei ava, ma luban! [[Aga palun ütle Liisile, et Riia koosolek tuleb edasi lükata.]] Kliendi telefoninumber on minu kalendris reedese päeva juures. Ta räägib hästi inglise keelt, aga natuke ka eesti keelt, sest ta õppis Tartus.',
         '',
         '[[Vabandust, et ma sulle nii palju tööd teen.]] Kui mu hääl tagasi tuleb, kutsun sind ja Annat Kaneelisse lõunale. Sinu vaikne kolleeg Markus',
-      ], ['Arst ütles, et võin reedel juba Riiga sõita.', 'Hääl tuli õhtuks täiesti tagasi.']),
-      B.planning('032_t_plan', 'Märkmed enne kõnet.', 'Kirjuta enne helistamist märksõnad: mida ütled, mida küsid ja mida registraator võib küsida.', ['Kes sa oled ja kelle eest helistad?', 'Kuidas Markuse haigus on muutunud: palavik, köha, hingamine?', 'Mida arst teisipäeval ütles?', 'Mida sa tahad küsida?', 'Mis andmeid registraator võib küsida?', 'Mida sa ütled, kui pakutud aeg ei sobi?', 'Kuidas sa kõne lõpetad?'], 2),
-      teach(tag(B.phoneCards('032_t_call', 'Helista perearstikeskusse.', 'A helistab Markuse eest perearstikeskusse, B on registraator. Tehke kõne läbi, siis vahetage kaardid.', 'Neljapäeval kell 8.15 helistab Sofia Kalamaja perearstikeskusse, sest Markus ei saa rääkida.', ['Helistaja (Sofia)', [
+      ], ['Arst ütles, et võin reedel juba Riiga sõita.', 'Hääl tuli õhtuks täiesti tagasi.']), V5_CUT),
+      hide(B.planning('032_t_plan', 'Märkmed enne kõnet.', 'Kirjuta enne helistamist märksõnad: mida ütled, mida küsid ja mida registraator võib küsida.', ['Kes sa oled ja kelle eest helistad?', 'Kuidas Markuse haigus on muutunud: palavik, köha, hingamine?', 'Mida arst teisipäeval ütles?', 'Mida sa tahad küsida?', 'Mis andmeid registraator võib küsida?', 'Mida sa ütled, kui pakutud aeg ei sobi?', 'Kuidas sa kõne lõpetad?'], 2), V5_CUT),
+      hide(teach(tag(B.phoneCards('032_t_call', 'Helista perearstikeskusse.', 'A helistab Markuse eest perearstikeskusse, B on registraator. Tehke kõne läbi, siis vahetage kaardid.', 'Neljapäeval kell 8.15 helistab Sofia Kalamaja perearstikeskusse, sest Markus ei saa rääkida.', ['Helistaja (Sofia)', [
         'Tervita, ütle oma nimi ja kelle eest helistad.', 'Seleta, kuidas Markuse haigus on muutunud.', 'Ütle, mida arst teisipäeval soovitas.', 'Küsi, kas Markus peab täna tulema ja mis kell.', 'Küsi, kas Markus vajab uut töövõimetuslehte.',
       ]], ['Registraator', [
         'Küsi patsiendi nime ja isikukoodi.', 'Küsi, kui kõrge on palavik ja kas hingamine on raske.', 'Paku aega täna kell 11.40 doktor Kase juures.', 'Ütle, et kui hingamine läheb väga raskeks, tuleb helistada 112.', 'Töövõimetuslehe pikendab arst vastuvõtul.',
       ]]), { main: true }),
-      'Üks-ühele: õpetaja on registraator ja küsib ka üht asja, mida kaardil ei ole („Kas Markus saab ise kohale tulla?”). Siis vahetage kaardid ja õpilane on registraator. Hinda: kas kõik viis küsimust said küsitud ja kas muutus oli selgelt öeldud (läks hullemaks, muutus raskemaks).'),
-      teach(tag(B.speaking('032_t_rec', 'Kodus: minu viimane arstikülastus.', 'Jutusta 1–2 minutit ja salvesta: millal ja miks sa arsti juures käisid, mida arst ütles ja mida sa siis tegid.', ['Millal sa viimati arsti juures käisid?', 'Mis sul oli?', 'Kuidas sa aja said?', 'Mida arst ütles ja soovitas?', 'Kas sul läks paremaks?'], [60, 120], ['Ma käisin arsti juures…', 'Arst ütles, et…', 'Pärast seda…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja ja küsib ühe lisaküsimuse.'),
-      teach(tag(B.ideaCard('032_t_wait', 'Mis võib oodata?', 'Markus ei tööta järgmisel nädalal. Järjestage koos Liisiga tema kuus tööd: mis on kõige kiirem ja mis võib oodata?', 'Markus on vähemalt järgmise kolmapäevani haige. Liisil ja Sofial on ka oma tööd ning Anna tuleb tagasi alles esmaspäeval.', ['Riia kliendiga uus koosoleku aeg', 'pakkumine Soome firmale (tähtaeg esmaspäeval)', 'töökoht uuele kolleegile Kristjanile', 'kontori jõulupeo plaan', 'kuu aruande kontroll', 'laoseisu tabel'], 'Mis on esimesel ja mis viimasel kohal? Kes teeb mida?'), { task: 'S12' }),
-        'Üks-ühele: õpetaja on Liis ja tahab jõulupeo plaani esimesele kohale panna; õpilane põhjendab, miks tähtaeg ja klient on tähtsamad. Lõpus loeb õpilane järjekorra ette.'),
-      tag(B.examWriting('032_t_card', 'Kaart Markusele.', 'Kontor saadab Markusele lilled. Kirjuta kaardile 50–70 sõna ja kõigist neljast punktist.', 'teade', {
+      'Üks-ühele: õpetaja on registraator ja küsib ka üht asja, mida kaardil ei ole („Kas Markus saab ise kohale tulla?”). Siis vahetage kaardid ja õpilane on registraator. Hinda: kas kõik viis küsimust said küsitud ja kas muutus oli selgelt öeldud (läks hullemaks, muutus raskemaks).'), V5_CUT),
+      hide(teach(tag(B.ideaCard('032_t_wait', 'Mis võib oodata?', 'Markus ei tööta järgmisel nädalal. Järjestage koos Liisiga tema kuus tööd: mis on kõige kiirem ja mis võib oodata?', 'Markus on vähemalt järgmise kolmapäevani haige. Liisil ja Sofial on ka oma tööd ning Anna tuleb tagasi alles esmaspäeval.', ['Riia kliendiga uus koosoleku aeg', 'pakkumine Soome firmale (tähtaeg esmaspäeval)', 'töökoht uuele kolleegile Kristjanile', 'kontori jõulupeo plaan', 'kuu aruande kontroll', 'laoseisu tabel'], 'Mis on esimesel ja mis viimasel kohal? Kes teeb mida?'), { task: 'S12' }),
+        'Üks-ühele: õpetaja on Liis ja tahab jõulupeo plaani esimesele kohale panna; õpilane põhjendab, miks tähtaeg ja klient on tähtsamad. Lõpus loeb õpilane järjekorra ette.'), V5_CUT),
+      hide(tag(B.examWriting('032_t_card', 'Kaart Markusele.', 'Kontor saadab Markusele lilled. Kirjuta kaardile 50–70 sõna ja kõigist neljast punktist.', 'teade', {
         situation: 'Kolleegid saadavad Markusele koju lilled ja kaardi. Kaardi kirjutad sina.',
         points: ['kuidas kontor ilma temata on', 'mida tema eest tehti', 'üks nõuanne, et ta kiiremini terveks saaks', 'millal teda tagasi oodatakse'],
         words: [50, 70], opening: 'Kallis Markus!', closing: 'Saa ruttu terveks! Sinu kolleegid',
-      }), { task: 'W03' }),
-      B.rubricSpeaking('032_t_rubric', 'Hindamine: kõne perearstikeskusse (20 punkti).'),
-      B.selfcheck('032_t_self', ['Ma ütlen, kuidas haigus muutus: jäi kähedaks, läks hullemaks, muutus tugevamaks.', 'Ma saan aru arsti ja apteekri juhistest.', 'Ma leian teadetest, kuhu pöörduda.', 'Ma helistan kellegi eest perearstikeskusse ja broneerin aja.'], 'Köha, mis ei tahtnud ära minna'),
+      }), { task: 'W03' }), V5_CUT),
+      hide(B.rubricSpeaking('032_t_rubric', 'Hindamine: kõne perearstikeskusse (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 033 debate: advice for better sleep (käskiv kõneviis)
   'a2b1-033': {
-    title: 'Pange jalg padjale!',
-    canDo: 'Ma lepin Markusega kokku kahenädalase uneplaani ja annan talle suuliselt nõu käskiva kõneviisiga (pane telefon ära, ära joo õhtul kohvi).',
+    title: 'Kuidas paremini magada?',
+    phases: grammar('Keel: käskiv kõneviis — pane, ära joo · teie: pange, ärge jooge'),
+    format: 'debate',
+    topic: 'health',
+    subtopic: 'sleep',
+    canDo: 'Ma räägin paarilisega, kuidas paremini magada: annan 60–90 sekundit nõu (pane telefon ära, ära joo õhtul kohvi) ja lepime kokku nädala plaani.',
+    teacherPage: {
+      goal: 'Ученик понимает советы о сне, 60–90 секунд советует партнёру в повелительном наклонении (pane, ära joo; pange, ärge jooge) и договаривается о плане на неделю.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → текст «Viis nõuannet hea une jaoks» и 7 вопросов → пункт 4: советы партнёру по картинке «Kaks õhtut» и план на неделю. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kuidas sa eile magasid? Mis kell sa magama läksid?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 32 без записей: как менялась твоя последняя болезнь (läks hullemaks, sain terveks).',
+      plan: [
+        '0–8: пункт 1 — как ученик спал вчера; одно предложение с -ks (повторение урока 32)',
+        '8–25: пункт 2 — слова, текст «Viis nõuannet hea une jaoks» (повелительное наклонение teie в контексте), 7 вопросов, в паре: советы из текста в форме sina',
+        '25–40: пункт 3 — заметить → правило (sina: mine, pane, joo / ära mine; teie: minge, pange, jooge / ärge minge) → 8 преобразований → 5–7 своих советов другу',
+        '40–65: пункт 4 — по картинке «Kaks õhtut»: A рассказывает свой «плохой вечер», B 60–90 секунд даёт советы (3 «делай», 2 «не делай»), A один раз спорит; план на неделю из трёх пунктов; вторая попытка без фраз — свои настоящие вечера',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (ЗАДАНИЕ-СВЯЗЬ: страница Peaasi.ee)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, какие советы о сне дают у него на родине (бабушкины средства)',
+        '72–90: запас',
+      ],
+      sources: 'Текст (пункт 2) и картинка «Kaks õhtut» — учебные, советы общие. Домашнее задание — настоящая страница «Parema une nõuanded» на Peaasi.ee (https://peaasi.ee/parema-une-nouanded/, проверено 25.11.2026); текст страницы на листе не копируется.',
+      groups: 'Пункт 4 в паре: A — «вечер A» (плохо спит), B — «вечер B» (даёт советы); потом смена ролей. Один на один вы — A и дважды спорите («Aga kohv aitab mul puhata!»).',
+      errors: [
+        '«Ära jood kohvi» / «Ära joo-ge» вместо «Ära joo kohvi» (sina: ära + основа без окончания).',
+        '«Ärge joo» вместо «Ärge jooge» (teie: ärge + -ge/-ke).',
+        '«Pane telefoni ära» вместо «Pane telefon ära» (в повелительном наклонении полный объект — nimetav).',
+        '«Te peate magama» звучит как приказ; совет мягче: «Proovi …», «Võiksid …».',
+      ],
+      notes: [
+        'Спор (A не соглашается) делает задачу настоящей: B должен объяснить, почему совет хороший (sest …).',
+        'Обратная связь, 2 цели: формы sina ↔ teie и отрицание ära / ärge. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('033_d_review', [['Kuidas Markuse haigus kahe nädalaga muutus? Kasuta sõnu jäi, läks ja muutus.', 'a2b1-032'], ['Mis juhtus enne Sofia soolaleivapidu ja kuidas probleem lahendati?', 'a2b1-014'], 'Mida sa teed, kui sul valutab selg või põlv?']),
-      B.text('033_d_hook', 'Viktor kukkus', 'Laupäeval sõitis Viktor jalgrattaga talust poodi ja kukkus libedal teel. Põlv läks paksuks ja Jaan viis ta traumapunkti. Viktor muretseb oma töökoja pärast, tema enesetunne on halb ja meeleolu madal. Nüüd tahavad kõik Viktorile nõu anda — aga kas öelda „pane”, „pange” või „ära pane”? Proovi kõigepealt ise, siis kuula arsti ja leia reegel. Tunni lõpus annad nõu Markusele, kes ei saa pärast haigust magada.'),
-      B.choice('033_d_test', 'Proovi kõigepealt: kuidas öelda?', 'Kuidas Viktorile nõu anda? Vali vorm oma tunde järgi, reeglit veel ei vaata.', [
+      station(teach(tag(purpose(half(B.speaking('033_d_warm', 'Kuidas sa eile magasid?', 'Küsi paarilisel. Siis vahetage. Kes magas kõige paremini?', [
+        'Kuidas sa eile magasid? Mis kell sa magama läksid ja mis kell ärkasid?',
+        'Ütle ilma märkmeteta: kuidas sinu viimane haigus muutus (läks hullemaks, sain terveks)?',
+      ], [60, 90])), 'Sinu eilne öö on tänase tunni algus: lõpus annad paarilisele nõu, kuidas paremini magada.'), { task: 'S02', harno: 'S1a', fluency: true }),
+      'Eksaminurk (Harno B1 rääkimine 1, teemaküsimus põhjendusega): õpilane vastab 2–4 lausega ja ütleb miks. Üks-ühele: õpilane küsib sinult ja sina vastad oma päris öö järgi (2–3 lauset), siis küsid sina. Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('033_d_vocab', 'Tunni sõnad.', ['uni — сон', 'magama jääma — засыпать', 'ärkama — просыпаться', 'väsinud — уставший', 'ekraan — экран', 'valgus — свет', 'pime — тёмный', 'jahe — прохладный', 'rahulik — спокойный', 'nõu andma — советовать'], '2')), { topic: ['uni', 'nõu andma'] }), 2, 17),
+      tag(purpose(why(fullSentences(B.reading('033_d_sleep', 'Nõuanded hea une jaoks.', 'Loe teksti. Vasta igale küsimusele terve lausega.', 'Viis nõuannet hea une jaoks', [
+        'Paljud inimesed magavad liiga vähe: nad lähevad hilja magama ja tõusevad vara tööle. Täiskasvanu vajab tavaliselt seitse kuni üheksa tundi und. Hea uni on sama tähtis kui hea toit ja liikumine. Kui uni on halb, oleme päeval väsinud ja tuju läheb halvaks. Mida teha?',
+        '',
+        '1. Minge magama ja ärgake iga päev samal ajal, ka nädalavahetusel.',
+        '',
+        '2. Ärge jooge pärast kella kolme kohvi. Jooge õhtul pigem taimeteed.',
+        '',
+        '3. Pange telefon ja arvuti tund aega enne und ära. Ekraani valgus ei lase ajul puhata. Lugege parem raamatut.',
+        '',
+        '4. Liikuge päeval: jalutage, sõitke rattaga või minge ujuma. Aga ärge tehke hilja õhtul rasket trenni.',
+        '',
+        '5. Tehke magamistuba pimedaks, vaikseks ja jahedaks. Ärge sööge enne und suurt õhtusööki.',
+        '',
+        'Kui uni ei lähe paremaks ka kuu aja pärast, rääkige oma perearstiga.',
+        '',
+        'Allikas: KeeleSepa õppetekst.',
+      ], [
+        ['Mitu tundi und vajab täiskasvanu?', 'seitse kuni üheksa tundi|7–9 tundi|seitse kuni üheksa'],
+        ['Mis juhtub päeval, kui uni on halb?', 'oleme väsinud ja tuju läheb halvaks|oleme väsinud|tuju läheb halvaks'],
+        ['Millal ei tohiks enam kohvi juua?', 'pärast kella kolme|pärast kolme'],
+        ['Miks tuleb telefon enne und ära panna?', 'ekraani valgus ei lase ajul puhata|valgus ei lase ajul puhata'],
+        ['Mida ei soovitata hilja õhtul teha?', 'rasket trenni|teha rasket trenni|süüa suurt õhtusööki'],
+        ['Milline peab olema magamistuba?', 'pime, vaikne ja jahe|pimedaks, vaikseks ja jahedaks'],
+        ['Millal tuleb rääkida perearstiga?', 'kui uni ei lähe kuu aja pärast paremaks|kui kuu aja pärast ei lähe paremaks'],
+      ])), [
+        'Algus: „Täiskasvanu vajab tavaliselt seitse kuni üheksa tundi und.”',
+        'Algus: „oleme päeval väsinud ja tuju läheb halvaks”.',
+        'Nõuanne 2: „Ärge jooge pärast kella kolme kohvi.”',
+        'Nõuanne 3: „Ekraani valgus ei lase ajul puhata.”',
+        'Nõuanne 4: „ärge tehke hilja õhtul rasket trenni”; nõuanne 5: „Ärge sööge enne und suurt õhtusööki.”',
+        'Nõuanne 5: „Tehke magamistuba pimedaks, vaikseks ja jahedaks.”',
+        'Lõpp: „Kui uni ei lähe paremaks ka kuu aja pärast, rääkige oma perearstiga.”',
+      ]), 'Enne kui sa ise nõu annad, näed, kuidas tekst nõu annab: mida teha ja mida mitte.'), { task: 'R15', voice: 'popsci' }),
+      teach(tag(purpose(B.speaking('033_d_retell', 'Mida tekst soovitab? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab sina-vormis (Mine …, Ära joo …). Siis vahetage.', [
+        'Mitu tundi peab täiskasvanu magama?',
+        'Mida ei tohi pärast kella kolme juua?',
+        'Mida teha telefoniga enne und?',
+        'Mida teha päeval ja mida mitte hilja õhtul?',
+        'Milline nõu sobib sulle kõige paremini? Miks?',
+      ], [60, 90], '', 'g_read'), 'Ütled paarilisele teksti nõuanded sina-vormis, nagu annaksid nõu sõbrale.'), { task: 'S13', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Tekst soovitab õhtul kohvi juua”) ja õpilane parandab sind teksti järgi.'),
+      teach(tag(purpose(B.dialogue('033_d_model', 'Enne arutelu: kuidas nõu anda?', 'Loe paarilisega rollides. Leia kõik nõuanded: käsud ja keelud.', 'Sõber A', 'Sõber B', [
+        ['A', 'Ma olen nii väsinud. Öösel vaatan kaua voodis telefoni.'],
+        ['B', 'Pane telefon tund aega enne und ära. Loe parem raamatut.'],
+        ['A', 'Aga telefon aitab mul puhata!'],
+        ['B', 'Ekraani valgus ei lase ajul puhata. Proovi üks nädal.'],
+        ['A', 'Hea küll. Aga kohv?'],
+        ['B', 'Ära joo pärast kella kolme kohvi. Jaluta õhtul pool tundi.'],
+        ['A', 'Lepime kokku: telefon ära, õhtul kohvi ei joo ja jalutan.'],
+      ], 'g_notice'), 'Enne kui sa ise nõu annad, kuuled, kuidas sõber annab nõu, põhjendab ja kokku lepib.'), { task: 'G02' }),
+      'Üks-ühele: loe sina sõbra B rolli, õpilane sõbra A rolli; siis vahetage. Õpilane näitab käsud (pane, loe, proovi, jaluta) ja keelu (ära joo) ning ütleb nende ma-tegevusnime. See on tunni lõpu paaritöö näidis.'),
+      hide(B.review('033_d_review', [['Kuidas Markuse haigus kahe nädalaga muutus? Kasuta sõnu jäi, läks ja muutus.', 'a2b1-032'], ['Mis juhtus enne Sofia soolaleivapidu ja kuidas probleem lahendati?', 'a2b1-014'], 'Mida sa teed, kui sul valutab selg või põlv?']), V5_DRILL),
+      hide(B.text('033_d_hook', 'Viktor kukkus', 'Laupäeval sõitis Viktor jalgrattaga talust poodi ja kukkus libedal teel. Põlv läks paksuks ja Jaan viis ta traumapunkti. Viktor muretseb oma töökoja pärast, tema enesetunne on halb ja meeleolu madal. Nüüd tahavad kõik Viktorile nõu anda — aga kas öelda „pane”, „pange” või „ära pane”? Proovi kõigepealt ise, siis kuula arsti ja leia reegel. Tunni lõpus annad nõu Markusele, kes ei saa pärast haigust magada.'), V5_CUT),
+      hide(B.choice('033_d_test', 'Proovi kõigepealt: kuidas öelda?', 'Kuidas Viktorile nõu anda? Vali vorm oma tunde järgi, reeglit veel ei vaata.', [
         ['Kadri ütleb Viktorile: „Onu, … jalg kohe padjale!”', 'pane', 'panema', 'paned'],
         ['Õde ütleb Viktorile: „… põlvele külma kompressi!”', 'Pange', 'Panete', 'Panna'],
         ['Kadri: „Viktor, … täna enam rattaga!”', 'ära sõida', 'ei sõida', 'ära sõidad'],
@@ -529,8 +841,8 @@ export const LESSONS = withShapes({
         ['Arst: „… jalga esimestel päevadel liiga palju!”', 'Ärge koormake', 'Ärge koormate', 'Ära koormake'],
         ['Jaan: „Viktor, … mulle võtmed, ma viin ratta töökotta.”', 'anna', 'annad', 'andma'],
         ['Füsioterapeut: „Järgmisel korral … kaasa oma spordijalatsid!”', 'võtke', 'võtate', 'võtma'],
-      ], 'full', 'g_notice'),
-      tag(B.listening('033_d_doctor', 'Traumapunktis.', 'Kuula, mida arst Viktorile ütleb. Kirjuta lünka, mida Viktor peab tegema või mida ta teha ei tohi.', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(tag(B.listening('033_d_doctor', 'Traumapunktis.', 'Kuula, mida arst Viktorile ütleb. Kirjuta lünka, mida Viktor peab tegema või mida ta teha ei tohi.', [
         'Tarmo: Tere, härra Mets! Röntgenipilt on valmis. Hea uudis: luu ei ole murdunud.',
         'Viktor: Tänan! Aga miks põlv siis nii paks on?',
         'Tarmo: Põlv on nikastatud ja seepärast paistes. Kuulake nüüd hoolikalt, mida kodus teha.',
@@ -564,26 +876,18 @@ export const LESSONS = withShapes({
         'Tabletti ei tohi võtta tühja [kõhuga].',
         'Töökojas ei tohi Viktor tõsta midagi [rasket].',
         'Kahe nädala pärast peab Viktor minema [füsioterapeudi] juurde.',
-      ]), { task: 'L06' }),
-      B.vocab('033_d_vocab', 'Tunni sõnad.', ['põlv — колено', 'jalg — нога', 'valu — боль', 'kukkuma — падать', 'harjutus — упражнение', 'trepp — лестница', 'ettevaatlik — осторожный', 'uni — сон', 'voodi — кровать', 'rahulik — спокойный', 'soovitama — советовать', 'kepp — трость', 'enesetunne — самочувствие', 'meeleolu — настроение', 'muretsema — беспокоиться', 'pöörduma — обращаться']),
-      B.notice('033_d_notice', 'Märka: pane ja pange, ära ja ärge', [
-        '**Sina** (sõbrale, lapsele, pereliikmele): **pane** jalg padjale! **võta** tablett! **tule** homme!',
-        '**Teie** (arst, võõras, mitu inimest): **pange** põlvele külma! **võtke** pärast sööki! **tulge** kahe nädala pärast!',
-        'sina-käsk = olevik ilma -n: panen → **pane**, võtan → **võta**, teen → **tee**, tulen → **tule**.',
-        'teie-käsk = da-tegevusnime tüvi + **-ge / -ke**: panna → **pange**, võtta → **võtke**, teha → **tehke**, tulla → **tulge**.',
-        'Keeld: **ära** + sina-vorm (**ära sõida**!) · **ärge** + teie-vorm (**ärge sõitke**!). Pehmem: **sa võiksid** puhata.',
-      ], 'full'),
-      B.categorize('033_d_sort', 'Leia reegel: kellele ja kuidas?', 'Kas lause on käsk või keeld? Kas see on öeldud sinale või teile? Pane laused nelja veergu.', [
+      ]), { task: 'L06' }), V5_CUT),
+      hide(B.categorize('033_d_sort', 'Leia reegel: kellele ja kuidas?', 'Kas lause on käsk või keeld? Kas see on öeldud sinale või teile? Pane laused nelja veergu.', [
         ['sina: käsk', ['Pane jalg padjale.', 'Võta tablett pärast sööki.', 'Helista mulle õhtul.', 'Tule homme meile sööma.']],
         ['teie: käsk', ['Pange põlvele külma.', 'Võtke kaasa isikut tõendav dokument.', 'Tulge kahe nädala pärast tagasi.', 'Tõstke jalg südamest kõrgemale.']],
         ['sina: keeld', ['Ära sõida rattaga.', 'Ära unusta ravimit.', 'Ära muretse minu pärast.', 'Ära tõsta midagi rasket.']],
         ['teie: keeld', ['Ärge pange jääd otse nahale.', 'Ärge võtke tabletti tühja kõhuga.', 'Ärge koormake jalga.', 'Ärge sõitke autoga.']],
-      ], 'full', 'g_notice'),
-      B.match('033_d_why', 'Milleks see on?', 'Mis on Viktori ravis mille jaoks? Ühenda asi ja selle eesmärk.', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.match('033_d_why', 'Milleks see on?', 'Mis on Viktori ravis mille jaoks? Ühenda asi ja selle eesmärk.', [
         ['kepp', 'et kõndida ilma kukkumata'], ['külm kompress', 'et põlv ei läheks paksemaks'], ['padi jala all', 'et jalg oleks südamest kõrgemal'], ['valuvaigisti', 'et valu oleks väiksem'], ['põlvetugi', 'et põlv püsiks kõndides paigal'],
         ['rätik jää ümber', 'et jää ei puudutaks nahka'], ['röntgenipilt', 'et näha, kas luu on terve'], ['füsioterapeut', 'et õppida õigeid harjutusi'], ['käsipuu trepil', 'et trepil ettevaatlik olla'], ['geel', 'et määrida valutavat kohta'],
-      ], 'full', 'g_vocab'),
-      tag(B.examListen('033_d_clips', 'Kümme lühikest teadet.', 'Kuula kümmet lühikest teadet ja sõnumit. Iga tekst kõlab kaks korda; vali igale küsimusele õige vastus.', 'choice', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.examListen('033_d_clips', 'Kümme lühikest teadet.', 'Kuula kümmet lühikest teadet ja sõnumit. Iga tekst kõlab kaks korda; vali igale küsimusele õige vastus.', 'choice', [
         'Esimene tekst. Head kliendid! Kalamaja apteek on täna remondi tõttu suletud kella kaheteistkümneni. Retseptiravimid saate kätte Telliskivi apteegist.',
         'Teine tekst. Tere, siin Kalamaja perearstikeskus. Teie aeg doktor Kase juures on muutunud: tulge palun neljapäeval kell üheksa, mitte kell kümme.',
         'Kolmas tekst. Viktor, siin Helgi. Ära mine täna üksi poodi! Jaan toob sulle õhtul leiba ja piima.',
@@ -605,28 +909,62 @@ export const LESSONS = withShapes({
         ['Mida ei tohi Oskar külmkapist süüa?', 'kooki', 'võileibu', 'suppi'],
         ['Mis kell algab jooga nüüd?', 'kell kuus', 'kell seitse', 'kell viis'],
         ['Mis kellani on apteek õhtul avatud?', 'kella üheksani', 'kella kuueni', 'kella kaheteistkümneni'],
-      ], 'g_vocab'), { task: 'L01' }),
-      teach(tag(B.speaking('033_d_432', 'Nõu Viktorile kolm korda.', 'Anna Viktorile nõu kolm korda järjest: esimesel korral 3 minutit, siis 2 ja lõpuks 1 minut.', ['Mida Viktor peab esimestel päevadel tegema?', 'Mida ta teha ei tohi?', 'Kuidas ta saab poes käia ja tööd teha?', 'Millal ta peab arstile helistama?', 'Mida ütled Viktorile sina-vormis, mida ütleb arst teie-vormis?'], [90, 150], ['Pane…! Ära…!', 'Arst ütles: „Pange…!”', 'Sa võiksid…']), { task: 'S08', fluency: true }),
-        'Üks-ühele: õpilane räägib sama nõu õpetajale kolm korda (3 min, 2 min, 1 min), õpetaja on Viktor ja hoiab aega. Pärast kolmandat korda ütleb õpetaja ühe käsu, mis tuli hästi välja, ja ühe, mida parandada.'),
+      ], 'g_vocab'), { task: 'L01' }), V5_CUT),
+      hide(teach(tag(B.speaking('033_d_432', 'Nõu Viktorile kolm korda.', 'Anna Viktorile nõu kolm korda järjest: esimesel korral 3 minutit, siis 2 ja lõpuks 1 minut.', ['Mida Viktor peab esimestel päevadel tegema?', 'Mida ta teha ei tohi?', 'Kuidas ta saab poes käia ja tööd teha?', 'Millal ta peab arstile helistama?', 'Mida ütled Viktorile sina-vormis, mida ütleb arst teie-vormis?'], [90, 150], ['Pane…! Ära…!', 'Arst ütles: „Pange…!”', 'Sa võiksid…']), { task: 'S08', fluency: true }),
+        'Üks-ühele: õpilane räägib sama nõu õpetajale kolm korda (3 min, 2 min, 1 min), õpetaja on Viktor ja hoiab aega. Pärast kolmandat korda ütleb õpetaja ühe käsu, mis tuli hästi välja, ja ühe, mida parandada.'), V5_CUT),
     ],
     practice: [
-      B.wordorder('033_p_order', 'Arsti ja apteekri juhised.', 'Pane sõnad õigesse järjekorda, nii et tekiks arsti või apteekri juhis.', [
+      station(B.notice('033_d_notice', 'Märka: pane — pange, ära pane — ärge pange', [
+        'Tekstist: **Minge** magama samal ajal · **Ärge jooge** õhtul kohvi · **Pange** telefon ära · **Ärge tehke** rasket trenni',
+        'Sina (sõber, pereliige): ma-tegevusnimi ilma **-ma**-ta → **mine**, **pane**, **joo**, **tee**, **jaluta** · eitus: **ära** + sama vorm → **ära mine**, **ära joo**',
+        'Teie (viisakalt või mitu inimest): **minge**, **pange**, **jooge**, **jalutage**, aga **tehke**, **võtke** · eitus: **ärge** + sama vorm → **ärge minge**, **ärge jooge**',
+        'Kogu asi käsus on nimetavas: **Pane telefon ära!** (mitte telefoni) · **Tee aken lahti!**',
+        'Pehmem nõu: **Proovi** õhtul jalutada. · **Võiksid** varem magama minna. · **Ära** joo kohvi, **parem** joo teed.',
+      ], 'full'), 3, 15),
+      purpose(why(B.gaps('033_p_forms', 'Sina või teie?', 'Kirjuta sulgudes olev tegusõna käskivas kõneviisis.', [
+        'Õhtul [pane] (panema, sina) telefon tund aega enne und ära.',
+        'Ära [joo] (jooma, sina) pärast kella kolme kohvi.',
+        'Palun [minge] (minema, teie) iga päev samal ajal magama.',
+        'Ärge [sööge] (sööma, teie) hilja õhtul suurt õhtusööki.',
+        'Pärast lõunat [jaluta] (jalutama, sina) pool tundi.',
+        'Ära [vaata] (vaatama, sina) õhtul voodis telefoni.',
+        'Magamistuba [tehke] (tegema, teie) pimedaks ja jahedaks.',
+        'Ärge [tehke] (tegema, teie) hilja õhtul rasket trenni.',
+      ], '', 'full', 'g_notice'), [
+        'sina: panema → pane.',
+        'eitus sina: ära + joo.',
+        'teie: minema → minge.',
+        'eitus teie: ärge + sööge.',
+        'sina: jalutama → jaluta.',
+        'eitus sina: ära + vaata.',
+        'teie: tegema → tehke.',
+        'eitus teie: ärge + tehke.',
+      ]), 'Kaheksa lauset näitavad, kuidas nõu antakse sõbrale ja kuidas viisakalt.'),
+      hide(purpose(why(B.transformation('033_p_teie', 'Sõbrale või arstilt?', 'Muuda nõuannet nii, nagu märksõna ütleb: sina, teie või ära (eitus).', [
+        ['Pane telefon tund aega enne und ära.', 'teie', 'Pange telefon tund aega enne und ära.'],
+        ['Joo pärast kella kolme kohvi.', 'ära', 'Ära joo pärast kella kolme kohvi.'],
+        ['Minge iga päev samal ajal magama.', 'sina', 'Mine iga päev samal ajal magama.'],
+        ['Ärge sööge hilja õhtul suurt õhtusööki.', 'sina', 'Ära söö hilja õhtul suurt õhtusööki.'],
+        ['Jaluta pärast lõunat pool tundi.', 'teie', 'Jalutage pärast lõunat pool tundi.'],
+        ['Vaata õhtul voodis telefoni.', 'ära', 'Ära vaata õhtul voodis telefoni.'],
+        ['Tee magamistuba pimedaks ja jahedaks.', 'teie', 'Tehke magamistuba pimedaks ja jahedaks.'],
+        ['Ärge tehke hilja õhtul rasket trenni.', 'sina', 'Ära tee hilja õhtul rasket trenni.'],
+      ], 'full', 'g_notice'), [
+        'teie: pane → pange.',
+        'eitus sina: ära + joo.',
+        'sina: minge → mine.',
+        'eitus sina: ärge sööge → ära söö.',
+        'teie: jaluta → jalutage.',
+        'eitus sina: ära + vaata.',
+        'teie: tee → tehke.',
+        'eitus sina: ärge tehke → ära tee.',
+      ]), 'Kaheksa lauset näitavad, kuidas nõu antakse sõbrale ja kuidas viisakalt.'), V5_DRILL),
+      tag(purpose(B.writing('033_p_sent', 'Kirjuta terved laused.', 'Sõber magab halvasti. Kirjuta talle 5–7 nõuannet: mida teha ja mida mitte (Mine …, Ära …), ja lisa vähemalt kahe juurde, miks. Siis kontrolli ja paranda: kas sina-vorm on igal pool õige?', [5, 7]), 'Oma laused on sinu nõuannete materjal.'), { task: 'W10' }),
+      hide(B.wordorder('033_p_order', 'Arsti ja apteekri juhised.', 'Pane sõnad õigesse järjekorda, nii et tekiks arsti või apteekri juhis.', [
         'Ärge võtke valuvaigistit kunagi tühja kõhuga.', 'Tõstke jalg istudes alati padjale.', 'Pange põlvele kolm korda päevas külma.', 'Ära sõida vähemalt kolm nädalat rattaga.', 'Helistage kohe perearstile, kui põlv läheb kuumaks.',
         'Võta homme hommikul kindlasti oma kepp kaasa.', 'Tulge kahe nädala pärast füsioterapeudi juurde.', 'Ärge tõstke esimesel nädalal midagi rasket.', 'Jooge päevas vähemalt kaks liitrit vett.', 'Ära unusta õhtul oma harjutusi teha.',
-      ], 'full'),
-      B.transformation('033_p_teie', 'Sinast teieks.', 'Noor õde räägib Viktoriga sina-vormis, aga peaks ütlema teie-vormis. Kirjuta iga juhis ümber.', [
-        ['Pane põlvele iga kahe tunni järel külma.', 'teie', 'Pange põlvele iga kahe tunni järel külma.'],
-        ['Võta valuvaigistit ainult pärast sööki.', 'teie', 'Võtke valuvaigistit ainult pärast sööki.'],
-        ['Ära sõida autoga, kuni põlv valutab.', 'teie', 'Ärge sõitke autoga, kuni põlv valutab.'],
-        ['Tule järgmisel neljapäeval kontrolli.', 'teie', 'Tulge järgmisel neljapäeval kontrolli.'],
-        ['Tee neid harjutusi kaks korda päevas.', 'teie', 'Tehke neid harjutusi kaks korda päevas.'],
-        ['Ära tõsta oma töökojas raskeid asju.', 'teie', 'Ärge tõstke oma töökojas raskeid asju.'],
-        ['Joo õhtul tass sooja taimeteed.', 'teie', 'Jooge õhtul tass sooja taimeteed.'],
-        ['Mine trepist alla ainult kepiga.', 'teie', 'Minge trepist alla ainult kepiga.'],
-        ['Söö iga päev köögivilju ja puuvilju.', 'teie', 'Sööge iga päev köögivilju ja puuvilju.'],
-        ['Ära unusta registratuuris oma nime öelda.', 'teie', 'Ärge unustage registratuuris oma nime öelda.'],
-      ]),
-      tag(B.listening('033_p_phone', 'Perearstikeskuse automaatvastaja.', 'Helistad perearstikeskusesse ja kuuled automaatvastajat. Kirjuta lünka number: kellaaeg, nupp, hind või aadress.', [
+      ], 'full'), V5_DRILL),
+      hide(tag(B.listening('033_p_phone', 'Perearstikeskuse automaatvastaja.', 'Helistad perearstikeskusesse ja kuuled automaatvastajat. Kirjuta lünka number: kellaaeg, nupp, hind või aadress.', [
         'Teadustaja: Tere! Olete helistanud Kalamaja perearstikeskusesse. Meie registratuur on avatud tööpäeviti kella kaheksast kuueni.',
         'Teadustaja: Kui soovite arsti või õe juurde aega broneerida, vajutage üks.',
         'Teadustaja: Kui soovite retsepti pikendada, vajutage kaks. Retsepti pikendamine võtab kuni kolm tööpäeva.',
@@ -648,8 +986,8 @@ export const LESSONS = withShapes({
         'Perearstikeskuse aadress on Vabriku tänav [12|kaksteist].',
         'Parkla esimesed [30|kolmkümmend] minutit on tasuta.',
         'Helistaja kõne on järjekorras number [5|viis].',
-      ]), { task: 'L10' }),
-      tag(B.bankText('033_p_leaflet', 'Füsioterapeudi juhend.', 'Füsioterapeudi juhendist on välja võetud kümme käsku. Vali pangast igasse lünka sobiv sõna; kaks sõna jääb üle.', 'Põlv pärast nikastust: harjutused kodus', [
+      ]), { task: 'L10' }), V5_CUT),
+      hide(tag(B.bankText('033_p_leaflet', 'Füsioterapeudi juhend.', 'Füsioterapeudi juhendist on välja võetud kümme käsku. Vali pangast igasse lünka sobiv sõna; kaks sõna jääb üle.', 'Põlv pärast nikastust: harjutused kodus', [
         'Esimesed kolm päeva [[pange]] põlvele külma kompressi, aga ärge [[hoidke]] seda kauem kui viisteist minutit korraga. Kui istute, [[tõstke]] jalg padjale.',
         '',
         'Neljandast päevast alates [[tehke]] kergeid harjutusi. Istuge toolile ja [[sirutage]] jalg aeglaselt ette. Hoidke jalga viis sekundit üleval ja langetage see tagasi. Korrake kümme korda.',
@@ -659,8 +997,8 @@ export const LESSONS = withShapes({
         '[[Ärge]] jookske ega hüpake enne, kui füsioterapeut lubab. Rattaga võite uuesti sõita umbes kolme nädala pärast, alguses lühikesi maid ja tasasel teel.',
         '',
         'Kui põlv läheb pärast harjutusi paksuks või valu muutub tugevamaks, [[lõpetage]] harjutused ja [[helistage]] meile. Telefon: 640 3300.',
-      ], ['võtke', 'Ära']), { task: 'R04' }),
-      tag(B.reading('033_p_story', 'Ilukirjandus: lühijutt.', 'Loe lühijuttu (kirjutatud selle õpiku jaoks). Vasta küsimustele lühidalt; viimasele küsimusele vasta oma arvamuse põhjal.', 'Lambad', [
+      ], ['võtke', 'Ära']), { task: 'R04' }), V5_CUT),
+      hide(tag(B.reading('033_p_story', 'Ilukirjandus: lühijutt.', 'Loe lühijuttu (kirjutatud selle õpiku jaoks). Vasta küsimustele lühidalt; viimasele küsimusele vasta oma arvamuse põhjal.', 'Lambad', [
         'Elmar oli seitsekümmend kaks aastat vana ja ta ei saanud magada. Iga õhtu kell kümme pani ta tule kustu, sulges silmad ja hakkas lambaid lugema. Üks lammas, kaks lammast, kolm lammast… Sajanda lamba juures olid silmad ikka lahti. Kahesajanda lamba juures tõusis ta üles ja läks kööki teed keetma.',
         '',
         '„Vanaisa, sa näed väsinud välja,” ütles lapselaps Kerli ühel pühapäeval. „Mida sa öösiti teed?”',
@@ -684,18 +1022,35 @@ export const LESSONS = withShapes({
         ['Mis juhtus sel õhtul, kui ta jälle lambaid luges?', 'ta jäi kohe magama|ta uinus enne kolmandat lammast'],
         ['Leia jutust neli käsku või keeldu sina-vormis.', 'proovi, ära loe, pane, mine, ära joo'],
         ['Mis sinu arvates Elmarit tegelikult aitas? Miks?', ''],
-      ]), { task: 'R15', voice: 'fiction' }),
-      teach(tag(B.rolecards('033_p_problem', 'Probleem apteegis.', 'A on Viktor, B on apteeker. Lahendage probleem nii, et Viktor saab täna põlve jaoks ravimi.',
+      ]), { task: 'R15', voice: 'fiction' }), V5_CUT),
+      hide(teach(tag(B.rolecards('033_p_problem', 'Probleem apteegis.', 'A on Viktor, B on apteeker. Lahendage probleem nii, et Viktor saab täna põlve jaoks ravimi.',
         'Oled Viktor. Kukkusid laupäeval jalgrattalt. Arst ütles, et kirjutas sulle e-retsepti põlvegeelile. Apteeker ütleb, et süsteemis retsepti ei ole. Põlv valutab ja sa ei saa homme uuesti tulla. Seleta viisakalt probleemi ja palu lahendust.',
         'Oled apteeker Piret. Süsteemis ei ole Viktori nimel retsepti. Paku lahendusi: helistada traumapunkti; sama geel on olemas ka ilma retseptita, aga see maksab 9 eurot; homseks saab tellida odavama. Anna nõu ka teie-vormis: „Pange geeli kolm korda päevas.”',
         ['Vabandust, aga arst ütles, et…', 'Mida ma nüüd tegema pean?', 'Kas on mõni teine võimalus?'], ['Kahjuks ei ole…', 'Helistage…', 'Võtke siis…']), { task: 'S10' }),
-      'Üks-ühele: õpetaja on apteeker ega paku lahendust enne, kui õpilane seda palub. Siis vahetage rollid: õpilane on apteeker ja annab nõu teie-vormis.'),
-      teach(tag(B.speaking('033_p_exam', 'Eksaminurk: teemaküsimused „Tervis ja liikumine” (Harno B1 rääkimine 1)', 'Eksamineerija küsib, sina vastad 3–4 lausega. Igas vastuses ütle põhjus või too näide.', ['Mida sa teed, et terve olla?', 'Kas sa oled kunagi sporti tehes viga saanud? Mis juhtus?', 'Mis tõstab sinu meeleolu, kui enesetunne on halb? Miks?', 'Mida sa soovitad inimesele, kes on sageli haige?', 'Kas haigena peaks tööle minema? Põhjenda.'], [90, 120], ['…, sest…', 'Näiteks eelmisel aastal…', 'Soovitan: ära…, vaid…']), { harno: 'S1a' }),
-      'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min). Meenuta moodulist 6: vastus + põhjus (sest…) + näide (näiteks…). Uus eesmärk: neljandas vastuses anna nõu käskiva kõneviisiga („Liigu rohkem, ära istu terve päev”). Üks-ühele: õpetaja on eksamineerija ega aita; pärast loeb ta kokku, mitmel vastusel oli põhjus või näide (eesmärk vähemalt 4 viiest).'),
+      'Üks-ühele: õpetaja on apteeker ega paku lahendust enne, kui õpilane seda palub. Siis vahetage rollid: õpilane on apteeker ja annab nõu teie-vormis.'), V5_CUT),
+      hide(teach(tag(B.speaking('033_p_exam', 'Eksaminurk: teemaküsimused „Tervis ja liikumine” (Harno B1 rääkimine 1)', 'Eksamineerija küsib, sina vastad 3–4 lausega. Igas vastuses ütle põhjus või too näide.', ['Mida sa teed, et terve olla?', 'Kas sa oled kunagi sporti tehes viga saanud? Mis juhtus?', 'Mis tõstab sinu meeleolu, kui enesetunne on halb? Miks?', 'Mida sa soovitad inimesele, kes on sageli haige?', 'Kas haigena peaks tööle minema? Põhjenda.'], [90, 120], ['…, sest…', 'Näiteks eelmisel aastal…', 'Soovitan: ära…, vaid…']), { harno: 'S1a' }),
+      'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min). Meenuta moodulist 6: vastus + põhjus (sest…) + näide (näiteks…). Uus eesmärk: neljandas vastuses anna nõu käskiva kõneviisiga („Liigu rohkem, ära istu terve päev”). Üks-ühele: õpetaja on eksamineerija ega aita; pärast loeb ta kokku, mitmel vastusel oli põhjus või näide (eesmärk vähemalt 4 viiest).'), V5_CUT),
     ],
     transfer: [
-      B.text('033_t_sit', 'Markus ei saa magada', 'Markus on jälle terve ja tööl, aga ta ei saa öösiti magada. Päeval on ta väsinud, tema enesetunne on halb ja meeleolu madal. Ta joob jälle palju kohvi, vaatab hilja õhtul telefoni ja ütleb, et ei saa enam hakkama. Anna andis talle unepäeviku. Loe päevikut, seleta Markusele, mida see näitab, leppige kokku kahe nädala uneplaan ja vasta õhtul tema sõnumile.'),
-      tag(B.reading('033_t_diary', 'Markuse unepäevik.', 'Loe Markuse nädala unepäevikut ja Anna märkust. Vasta küsimustele ja põhjenda päeviku põhjal.', 'Minu uni: üks nädal', [
+      station(teach(tag(purpose(B.rolecards('033_t_advice', 'Kuidas paremini magada?', 'Vaata pilti „Kaks õhtut” (pilt on üleval). A räägib oma õhtust, B annab 60–90 sekundit nõu. Leppige kokku nädala plaan: kolm asja, mida A teeb teisiti. Teine kord räägi oma päris õhtust.',
+        'Sina elad nagu „õhtu A” ja oled hommikul väsinud. Räägi, mida sa õhtul teed. Sinu arvamus: kohv ja telefon aitavad sul pärast tööd puhata.',
+        'Sina elad nagu „õhtu B” ja magad hästi. Kuula ja anna 60–90 sekundit nõu: mida teha ja mida mitte. Põhjenda.',
+        [], ['Mine …, sest …', 'Ära …, parem …', 'Proovi nädal aega …']), 'Pärast arutelu on teil nädala plaan: kolm asja, mida teha teisiti.'), { task: 'S03', main: true, level: 4 }),
+      'Kõigepealt vaatab kumbki pilti ja oma kaarti (2 min). A räägib 60–90 sekundit oma õhtust pildi järgi, B kuulab ja annab siis 60–90 sekundit nõu käskivas kõneviisis (vähemalt kolm jaatavat ja kaks eitavat nõu); A vaidleb vähemalt korra vastu („Aga kohv aitab mul puhata!”) ja B põhjendab. Lõpus lepivad nad kokku kolm asja nädala plaani. Siis vahetage rollid. Õnnestunud, kui käsk ja keeld on õiges vormis (pane, mine, ära joo; teie-vormis ainult arstiga rääkides) ja paar jõuab kokkuleppeni. Teine katse ilma fraasideta: kumbki räägib oma päris õhtust, paariline annab kaks nõu. Üks-ühele: sina oled A ja vaidled kaks korda vastu.'), 4, 25, { final: 'advise' }),
+      tag(exitCheck(why(purpose(B.gaps('033_t_exit', 'Kontrolli end: kolm nõu.', 'Kirjuta sulgudes olev sõna käskivas kõneviisis.', [
+        'Palun [pane] (panema, sina) arvuti kell kümme kinni.',
+        'Ära [joo] (jooma, sina) õhtul energiajooki.',
+        'Palun [minge] (minema, teie) õhtul jalutama.',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas käsk ja keeld on käes.'), ['sina: panema → pane.', 'eitus sina: ära + joo.', 'teie: minema → minge.'])), {}),
+      purpose(B.selfcheck('033_t_self', ['Ma annan nõu sina-vormis: pane, mine, ära joo.', 'Ma annan nõu teie-vormis: pange, minge, ärge jooge.', 'Ma saan aru tekstist, kuidas paremini magada.', 'Ma annan nõu, kuidas paremini magada, ja lepin kokku nädala plaani.'], 'Plaan kokku lepitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('033_t_home', 'Kodus: päris leht une kohta.', 'Ava Peaasi.ee leht „Parema une nõuanded” (https://peaasi.ee/parema-une-nouanded/). Vali sealt kaks nõuannet. Salvesta 60–90 sekundit: mis leht see on, mis on kaks nõuannet ja kumba sa proovid.', [
+        'Mis leht see on ja kellele see on mõeldud?',
+        'Mis on kaks nõuannet une kohta?',
+        'Kumba sa sel nädalal proovid? Miks?',
+      ], [60, 90]), 'Päris leht päris organisatsioonilt: loed eesti keeles, kuidas oma une eest hoolitseda.')), { task: 'S15', fluency: true }),
+      homework('033_t_homework', ['1. Kirjuta oma nädala plaan (kolm nõu endale) puhtalt üles.', '2. Ava leht „Parema une nõuanded”, räägi 60–90 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('033_t_sit', 'Markus ei saa magada', 'Markus on jälle terve ja tööl, aga ta ei saa öösiti magada. Päeval on ta väsinud, tema enesetunne on halb ja meeleolu madal. Ta joob jälle palju kohvi, vaatab hilja õhtul telefoni ja ütleb, et ei saa enam hakkama. Anna andis talle unepäeviku. Loe päevikut, seleta Markusele, mida see näitab, leppige kokku kahe nädala uneplaan ja vasta õhtul tema sõnumile.'), V5_CUT),
+      hide(tag(B.reading('033_t_diary', 'Markuse unepäevik.', 'Loe Markuse nädala unepäevikut ja Anna märkust. Vasta küsimustele ja põhjenda päeviku põhjal.', 'Minu uni: üks nädal', [
         'Esmaspäev. Jõin päeva jooksul neli tassi kohvi, viimase alles kell viis õhtul. Vaatasin voodis telefonist jalgpalli kuni poole üheni. Uinusin kell üks ja ärkasin öösel kaks korda. Hommikul oli enesetunne halb ja meeleolu veel halvem.',
         '',
         'Teisipäev. Jõin kolm tassi kohvi, viimase kell neli. Töötasin õhtul arvutiga kella üheteistkümneni, sest pakkumine pidi valmis saama. Uinusin pool kaks ja ärkasin juba kell kuus.',
@@ -717,32 +1072,110 @@ export const LESSONS = withShapes({
         ['Kas Markuse probleem on kohvis, telefonis või mõlemas? Miks sa nii arvad?', 'mõlemas|kohvis ja telefonis'],
         ['Kelle poole soovitab Anna pöörduda, kui uni ei lähe paremaks?', 'doktor Kase|perearsti|arsti'],
         ['Mida peaks Markus kõigepealt muutma? Põhjenda päeviku põhjal.', ''],
-      ]), { task: 'R08', level: 3 }),
-      B.know('033_t_know', [
+      ]), { task: 'R08', level: 3 }), V5_CUT),
+      hide(B.know('033_t_know', [
         'Tervise Arengu Instituudi soovituse järgi vajab täiskasvanu 6,5–11 tundi und ööpäevas, enamikule inimestele sobib 7–9 tundi. Unevajadus on igal inimesel natuke erinev: kui palju und sulle sobib, näitab kõige paremini sinu enesetunne. Inimesed arvavad sageli, et nad magavad rohkem, kui nad tegelikult magavad.',
-      ], 'Tervise Arengu Instituut, „Rahvastiku tervise aastaraamat 2025”, ptk 4.5 „Uni”', 'Kas teadsid? Kui palju und on vaja?'),
-      B.phrasebank('033_t_phrases', [['Kui sõbral on raske', ['Kuidas su enesetunne täna on?', 'Mis tõstab sinu meeleolu?', 'Ära anna alla!', 'Sa saad sellega hakkama.', 'Kui sa üksi hakkama ei saa, otsi abi.', 'Pöördu perearsti poole.']]]),
-      teach(tag(B.speaking('033_t_explain', 'Seleta Markusele.', 'Seleta Markusele kaks korda, mida tema unepäevik näitab. Teisel korral räägi lühemalt, aga ära jäta midagi tähtsat välja.', ['Mis päevadel magasid hästi ja miks?', 'Mis päevadel magasid halvasti ja mis oli põhjus?', 'Mida kohv ja ekraan sinu unega teevad?', 'Kuidas uni sinu enesetunnet ja meeleolu muudab?', 'Mida sa peaksid esimesena muutma?', 'Mida ütleks sulle doktor Kask teie-vormis?'], [90, 150], ['Vaata, kolmapäeval…', 'Kui sa jood…, siis…', 'Ära vaata õhtul…!']), { task: 'S13', fluency: true }),
-        'Üks-ühele: õpilane on Anna ja seletab õpetajale (Markus) päevikut kaks korda: esimesel korral 2 minutit, teisel 1 minut. Õpetaja küsib vahele: „Aga ilma kohvita ma ju magan tööl!”'),
-      teach(tag(B.ideaCard('033_t_plan', 'Uneplaan kaheks nädalaks.', 'Anna ja Markus lepivad kokku kahe nädala uneplaani. Arutage ideid ja leppige kokku viis reeglit — sõnastage need käskudena.', 'Markus magab öösel ainult viis-kuus tundi ja on päeval väsinud. Tal on kaks nädalat aega, et uni paremaks muuta. Ta armastab kohvi ja oma mobiili.', ['mobiil kell 22 kööki', 'viimane kohv kell 14', 'õhtune jalutuskäik', 'samal ajal voodisse ka nädalavahetusel', 'raamat mobiili asemel', 'rahulik ja pime magamistuba', 'kolme nädala pärast doktor Kase poole pöörduda'], 'Millised viis reeglit Markus kahe nädala jooksul täidab? Kuidas te seda kontrollite?'), { main: true }),
-        'Üks-ühele: õpetaja on Markus ja on kahe reegliga alguses vastu („Ilma telefonita ma ei saa uinuda”); õpilane põhjendab päeviku põhjal ja pakub kompromissi. Lõpus ütleb õpilane viis reeglit käskudena: „Pane…”, „Ära…”.'),
-      B.examWriting('033_t_reply', 'Vastus Markusele.', 'Markus kirjutas sulle õhtul kell 23. Vasta talle 80–100 sõnaga: anna nõu käskiva kõneviisiga ja põhjenda.', 'vastus', {
+      ], 'Tervise Arengu Instituut, „Rahvastiku tervise aastaraamat 2025”, ptk 4.5 „Uni”', 'Kas teadsid? Kui palju und on vaja?'), V5_CUT),
+      hide(B.phrasebank('033_t_phrases', [['Kui sõbral on raske', ['Kuidas su enesetunne täna on?', 'Mis tõstab sinu meeleolu?', 'Ära anna alla!', 'Sa saad sellega hakkama.', 'Kui sa üksi hakkama ei saa, otsi abi.', 'Pöördu perearsti poole.']]]), V5_CUT),
+      hide(teach(tag(B.speaking('033_t_explain', 'Seleta Markusele.', 'Seleta Markusele kaks korda, mida tema unepäevik näitab. Teisel korral räägi lühemalt, aga ära jäta midagi tähtsat välja.', ['Mis päevadel magasid hästi ja miks?', 'Mis päevadel magasid halvasti ja mis oli põhjus?', 'Mida kohv ja ekraan sinu unega teevad?', 'Kuidas uni sinu enesetunnet ja meeleolu muudab?', 'Mida sa peaksid esimesena muutma?', 'Mida ütleks sulle doktor Kask teie-vormis?'], [90, 150], ['Vaata, kolmapäeval…', 'Kui sa jood…, siis…', 'Ära vaata õhtul…!']), { task: 'S13', fluency: true }),
+        'Üks-ühele: õpilane on Anna ja seletab õpetajale (Markus) päevikut kaks korda: esimesel korral 2 minutit, teisel 1 minut. Õpetaja küsib vahele: „Aga ilma kohvita ma ju magan tööl!”'), V5_CUT),
+      hide(teach(tag(B.ideaCard('033_t_plan', 'Uneplaan kaheks nädalaks.', 'Anna ja Markus lepivad kokku kahe nädala uneplaani. Arutage ideid ja leppige kokku viis reeglit — sõnastage need käskudena.', 'Markus magab öösel ainult viis-kuus tundi ja on päeval väsinud. Tal on kaks nädalat aega, et uni paremaks muuta. Ta armastab kohvi ja oma mobiili.', ['mobiil kell 22 kööki', 'viimane kohv kell 14', 'õhtune jalutuskäik', 'samal ajal voodisse ka nädalavahetusel', 'raamat mobiili asemel', 'rahulik ja pime magamistuba', 'kolme nädala pärast doktor Kase poole pöörduda'], 'Millised viis reeglit Markus kahe nädala jooksul täidab? Kuidas te seda kontrollite?'), { main: true }),
+        'Üks-ühele: õpetaja on Markus ja on kahe reegliga alguses vastu („Ilma telefonita ma ei saa uinuda”); õpilane põhjendab päeviku põhjal ja pakub kompromissi. Lõpus ütleb õpilane viis reeglit käskudena: „Pane…”, „Ära…”.'), V5_CUT),
+      hide(B.examWriting('033_t_reply', 'Vastus Markusele.', 'Markus kirjutas sulle õhtul kell 23. Vasta talle 80–100 sõnaga: anna nõu käskiva kõneviisiga ja põhjenda.', 'vastus', {
         situation: 'Markus kirjutab: „Ma ei saa jälle magada ja meeleolu on väga madal. Tööga ma enam hakkama ei saa. Mida ma pean tegema? Kas peaksin unerohtu võtma?”',
         points: ['mida ta peaks kohe praegu tegema', 'mida ta homme peaks teisiti tegema', 'mida ta teha ei tohiks (ära …!)', 'mida sa unerohust arvad ja kelle poole ta võiks pöörduda', 'millal te plaanist uuesti räägite'],
         words: [80, 100], opening: 'Tere, Markus!', closing: 'Head ööd! Anna',
-      }),
-      B.rubricSpeaking('033_t_rubric', 'Hindamine: uneplaani kokkulepe (20 punkti).'),
-      B.selfcheck('033_t_self', ['Ma ütlen käsu ja keelu sinale ja teile: pane – pange, ära võta – ärge võtke.', 'Ma küsin sõbra enesetunde kohta ja soovitan vajaduse korral abi otsida.', 'Ma vastan teemaküsimustele põhjuse ja näitega.', 'Ma lepin kokku plaani ja annan nõu käskudega.'], 'Käskiv kõneviis'),
+      }), V5_CUT),
+      hide(B.rubricSpeaking('033_t_rubric', 'Hindamine: uneplaani kokkulepe (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 034 project: a newsletter story about 30 days (käin ujumas, loobusin)
   'a2b1-034': {
     title: '30 päeva tervemalt',
-    canDo: 'Ma kirjutan kontori infolehte 80–100-sõnalise jutu sellest, kuidas mu harjumused kuu ajaga muutusid.',
+    phases: grammar('Keel: käin ujumas · hakkasin jooksma · tegelen joogaga · loobusin magusast · uni läks paremaks'),
+    format: 'project',
+    topic: 'health',
+    subtopic: 'habit-plan',
+    canDo: 'Ma kirjutan infolehte 50–80-sõnalise loo: mis harjumust ma kuu aega muutsin, kuidas see läks ja mis muutus.',
+    teacherPage: {
+      goal: 'Ученик понимает радиопередачу о привычках и пишет для листка рассказ 50–80 слов о своей привычке (käin ujumas, tegelen joogaga, loobusin magusast, uni läks paremaks).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → радиопередача «30 päeva tervemalt» (2 раза) и 7 вопросов → пункт 4: рассказ по картинке «Minu 30 päeva» или о своей привычке. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mis on sinu kõige tervislikum harjumus? Mida sa tahaksid muuta?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 33 без записей: один совет о сне в форме sina.',
+      plan: [
+        '0–8: пункт 1 — полезная привычка ученика; один совет в повелительном наклонении (повторение урока 33)',
+        '8–25: пункт 2 — слова, радиопередача (2 раза; käima + -mas, hakkama + -ma, tegelema + -ga, loobuma + -st в контексте), 7 вопросов, в паре: «Mida kuulajad muutsid ja mis läks paremaks?»',
+        '25–40: пункт 3 — заметить → правило (käin ujumas, hakkasin jooksma, tegelen joogaga, loobusin magusast; -ks изменения) → 8 форм → 5–7 своих предложений о привычках',
+        '40–65: пункт 4 — рассказ для информационного листка 50–80 слов по картинке «Minu 30 päeva» или о своей привычке, без помощи; чтение партнёру-редактору (два вопроса); вторая попытка: ещё одно предложение о том, что изменилось, и один совет читателю',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, какой спорт популярен у него на родине и в Эстонии',
+        '72–90: запас',
+      ],
+      sources: 'Радиопередача (пункт 2) и картинка «Minu 30 päeva» — учебные, слушатели выдуманы, реальных данных нет.',
+      groups: 'Пункт 4: каждый пишет сам, потом читает партнёру; партнёр — редактор листка и задаёт два вопроса («Mis oli kõige raskem?», «Kas sa jätkad?»). Один на один вы — редактор.',
+      errors: [
+        '«Ma käin ujuma» вместо «Ma käin ujumas» (käima + -mas, а hakkama + -ma: hakkasin ujuma).',
+        '«Ma tegelen jooga» вместо «Ma tegelen joogaga» (tegelema + -ga).',
+        '«Ma loobusin magus» вместо «Ma loobusin magusast» (loobuma + -st).',
+        '«Uni läks parem» вместо «Uni läks paremaks» (уроки 31–32).',
+      ],
+      notes: [
+        'Рассказ — продукт модуля: в нём встречаются -ks изменения (уроки 31–32) и один совет в повелительном наклонении (урок 33).',
+        'Обратная связь, 2 цели: управление глаголов (käima + -mas, tegelema + -ga, loobuma + -st) и -ks. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('034_d_review', [['Mida sa Markusele uneplaaniks soovitasid? Ütle kaks käsku ja üks keeld.', 'a2b1-033'], ['Mida sa pead, võid ja saad sel nädalal teha? Too igaühe kohta üks näide.', 'a2b1-017'], 'Mis on sinu kõige tervislikum harjumus?']),
-      B.text('034_d_hook', 'Väljakutse', 'Pärast haiguste kuud kutsub Liis kogu kontori väljakutsele „30 päeva tervemalt”. Täna loed Liisi kutset ja Jaani lugu, vaatad, kuidas hea lugu on üles ehitatud, ning kuulad raadiost, miks uued harjumused nii sageli ei õnnestu. Tunni lõpus kirjutad kontori infolehte jutu sellest, mis sinu elus kuu ajaga muutus — see on kogu mooduli tulemus.'),
-      tag(B.reading('034_d_invite', 'Liisi kutse.', 'Enne lugemist arva: mis võiksid olla väljakutse kolm reeglit? Siis loe Liisi kirja ja vasta küsimustele.', 'Väljakutse „30 päeva tervemalt”', [
+      station(teach(tag(purpose(half(B.speaking('034_d_warm', 'Mis on sinu tervislik harjumus?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Mis on sinu kõige tervislikum harjumus? Mida sa tahaksid oma elus muuta?',
+        'Ütle ilma märkmeteta üks nõu une kohta sina-vormis (Mine …, Ära …).',
+      ], [60, 90])), 'Sinu harjumused on tänase tunni algus: lõpus kirjutad loo sellest, mida sa kuu aega muutsid.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris harjumusest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Kui tihti sa seda teed?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('034_d_vocab', 'Tunni sõnad.', ['harjumus — привычка', 'liikuma — двигаться', 'trenn — тренировка', 'ujuma — плавать', 'trepp — лестница', 'magus — сладкое', 'loobuma — отказываться', 'tegelema — заниматься', 'alla andma — сдаваться', 'tuju — настроение'], '2')), { topic: ['harjumus', 'loobuma'] }), 2, 17),
+      tag(purpose(why(ownText(twice(B.listening('034_d_talk', 'Raadiosaade: 30 päeva tervemalt.', 'Loe enne laused läbi. Siis kuula kaks korda ja kirjuta igasse lünka üks sõna.', [
+        'Saatejuht: Tere, kuulajad! Meie väljakutse „30 päeva tervemalt” on läbi. Täna räägivad kolm kuulajat, mida nad muutsid.',
+        'Saatejuht: Tiiu, teie alustate.',
+        'Tiiu: Mina hakkasin iga päev trepist käima. Ma elan seitsmendal korrusel. Esimesel nädalal valutasid jalad väga.',
+        'Tiiu: Aga kolmandal nädalal läks lihtsamaks. Nüüd ma lifti üldse ei kasuta.',
+        'Saatejuht: Tore! Aga teie, Andres?',
+        'Andres: Mina loobusin magusast. Varem sõin iga päev pärast lõunat šokolaadi.',
+        'Andres: Kõige raskem oli tööl, sest kolleegid tõid kogu aeg kooki. Nüüd söön magustoiduks õuna.',
+        'Andres: Ja uni läks paremaks. Ma ei ärka enam öösel.',
+        'Saatejuht: Ja viimane kuulaja, Marina.',
+        'Marina: Mina käin nüüd kaks korda nädalas ujumas ja tegelen kodus joogaga.',
+        'Marina: Alguses ei olnud mul aega. Siis panin trenni kalendrisse nagu koosoleku.',
+        'Marina: Selg ei valuta enam ja tuju on palju parem.',
+        'Saatejuht: Mida te soovitate neile, kes tahavad alustada?',
+        'Tiiu: Alustage väikesest asjast.',
+        'Andres: Ja ärge andke alla, kui üks päev ei õnnestu!',
+        'Saatejuht: Aitäh! Kuulajad, kirjutage meile oma lugu!',
+      ], [
+        'Tiiu hakkas iga päev [trepist] käima.',
+        'Esimesel nädalal valutasid Tiiul [jalad].',
+        'Andres loobus [magusast].',
+        'Tööl tõid kolleegid kogu aeg [kooki].',
+        'Nüüd sööb Andres magustoiduks [õuna].',
+        'Marina käib kaks korda nädalas [ujumas].',
+        'Marina pani trenni [kalendrisse].',
+      ], 'g_read'))), [
+        'Tiiu: „Mina hakkasin iga päev trepist käima.”',
+        'Tiiu: „Esimesel nädalal valutasid jalad väga.”',
+        'Andres: „Mina loobusin magusast.”',
+        'Andres: „kolleegid tõid kogu aeg kooki”.',
+        'Andres: „Nüüd söön magustoiduks õuna.”',
+        'Marina: „Mina käin nüüd kaks korda nädalas ujumas.”',
+        'Marina: „Siis panin trenni kalendrisse nagu koosoleku.”',
+      ]), 'Enne kui sa ise kirjutad, kuuled, kuidas teised räägivad oma harjumuse muutmisest. Eksamil (Harno B1 kuulamine 3) on sama ülesanne.'), { task: 'L04', harno: 'L3b' }),
+      teach(tag(purpose(B.speaking('034_d_retell', 'Mida kuulajad muutsid? Küsi paarilisel.', 'Küsi paarilisel saate järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mida Tiiu muutis ja kuidas see läks?',
+        'Millest Andres loobus ja mis muutus?',
+        'Kus Marina käib, millega ta tegeleb ja mida nad soovitavad alustajale?',
+        'Kelle harjumus sobiks sulle? Miks?',
+      ], [60, 90], '', 'g_read'), 'Ütled, mida kuulajad muutsid ja mis läks paremaks.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Andres hakkas ujumas käima”) ja õpilane parandab sind saate järgi.'),
+      hide(B.review('034_d_review', [['Mida sa Markusele uneplaaniks soovitasid? Ütle kaks käsku ja üks keeld.', 'a2b1-033'], ['Mida sa pead, võid ja saad sel nädalal teha? Too igaühe kohta üks näide.', 'a2b1-017'], 'Mis on sinu kõige tervislikum harjumus?']), V5_DRILL),
+      hide(B.text('034_d_hook', 'Väljakutse', 'Pärast haiguste kuud kutsub Liis kogu kontori väljakutsele „30 päeva tervemalt”. Täna loed Liisi kutset ja Jaani lugu, vaatad, kuidas hea lugu on üles ehitatud, ning kuulad raadiost, miks uued harjumused nii sageli ei õnnestu. Tunni lõpus kirjutad kontori infolehte jutu sellest, mis sinu elus kuu ajaga muutus — see on kogu mooduli tulemus.'), V5_CUT),
+      hide(tag(B.reading('034_d_invite', 'Liisi kutse.', 'Enne lugemist arva: mis võiksid olla väljakutse kolm reeglit? Siis loe Liisi kirja ja vasta küsimustele.', 'Väljakutse „30 päeva tervemalt”', [
         'Kallid kolleegid! Novembris jäi meie kontoris haigeks peaaegu iga teine inimene. Anna oli kodus nädala, Markus kaks. Ka mina olin oktoobris haige. Me töötame palju, istume terve päeva arvuti taga ja joome liiga palju kohvi. Õhtul oleme nii väsinud, et liikuda ei jaksa, ja ka meeleolu on madal. Nii see edasi minna ei saa!',
         '',
         'Seepärast kutsun teid detsembris väljakutsele „30 päeva tervemalt”. Reeglid on lihtsad. Esiteks: igaüks valib endale ühe väikese harjumuse, mida ta tahab muuta. Mitte kolme, vaid ühe! Teiseks: kirjutate iga päev kalendrisse, kas see õnnestus. Kolmandaks: me ei võistle üksteisega, vaid iseendaga.',
@@ -761,9 +1194,8 @@ export const LESSONS = withShapes({
         ['Mis juhtub väljakutse esimesel ja viimasel päeval?', 'esimesel päeval täidetakse küsimustik, viimasel vaadatakse, mis muutus'],
         ['Mis on parima loo auhind?', 'massaaž ja puuviljakorv'],
         ['Milline Liisi ideedest sobiks sulle kõige paremini? Miks?', ''],
-      ]), { task: 'R13' }),
-      tag(B.vocab('034_d_vocab', 'Tunni sõnad.', ['harjumus — привычка', 'tervislik — здоровый / полезный', 'ebatervislik — нездоровый', 'liikuma — двигаться', 'kõndima — ходить пешком', 'jalgsi — пешком', 'lift — лифт', 'eesmärk — цель', 'tulemus — результат', 'õnnestuma — удаваться', 'jätkama — продолжать', 'samm — шаг', 'energia — энергия', 'alustama — начинать', 'soovitus — рекомендация', 'loobuma — отказываться', 'dieet — диета', 'kaal — вес', 'vorm — форма', 'rämpstoit — вредная еда', 'näksima — перекусывать', 'treenima — тренироваться', 'jõusaal — тренажёрный зал', 'võistlema — соревноваться', 'vigastama — травмировать', 'karastama — закаливать']), { topic: ['rämpstoit', 'näksima', 'treenima', 'karastama'] }),
-      tag(B.reading('034_d_model', 'Jaani lugu.', 'Loe Jaani lugu infolehe eelmisest numbrist. Leia igale lõigule pealkiri ja vasta küsimustele.', 'Kuidas minust sai hommikune jalutaja', [
+      ]), { task: 'R13' }), V5_CUT),
+      hide(tag(B.reading('034_d_model', 'Jaani lugu.', 'Loe Jaani lugu infolehe eelmisest numbrist. Leia igale lõigule pealkiri ja vasta küsimustele.', 'Kuidas minust sai hommikune jalutaja', [
         'A. Eelmisel talvel sõitsin igal hommikul autoga tööle, kuigi kohvik on kodust ainult kahe kilomeetri kaugusel. Köögis seisin kümme tundi, kodus istusin diivanil ja näksisin. Kevadeks olin kaalus juurde võtnud, lemmikpüksid läksid kitsaks ja trepil hakkas hing kinni jääma. Proovisin dieeti pidada, aga pidasin vastu ainult kaks nädalat. Kadri ütles naerdes: „Sa oled kokk, aga sööd nagu kolm kokka.”',
         '',
         'B. Aprillis otsustasin proovida üht väikest asja: käia kaks korda nädalas jalgsi tööle. Esimesel hommikul tõusin kakskümmend minutit varem. Väljas oli külm ja vihmane ning ma olin pahane. Aga kohvikusse jõudes tundsin, et pea on selge ja tuju on hea.',
@@ -779,22 +1211,15 @@ export const LESSONS = withShapes({
         ['Miks otsustas Jaan oma harjumust muuta?', 'püksid läksid kitsaks ja trepil jäi hing kinni|ta oli halvas vormis'],
         ['Kuidas sai Jaan raskest nädalast üle?', 'ostis vihmajope ja kutsus Oskari kaasa'],
         ['Milliste sõnadega näitab Jaan, millal miski juhtus? Kirjuta kolm.', 'eelmisel talvel, aprillis, esimesel hommikul, kolmas nädal, nüüd'],
-      ]), { task: 'R09' }),
-      B.categorize('034_d_parts', 'Mis osa jutust?', 'Kuhu jutu ossa sobib iga lause? Sorteeri Jaani ja teiste kolleegide lausete algused.', [
+      ]), { task: 'R09' }), V5_CUT),
+      hide(B.categorize('034_d_parts', 'Mis osa jutust?', 'Kuhu jutu ossa sobib iga lause? Sorteeri Jaani ja teiste kolleegide lausete algused.', [
         ['algus: probleem', ['Eelmisel talvel sõitsin igal hommikul autoga.', 'Kõik algas sellest, et ma ei saanud magada.', 'Mul oli üks suur probleem: õhtune näksimine.']],
         ['esimene samm', ['Aprillis otsustasin proovida üht väikest asja.', 'Esimesel hommikul tõusin varem.', 'Alguses sain vaevu hakkama, sest ma olin väsinud.']],
         ['raske hetk', ['Kõige raskem oli kolmas nädal.', 'Ma tahtsin juba loobuda, aga sõber aitas.', 'Sünnipäeval oli laual suur kook.']],
         ['tulemus', ['Nüüd kõnnin tööle peaaegu iga päev.', 'Uni läks paremaks ja tuju ka.', 'Kuu ajaga võtsin kaalust alla ja sain tugevamaks.']],
         ['soovitus', ['Minu soovitus: alusta väikesest sammust!', 'Leia endale kaaslane.', 'Ära anna esimesel nädalal alla!']],
-      ], 'full', 'g_vocab'),
-      B.notice('034_d_notice', 'Märka: kuidas hea jutt on üles ehitatud?', [
-        '**Algus — probleem:** Eelmisel talvel… · Kõik algas sellest, et… · Mul oli üks probleem: …',
-        '**Esimene samm:** Siis otsustasin… · Esimesel päeval… · Alguses oli raske, sest…',
-        '**Raske hetk:** Kõige raskem oli… · Ma tahtsin juba alla anda, aga… · Lõpuks sain sellega hakkama.',
-        '**Tulemus — muutus:** Nüüd… · uni **läks paremaks** · meeleolu **muutus rõõmsamaks** · ma **sain tugevamaks**',
-        '**Lõpp — soovitus:** Minu soovitus: **alusta** väikesest sammust! **Ära anna** kohe alla!',
-      ], 'full'),
-      B.examListen('034_d_radio', 'Raadio: miks uued harjumused ei õnnestu?', 'Mida räägib raadios unearst Toomas Tamm? Kuula intervjuud kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.examListen('034_d_radio', 'Raadio: miks uued harjumused ei õnnestu?', 'Mida räägib raadios unearst Toomas Tamm? Kuula intervjuud kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
         'Ülle: Tere, kuulajad! Detsembris annavad paljud endale lubadusi: hakkan sportima, söön tervislikumalt. Miks need lubadused nii tihti ei õnnestu? Stuudios on unearst doktor Toomas Tamm. Tere!',
         'Toomas: Tere! Hea küsimus. Kõige sagedasem viga on see, et inimene tahab muuta liiga palju korraga. Esmaspäeval hakkab ta jooksma, ei joo kohvi ega söö magusat. Kolmapäevaks on ta väsinud ja reedeks on kõik endine.',
         'Ülle: Mida te siis soovitate?',
@@ -823,22 +1248,49 @@ export const LESSONS = withShapes({
         ['Millal on arsti arvates olukord ohtlik?', 'kui kaks päeva järjest jääb vahele', 'kui üks päev jääb vahele', 'kui kalender ripub seinal'],
         ['Mida soovitab arst une jaoks?', 'minna iga päev samal ajal magama', 'magada nädalavahetusel kauem', 'juua õhtul sooja piima'],
         ['Miks ei õnnestunud arstil endal head unerežiimi pidada?', 'jalgpalli pärast', 'töö pärast', 'laste pärast'],
-      ], 'g_vocab'),
-      B.know('034_d_know', [
+      ], 'g_vocab'), V5_CUT),
+      hide(B.know('034_d_know', [
         'Maailma Terviseorganisatsiooni (WHO) soovituse järgi peaks täiskasvanu liikuma nädalas vähemalt 150 minutit mõõduka koormusega, näiteks kiiresti kõndides. See teeb umbes pool tundi viiel päeval nädalas. 2022. aastal ei liikunud piisavalt 31 % maailma täiskasvanutest, umbes 1,8 miljardit inimest.',
-      ], 'Maailma Terviseorganisatsioon (WHO), faktileht kehalise aktiivsuse kohta', 'Kas teadsid? Kui palju peaks liikuma?'),
-      teach(tag(B.speaking('034_d_survey', 'Kolm inimest, kolm harjumust.', 'Tee väike küsitlus: vali kaheksast küsimusest viis ja küsi neid kolmelt inimeselt. Iga vastus vajab põhjust. Lõpuks võrdle inimeste harjumusi.', ['Millega sa oma tervise heaks tegeled? Miks just sellega?', 'Kas sa käid pigem ujumas, jõusaalis või jalgsi? Miks?', 'Kas sa oled tugitoolisportlane või tervisesportlane? Miks sa nii arvad?', 'Kas sa oled kunagi dieeti pidanud? Miks ja kuidas see läks?', 'Millest sa oled valmis loobuma: liftist, snäkist või õhtusest telefonist? Miks?', 'Mis tõstab sinu meeleolu, kui enesetunne on halb? Miks see aitab?', 'Kui sa üksi hakkama ei saa, kelle poole sa pöördud? Miks tema poole?', 'Mis on sinu halvim harjumus ja kas sa tahad selle detsembris muuta? Miks?'], [70, 120], ['Mida sa…? Miks?', 'Mina…, sest…', 'Kaks inimest…, aga kolmas…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane valib viis küsimust ja küsib neid õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Jaan, Liis, Markus) ja jätab vahel põhjuse ütlemata, siis õpilane küsib „Miks?”. Lõpus võrdleb õpilane kolme vastust.'),
+      ], 'Maailma Terviseorganisatsioon (WHO), faktileht kehalise aktiivsuse kohta', 'Kas teadsid? Kui palju peaks liikuma?'), V5_CUT),
+      hide(teach(tag(B.speaking('034_d_survey', 'Kolm inimest, kolm harjumust.', 'Tee väike küsitlus: vali kaheksast küsimusest viis ja küsi neid kolmelt inimeselt. Iga vastus vajab põhjust. Lõpuks võrdle inimeste harjumusi.', ['Millega sa oma tervise heaks tegeled? Miks just sellega?', 'Kas sa käid pigem ujumas, jõusaalis või jalgsi? Miks?', 'Kas sa oled tugitoolisportlane või tervisesportlane? Miks sa nii arvad?', 'Kas sa oled kunagi dieeti pidanud? Miks ja kuidas see läks?', 'Millest sa oled valmis loobuma: liftist, snäkist või õhtusest telefonist? Miks?', 'Mis tõstab sinu meeleolu, kui enesetunne on halb? Miks see aitab?', 'Kui sa üksi hakkama ei saa, kelle poole sa pöördud? Miks tema poole?', 'Mis on sinu halvim harjumus ja kas sa tahad selle detsembris muuta? Miks?'], [70, 120], ['Mida sa…? Miks?', 'Mina…, sest…', 'Kaks inimest…, aga kolmas…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane valib viis küsimust ja küsib neid õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Jaan, Liis, Markus) ja jätab vahel põhjuse ütlemata, siis õpilane küsib „Miks?”. Lõpus võrdleb õpilane kolme vastust.'), V5_CUT),
     ],
     practice: [
-      B.tip('034_p_words', 'Märka: kuidas spordist ja harjumustest rääkida?', [
+      station(B.notice('034_d_notice', 'Märka: käin ujumas, tegelen joogaga, loobusin magusast', [
+        'Raadiost: **hakkasin** trepist **käima** · **käin** kaks korda nädalas **ujumas** · **tegelen** joogaga · **loobusin** magusast · uni **läks paremaks**',
+        '**käima** + **-mas** — käin regulaarselt kuskil midagi tegemas: käin **ujumas**, käin **jooksmas**, käime **matkamas**',
+        '**hakkama** + **-ma** — midagi algab: **hakkasin jooksma**, hakkasin trepist **käima**',
+        '**tegelema** + **-ga**: tegelen **joogaga**, tegeled **spordiga** · **loobuma** + **-st**: loobusin **magusast**, loobus **kohvist**',
+        'Muutus + **-ks** (tunnid 31–32): uni **läks paremaks** · tuju **muutus paremaks** · ma **sain** kohvisõbrast **teesõbraks**',
+      ], 'full'), 3, 15),
+      purpose(why(B.wordforms('034_p_forms', 'Mis harjumus?', 'Kirjuta sõna õiges vormis nii, et see sobiks lausesse.', [
+        ['ujuma', 'Ma käin kaks korda nädalas …', 'ujumas'],
+        ['jooksma', 'Eelmisel kuul hakkasin hommikuti …', 'jooksma'],
+        ['jooga', 'Minu ema tegeleb …', 'joogaga'],
+        ['suhkur', 'Ma loobusin …', 'suhkrust'],
+        ['matkama', 'Laupäeviti käime perega …', 'matkamas'],
+        ['sport', 'Kas sa tegeled mõne …?', 'spordiga'],
+        ['kohv', 'Kolleeg loobus … ja joob nüüd teed.', 'kohvist'],
+        ['parem', 'Kuu ajaga läks minu uni …', 'paremaks'],
+      ], 'full', 'g_notice'), [
+        'käima + -mas: ujumas.',
+        'hakkama + -ma: jooksma.',
+        'tegelema + -ga: joogaga.',
+        'loobuma + -st: suhkrust.',
+        'käima + -mas: matkamas.',
+        'tegelema + -ga: spordiga.',
+        'loobuma + -st: kohvist.',
+        'minema + -ks: paremaks.',
+      ]), 'Kaheksa lauset näitavad, kuidas harjumusest rääkida.'),
+      tag(purpose(B.writing('034_p_free', 'Kirjuta terved laused.', 'Vasta väljakutse „30 päeva tervemalt” küsimustikule 5–7 terve lausega: Kus sa käid? Millega sa tegeled? Millest tahaksid loobuda ja miks? Mida hakkaksid tegema ja miks?', [5, 7]), 'Oma laused on sinu loo materjal.'), { task: 'W01' }),
+      hide(B.tip('034_p_words', 'Märka: kuidas spordist ja harjumustest rääkida?', [
         '**Tegevus:** ma ujun · käin **ujumas** · käin **ujumises** · käin **ujumistrennis** · tegelen **ujumisega**',
         '**Mäng:** mängin **malet** · olen **males** tugev · käin **maleringis** · mängisime **viiki**',
         '**Kes ta on?** **tugitoolisportlane** vaatab sporti diivanilt · **tervisesportlane** liigub tervise pärast · **harrastussportlane** treenib ja võistleb vabal ajal · **profisportlane** teenib spordiga raha',
         '**Kaal ja vorm:** pean **dieeti** · võtan **kaalust alla** · võtan **kaalus juurde** · olen **vormis** · hoian **vormi**',
         '**Harjumused:** **loobun** millest? rämpstoidust, snäkist · käin **jalgsi** · lähen **trepist**, mitte **liftiga** · **karastan** end',
-      ], 'full'),
-      B.errorfix('034_p_fix', 'Toimetaja parandab.', 'Need laused on kolleegide juttude mustanditest. Leia igas lauses üks viga ja kirjuta lause õigesti.', [
+      ], 'full'), V5_CUT),
+      hide(B.errorfix('034_p_fix', 'Toimetaja parandab.', 'Need laused on kolleegide juttude mustanditest. Leia igas lauses üks viga ja kirjuta lause õigesti.', [
         ['Pärast kahte nädalat läks minu uni parem.', 'Pärast kahte nädalat läks minu uni paremaks.'],
         ['Alguses olin ma väga väsinuks ja pahane.', 'Alguses olin ma väga väsinud ja pahane.'],
         ['Kolmandal nädalal Markus jäi jälle haigeks.', 'Kolmandal nädalal jäi Markus jälle haigeks.'],
@@ -849,8 +1301,8 @@ export const LESSONS = withShapes({
         ['Sõber ütles mulle: „Ära sööd õhtul hilja!”', 'Sõber ütles mulle: „Ära söö õhtul hilja!”'],
         ['Markus käib nüüd kaks korda nädalas ujuma.', 'Markus käib nüüd kaks korda nädalas ujumas.'],
         ['Väljakutse lõpus kõik tundsid end paremini.', 'Väljakutse lõpus tundsid kõik end paremini.'],
-      ]),
-      B.cloze('034_p_diary', 'Anna päevik.', 'Vali Anna päevikus igasse lünka vorm, mis sobib lausesse nii sisult kui ka grammatikalt.', 'Väljakutse teine nädal', [
+      ]), V5_DRILL),
+      hide(B.cloze('034_p_diary', 'Anna päevik.', 'Vali Anna päevikus igasse lünka vorm, mis sobib lausesse nii sisult kui ka grammatikalt.', 'Väljakutse teine nädal', [
         'Esmaspäev. Täna oli väljakutse kaheksas päev. Hommikul jõin enne kohvi suure klaasi {*vett|vesi|veest} ja lõunal käisin kakskümmend minutit {*jalutamas|jalutama|jalutamast}. Ilm oli külm, aga pärast seda oli enesetunne palju {*parem|paremini|paremaks}.',
         '',
         'Teisipäev. Sadas lörtsi ja jalutuskäik jäi lühikeseks, ainult kümme minutit. Vett jõin siiski kaks liitrit, nagu plaanis oli. Õhtul helistasin emale ja rääkisin talle väljakutsest.',
@@ -864,8 +1316,8 @@ export const LESSONS = withShapes({
         'Laupäev. Kõige raskem päev: Kati kutsus mind kinno ja seal müüdi rämpstoitu, popkorni ja limonaadi. Tahtsin juba alla anda ja näksima hakata, aga ostsin endale hoopis pudeli vett. Kati naeris, aga ma olin enda üle uhke.',
         '',
         'Pühapäev. Käisin Sofiaga ujumas. Ta kutsus mind jaanuaris ka joogasse. Tundub, et minust saab veel sportlane!',
-      ]),
-      tag(B.transformation('034_p_join', 'Kaks lauset üheks.', 'Ühenda kaks lauset antud sidesõnaga. Mõtle, kas tegusõna liigub lauses teisele kohale või lõppu.', [
+      ]), V5_CUT),
+      hide(tag(B.transformation('034_p_join', 'Kaks lauset üheks.', 'Ühenda kaks lauset antud sidesõnaga. Mõtle, kas tegusõna liigub lauses teisele kohale või lõppu.', [
         ['Alguses oli väga raske. Ma ei andnud alla.', 'aga', 'Alguses oli väga raske, aga ma ei andnud alla.'],
         ['Jaan hakkas jalgsi tööle käima. Ta oli kaalus juurde võtnud.', 'sest', 'Jaan hakkas jalgsi tööle käima, sest ta oli kaalus juurde võtnud.'],
         ['Markus pani telefoni kööki. Ta tahtis paremini magada.', 'kuna', 'Markus pani telefoni kööki, kuna ta tahtis paremini magada.'],
@@ -876,8 +1328,8 @@ export const LESSONS = withShapes({
         ['Esimene nädal oli raske. Teisel nädalal sain juba hakkama.', 'kuid', 'Esimene nädal oli raske, kuid teisel nädalal sain juba hakkama.'],
         ['Oskar tuli Jaaniga kaasa. Jalutuskäik muutus lõbusamaks.', 'ja', 'Oskar tuli Jaaniga kaasa ja jalutuskäik muutus lõbusamaks.'],
         ['Markus tahtis telefoni voodisse võtta. Ta mõtles oma eesmärgile.', 'siis', 'Markus tahtis telefoni voodisse võtta, siis mõtles ta oma eesmärgile.'],
-      ]), { task: 'W09' }),
-      tag(B.reading('034_p_sport', 'Infolehe küsitlus.', 'Loe infolehe lugu. Märgi iga väite juurde õige või vale; vale väite puhul kirjuta kohe, kuidas on õige.', 'Millised sportlased me oleme?', [
+      ]), { task: 'W09' }), V5_DRILL),
+      hide(tag(B.reading('034_p_sport', 'Infolehe küsitlus.', 'Loe infolehe lugu. Märgi iga väite juurde õige või vale; vale väite puhul kirjuta kohe, kuidas on õige.', 'Millised sportlased me oleme?', [
         'Väljakutse ajal küsis infoleht „Meie nädal” kolleegidelt ja nende peredelt, kuidas nad vormi hoiavad. Selgus, et sportlasi on meie ümber väga erinevaid.',
         '',
         'Markus nimetab ennast ausalt tugitoolisportlaseks. Enne haigust käis ta jalgpallitrennis, aga nüüd vaatab ta mänge peamiselt diivanilt. Mängu ajal näksib ta krõpse ja muud snäkki. Pärast haigust tahab ta uuesti liikuma hakata, aga võistlema ta enam minna ei taha.',
@@ -902,17 +1354,33 @@ export const LESSONS = withShapes({
         ['Arvo arvates ei ole male päris sport.', 'vale'],
         ['Esimeses partiis ei võitnud ei Viktor ega Arvo.', 'õige'],
         ['Miks hakkas Viktor malet mängima?', 'vigastas põlve|ei tohi rattaga sõita|põlv'],
-      ], 'g_vocab'), { task: 'R14' }),
-      tag(B.writing('034_p_free', 'Kaheksa minutit järjest.', 'Vaata Avasta pilti Jaanist. Kirjuta kaheksa minutit järjest, kuidas tema tööpäev muutus; ära paranda, kirjuta edasi.', [8, 10], ['alguses', 'läks', 'muutus', 'nüüd'], 2), { task: 'W06', fluency: true }),
-      teach(tag(B.examWriting('034_p_form', 'Eksaminurk: väljakutse küsimustik (Harno B1 kirjutamine 1)', 'Täida väljakutse algusküsimustik. Vasta lühidalt; miks-küsimustele kirjuta põhjus sest-lausega.', 'kusimustik', {
+      ], 'g_vocab'), { task: 'R14' }), V5_CUT),
+      hide(teach(tag(B.examWriting('034_p_form', 'Eksaminurk: väljakutse küsimustik (Harno B1 kirjutamine 1)', 'Täida väljakutse algusküsimustik. Vasta lühidalt; miks-küsimustele kirjuta põhjus sest-lausega.', 'kusimustik', {
         situation: 'Väljakutse „30 päeva tervemalt” esimesel päeval täidab iga osaleja lühikese küsimustiku.',
         questions: ['Mitu tundi sa tavaliselt öösel magad?', 'Mitu tassi kohvi sa päevas jood?', 'Kuidas sa tööle tuled?', 'Mitu minutit päevas sa kõnnid?', 'Mida sa tavaliselt lõunaks sööd?', 'Millega sa tegeled ja kui tihti sa treenid? Miks just nii tihti?', 'Millist harjumust sa tahad muuta? Miks?', 'Mida sa õhtul näksid? Kas sa oled valmis sellest loobuma?', 'Kes võiks olla sinu kaaslane? Miks just tema?', 'Mis on sinu eesmärk kolmekümnendaks päevaks?'],
       }), { harno: 'W1a' }),
-      'Eksaminurk (Harno B1 kirjutamine 1, küsimustik, ~10 min), formaati tutvustatakse siin. Strateegia: 1) loe kõik küsimused enne läbi; 2) vasta lühidalt, aga nii, et vastus sobib küsimusega (Mitu? → arv, Kuidas? → viis); 3) „Miks?” → alati põhjus (sest…, kuna…); 4) aega on umbes 10 minutit. Hinnatakse sisu (kas igale küsimusele on vastus) ja keelt. Üks-ühele: õpilane täidab ajaga, õpetaja märgib, mitmel miks-küsimusel oli põhjus.'),
+      'Eksaminurk (Harno B1 kirjutamine 1, küsimustik, ~10 min), formaati tutvustatakse siin. Strateegia: 1) loe kõik küsimused enne läbi; 2) vasta lühidalt, aga nii, et vastus sobib küsimusega (Mitu? → arv, Kuidas? → viis); 3) „Miks?” → alati põhjus (sest…, kuna…); 4) aega on umbes 10 minutit. Hinnatakse sisu (kas igale küsimusele on vastus) ja keelt. Üks-ühele: õpilane täidab ajaga, õpetaja märgib, mitmel miks-küsimusel oli põhjus.'), V5_CUT),
     ],
     transfer: [
-      B.text('034_t_sit', '30 päeva on läbi', 'Väljakutse on läbi ja Liis kogus kokku osalejate tulemused. Kontori infoleht „Meie nädal” ootab lugusid: igaüks kirjutab, kuidas tema harjumused muutusid. Täna tuleb tööle ka uus kolleeg Kristjan, kes tahab kõike teada. Loe tulemusi, räägi Kristjaniga ja kirjuta oma jutt.'),
-      B.profiles('034_t_results', 'Nelja osaleja tulemused.', 'Loe nelja osaleja tulemuste kaarti ja täienda lauseid. Kelle tulemus oli sinu arvates kõige parem?', [
+      station(teach(tag(purpose(rows(B.examWriting('034_t_story', 'Lugu infolehte: minu 30 päeva', 'Infoleht kogub lugusid „30 päeva tervemalt”. Kirjuta 50–80 sõna (pilt üleval või oma päris harjumus). Algus ja lõpp on sinu oma.', 'jutt', {
+        points: ['mis harjumust sa muutsid ja miks', 'kuidas see läks ja mis oli raske', 'mis kuu ajaga muutus'],
+        words: [50, 80],
+      }), 6), 'Lugejad saavad teada, mida sa muutsid, ja võivad sama proovida.'), { task: 'W05', main: true, level: 4 }),
+      'Õpilane valib harjumuse (pildi „Minu 30 päeva” järgi või oma) ja kirjutab tunnis 12–15 minutit ilma abita; siis loeb paarilisele ette, paariline on infolehe toimetaja ja küsib kaks küsimust („Mis oli kõige raskem?”, „Kas sa jätkad?”). Teine katse: õpilane lisab ühe lause, mis muutus (läks paremaks, muutus …), ja ühe nõu lugejale käskivas kõneviisis. Parandatud versioon on kodutöö. Kontrolli: kolm sisupunkti, käima + -mas, hakkama + -ma, tegelema + -ga, loobuma + -st, muutus + -ks.'), 4, 25, { final: 'present' }),
+      tag(exitCheck(why(purpose(B.gaps('034_t_exit', 'Kontrolli end: kolm vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Ma käin laupäeviti [ujumas] (ujuma).',
+        'Ma loobusin [magusast] (magus).',
+        'Kuu ajaga läks uni [paremaks] (parem).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas harjumuse vormid on käes.'), ['käima + -mas: ujumas.', 'loobuma + -st: magusast.', 'minema + -ks: paremaks.'])), {}),
+      purpose(B.selfcheck('034_t_self', ['Ma ütlen, kus ma käin ja millega tegelen: käin ujumas, tegelen joogaga.', 'Ma ütlen, millest loobusin ja mida hakkasin tegema.', 'Ma saan aru raadiosaatest harjumuste kohta.', 'Ma kirjutan infolehte loo oma 30 päevast.'], 'Lugu valmis', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('034_t_rec', 'Kodus: minu uus harjumus.', 'Salvesta 60–90 sekundit.', [
+        'Mis harjumust sa järgmisel kuul proovid ja miks?',
+        'Mis võib olla raske ja kuidas sa alla ei anna?',
+        'Kes võiks sind toetada?',
+      ], [60, 90]), 'Õpetaja ütleb, kas harjumuse vormid tulid õigesti.')), { task: 'S15', fluency: true }),
+      homework('034_t_homework', ['1. Paranda lugu ja saada see õpetajale.', '2. Salvesta oma uus harjumus (ülesanne üleval).', '3. Loe oma lugu pereliikmele või sõbrale ette.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('034_t_sit', '30 päeva on läbi', 'Väljakutse on läbi ja Liis kogus kokku osalejate tulemused. Kontori infoleht „Meie nädal” ootab lugusid: igaüks kirjutab, kuidas tema harjumused muutusid. Täna tuleb tööle ka uus kolleeg Kristjan, kes tahab kõike teada. Loe tulemusi, räägi Kristjaniga ja kirjuta oma jutt.'), V5_CUT),
+      hide(B.profiles('034_t_results', 'Nelja osaleja tulemused.', 'Loe nelja osaleja tulemuste kaarti ja täienda lauseid. Kelle tulemus oli sinu arvates kõige parem?', [
         ['Jaan', ['eesmärk: kõndida iga päev tööle (2 km)', 'õnnestus 27 päeval 30-st', 'võttis kaalust alla 3 kilo', 'uni ja tuju läksid paremaks', 'raske: vihmased hommikud', 'edasi: kevadel rattaga tööle'],
           ['Jaan kõndis tööle [27|kahekümne seitsmel] päeval.', 'Kaalust võttis ta alla [kolm|3] kilo.', 'Kõige raskemad olid [vihmased] hommikud.', 'Jaani uni ja tuju läksid [paremaks].', 'Kevadel tahab Jaan tööle sõita [rattaga].']],
         ['Liis', ['eesmärk: loobuda tööl magusast', 'õnnestus 25 päeval', 'pärastlõunal rohkem energiat', 'raske: kolleegide sünnipäevad', 'edasi: kook ainult reedeti'],
@@ -921,198 +1389,27 @@ export const LESSONS = withShapes({
           ['Markus pani telefoni kööki [kahekümnel|20] päeval.', 'Nüüd magab Markus [seitse|7] tundi.', 'Varem magas ta ainult [viis|5] tundi.', 'Kõige raskemad olid hilised [jalgpallimängud].', 'Edaspidi joob Markus viimase kohvi kell [14|kaks].']],
         ['Anna', ['eesmärk: 2 liitrit vett ja jalutuskäik lõunal', 'õnnestus kõigil 30 päeval', 'peavalu kadus', 'raske: külmad ja tuulised päevad', 'edasi: jooga koos Sofiaga'],
           ['Anna täitis oma eesmärgi kõigil [kolmekümnel|30] päeval.', 'Anna jõi päevas kaks [liitrit] vett.', 'Annal kadus kuu ajaga [peavalu].', 'Kõige raskemad olid külmad ja [tuulised] päevad.', 'Edasi hakkab Anna Sofiaga [joogat] tegema.']],
-      ], '2'),
-      teach(tag(B.rolecards('034_t_new', 'Kristjani esimene päev: poolt ja vastu.', 'A on uus kolleeg Kristjan, B on väljakutses osaleja. Vaielge väite üle „Dieedid ja väljakutsed on mõttetud”.',
+      ], '2'), V5_CUT),
+      hide(teach(tag(B.rolecards('034_t_new', 'Kristjani esimene päev: poolt ja vastu.', 'A on uus kolleeg Kristjan, B on väljakutses osaleja. Vaielge väite üle „Dieedid ja väljakutsed on mõttetud”.',
         'Oled Kristjan, 31, tulid Tartust ja oled tööl esimest päeva. Tutvusta ennast lühidalt (töö, pere, hobid). Sinu seisukoht: dieedid ja väljakutsed on mõttetud. Sa oled tugitoolisportlane, ei käi jõusaalis ega võistle kellegagi, aga enesetunne on hea. Inimesed võtavad kuu ajaga kaalust alla ja siis jälle kaalus juurde. Too kaks põhjust ja küsi, kas väljakutse tõesti aitas.',
         'Oled väljakutses osaleja: räägi enda nimel või ühe kaardi inimese nimel. Tutvusta ennast. Sinu seisukoht: väike samm aitab ja vormis olla saab ilma dieedita. Too kaks näidet kaartidelt, räägi, mis oli raske ja kuidas sa hakkama said. Anna Kristjanile üks nõu: millest loobuda või kuidas alustada.',
         ['Tere! Mina olen…, tulin…', 'Minu arvates on dieet mõttetu, sest…', 'Aga kas see tõesti aitas?'], ['Meeldiv tutvuda! Mina…', 'Ma ei ole nõus, sest…', 'Mõlemad arvame, et…']), { task: 'S17' }),
-      'Üks-ühele: õpetaja on Kristjan ja vaidleb igale näitele vastu („Aga kuu pärast on kõik endine!”). Siis vahetage kaardid: õpilane on Kristjan ja kaitseb tugitoolisportlast. Lõpus ütlete koos ühe lause, millega olete mõlemad nõus.'),
-      tag(B.examWriting('034_t_story', 'Jutt infolehte: minu 30 päeva.', 'Kirjuta kontori infolehte jutt 80–100 sõnaga. Kasuta Jaani loo ülesehitust ja kirjuta kõigist viiest punktist.', 'jutt', {
-        situation: 'Infolehe „Meie nädal” detsembrinumbri teema on „Minu 30 päeva”. Kirjuta oma kogemusest või ühe tulemuste kaardi inimese nimel.',
-        points: ['mis harjumust sa muutsid ja miks', 'kuidas läks esimene nädal', 'mis oli kõige raskem ja kuidas sa sellega hakkama said', 'mis muutus kuu ajaga (läks paremaks, sain …ks)', 'mida soovitad kolleegidele'],
-        words: [80, 100],
-      }), { main: true }),
-      teach(tag(B.speaking('034_t_rec', 'Kodus: kas tervislik elu on kallis?', 'Ütle oma arvamus ja kaks põhjust. Too näide oma elust. Räägi 1–2 minutit ja salvesta.', ['Kas tervislik toit on kallis või on rämpstoit hoopis kallim? Miks?', 'Mida saab tervise ja vormi heaks teha tasuta?', 'Mida sa soovitad sõbrale, kes tahab kaalust alla võtta?'], [60, 120], ['Minu arvates…', 'Näiteks ma…', 'Seepärast ma arvan, et…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis on õpetaja teisel arvamusel ja õpilane põhjendab.'),
-      tag(B.writing('034_t_edit', 'Toimetaja pilguga.', 'Vaheta rolli: oled infolehe toimetaja. Kontrolli juttu hindamisjuhendiga, joonista alla kolm kohta, mida parandada, ja kirjuta uus versioon.', [9, 12], ['alguses', 'siis', 'lõpuks', 'muutus'], 3), { task: 'W10' }),
-      B.rubricW2('034_t_rubric', 'Hindamine: jutt infolehte (12 punkti).'),
-      B.selfcheck('034_t_self', ['Ma loen kutset ja lugu ning leian lõikudele pealkirjad.', 'Ma räägin spordist ja harjumustest: käin ujumas, tegelen ujumisega, loobun rämpstoidust.', 'Ma täidan küsimustiku ja vastan miks-küsimustele põhjusega.', 'Ma kirjutan jutu, millel on algus, muutus ja lõpp.'], '30 päeva tervemalt'),
+      'Üks-ühele: õpetaja on Kristjan ja vaidleb igale näitele vastu („Aga kuu pärast on kõik endine!”). Siis vahetage kaardid: õpilane on Kristjan ja kaitseb tugitoolisportlast. Lõpus ütlete koos ühe lause, millega olete mõlemad nõus.'), V5_CUT),
+      hide(tag(B.writing('034_t_edit', 'Toimetaja pilguga.', 'Vaheta rolli: oled infolehe toimetaja. Kontrolli juttu hindamisjuhendiga, joonista alla kolm kohta, mida parandada, ja kirjuta uus versioon.', [9, 12], ['alguses', 'siis', 'lõpuks', 'muutus'], 3), { task: 'W10' }), V5_CUT),
+      hide(B.rubricW2('034_t_rubric', 'Hindamine: jutt infolehte (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 035 control 7 on one sheet
   'a2b1-035': {
-    title: 'Eksam 7 — tervis ja enesetunne',
+    title: 'Kontroll 7: tervis ja enesetunne',
+    format: 'exam',
     assessment: true,
-    canDo: 'Ma sooritan mooduli eksami Harno A2 vormis koos B1 ülesannetega: loen, kuulan, kirjutan ja räägin tervise teemal; eesmärk on vähemalt 80 % igas osas.',
+    canDo: 'Ma saan aru raadiointervjuust ja häälsõnumist tervise teemal, räägin ilma abita ühest korrast, kui olin haige, helistan perearstikeskusesse ja kirjutan sõbrale lühikese sõnumi.',
     discover: [
-      B.text('035_d_intro', 'Mooduli eksam', 'Selles tunnis teed mooduli 7 eksami. Lugemine (45 min) ja kuulamine (umbes 30 min) on Harno A2 vormis, igas osas on ka B1 ülesanded. Kirjutamine (35 min) ja rääkimine (umbes 15 min) on B1 vormis; kirjutamises on uus ülesanne — küsimustik. Eesmärk: vähemalt 80 % igas osas. Kõigepealt kordad mooduli sõnu ja vorme ning loed, kuidas lõppes kontori talvine nädalavahetus.'),
-      B.vocab('035_d_vocab', 'Mooduli võtmesõnad.', ['palavik — температура', 'köha — кашель', 'valutama — болеть', 'paranema — поправляться', 'retsept — рецепт', 'ravim — лекарство', 'hääl — голос', 'põlv — колено', 'uni — сон', 'harjumus — привычка', 'eesmärk — цель', 'tulemus — результат', 'enesetunne — самочувствие', 'meeleolu — настроение', 'loobuma — отказываться', 'vorm — форма']),
-      B.choice('035_d_quiz', 'Mida sa moodulist mäletad?', 'Vasta mooduli lugude ja vormide küsimustele. Vali igale küsimusele üks õige vastus.', [
-        ['Kes jäi kontoris esimesena haigeks?', 'Anna', 'Markus', 'Liis'],
-        ['Mis haigus oli Markusel arsti sõnul?', 'bronhiit', 'kopsupõletik', 'gripp'],
-        ['Miks helistas Sofia Markuse eest perearstikeskusse?', 'Markuse hääl oli kadunud', 'Markus oli Riias', 'Markus magas'],
-        ['Kes nimetab ennast tugitoolisportlaseks?', 'Markus', 'Liis', 'Rein'],
-        ['Mis segas Markusel hästi magada?', 'kohv ja telefon', 'naabri koer', 'külm tuba'],
-        ['Mida muutis Jaan juba enne väljakutset?', 'hakkas tööle kõndima', 'hakkas rohkem vett jooma', 'lõpetas magusa söömise'],
-        ['Mis sobib lausesse: Pärast külma trenni jäi Markus …', 'haigeks', 'haige', 'haigele'],
-        ['Mis sobib lausesse: Härra Mets, … jalg padjale!', 'tõstke', 'tõstate', 'tõstma'],
-        ['Mis sobib lausesse: Anna käib kord nädalas …', 'ujumas', 'ujuma', 'ujumine'],
-        ['Mis sobib lausesse: Jaan on loobunud õhtusest …', 'rämpstoidust', 'rämpstoit', 'rämpstoitu'],
-      ], 'full', 'g_notice'),
-      B.reading('035_d_letter', 'Sofia kiri emale.', 'Loe Sofia kirja emale ja vasta küsimustele lühidalt, oma sõnadega.', 'Kallis ema!', [
-        'Kirjutan sulle Võrumaalt, kuhu me tulime kontoriga nädalavahetuseks. See oli Liisi kingitus pärast väljakutset: kaks päeva matkamist, sauna ja tervislikku toitu. Viktor tuli kaasa matkajuhiks, sest tema põlv on jälle terve.',
-        '',
-        'Laupäeva hommikul läks aga kõik teisiti. Ärkasin ja tundsin, et kurk valutab ja pea on raske. Lõunaks läks palavik 38,7 kraadini. Matkale ma minna ei saanud.',
-        '',
-        'Viktor helistas kohe nõuandeliinile 1220. Õde Kati küsis, kui kaua palavik on kestnud ja kas mul on raske hingata. Ta soovitas palju juua, võtta palavikurohtu ja puhata. Kui palavik läheb üle 39 kraadi või hingamine muutub raskeks, tuleb kohe helistada 112. Anna kirjutas kõik paberile üles ja Liis tõi mulle iga tunni järel vett.',
-        '',
-        'Pühapäeva hommikuks läks palju paremaks. Markus tegi mulle teed meega ja ütles naljaga, et nüüd on minu kord kontori patsient olla. Õhtul sõime kõik koos suppi ja mängisime kaarte, nii et ka meeleolu läks paremaks.',
-        '',
-        'Ära muretse! Esmaspäeval lähen perearsti juurde ja olen nädala kodus. Järgmiseks nädalavahetuseks olen kindlasti terve. Kallistan, Sofia',
-      ], [
-        ['Miks oli kontor nädalavahetusel Võrumaal?', 'see oli Liisi kingitus pärast väljakutset|nad tulid matkama'],
-        ['Miks sai Viktor matkajuhiks olla?', 'tema põlv on jälle terve'],
-        ['Mis juhtus Sofiaga laupäeva lõunaks?', 'palavik läks 38,7 kraadini|ta jäi haigeks'],
-        ['Mida soovitas õde Kati?', 'juua palju, võtta palavikurohtu ja puhata'],
-        ['Kuidas aitasid Anna ja Liis?', 'Anna kirjutas kõik üles, Liis tõi vett'],
-        ['Mida teeb Sofia esmaspäeval?', 'läheb perearsti juurde'],
-      ]),
-      B.categorize('035_d_sort', 'Mooduli sõnad nelja veergu.', 'Kuhu iga sõna kuulub? Pane mooduli sõnad nelja veergu.', [
-        ['sümptomid', ['palavik', 'köha', 'nohu', 'peavalu']], ['arsti juures ja apteegis', ['retsept', 'vastuvõtt', 'ravim', 'töövõimetusleht']],
-        ['vigastus', ['põlv', 'kepp', 'kompress', 'traumapunkt']], ['harjumused', ['eesmärk', 'dieet', 'jõusaal', 'väljakutse']],
-      ], 'full', 'g_vocab'),
-      B.transformation('035_d_trans', 'Muutus või teie-käsk.', 'Muuda lauset antud sõna järgi: tegusõna tähendab muutust minevikus, „teie” tähendab teie-käsku.', [
-        ['Pärast pikka trenni on Markus haige.', 'jääma', 'Pärast pikka trenni jäi Markus haigeks.'],
-        ['Õhtuks on Sofia palavik väga kõrge.', 'minema', 'Õhtuks läks Sofia palavik väga kõrgeks.'],
-        ['Nädala pärast on Anna jälle terve.', 'saama', 'Nädala pärast sai Anna jälle terveks.'],
-        ['Pärast väljakutset on Jaani uni parem.', 'minema', 'Pärast väljakutset läks Jaani uni paremaks.'],
-        ['Võrumaal on ilm õhtul väga külm.', 'minema', 'Võrumaal läks ilm õhtul väga külmaks.'],
-        ['Pane palun põlvele külma kompressi.', 'teie', 'Pange palun põlvele külma kompressi.'],
-        ['Võta seda siirupit kolm korda päevas.', 'teie', 'Võtke seda siirupit kolm korda päevas.'],
-        ['Ära joo õhtul enam kohvi.', 'teie', 'Ärge jooge õhtul enam kohvi.'],
-        ['Tule esmaspäeval uuesti vastuvõtule.', 'teie', 'Tulge esmaspäeval uuesti vastuvõtule.'],
-        ['Ära mine haigena tööle.', 'teie', 'Ärge minge haigena tööle.'],
-      ], 'full', 'g_notice'),
-      B.errorfix('035_d_fix', 'Vead eksamitöödest.', 'Need laused on varasemate õpilaste eksamitöödest. Leia igas lauses üks viga ja paranda see.', [
-        ['Eile õhtul ma jäin väga haigeks.', 'Eile õhtul jäin ma väga haigeks.'],
-        ['Mul valutab pea ja kurgu.', 'Mul valutab pea ja kurk.'],
-        ['Hommikuks läks palavik madal.', 'Hommikuks läks palavik madalaks.'],
-        ['Kas sa oled juba terveks?', 'Kas sa oled juba terve?'],
-        ['Härra Mets, ära koormake jalga!', 'Härra Mets, ärge koormake jalga!'],
-        ['Sofia, ärge muretse, kõik on hästi!', 'Sofia, ära muretse, kõik on hästi!'],
-        ['Ma pean võtma kaks tabletid päevas.', 'Ma pean võtma kaks tabletti päevas.'],
-        ['Apteegist ostsin ma pudeli köhasiirup.', 'Apteegist ostsin ma pudeli köhasiirupit.'],
-        ['Pärast väljakutset sain ma tervem.', 'Pärast väljakutset sain ma tervemaks.'],
-        ['Minu naaber tegeleb juba mitu aastat jooga.', 'Minu naaber tegeleb juba mitu aastat joogaga.'],
-      ]),
-      B.writing('035_d_write', 'Minu tervisenädal.', 'Kirjuta 8–10 lauset: kuidas sa end sel nädalal tundsid, mis muutus ja mida sa oma tervise heaks tegid.', [8, 10], ['enesetunne', 'läks paremaks', 'meeleolu', 'harjumus'], 3),
-      // own instruction: B.examiner's fixed wording repeats other modules' examiner sets (final shape V7)
-      teach(withInstruction(B.examiner('035_d_warm', 'tervis ja arstiabi', [
-        'Kuidas sa oma tervise eest hoolitsed?',
-        'Mida sa teed, kui jääd haigeks: lähed arsti juurde, helistad nõuandeliinile või ravid end ise? Miks?',
-        'Kas sinu meelest on Eestis lihtne arsti juurde saada? Miks?',
-        'Mille poolest erineb arstiabi Eestis ja sinu kodumaal?',
-        'Kas töötaja peaks saama haigushüvitist juba esimesest haiguspäevast? Põhjenda.',
-        'Kas inimene peaks ise oma tervise eest vastutama või on see riigi ülesanne? Miks?',
-        'Milline harjumus on sinu arvates tervisele kõige kasulikum? Miks?',
-      ]), 'Soojendus nagu suulise eksami alguses: eksamineerija küsib tervisest ja arstiabist. Vasta igale küsimusele 2–4 lausega ja too põhjus või näide oma elust.'),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'),
-    ],
-    practice: [
-      B.examPart('035_p_rpart', 'R', { minutes: 45, points: 38, tasks: 4, note: 'Lugemisosas on kaks A2 ülesannet ja kaks B1 ülesannet. Lugege iga ülesande juhis enne teksti läbi ja jälgige aega.' }),
-      tag(B.adsmatch('035_p_r1', 'Lugemine 1. Tervis ja liikumine.', 'Lugege olukordi ja kuulutusi. Kirjutage iga olukorra juurde sobiva kuulutuse täht; sama kuulutus võib sobida mitmele olukorrale.', [
-        ['Spordiklubi Liikumine', 'Jooga, venitus, ujumine ja jõusaal kesklinnas. Avatud iga päev kell 7–22. Uutele liikmetele on esimene nädal tasuta. Treener aitab koostada isikliku treeningplaani.'],
-        ['Võru matkaklubi', 'Laupäeviti matkad Lõuna-Eesti metsades, 10–15 kilomeetrit. Kaasa võtke soojad riided ja süüa. Sobib ka algajatele, osalemine on tasuta.'],
-        ['Kepikõnd Kalamajas', 'Tasuta kepikõnd pensionäridele ja kõigile teistele teisipäeviti ja neljapäeviti kell 10. Kepid saab kohapeal laenata. Kogunemine Kalamaja pargi väravas.'],
-        ['Massaažituba Pehme Käsi', 'Selja- ja kaelamassaaž pärast pikka tööpäeva. Tund maksab 45 eurot. Avatud ka õhtuti kuni kella üheksani. Aeg tuleb ette broneerida.'],
-        ['Unekool', 'Kolmeõhtune kursus neile, kes ei saa hästi magada. Õpetaja on unearst. Kursus toimub veebis, hind on 30 eurot.'],
-        ['Tervisekeskus Elu', 'Tervisekontroll täiskasvanutele: vererõhk, veresuhkur ja kehakaal poole tunniga. Ilma ajata tööpäeviti kell 8–12. Toitumisnõustaja aitab neid, kes tahavad ilma dieedita kaalust alla võtta. Kontrolli eest võib maksta ka tööandja.'],
-      ], [
-        ['Markus tahab õppida paremini magama, aga kodust välja minna ta ei taha.', 'E'],
-        ['Tiina, 73, otsib tasuta liikumist, kus saab kepid kohapeal laenata.', 'C'],
-        ['Kristjan tahab jõusaalis treenima hakata, aga esimese nädala eest maksta ei taha.', 'A'],
-        ['Liisil valutab pärast pikka arvutitööd selg ja ta tahab õhtul abi.', 'D'],
-        ['Rämpstoidust loobunud Jaan otsib nõu, kuidas ilma dieedita kaalust alla võtta.', 'F'],
-        ['Viktor otsib nädalavahetuseks pikka jalutuskäiku metsas koos teistega.', 'B'],
-        ['Anna tahab joogaga alustada ja vajab treeneri nõu.', 'A'],
-        ['Sofia tahab tervisekontrolli, mille eest maksab tema firma.', 'F'],
-        ['Helgi tahab mitu õhtut õppida, kuidas uni paremaks muuta.', 'E'],
-        ['Oskar tahab isaga laupäeval matkale minna, aga ta on alles algaja.', 'B'],
-      ]), { harno: 'R1' }),
-      B.profiles('035_p_r2', 'Lugemine 2. Kolm inimest ja nende tervis.', 'Lugege kolme inimese kaarti. Kirjutage igasse lünka sõna või arv kaardi põhjal.', [
-        ['Rein, 68', ['pensionär, elab Kalamajas', 'käib kaks korda nädalas kepikõnnis', 'tal on kõrge vererõhk', 'joob hommikul ainult rohelist teed', 'mängib maleringis malet'],
-          ['Rein elab [Kalamajas].', 'Kepikõnnis käib ta [kaks|2] korda nädalas.', 'Reinul on kõrge [vererõhk].', 'Hommikul joob ta rohelist [teed].']],
-        ['Kaia, 29', ['medõde, töötab öövahetustes', 'magab päeval kuni kella kaheni', 'ujub kolm korda nädalas', 'ei joo kohvi pärast keskpäeva', 'õpib õhtuti hispaania keelt'],
-          ['Kaia töötab [öövahetustes|öösel].', 'Päeval magab ta kuni kella [kaheni|kahe].', 'Ujumas käib ta [kolm|3] korda nädalas.', 'Kohvi ei joo ta pärast [keskpäeva].']],
-        ['Timo, 16', ['õpilane, mängib korvpalli', 'trenn on neli korda nädalas', 'vigastas eelmisel kuul hüppeliigest', 'tahab saada profisportlaseks', 'magab vähemalt kaheksa tundi'],
-          ['Timo mängib [korvpalli].', 'Trennis käib ta [neli|4] korda nädalas.', 'Eelmisel kuul vigastas ta [hüppeliigest].', 'Öösel magab ta vähemalt [kaheksa|8] tundi.']],
-      ], '3'),
-      B.reading('035_p_r3text', 'Lugemine 3. Artikkel.', 'Lugege artikkel läbi. Küsimused on kohe järgmises ülesandes.', 'Talvel liigu rohkem, mitte vähem', [
-        'Detsembris on Eestis päevad lühikesed ja pimedad. Paljud inimesed istuvad pärast tööd kodus diivanil ja ootavad kevadet. Arstid ütlevad aga, et just talvel on liikumine kõige tähtsam.',
-        '',
-        'Perearst Kersti Kase sõnul on pimedal ajal paljudel halb tuju ja nad magavad halvasti. Pool tundi jalutamist päevavalges tõstab meeleolu rohkem kui ükski vitamiin. Tema soovitus on lihtne: minge lõuna ajal õue, isegi kui ilm on külm ja tuuline. Kes tahab vormis olla, ei pea käima jõusaalis ega dieeti pidama. Kui meeleolu on mitu nädalat halb, ärge jääge üksi, vaid pöörduge perearsti poole.',
-        '',
-        'Tallinnas on talvel populaarseks muutunud kepikõnd. Kalamaja pargis kogunevad kaks korda nädalas kümned inimesed, enamik neist pensionärid. „Alguses tulin arsti soovitusel, nüüd tulen sõprade pärast,” ütleb 73-aastane Tiina.',
-        '',
-        'Noored eelistavad talisporti. Kui lund on piisavalt, on Nõmme ja Pirita suusarajad nädalavahetusel täis. Kes suusatada ei oska, saab tunde võtta spordiklubides. Suusad saab sageli ka rendile võtta.',
-        '',
-        'Arst hoiatab siiski: libedal teel tuleb olla ettevaatlik. Igal talvel kukub tuhandeid inimesi ja paljud lõpetavad traumapunktis. „Head talvejalanõud on sama tähtsad kui soe müts,” ütleb Kask.',
-      ], []),
-      tag(B.choice('035_p_r3', 'Lugemine 3. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus.', [
-        ['Mida teevad paljud inimesed talvel pärast tööd?', 'istuvad kodus', 'käivad suusatamas', 'jalutavad pargis'],
-        ['Mis tõstab Kersti Kase sõnul meeleolu kõige paremini?', 'jalutamine päevavalges', 'vitamiinid', 'pikk uni'],
-        ['Millal soovitab arst õue minna?', 'lõuna ajal', 'hilja õhtul', 'ainult soojal päeval'],
-        ['Miks käib Tiina nüüd kepikõnnis?', 'sõprade pärast', 'arsti käsul', 'koera pärast'],
-        ['Mida peaks tegema inimene, kelle meeleolu on mitu nädalat halb?', 'pöörduma perearsti poole', 'minema jõusaali', 'pidama dieeti'],
-        ['Mida arvab Kersti Kask talvejalanõudest?', 'need on sama tähtsad kui soe müts', 'need on liiga kallid', 'neid ei ole linnas vaja'],
-      ]), { harno: 'R2' }),
-      tag(B.cloze('035_p_r4', 'Lugemine 4. Sofia kiri sõbrale.', 'Lugege Sofia kirja. Valige igasse lünka sõna, mis sobib nii lause vormi kui ka mõttega.', 'Tere, Kati!', [
-        'Sa küsisid, kuidas mul läheb. Novembris jäi pool meie kontorist {*haigeks|haige|haigena}. Kõigepealt Anna, siis Markus, kelle köha {*muutus|muutub|muutuma} kahe nädalaga väga tugevaks.',
-        '',
-        'Minu onu Viktor kukkus jalgrattalt ja tema põlv läks {*paksuks|paks|paksu}. Arst ütles talle: „{*Ärge|Ära|Ei} sõitke kolm nädalat rattaga!” Viktor oli pahane, aga ta kuulas arsti.',
-        '',
-        'Detsembris tegime kontoris väljakutse „30 päeva tervemalt”. Ma {*kõndisin|kõnnin|kõndima} iga päev tööle ja {*loobusin|loobun|loobuma} õhtusest näksimisest. Kuu lõpuks läks minu uni palju {*paremaks|parem|paremini}.',
-        '',
-        'Nädalavahetusel olin kahjuks ise haige, aga nüüd tunnen end juba {*hästi|hea|head}. Kui sa jaanuaris Tallinnasse tuled, {*helista|helistage|helistad} mulle kindlasti! Läheme koos mere äärde {*jalutama|jalutamas|jalutamast}. Sinu Sofia',
-      ]), { harno: 'R3a' }),
-      B.examPart('035_p_lpart', 'L', { minutes: 30, points: 31, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne kuulamist lugege küsimused läbi ja mõelge, mida kuulata.' }),
-      tag(B.examListen('035_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake seitset lühikest teksti. Iga tekst kõlab kaks korda. Valige igale küsimusele õige vastus.', 'choice', [
-        'Esimene tekst. Head kliendid! Meie apteegis on sel nädalal kõik vitamiinid kakskümmend protsenti odavamad.',
-        'Teine tekst. Tere, siin Võru tervisekeskus. Teie vastuvõtt on homme kell pool kümme, palun tulge viis minutit varem.',
-        'Kolmas tekst. Sofia, siin Anna. Ma ostsin sulle apteegist kurgutablette. Need on sinu toa ukse taga.',
-        'Neljas tekst. Tähelepanu! Tänane õhtune matk jääb tugeva tuule tõttu ära. Saun on avatud kella kuuest.',
-        'Viies tekst. Tere, siin füsioterapeut. Teie neljapäevane aeg kahjuks muutub, saame kokku reedel samal kellaajal.',
-        'Kuues tekst. Viktor, siin Jaan. Ära sõida täna autoga, tee on väga libe. Ma tulen sulle kell kolm järele.',
-        'Seitsmes tekst. Head ujujad! Basseinis kandke palun ujumismütsi. Mütsi saab osta kassast kolme euro eest.',
-      ], [
-        ['Mis on apteegis sel nädalal odavam?', 'vitamiinid', 'köhasiirupid', 'termomeetrid'],
-        ['Mis kell on vastuvõtt?', 'pool kümme', 'kell kümme', 'pool üheksa'],
-        ['Kus on kurgutabletid?', 'toa ukse taga', 'köögilaual', 'Anna kotis'],
-        ['Miks jääb matk ära?', 'tugeva tuule tõttu', 'vihma tõttu', 'haiguse tõttu'],
-        ['Millal on uus aeg füsioterapeudi juures?', 'reedel', 'neljapäeval', 'esmaspäeval'],
-        ['Miks ei tohi Viktor täna autoga sõita?', 'tee on libe', 'põlv valutab', 'auto on katki'],
-        ['Kui palju maksab ujumismüts?', 'kolm eurot', 'kaks eurot', 'viis eurot'],
-      ]), { harno: 'L1' }),
-      tag(B.listening('035_p_l2', 'Kuulamine 2. Treeneri sõnum.', 'Kuulake treeneri häälsõnumit kaks korda. Vastake igale küsimusele ühe või kahe sõnaga.', [
-        'Kaia: Tere, Kristjan! Siin Kaia spordiklubist Liikumine. Sa registreerisid end eile meie klubi liikmeks. Tere tulemast!',
-        'Kaia: Sinu esimene treening on esmaspäeval kell kaheksateist. Tule palun veerand tundi varem, siis jõuame teha lühikese tervisekontrolli.',
-        'Kaia: Kaasa võta spordiriided, vahetusjalatsid ja veepudel. Rätiku saad meilt.',
-        'Kaia: Sa kirjutasid, et sul on vahel seljavalu. Ütle mulle enne treeningut, kus täpselt valutab, siis valin sulle sobivad harjutused.',
-        'Kaia: Esimesel nädalal on kõik treeningud tasuta. Pärast seda maksab kuukaart nelikümmend eurot.',
-        'Kaia: Klubi asub Tartu maanteel, maja number on kakskümmend kaks, teisel korrusel.',
-        'Kaia: Parkida saab maja ees, aga seal on ainult kümme kohta. Bussiga on lihtsam.',
-        'Kaia: Kui sa esmaspäeval tulla ei saa, saada mulle sõnum hiljemalt pühapäeva õhtuks. Näeme esmaspäeval!',
-      ], [
-        'Mis päeval on Kristjani esimene treening? [esmaspäeval]',
-        'Mis kell algab esimene treening? [18|kaheksateist|kell kuus]',
-        'Mis tehakse enne esimest treeningut? [tervisekontroll|lühike tervisekontroll]',
-        'Mida ei pea Kristjan kaasa võtma? [rätikut]',
-        'Mis Kristjanil vahel valutab? [selg]',
-        'Kui palju maksab kuukaart? [nelikümmend eurot|40 eurot|40]',
-        'Mis korrusel klubi asub? [teisel|teisel korrusel|2]',
-        'Mitu parkimiskohta on maja ees? [kümme|10]',
-      ]), { task: 'L03', harno: 'L3a' }),
-      tag(B.examListen('035_p_l3', 'Kuulamine 3. Intervjuu õega.', 'Kuulake raadiointervjuud nõuandeliini õega. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
+      half(B.text('035_d_intro', 'Kontroll 7', `See on mooduli 7 kontroll Harno A2 eksami vormis: kuulamine 15 minutit, rääkimine 15 minutit ja kirjutamine 15 minutit, ilma sõnaraamatuta. Rääkimise esimene ülesanne on paralleelne tunni 31 külma stardiga: lõpus võrdled. ${THRESHOLDS}`)),
+      half(B.examPart('035_p_lpart', 'L', { part: 'Kuulamine', minutes: 15, points: 16, tasks: 2, target: 60, note: `Iga salvestist kuulad kaks korda. ${THRESHOLDS}` })),
+      tag(why(locked(B.examListen('035_p_l3', 'Kuulamine 1. Intervjuu õega.', 'Kuula raadiointervjuud kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', [
         'Ülle: Tere, kuulajad! Täna on stuudios õde Kati, kes vastab nõuandeliinil 1220. Tere, Kati!',
         'Kati: Tere! Mul on hea meel siin olla.',
         'Ülle: Kui palju inimesi teile helistab?',
@@ -1139,8 +1436,213 @@ export const LESSONS = withShapes({
         ['Kati jaoks on kõige raskemad öised kõned.', true],
         ['Nõuandeliinile saab helistada ainult eesti keeles.', false],
         ['Kati soovitab enne kõnet sümptomid üles kirjutada.', true],
-      ]), { harno: 'L4' }),
-      B.listening('035_p_l4', 'Kuulamine 4. Oskar ja ema.', 'Kuulake Oskari ja Kadri vestlust. Kirjutage igasse lünka üks sõna või number.', [
+      ])), [
+        'Kati: „Talvel umbes kaks tuhat inimest päevas.”',
+        'Kati: „Laste palavik.” — mitte täiskasvanute köha.',
+        'Kati: „Kõigepealt küsin, kui vana on laps …”',
+        'Kati: „Kui laps joob ja mängib, võib ta tavaliselt kodus olla.”',
+        'Kati: „Ei pane. Me ei ole arstid, me anname nõu.”',
+        'Kati: „Öised kõned.”',
+        'Kati: „meil vastavad ka vene ja inglise keelt rääkivad õed”.',
+        'Kati: „Kirjutage enne kõnet üles, mis teil on ja millal see algas.”',
+      ]), { harno: 'L4', task: 'L05' }),
+      tag(why(locked(B.listening('035_p_l2', 'Kuulamine 2. Treeneri häälsõnum.', 'Kuula sõnumit kaks korda. Vasta igale küsimusele ühe või kahe sõnaga.', [
+        'Kaia: Tere, Kristjan! Siin Kaia spordiklubist Liikumine. Sa registreerisid end eile meie klubi liikmeks. Tere tulemast!',
+        'Kaia: Sinu esimene treening on esmaspäeval kell kaheksateist. Tule palun veerand tundi varem, siis jõuame teha lühikese tervisekontrolli.',
+        'Kaia: Kaasa võta spordiriided, vahetusjalatsid ja veepudel. Rätiku saad meilt.',
+        'Kaia: Sa kirjutasid, et sul on vahel seljavalu. Ütle mulle enne treeningut, kus täpselt valutab, siis valin sulle sobivad harjutused.',
+        'Kaia: Esimesel nädalal on kõik treeningud tasuta. Pärast seda maksab kuukaart nelikümmend eurot.',
+        'Kaia: Klubi asub Tartu maanteel, maja number on kakskümmend kaks, teisel korrusel.',
+        'Kaia: Parkida saab maja ees, aga seal on ainult kümme kohta. Bussiga on lihtsam.',
+        'Kaia: Kui sa esmaspäeval tulla ei saa, saada mulle sõnum hiljemalt pühapäeva õhtuks. Näeme esmaspäeval!',
+      ], [
+        'Mis päeval on esimene treening? [esmaspäeval]',
+        'Mis kell algab esimene treening? [18|kaheksateist|kell kuus]',
+        'Mis tehakse enne esimest treeningut? [tervisekontroll|lühike tervisekontroll]',
+        'Mida ei pea kaasa võtma? [rätikut]',
+        'Mis kuulajal vahel valutab? [selg]',
+        'Kui palju maksab kuukaart? [nelikümmend eurot|40 eurot|40]',
+        'Mis korrusel klubi asub? [teisel|teisel korrusel|2]',
+        'Mitu parkimiskohta on maja ees? [kümme|10]',
+      ])), [
+        '„Sinu esimene treening on esmaspäeval …”',
+        '„… kell kaheksateist.”',
+        '„siis jõuame teha lühikese tervisekontrolli”.',
+        '„Rätiku saad meilt.”',
+        '„sul on vahel seljavalu”.',
+        '„kuukaart nelikümmend eurot”.',
+        '„teisel korrusel”.',
+        '„seal on ainult kümme kohta”.',
+      ]), { harno: 'L3a', task: 'L03' }),
+      half(B.examPart('035_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele või paaris. Ülesanne 1 on ilma abita; ülesanne 2 on telefonikõne.' })),
+      teach(tag(half(B.speaking('035_t_s1', 'Rääkimine 1. Kui ma olin haige.', 'Räägi 60–90 sekundit ilma abita ja ilma märkmeteta.', [
+        'Räägi ühest korrast, kui sa olid haige: kuidas see algas, mis muutus, kes sind aitas ja kuidas sa terveks said?',
+      ], [60, 90])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 31 külm start): sama hindamine, uus teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: olek ja muutus, -ks: läks hullemaks, sain terveks, käskiv kõneviis nõuannetes) ja võrdle tunni 31 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.rolecards('035_t_call', 'Rääkimine 2. Helista perearstikeskusesse.', 'Sinu pereliikmel on kaks päeva palavik ja köha läheb hullemaks. Helista perearstikeskusesse ja lepi kokku aeg.',
+        'Sina helistad. Eesmärk: ütle, mis haigel on ja kuidas see muutus, lepi kokku aeg ja küsi, mida teha kuni selle ajani.',
+        'Sina oled registraator. Vasta ja küsi haige nime ja vanust.',
+        [], []), { harno: 'S2', task: 'S04' }),
+      'Õpetaja on registraator ja küsib kolm küsimust, üks neist ootamatu („Täna on kõik ajad täis. Kas homme kell 8.20 sobiks?”). Punktid 0–5: ütleb sümptomid ja muutuse (-ks) 0–2, reageerib ootamatule küsimusele 0–1, küsib viisakalt (sooviksin, kas … sobiks) 0–1, kordab kokkuleppe üle 0–1.'),
+      half(B.examPart('035_t_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks sõnum, 50–70 sõna, kõigist neljast punktist.' })),
+      tag(teach(half(B.examWriting('035_t_w1', 'Kirjutamine. Sõnum sõbrale.', 'Kirjuta sõbrale sõnum 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'kiri', {
+        situation: 'Sõber kutsus sind laupäeval matkale. Reedel jäid sa haigeks.',
+        points: ['mis juhtus ja kuidas sa end tunned', 'mida arst või õde soovitas', 'miks sa matkale tulla ei saa', 'üks nõu sõbrale matkaks (võta kaasa …, ära unusta …)'],
+        words: [50, 70], opening: 'Tere!',
+      })), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (olek ja muutus, -ks, käskiv kõneviis, lihtminevik).'), { harno: 'W1b' }),
+      teach(half(B.table('035_t_profile', 'Minu tulemus.', 'Kirjuta iga osa punktid, arvuta protsent ja vaata lävendeid (Harno 60 %, KeeleSepp 70 % / 80 %). Viimases reas võrdle tunni 31 külma starti ja tänast rääkimist.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Kuulamine (16 punkti) |  |  | ',
+        'Rääkimine (10 punkti) |  |  | ',
+        'Kirjutamine (8 punkti) |  |  | ',
+        'Rääkimine ilma abita (tund 31 → tund 35) |  |  | ',
+      ])), 'Õpetajale: viimane rida on tunni 31 külma stardi ja selle tunni rääkimise 1 võrdlus (kolm märget). Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (kuulamine → tund 32 või 34, rääkimine → tunnid 32 ja 33, kirjutamine → tund 31 või 34).'),
+      hide(B.vocab('035_d_vocab', 'Mooduli võtmesõnad.', ['palavik — температура', 'köha — кашель', 'valutama — болеть', 'paranema — поправляться', 'retsept — рецепт', 'ravim — лекарство', 'hääl — голос', 'põlv — колено', 'uni — сон', 'harjumus — привычка', 'eesmärk — цель', 'tulemus — результат', 'enesetunne — самочувствие', 'meeleolu — настроение', 'loobuma — отказываться', 'vorm — форма']), V5_CUT),
+      hide(B.choice('035_d_quiz', 'Mida sa moodulist mäletad?', 'Vasta mooduli lugude ja vormide küsimustele. Vali igale küsimusele üks õige vastus.', [
+        ['Kes jäi kontoris esimesena haigeks?', 'Anna', 'Markus', 'Liis'],
+        ['Mis haigus oli Markusel arsti sõnul?', 'bronhiit', 'kopsupõletik', 'gripp'],
+        ['Miks helistas Sofia Markuse eest perearstikeskusse?', 'Markuse hääl oli kadunud', 'Markus oli Riias', 'Markus magas'],
+        ['Kes nimetab ennast tugitoolisportlaseks?', 'Markus', 'Liis', 'Rein'],
+        ['Mis segas Markusel hästi magada?', 'kohv ja telefon', 'naabri koer', 'külm tuba'],
+        ['Mida muutis Jaan juba enne väljakutset?', 'hakkas tööle kõndima', 'hakkas rohkem vett jooma', 'lõpetas magusa söömise'],
+        ['Mis sobib lausesse: Pärast külma trenni jäi Markus …', 'haigeks', 'haige', 'haigele'],
+        ['Mis sobib lausesse: Härra Mets, … jalg padjale!', 'tõstke', 'tõstate', 'tõstma'],
+        ['Mis sobib lausesse: Anna käib kord nädalas …', 'ujumas', 'ujuma', 'ujumine'],
+        ['Mis sobib lausesse: Jaan on loobunud õhtusest …', 'rämpstoidust', 'rämpstoit', 'rämpstoitu'],
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.reading('035_d_letter', 'Sofia kiri emale.', 'Loe Sofia kirja emale ja vasta küsimustele lühidalt, oma sõnadega.', 'Kallis ema!', [
+        'Kirjutan sulle Võrumaalt, kuhu me tulime kontoriga nädalavahetuseks. See oli Liisi kingitus pärast väljakutset: kaks päeva matkamist, sauna ja tervislikku toitu. Viktor tuli kaasa matkajuhiks, sest tema põlv on jälle terve.',
+        '',
+        'Laupäeva hommikul läks aga kõik teisiti. Ärkasin ja tundsin, et kurk valutab ja pea on raske. Lõunaks läks palavik 38,7 kraadini. Matkale ma minna ei saanud.',
+        '',
+        'Viktor helistas kohe nõuandeliinile 1220. Õde Kati küsis, kui kaua palavik on kestnud ja kas mul on raske hingata. Ta soovitas palju juua, võtta palavikurohtu ja puhata. Kui palavik läheb üle 39 kraadi või hingamine muutub raskeks, tuleb kohe helistada 112. Anna kirjutas kõik paberile üles ja Liis tõi mulle iga tunni järel vett.',
+        '',
+        'Pühapäeva hommikuks läks palju paremaks. Markus tegi mulle teed meega ja ütles naljaga, et nüüd on minu kord kontori patsient olla. Õhtul sõime kõik koos suppi ja mängisime kaarte, nii et ka meeleolu läks paremaks.',
+        '',
+        'Ära muretse! Esmaspäeval lähen perearsti juurde ja olen nädala kodus. Järgmiseks nädalavahetuseks olen kindlasti terve. Kallistan, Sofia',
+      ], [
+        ['Miks oli kontor nädalavahetusel Võrumaal?', 'see oli Liisi kingitus pärast väljakutset|nad tulid matkama'],
+        ['Miks sai Viktor matkajuhiks olla?', 'tema põlv on jälle terve'],
+        ['Mis juhtus Sofiaga laupäeva lõunaks?', 'palavik läks 38,7 kraadini|ta jäi haigeks'],
+        ['Mida soovitas õde Kati?', 'juua palju, võtta palavikurohtu ja puhata'],
+        ['Kuidas aitasid Anna ja Liis?', 'Anna kirjutas kõik üles, Liis tõi vett'],
+        ['Mida teeb Sofia esmaspäeval?', 'läheb perearsti juurde'],
+      ]), V5_CUT),
+      hide(B.categorize('035_d_sort', 'Mooduli sõnad nelja veergu.', 'Kuhu iga sõna kuulub? Pane mooduli sõnad nelja veergu.', [
+        ['sümptomid', ['palavik', 'köha', 'nohu', 'peavalu']], ['arsti juures ja apteegis', ['retsept', 'vastuvõtt', 'ravim', 'töövõimetusleht']],
+        ['vigastus', ['põlv', 'kepp', 'kompress', 'traumapunkt']], ['harjumused', ['eesmärk', 'dieet', 'jõusaal', 'väljakutse']],
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.transformation('035_d_trans', 'Muutus või teie-käsk.', 'Muuda lauset antud sõna järgi: tegusõna tähendab muutust minevikus, „teie” tähendab teie-käsku.', [
+        ['Pärast pikka trenni on Markus haige.', 'jääma', 'Pärast pikka trenni jäi Markus haigeks.'],
+        ['Õhtuks on Sofia palavik väga kõrge.', 'minema', 'Õhtuks läks Sofia palavik väga kõrgeks.'],
+        ['Nädala pärast on Anna jälle terve.', 'saama', 'Nädala pärast sai Anna jälle terveks.'],
+        ['Pärast väljakutset on Jaani uni parem.', 'minema', 'Pärast väljakutset läks Jaani uni paremaks.'],
+        ['Võrumaal on ilm õhtul väga külm.', 'minema', 'Võrumaal läks ilm õhtul väga külmaks.'],
+        ['Pane palun põlvele külma kompressi.', 'teie', 'Pange palun põlvele külma kompressi.'],
+        ['Võta seda siirupit kolm korda päevas.', 'teie', 'Võtke seda siirupit kolm korda päevas.'],
+        ['Ära joo õhtul enam kohvi.', 'teie', 'Ärge jooge õhtul enam kohvi.'],
+        ['Tule esmaspäeval uuesti vastuvõtule.', 'teie', 'Tulge esmaspäeval uuesti vastuvõtule.'],
+        ['Ära mine haigena tööle.', 'teie', 'Ärge minge haigena tööle.'],
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.errorfix('035_d_fix', 'Vead eksamitöödest.', 'Need laused on varasemate õpilaste eksamitöödest. Leia igas lauses üks viga ja paranda see.', [
+        ['Eile õhtul ma jäin väga haigeks.', 'Eile õhtul jäin ma väga haigeks.'],
+        ['Mul valutab pea ja kurgu.', 'Mul valutab pea ja kurk.'],
+        ['Hommikuks läks palavik madal.', 'Hommikuks läks palavik madalaks.'],
+        ['Kas sa oled juba terveks?', 'Kas sa oled juba terve?'],
+        ['Härra Mets, ära koormake jalga!', 'Härra Mets, ärge koormake jalga!'],
+        ['Sofia, ärge muretse, kõik on hästi!', 'Sofia, ära muretse, kõik on hästi!'],
+        ['Ma pean võtma kaks tabletid päevas.', 'Ma pean võtma kaks tabletti päevas.'],
+        ['Apteegist ostsin ma pudeli köhasiirup.', 'Apteegist ostsin ma pudeli köhasiirupit.'],
+        ['Pärast väljakutset sain ma tervem.', 'Pärast väljakutset sain ma tervemaks.'],
+        ['Minu naaber tegeleb juba mitu aastat jooga.', 'Minu naaber tegeleb juba mitu aastat joogaga.'],
+      ]), V5_DRILL),
+      hide(B.writing('035_d_write', 'Minu tervisenädal.', 'Kirjuta 8–10 lauset: kuidas sa end sel nädalal tundsid, mis muutus ja mida sa oma tervise heaks tegid.', [8, 10], ['enesetunne', 'läks paremaks', 'meeleolu', 'harjumus'], 3), V5_CUT),
+      hide(// own instruction: B.examiner's fixed wording repeats other modules' examiner sets (final shape V7)
+      teach(withInstruction(B.examiner('035_d_warm', 'tervis ja arstiabi', [
+        'Kuidas sa oma tervise eest hoolitsed?',
+        'Mida sa teed, kui jääd haigeks: lähed arsti juurde, helistad nõuandeliinile või ravid end ise? Miks?',
+        'Kas sinu meelest on Eestis lihtne arsti juurde saada? Miks?',
+        'Mille poolest erineb arstiabi Eestis ja sinu kodumaal?',
+        'Kas töötaja peaks saama haigushüvitist juba esimesest haiguspäevast? Põhjenda.',
+        'Kas inimene peaks ise oma tervise eest vastutama või on see riigi ülesanne? Miks?',
+        'Milline harjumus on sinu arvates tervisele kõige kasulikum? Miks?',
+      ]), 'Soojendus nagu suulise eksami alguses: eksamineerija küsib tervisest ja arstiabist. Vasta igale küsimusele 2–4 lausega ja too põhjus või näide oma elust.'),
+        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'), V5_CUT),
+    ],
+    practice: [
+      hide(B.examPart('035_p_rpart', 'R', { minutes: 45, points: 38, tasks: 4, note: 'Lugemisosas on kaks A2 ülesannet ja kaks B1 ülesannet. Lugege iga ülesande juhis enne teksti läbi ja jälgige aega.' }), V5_CUT),
+      hide(tag(B.adsmatch('035_p_r1', 'Lugemine 1. Tervis ja liikumine.', 'Lugege olukordi ja kuulutusi. Kirjutage iga olukorra juurde sobiva kuulutuse täht; sama kuulutus võib sobida mitmele olukorrale.', [
+        ['Spordiklubi Liikumine', 'Jooga, venitus, ujumine ja jõusaal kesklinnas. Avatud iga päev kell 7–22. Uutele liikmetele on esimene nädal tasuta. Treener aitab koostada isikliku treeningplaani.'],
+        ['Võru matkaklubi', 'Laupäeviti matkad Lõuna-Eesti metsades, 10–15 kilomeetrit. Kaasa võtke soojad riided ja süüa. Sobib ka algajatele, osalemine on tasuta.'],
+        ['Kepikõnd Kalamajas', 'Tasuta kepikõnd pensionäridele ja kõigile teistele teisipäeviti ja neljapäeviti kell 10. Kepid saab kohapeal laenata. Kogunemine Kalamaja pargi väravas.'],
+        ['Massaažituba Pehme Käsi', 'Selja- ja kaelamassaaž pärast pikka tööpäeva. Tund maksab 45 eurot. Avatud ka õhtuti kuni kella üheksani. Aeg tuleb ette broneerida.'],
+        ['Unekool', 'Kolmeõhtune kursus neile, kes ei saa hästi magada. Õpetaja on unearst. Kursus toimub veebis, hind on 30 eurot.'],
+        ['Tervisekeskus Elu', 'Tervisekontroll täiskasvanutele: vererõhk, veresuhkur ja kehakaal poole tunniga. Ilma ajata tööpäeviti kell 8–12. Toitumisnõustaja aitab neid, kes tahavad ilma dieedita kaalust alla võtta. Kontrolli eest võib maksta ka tööandja.'],
+      ], [
+        ['Markus tahab õppida paremini magama, aga kodust välja minna ta ei taha.', 'E'],
+        ['Tiina, 73, otsib tasuta liikumist, kus saab kepid kohapeal laenata.', 'C'],
+        ['Kristjan tahab jõusaalis treenima hakata, aga esimese nädala eest maksta ei taha.', 'A'],
+        ['Liisil valutab pärast pikka arvutitööd selg ja ta tahab õhtul abi.', 'D'],
+        ['Rämpstoidust loobunud Jaan otsib nõu, kuidas ilma dieedita kaalust alla võtta.', 'F'],
+        ['Viktor otsib nädalavahetuseks pikka jalutuskäiku metsas koos teistega.', 'B'],
+        ['Anna tahab joogaga alustada ja vajab treeneri nõu.', 'A'],
+        ['Sofia tahab tervisekontrolli, mille eest maksab tema firma.', 'F'],
+        ['Helgi tahab mitu õhtut õppida, kuidas uni paremaks muuta.', 'E'],
+        ['Oskar tahab isaga laupäeval matkale minna, aga ta on alles algaja.', 'B'],
+      ]), { harno: 'R1' }), V5_CUT),
+      hide(B.profiles('035_p_r2', 'Lugemine 2. Kolm inimest ja nende tervis.', 'Lugege kolme inimese kaarti. Kirjutage igasse lünka sõna või arv kaardi põhjal.', [
+        ['Rein, 68', ['pensionär, elab Kalamajas', 'käib kaks korda nädalas kepikõnnis', 'tal on kõrge vererõhk', 'joob hommikul ainult rohelist teed', 'mängib maleringis malet'],
+          ['Rein elab [Kalamajas].', 'Kepikõnnis käib ta [kaks|2] korda nädalas.', 'Reinul on kõrge [vererõhk].', 'Hommikul joob ta rohelist [teed].']],
+        ['Kaia, 29', ['medõde, töötab öövahetustes', 'magab päeval kuni kella kaheni', 'ujub kolm korda nädalas', 'ei joo kohvi pärast keskpäeva', 'õpib õhtuti hispaania keelt'],
+          ['Kaia töötab [öövahetustes|öösel].', 'Päeval magab ta kuni kella [kaheni|kahe].', 'Ujumas käib ta [kolm|3] korda nädalas.', 'Kohvi ei joo ta pärast [keskpäeva].']],
+        ['Timo, 16', ['õpilane, mängib korvpalli', 'trenn on neli korda nädalas', 'vigastas eelmisel kuul hüppeliigest', 'tahab saada profisportlaseks', 'magab vähemalt kaheksa tundi'],
+          ['Timo mängib [korvpalli].', 'Trennis käib ta [neli|4] korda nädalas.', 'Eelmisel kuul vigastas ta [hüppeliigest].', 'Öösel magab ta vähemalt [kaheksa|8] tundi.']],
+      ], '3'), V5_CUT),
+      hide(B.reading('035_p_r3text', 'Lugemine 3. Artikkel.', 'Lugege artikkel läbi. Küsimused on kohe järgmises ülesandes.', 'Talvel liigu rohkem, mitte vähem', [
+        'Detsembris on Eestis päevad lühikesed ja pimedad. Paljud inimesed istuvad pärast tööd kodus diivanil ja ootavad kevadet. Arstid ütlevad aga, et just talvel on liikumine kõige tähtsam.',
+        '',
+        'Perearst Kersti Kase sõnul on pimedal ajal paljudel halb tuju ja nad magavad halvasti. Pool tundi jalutamist päevavalges tõstab meeleolu rohkem kui ükski vitamiin. Tema soovitus on lihtne: minge lõuna ajal õue, isegi kui ilm on külm ja tuuline. Kes tahab vormis olla, ei pea käima jõusaalis ega dieeti pidama. Kui meeleolu on mitu nädalat halb, ärge jääge üksi, vaid pöörduge perearsti poole.',
+        '',
+        'Tallinnas on talvel populaarseks muutunud kepikõnd. Kalamaja pargis kogunevad kaks korda nädalas kümned inimesed, enamik neist pensionärid. „Alguses tulin arsti soovitusel, nüüd tulen sõprade pärast,” ütleb 73-aastane Tiina.',
+        '',
+        'Noored eelistavad talisporti. Kui lund on piisavalt, on Nõmme ja Pirita suusarajad nädalavahetusel täis. Kes suusatada ei oska, saab tunde võtta spordiklubides. Suusad saab sageli ka rendile võtta.',
+        '',
+        'Arst hoiatab siiski: libedal teel tuleb olla ettevaatlik. Igal talvel kukub tuhandeid inimesi ja paljud lõpetavad traumapunktis. „Head talvejalanõud on sama tähtsad kui soe müts,” ütleb Kask.',
+      ], []), V5_CUT),
+      hide(tag(B.choice('035_p_r3', 'Lugemine 3. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus.', [
+        ['Mida teevad paljud inimesed talvel pärast tööd?', 'istuvad kodus', 'käivad suusatamas', 'jalutavad pargis'],
+        ['Mis tõstab Kersti Kase sõnul meeleolu kõige paremini?', 'jalutamine päevavalges', 'vitamiinid', 'pikk uni'],
+        ['Millal soovitab arst õue minna?', 'lõuna ajal', 'hilja õhtul', 'ainult soojal päeval'],
+        ['Miks käib Tiina nüüd kepikõnnis?', 'sõprade pärast', 'arsti käsul', 'koera pärast'],
+        ['Mida peaks tegema inimene, kelle meeleolu on mitu nädalat halb?', 'pöörduma perearsti poole', 'minema jõusaali', 'pidama dieeti'],
+        ['Mida arvab Kersti Kask talvejalanõudest?', 'need on sama tähtsad kui soe müts', 'need on liiga kallid', 'neid ei ole linnas vaja'],
+      ]), { harno: 'R2' }), V5_CUT),
+      hide(tag(B.cloze('035_p_r4', 'Lugemine 4. Sofia kiri sõbrale.', 'Lugege Sofia kirja. Valige igasse lünka sõna, mis sobib nii lause vormi kui ka mõttega.', 'Tere, Kati!', [
+        'Sa küsisid, kuidas mul läheb. Novembris jäi pool meie kontorist {*haigeks|haige|haigena}. Kõigepealt Anna, siis Markus, kelle köha {*muutus|muutub|muutuma} kahe nädalaga väga tugevaks.',
+        '',
+        'Minu onu Viktor kukkus jalgrattalt ja tema põlv läks {*paksuks|paks|paksu}. Arst ütles talle: „{*Ärge|Ära|Ei} sõitke kolm nädalat rattaga!” Viktor oli pahane, aga ta kuulas arsti.',
+        '',
+        'Detsembris tegime kontoris väljakutse „30 päeva tervemalt”. Ma {*kõndisin|kõnnin|kõndima} iga päev tööle ja {*loobusin|loobun|loobuma} õhtusest näksimisest. Kuu lõpuks läks minu uni palju {*paremaks|parem|paremini}.',
+        '',
+        'Nädalavahetusel olin kahjuks ise haige, aga nüüd tunnen end juba {*hästi|hea|head}. Kui sa jaanuaris Tallinnasse tuled, {*helista|helistage|helistad} mulle kindlasti! Läheme koos mere äärde {*jalutama|jalutamas|jalutamast}. Sinu Sofia',
+      ]), { harno: 'R3a' }), V5_CUT),
+      hide(tag(B.examListen('035_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake seitset lühikest teksti. Iga tekst kõlab kaks korda. Valige igale küsimusele õige vastus.', 'choice', [
+        'Esimene tekst. Head kliendid! Meie apteegis on sel nädalal kõik vitamiinid kakskümmend protsenti odavamad.',
+        'Teine tekst. Tere, siin Võru tervisekeskus. Teie vastuvõtt on homme kell pool kümme, palun tulge viis minutit varem.',
+        'Kolmas tekst. Sofia, siin Anna. Ma ostsin sulle apteegist kurgutablette. Need on sinu toa ukse taga.',
+        'Neljas tekst. Tähelepanu! Tänane õhtune matk jääb tugeva tuule tõttu ära. Saun on avatud kella kuuest.',
+        'Viies tekst. Tere, siin füsioterapeut. Teie neljapäevane aeg kahjuks muutub, saame kokku reedel samal kellaajal.',
+        'Kuues tekst. Viktor, siin Jaan. Ära sõida täna autoga, tee on väga libe. Ma tulen sulle kell kolm järele.',
+        'Seitsmes tekst. Head ujujad! Basseinis kandke palun ujumismütsi. Mütsi saab osta kassast kolme euro eest.',
+      ], [
+        ['Mis on apteegis sel nädalal odavam?', 'vitamiinid', 'köhasiirupid', 'termomeetrid'],
+        ['Mis kell on vastuvõtt?', 'pool kümme', 'kell kümme', 'pool üheksa'],
+        ['Kus on kurgutabletid?', 'toa ukse taga', 'köögilaual', 'Anna kotis'],
+        ['Miks jääb matk ära?', 'tugeva tuule tõttu', 'vihma tõttu', 'haiguse tõttu'],
+        ['Millal on uus aeg füsioterapeudi juures?', 'reedel', 'neljapäeval', 'esmaspäeval'],
+        ['Miks ei tohi Viktor täna autoga sõita?', 'tee on libe', 'põlv valutab', 'auto on katki'],
+        ['Kui palju maksab ujumismüts?', 'kolm eurot', 'kaks eurot', 'viis eurot'],
+      ]), { harno: 'L1' }), V5_CUT),
+      hide(B.listening('035_p_l4', 'Kuulamine 4. Oskar ja ema.', 'Kuulake Oskari ja Kadri vestlust. Kirjutage igasse lünka üks sõna või number.', [
         'Oskar: Ema, kas ma võin homme jalgpalli minna?',
         'Kadri: Sul oli eile veel palavik. Homme jääd koju.',
         'Oskar: Aga reedel on meil tähtis mäng Rakveres!',
@@ -1156,35 +1658,28 @@ export const LESSONS = withShapes({
       ], [
         'Eile oli Oskaril veel [palavik].', 'Reedel on Oskaril tähtis mäng [Rakveres].', 'Oskar võib minna, kui ta on kaks päeva ilma [palavikuta].', 'Täna ei tohi Oskar minna [õue].',
         'Telefonis võib Oskar mängida üks [tund].', 'Õhtusöögiks on [kanasupp].', 'Supp on valmis kell [kuus|6].', 'Vanaema tuleb laupäeval [rongiga].',
-      ]),
-      B.rubric('035_p_points', 'Minu punktid lugemises ja kuulamises.', 'Kirjuta oma punktid osade kaupa ja võrdle neid eesmärgiga.', ['Lugemine 1–4: … / 38 (eesmärk 31)', 'Kuulamine 1–4: … / 31 (eesmärk 25)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']),
+      ]), V5_CUT),
+      hide(B.rubric('035_p_points', 'Minu punktid lugemises ja kuulamises.', 'Kirjuta oma punktid osade kaupa ja võrdle neid eesmärgiga.', ['Lugemine 1–4: … / 38 (eesmärk 31)', 'Kuulamine 1–4: … / 31 (eesmärk 25)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']), V5_CUT),
     ],
     transfer: [
-      B.examPart('035_t_wpart', 'W', { minutes: 35, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Vastake igale küsimusele ja kirjutage jutus kõigist punktidest.' }),
-      tag(B.examWriting('035_t_w1', 'Kirjutamine 1. Küsimustik.', 'Täitke spordiklubi küsimustik. Vastake lühidalt; miks-küsimustele kirjutage ka põhjus.', 'kusimustik', {
-        situation: 'Teil on kuu aega tasuta spordiklubi liikmekaart. Klubi palub uutel liikmetel täita küsimustiku.',
-        questions: ['Kui vana te olete?', 'Mitu korda nädalas te praegu sporti teete?', 'Millega te vabal ajal tegelete? Miks?', 'Mis kellaajal teile treenida sobib?', 'Kas teil on mõni terviseprobleem või vigastus?', 'Kas te eelistate treenida üksi või koos teistega? Miks?', 'Mida te tahaksite kuu ajaga saavutada?', 'Mida te teete, et vormis olla?', 'Mida te klubilt veel ootate?', 'Kas te olete kunagi dieeti pidanud? Miks?'],
-      }), { harno: 'W1a' }),
-      B.rubricW1('035_t_rw1', ['vastus igale küsimusele', 'põhjus miks-küsimustele', 'vastus sobib küsimusega', 'selge ja arusaadav keel']),
-      tag(B.examWriting('035_t_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Kirjutage kõigist neljast punktist.', 'jutt', {
+      hide(B.rubricW1('035_t_rw1', ['vastus igale küsimusele', 'põhjus miks-küsimustele', 'vastus sobib küsimusega', 'selge ja arusaadav keel']), V5_CUT),
+      hide(tag(B.examWriting('035_t_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Kirjutage kõigist neljast punktist.', 'jutt', {
         situation: 'Kirjutage jutt pealkirjaga „Päev, mil ma jäin haigeks”.',
         points: ['kus te olite ja mida te plaanisite', 'kuidas te end tundsite ja mis muutus', 'kes teid aitas ja mida teile soovitati', 'kuidas te terveks saite ja mida te sellest õppisite'],
         words: [80, 100],
-      }), { harno: 'W2a' }),
-      B.rubricW2('035_t_rw2'),
-      B.examPart('035_t_spart', 'S', { minutes: 15, points: 20, tasks: 3, note: 'Rääkimine on paaris. Eksamineerija küsib, teie vastate; telefonikõnes on teil oma kaart.' }),
-      tag(B.speaking('035_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija tutvub teiega ja küsib kolm küsimust. Vastake igale kahe-kolme lausega.', ['Kuidas teie nimi on ja kust te pärit olete?', 'Kus te töötate või õpite?', 'Kuidas te oma vaba aega veedate?'], [70, 90]), { harno: 'S0' }),
-      tag(B.speaking('035_t_s1', 'Rääkimine 1. Teemaküsimused „Tervis”', 'Eksamineerija esitab teemaküsimused. Vastake ja põhjendage iga vastust või tooge näide oma elust.', ['Mis aitab teil meeleolu tõsta, kui enesetunne on halb?', 'Kas teie arvates elavad inimesed praegu tervislikumalt kui varem? Miks?', 'Millist nõu te annaksite kolleegile, kes on alati väsinud?', 'Kuidas on arstiabi teie kodumaal ja Eestis erinev?', 'Kas te olete pigem tugitoolisportlane või tervisesportlane? Miks?'], [90, 120]), { harno: 'S1a' }),
-      teach(tag(B.phoneCards('035_t_s2', 'Rääkimine 2. Telefonikõne nõuandeliinile.', 'A helistab nõuandeliinile 1220, sest sõbral on kõrge palavik; B on õde. Seejärel vahetage kaardid.', 'Olete sõpradega reisil Võrumaal. Teie sõbral on laupäeval kõrge palavik ja kurguvalu.', ['Helistaja', [
+      }), { harno: 'W2a' }), V5_CUT),
+      hide(B.rubricW2('035_t_rw2'), V5_CUT),
+      hide(tag(B.speaking('035_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija tutvub teiega ja küsib kolm küsimust. Vastake igale kahe-kolme lausega.', ['Kuidas teie nimi on ja kust te pärit olete?', 'Kus te töötate või õpite?', 'Kuidas te oma vaba aega veedate?'], [70, 90]), { harno: 'S0' }), V5_CUT),
+      hide(teach(tag(B.phoneCards('035_t_s2', 'Rääkimine 2. Telefonikõne nõuandeliinile.', 'A helistab nõuandeliinile 1220, sest sõbral on kõrge palavik; B on õde. Seejärel vahetage kaardid.', 'Olete sõpradega reisil Võrumaal. Teie sõbral on laupäeval kõrge palavik ja kurguvalu.', ['Helistaja', [
         'Tervitage ja öelge, miks helistate.', 'Kirjeldage sõbra sümptomeid ja millal need algasid.', 'Öelge, mis ravimeid sõber on võtnud.', 'Küsige, mida praegu teha.', 'Küsige, millal tuleb arsti juurde minna või kiirabi kutsuda.',
       ]], ['Õde', [
         'Küsige haige vanust ja palavikku.', 'Küsige, kas haigel on raske hingata.', 'Soovitage: palju juua, palavikurohtu, puhata.', 'Öelge: kui palavik on üle 39 või hingamine raske, helistage 112.', 'Soovitage esmaspäeval perearsti juurde minna.',
       ]]), { harno: 'S2' }),
-      'Üks-ühele: õpetaja on õde (eksamineerija roll), siis vahetage. Hinda hindamisjuhendiga: kas kõik kaardi küsimused said küsitud ja vastatud ning kas nõu oli teie-vormis.'),
-      B.rubricSpeaking('035_t_rs', 'Hindamine: rääkimine (20 punkti).'),
-      B.selfcheck('035_t_self', ['Ma saan aru tervise teemalistest teadetest, intervjuudest ja artiklitest.', 'Ma kasutan muutuse vormi (jäi haigeks, läks paremaks) ning käsku ja keeldu.', 'Ma täidan küsimustiku ja kirjutan jutu kõigist punktidest.', 'Ma vastan teemaküsimustele ja helistan nõuandeliinile.'], 'Moodul 7 tehtud'),
+      'Üks-ühele: õpetaja on õde (eksamineerija roll), siis vahetage. Hinda hindamisjuhendiga: kas kõik kaardi küsimused said küsitud ja vastatud ning kas nõu oli teie-vormis.'), V5_CUT),
+      hide(B.rubricSpeaking('035_t_rs', 'Hindamine: rääkimine (20 punkti).'), V5_CUT),
+      hide(B.selfcheck('035_t_self', ['Ma saan aru tervise teemalistest teadetest, intervjuudest ja artiklitest.', 'Ma kasutan muutuse vormi (jäi haigeks, läks paremaks) ning käsku ja keeldu.', 'Ma täidan küsimustiku ja kirjutan jutu kõigist punktidest.', 'Ma vastan teemaküsimustele ja helistan nõuandeliinile.'], 'Moodul 7 tehtud'), V5_CUT),
     ],
   },
 }, {
-  'a2b1-031': 'KUUL L→W', 'a2b1-032': 'LUGU R→S', 'a2b1-033': 'AVAS L→S', 'a2b1-034': 'KIRJ R→W', 'a2b1-035': 'EKS',
+  'a2b1-031': 'LUGU R→W', 'a2b1-032': 'KUUL L→S', 'a2b1-033': 'RÄÄK R→S', 'a2b1-034': 'KIRJ L→W', 'a2b1-035': 'EKS',
 });
