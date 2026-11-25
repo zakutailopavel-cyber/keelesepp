@@ -98,7 +98,8 @@ G6 audio: play count set, 2× (B2 clips 1×), lock in controls · G7 story cast 
 rubric (4 criteria with descriptors) · G11 thresholds named · G12 no „pausideta” in A2/B1 rubrics · G13 link task:
 each module has one block with a real source link (title + https URL) or a real addressee.
 
-Gates run per module from `strictModulesV5.json` so that a module is switched on when it is rewritten.
+Gates run per module from `strictModulesV5.json` so that a module is switched on when it is rewritten. The A2 course has
+its own numbers and exceptions in the same code (`course: 'a2'`, list `"a2"`): see `docs/METHODOLOGY_A2_V5.md`.
 
 ### 6.1 How the gates are built (2026-11-25, branch agent/b1b2-gates-v5)
 

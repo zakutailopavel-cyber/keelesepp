@@ -1,5 +1,6 @@
 // Gates G1–G13 of methodology v5 „lesson budget” for the Estonian B1 (A2→B1, a2b1-*) and B2 (B1→B2, b1b2-*) courses
-// (docs/METHODOLOGY_B1_B2_V5.md §3–§6). Pure and node-importable (tools/course-audit/method-v5.mjs prints the report): no
+// (docs/METHODOLOGY_B1_B2_V5.md §3–§6) and the A2 course (A1→A2, a2-*, docs/METHODOLOGY_A2_V5.md: a 60-min lesson, its
+// own length stages, a short dictation allowed, ready phrases faded by the module's last lesson, a true diagnostic). Pure and node-importable (tools/course-audit/method-v5.mjs prints the report): no
 // block registry, no React. The gates apply to the modules listed in strictModulesV5.json (methodV5.test.js); the report
 // shows any module, so a content agent sees the gaps before switching a module on.
 //
@@ -20,13 +21,21 @@ import { ITEMS } from '../../../worksheet-studio/didactics/depth.js';
 
 export const V5 = Object.freeze({
   // G1: blocks per sheet and per lesson (§3)
-  budget: { b1: { discover: 5, practice: 4, transfer: 5, lesson: 15 }, b2: { discover: 4, practice: 4, transfer: 5, lesson: 14 } },
+  budget: {
+    b1: { discover: 5, practice: 4, transfer: 5, lesson: 15 }, b2: { discover: 4, practice: 4, transfer: 5, lesson: 14 },
+    // A2 (METHODOLOGY_A2_V5.md §3): a 60-min lesson (A2_CURRICULUM_100.md), so fewer blocks in the lesson
+    a2: { discover: 5, practice: 4, transfer: 5, lesson: 14 },
+  },
   // G1: a 90-min lesson: the 75-min core + buffer, by the sheets' time estimate (timeEstimate.js)
   lessonMinutes: 90,
+  // G1: the A2 lesson is 60 min: a 50-min core + buffer
+  a2LessonMinutes: 65,
+  // G1 / G9 (A2): the placement diagnostic is one sheet, ≤ 10 blocks, about 30 min, without models
+  diagnostic: { sheets: 1, blocks: 10, minutes: 35 },
   // G1 / §5: a module control is one sheet, 45 min, ≤ 10 blocks (the estimate may run 10 % over)
   control: { sheets: 1, blocks: 10, minutes: 50 },
   // §5: full mock exams only at these lesson numbers (their exam format is not a lesson budget)
-  mocks: { b1: [60, 80, 89, 90], b2: [20, 40, 60, 80, 89, 90] },
+  mocks: { b1: [60, 80, 89, 90], b2: [20, 40, 60, 80, 89, 90], a2: [97, 99, 100] },
   // G3: B1 lengths with a floor and a ceiling by lesson number (§3); „~50 + ~100” words = 45–110
   b1Stages: [
     { to: 20, stage: 'A2', text: [80, 150], audioSec: 90, write: [30, 60], speak: [30, 60] },
@@ -34,6 +43,22 @@ export const V5 = Object.freeze({
     { to: 60, stage: 'A2+/B1-', text: [150, 220], audioSec: 150, write: [60, 90], speak: [90, 120] },
     { to: 90, stage: 'B1', text: [180, 300], audioSec: 210, write: [45, 110], speak: [120, 180] },
   ],
+  // G3: A2 lengths by lesson number (METHODOLOGY_A2_V5.md §3): the A2 sheet norm of levels.js is the floor (a reading task
+  // ≥ 80 words, a talk ≥ 45 s with its 25 % margin), the ceilings grow to the Harno A2 lengths at the end (reading ≈ 150
+  // words, a dialogue up to 2.5 min, writing ≥ 25 + ≥ 30 words)
+  a2Stages: [
+    { to: 20, stage: 'A2 algus', text: [80, 120], audioSec: 75, write: [20, 45], speak: [35, 60] },
+    { to: 50, stage: 'A2-', text: [80, 140], audioSec: 90, write: [25, 50], speak: [45, 75] },
+    { to: 80, stage: 'A2', text: [100, 150], audioSec: 120, write: [30, 60], speak: [45, 90] },
+    { to: 100, stage: 'A2 eksam', text: [100, 150], audioSec: 150, write: [30, 70], speak: [60, 120] },
+  ],
+  // G3 (A2): a module control may hold one reading of the Harno A2 exam's length (≈ 150 words, quality.js harnoProblems
+  // asks a module for one text ≥ 120 words), whatever the stage
+  a2ControlText: 150,
+  // G5 (A2): a short dictation is allowed (owner 2026-11-04: only B1–C1 dropped it) — one a lesson, ≤ 6 sentences
+  a2Dictation: { perLesson: 1, sentences: 6 },
+  // G8 (A2): matching, sorting and word order stay on the sheet for beginners, from lesson 051 (stage A2) they go to Harjuta
+  a2NoDrillFrom: 51,
   // G3 / G4: B2 (§3): reading 400–600, listening 3–4 min (clips 35–45 s, heard once), writing ~140 + ~180, a 1-min
   // monologue after 2 min preparation, a discussion ≤ 4 min
   b2: { text: [400, 600], audioSec: [180, 240], clipSec: 45, write: [126, 200], speak: [60, 240] },
@@ -149,15 +174,31 @@ const INFERENCE = /\b(miks|järeld|vihja|autor|kirjutaja|hoiak|suhtu|eesmär|pea
 const URL_RE = /https:\/\/[^\s)\]>»”"]+/;
 // G11: the thresholds, one way everywhere (§2.9)
 const HARNO_THRESHOLD = /Harno\p{L}*[^.\n]{0,60}?(?:lävend|soorit|läbi|alates|vähemalt|piir)[^.\n%]{0,25}?(\d{2})\s?%/giu;
+const ZERO_PART = /(ükski|ühegi|üheski)[^.\n]{0,40}(0 punkti|null|nulli)|0 punkti[^.\n]{0,30}(ühe(gi|s)ki|osa)/iu;
 const PCT = (n) => new RegExp(`(?<![\\d,.])${n}\\s?%`);
 
 function lessonKind(course, lessonId, lesson, sheets) {
   const docs = Object.values(sheets);
+  // A2: the placement diagnostic is its own kind (one sheet, no models)
+  if (course === 'a2' && (lesson?.placement || docs.some((d) => d.meta?.diagnostic))) return 'diagnostic';
   if (docs.some((d) => d.meta?.oral || d.meta?.theory || d.meta?.diagnostic || d.meta?.exam)) return 'other';
   if (!lesson?.assessment && !docs.some((d) => d.meta?.assessment)) return 'lesson';
   return (V5.mocks[course] || []).includes(lessonNumber(lessonId)) ? 'mock' : 'control';
 }
 function b1Stage(n) { return V5.b1Stages.find((s) => n <= s.to) || V5.b1Stages[V5.b1Stages.length - 1]; }
+function a2Stage(n) { return V5.a2Stages.find((s) => n <= s.to) || V5.a2Stages[V5.a2Stages.length - 1]; }
+// A2 diagnostic (G9): a block that shows the learner a model before the learner's own answer
+const MODEL_TYPES = new Set(['notice', 'vocab', 'phrasebank']);
+function diagnosticModel(b) {
+  const d = b.data || {};
+  if (MODEL_TYPES.has(b.type)) return b.type;
+  if (b.type === 'tip' && d.review) return '„Mäletad?”';
+  if (b.type === 'speaking' && String(d.tipText || '').trim()) return 'valmis fraasid (tipText)';
+  if (b.type === 'writing' && String(d.keywords || '').trim()) return 'märksõnad (keywords)';
+  if ((b.type === 'guidedletter' || b.type === 'examwriting') && String(d.opening || '').trim()) return 'antud algus (opening)';
+  if (b.type === 'rolecards' && `${d.phrasesA || ''}${d.phrasesB || ''}`.trim()) return 'valmis fraasid (phrasesA / phrasesB)';
+  return '';
+}
 
 // a course module → the gates' input (sheets built by the course builder, hidden blocks already out)
 export function methodV5Input(mod, sheets = moduleSheets(mod)) {
@@ -179,13 +220,13 @@ export const GATES = {
   G2: 'vanad normid (40–55 min lehel, ≥ 25 min drille) ei kehti: lehel on meta.methodV5',
   G3: 'pikkused tasemeastme järgi (alam- ja ülempiir), üks sisend tunnis',
   G4: 'B2 sisend: lugemine ≥ 400 sõna + ≥ 2 järeldusküsimust või kuulamine ≥ 3 min + 8–12 punkti; lüngad ilma sõnapangata',
-  G5: 'etteütlust ei ole',
+  G5: 'etteütlust ei ole (A2: üks lühike etteütlus tunnis, ≤ 6 lauset)',
   G6: 'kuulamine: kuulamiste arv on määratud (2×, B2 klipid 1×), kontrollis lukus',
   G7: 'loo tegelased kõige rohkem ühes tunnis mooduli kohta',
   G8: 'kaunistused: ≤ 1 nõuanne tunnis, examrubric ainult kontrollis, risti-, sobitus- ja järjestusülesanded Harjutasse',
-  G9: 'iseseisvus: üks kõne ja üks tekst ilma fraaside ja alguseta, üks varjatud infoga rollikaart moodulis',
+  G9: 'iseseisvus: üks kõne ja üks tekst ilma fraaside ja alguseta, üks varjatud infoga rollikaart moodulis (A2: mooduli viimases tunnis; diagnostikas mudeleid ei ole)',
   G10: 'B2 kirjutamise analüütiline hindamisjuhend (4 kriteeriumi kirjeldustega)',
-  G11: 'lävendid ühtemoodi: Harno 60 %, KeeleSepp 70 % / 80 %',
+  G11: 'lävendid ühtemoodi: Harno 60 %, KeeleSepp 70 % / 80 % (A2: ka „ükski osa ei ole 0 punkti”)',
   G12: 'A2/B1 hindamisjuhendis ei ole „pausideta”',
   G13: 'seosülesanne: päris allikas (pealkiri + https-link) või päris adressaat',
 };
@@ -194,7 +235,10 @@ export function methodV5Problems(input) {
   const out = [];
   const { course } = input;
   const b2 = course === 'b2';
-  const budget = V5.budget[b2 ? 'b2' : 'b1'];
+  const a2 = course === 'a2';
+  const budget = V5.budget[b2 ? 'b2' : a2 ? 'a2' : 'b1'];
+  const lessonMinutes = a2 ? V5.a2LessonMinutes : V5.lessonMinutes;
+  const freeIn = {}; // A2: free speech / writing per teaching lesson (G9 fading)
   const add = (gate, code, lessonId, phase, text, blockId = '') => out.push({ gate, code, lessonId, phase, blockId, text });
   const castLessons = [];
   let freeSpeak = 0; let freeWrite = 0; let hiddenCards = 0; let links = 0; let oldSheets = 0;
@@ -205,7 +249,7 @@ export function methodV5Problems(input) {
     const phases = Object.keys(sheets);
     const all = phases.flatMap((p) => ownBlocks(sheets[p]).map((b) => ({ b, p, doc: sheets[p] })));
     const teaching = kind === 'lesson';
-    const stage = b2 ? null : b1Stage(n);
+    const stage = b2 ? null : a2 ? a2Stage(n) : b1Stage(n);
 
     // G2: the sheet is built as a v5 sheet (its old minute and drill norms off), counted over the module
     oldSheets += phases.filter((p) => !sheets[p]?.meta?.methodV5).length;
@@ -218,21 +262,28 @@ export function methodV5Problems(input) {
       });
       if (all.length > budget.lesson) add('G1', 'G1-lesson', lessonId, '*', `${all.length} plokki tunnis (≤ ${budget.lesson})`);
       const minutes = phases.reduce((m, p) => m + sheetMinutes(sheets[p]), 0);
-      if (minutes > V5.lessonMinutes) add('G1', 'G1-minutes', lessonId, '*', `tunni töö ≈ ${minutes} min (≤ ${V5.lessonMinutes}: 75 min tuum + puhver)`);
+      if (minutes > lessonMinutes) add('G1', 'G1-minutes', lessonId, '*', `tunni töö ≈ ${minutes} min (≤ ${lessonMinutes}: ${a2 ? '50 min tuum 60-minutilises tunnis' : '75 min tuum'} + puhver)`);
     } else if (kind === 'control') {
       if (phases.length > V5.control.sheets) add('G1', 'G1-control-sheets', lessonId, '*', `kontrollis ${phases.length} lehte (üks leht, 45 min)`);
       if (all.length > V5.control.blocks) add('G1', 'G1-control-blocks', lessonId, '*', `kontrollis ${all.length} plokki (≤ ${V5.control.blocks})`);
       const minutes = phases.reduce((m, p) => m + sheetMinutes(sheets[p]), 0);
       if (minutes > V5.control.minutes) add('G1', 'G1-control-minutes', lessonId, '*', `kontroll ≈ ${minutes} min (45 min)`);
+    } else if (kind === 'diagnostic') {
+      // A2: a true placement diagnostic — one short sheet, the learner's own first attempt without models
+      if (phases.length > V5.diagnostic.sheets) add('G1', 'G1-diag-sheets', lessonId, '*', `diagnostikas ${phases.length} lehte (üks leht)`);
+      if (all.length > V5.diagnostic.blocks) add('G1', 'G1-diag-blocks', lessonId, '*', `diagnostikas ${all.length} plokki (≤ ${V5.diagnostic.blocks})`);
+      const minutes = phases.reduce((m, p) => m + sheetMinutes(sheets[p]), 0);
+      if (minutes > V5.diagnostic.minutes) add('G1', 'G1-diag-minutes', lessonId, '*', `diagnostika ≈ ${minutes} min (≤ ${V5.diagnostic.minutes}, umbes 30 min)`);
+      all.forEach(({ b, p }) => { const model = diagnosticModel(b); if (model) add('G9', 'G9-diag-model', lessonId, p, `${b.id}: diagnostikas on mudel (${model}) — õppija esimene katse on ilma toeta`, b.id); });
     }
 
     // G3: lengths with a floor and a ceiling (mock exams keep the real exam's lengths)
-    if (teaching || kind === 'control') {
-      const textCeil = b2 ? V5.b2.text[1] : stage.text[1];
+    if (teaching || kind === 'control' || kind === 'diagnostic') {
+      const textCeil = b2 ? V5.b2.text[1] : a2 && kind === 'control' ? Math.max(stage.text[1], V5.a2ControlText) : stage.text[1];
       const audioCeil = b2 ? V5.b2.audioSec[1] : stage.audioSec;
       const writeCeil = b2 ? V5.b2.write[1] : stage.write[1];
       const speakCeil = b2 ? V5.b2.speak[1] : stage.speak[1];
-      const where = b2 ? 'B2' : `B1 tund ${String(n).padStart(3, '0')}, ${stage.stage}`;
+      const where = b2 ? 'B2' : `${a2 ? 'A2' : 'B1'} tund ${String(n).padStart(3, '0')}, ${stage.stage}`;
       let longestText = 0; let longestAudio = 0; let longestWrite = 0; let longestSpeak = 0; let writes = 0; let speeches = 0;
       const inputs = [];
       all.forEach(({ b, p }) => {
@@ -298,8 +349,14 @@ export function methodV5Problems(input) {
       all.filter(({ b }) => b.type === 'gaps' && b.data?.showBank === 'yes').forEach(({ b, p }) => add('G4', 'G4-bank', lessonId, p, `${b.id}: lüngad sõnapangaga (B2: ilma pangata)`, b.id));
     }
 
-    // G5: no dictation in B1–C1
-    all.filter(({ b }) => b.type === 'dictation').forEach(({ b, p }) => add('G5', 'G5-dictation', lessonId, p, `${b.id}: etteütlus (B1–C1 ei ole)`, b.id));
+    // G5: no dictation in B1–C1; A2 keeps one short dictation a lesson (owner 2026-11-04)
+    const dictations = all.filter(({ b }) => b.type === 'dictation');
+    if (!a2) dictations.forEach(({ b, p }) => add('G5', 'G5-dictation', lessonId, p, `${b.id}: etteütlus (B1–C1 ei ole)`, b.id));
+    else {
+      if (dictations.length > V5.a2Dictation.perLesson) add('G5', 'G5-dictation-many', lessonId, '*', `${dictations.length} etteütlust tunnis (A2: ≤ ${V5.a2Dictation.perLesson})`);
+      dictations.filter(({ b }) => lines(b.data?.sentences).length > V5.a2Dictation.sentences)
+        .forEach(({ b, p }) => add('G5', 'G5-dictation-long', lessonId, p, `${b.id}: etteütluses ${lines(b.data.sentences).length} lauset (A2: ≤ ${V5.a2Dictation.sentences})`, b.id));
+    }
 
     // G6: the play count of every recording; locked in controls and mock exams
     all.filter(({ b }) => AUDIO.has(b.type)).forEach(({ b, p }) => {
@@ -311,7 +368,7 @@ export function methodV5Problems(input) {
       const want = !b2 ? '2×' : clips ? 'B2 klipid 1×' : 'B2: 2×, lühike klipp (≤ 60 s) 1×';
       if (!(plays > 0)) add('G6', 'G6-plays', lessonId, p, `${b.id}: kuulamiste arv on määramata (${want})`, b.id);
       else if (!ok) add('G6', 'G6-plays', lessonId, p, `${b.id}: kuulatakse ${plays}× (${want})`, b.id);
-      if ((kind === 'control' || kind === 'mock') && !b.data?.lockPlays) add('G6', 'G6-lock', lessonId, p, `${b.id}: kontrollis on kuulamine lukus (lockPlays)`, b.id);
+      if ((kind === 'control' || kind === 'mock' || kind === 'diagnostic') && !b.data?.lockPlays) add('G6', 'G6-lock', lessonId, p, `${b.id}: kontrollis on kuulamine lukus (lockPlays)`, b.id);
     });
 
     // G7: the cast
@@ -325,7 +382,7 @@ export function methodV5Problems(input) {
       const b2Writing = b2 && all.some(({ b }) => (writingWords(b)?.[1] || 0) >= 120);
       all.filter(({ b }) => b.type === 'examrubric' && !(b2Writing && isAnalyticRubric(b) && b.data?.scale !== 'S'))
         .forEach(({ b, p }) => add('G8', 'G8-examrubric', lessonId, p, `${b.id}: eksami hindamisjuhend tavalises tunnis (ainult kontrollis; B2: kirjutamise analüütiline juhend)`, b.id));
-      if (b2 || n >= V5.noDrillFrom) {
+      if (b2 || n >= (a2 ? V5.a2NoDrillFrom : V5.noDrillFrom)) {
         all.filter(({ b }) => OFF_SHEET.has(b.type) || (b.type === 'tip' && b.data?.review))
           .forEach(({ b, p }) => add('G8', 'G8-off-sheet', lessonId, p, `${b.id}: ${b.data?.review ? '„Mäletad?”' : b.type} kuulub Harjutasse, mitte tunnilehele`, b.id));
       }
@@ -335,8 +392,11 @@ export function methodV5Problems(input) {
 
     // G9: independence (counted over the module)
     if (teaching) {
-      freeSpeak += all.filter(({ b, doc }) => freeSpeech(b, doc)).length;
-      freeWrite += all.filter(({ b, doc }) => freeWriting(b, doc)).length;
+      const speak = all.filter(({ b, doc }) => freeSpeech(b, doc)).length;
+      const write = all.filter(({ b, doc }) => freeWriting(b, doc)).length;
+      freeSpeak += speak;
+      freeWrite += write;
+      freeIn[lessonId] = { n, speak, write };
       hiddenCards += all.filter(({ b }) => isHiddenInfoCard(b)).length;
     }
 
@@ -356,6 +416,8 @@ export function methodV5Problems(input) {
       const text = all.map(({ b }) => blockText(b)).join('\n');
       const missing = [60, 70, 80].filter((x) => !PCT(x).test(text));
       if (missing.length) add('G11', 'G11-thresholds', lessonId, '*', `kontrollis pole nimetatud ${missing.map((x) => `${x} %`).join(', ')} (Harno 60 %, KeeleSepp eksamiks valmis 70 %, sertifikaat 80 %)`);
+      // Harno A2: 60 % of the total and no part with zero points (HARNO_LEVEL_REQUIREMENTS.md)
+      if (a2 && !ZERO_PART.test(text)) add('G11', 'G11-zero', lessonId, '*', 'kontrollis pole öeldud Harno teist tingimust: ükski osa ei tohi olla 0 punkti');
     }
 
     // G12: no „pausideta” in an A2 / B1 rubric
@@ -370,9 +432,16 @@ export function methodV5Problems(input) {
   const teachingLessons = lessons.filter((l) => l.kind === 'lesson').length;
   if (oldSheets) add('G2', 'G2-flag', '*', '*', `${oldSheets} lehte ilma meta.methodV5-ta (moodul pole strictModulesV5.json-is): vanad 40–55 min ja ≥ 25 min drillide normid kehtivad`);
   if (castLessons.length > 1) add('G7', 'G7-cast', '*', '*', `loo tegelased ${castLessons.length} tunnis (≤ 1): ${castLessons.join('; ')}`);
-  if (teachingLessons) {
+  if (teachingLessons && a2) {
+    // A2: ready phrases are allowed early and faded by the module's end — its last teaching lesson has the free tasks
+    const last = Object.entries(freeIn).sort(([, x], [, y]) => y.n - x.n)[0];
+    if (last && !last[1].speak) add('G9', 'G9-speech', last[0], '*', 'mooduli viimases tunnis pole rääkimisülesannet ilma valmis fraasideta (A2: toed kaovad mooduli lõpuks)');
+    if (last && !last[1].write) add('G9', 'G9-writing', last[0], '*', 'mooduli viimases tunnis pole kirjutamist ilma fraaside ja antud alguseta (A2: toed kaovad mooduli lõpuks)');
+  } else if (teachingLessons) {
     if (!freeSpeak) add('G9', 'G9-speech', '*', '*', 'moodulis pole ühtegi rääkimisülesannet ilma valmis fraasideta (speaking ilma tipText-ita, lehel pole fraasipanka)');
     if (!freeWrite) add('G9', 'G9-writing', '*', '*', 'moodulis pole ühtegi kirjutamist ilma fraaside ja antud alguseta');
+  }
+  if (teachingLessons) {
     if (!hiddenCards) add('G9', 'G9-hidden-card', '*', '*', 'moodulis pole varjatud infoga rollikaarti (õpetaja kaardil „Varjatud info: …” või data.hiddenInfo)');
     if (!links) add('G13', 'G13-link', '*', '*', 'moodulis pole seosülesannet: plokk päris allikaga (pealkiri + https-link) või päris adressaadiga (data.realAddressee)');
   }
@@ -397,10 +466,11 @@ export function methodV5Report(mod, sheets = moduleSheets(mod)) {
 }
 
 export function formatMethodV5Report(report, { gates = null } = {}) {
-  const budget = V5.budget[report.course === 'b2' ? 'b2' : 'b1'];
+  const budget = V5.budget[report.course === 'b2' || report.course === 'a2' ? report.course : 'b1'];
+  const minutes = report.course === 'a2' ? V5.a2LessonMinutes : V5.lessonMinutes;
   const keep = (p) => !gates || gates.includes(p.gate);
   const out = [`${report.id} „${report.title}” — v5 rikkumisi ${report.problems.filter(keep).length}`,
-    `  eelarve: Avasta ≤ ${budget.discover} · Harjuta ≤ ${budget.practice} · Kasuta ≤ ${budget.transfer} · tund ≤ ${budget.lesson} plokki, ≤ ${V5.lessonMinutes} min; kontroll 1 leht ≤ ${V5.control.blocks} plokki`,
+    `  eelarve: Avasta ≤ ${budget.discover} · Harjuta ≤ ${budget.practice} · Kasuta ≤ ${budget.transfer} · tund ≤ ${budget.lesson} plokki, ≤ ${minutes} min; kontroll 1 leht ≤ ${V5.control.blocks} plokki`,
     `  väravad: ${Object.entries(report.byGate).filter(([g]) => !gates || gates.includes(g)).map(([g, n]) => `${g} ${n}`).join(' · ')}`];
   report.lessons.forEach((l) => {
     const sheets = ['discover', 'practice', 'transfer'].map((p) => (l.sheets[p] ? `${p[0].toUpperCase()} ${l.sheets[p].blocks}/${l.sheets[p].minutes}′` : `${p[0].toUpperCase()} –`)).join('  ');

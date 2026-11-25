@@ -18,23 +18,25 @@ describe('textbook illustrations', () => {
   it('puts the lesson picture after the opening text once and maps lesson ids to level folders', () => {
     expect([artLevel('a2-001'), artLevel('a2b1-016'), artLevel('b1b2-004'), artLevel('est-c1-010')]).toEqual(['a2', 'b1', 'b2', 'c1']);
     const doc = { blocks: [{ id: 'i', type: 'text', data: {} }, { id: 't', type: 'gap', data: {} }] };
-    const withArt = withLessonArt(doc, 'a2-001', 'discover');
+    // A2 module 1 (methodology v5, 2026-11-25): a2-001 is the diagnostic without a picture; a2-002 Harjuta has the badges
+    const withArt = withLessonArt(doc, 'a2-002', 'practice');
     expect(withArt.blocks.map((block) => block.type)).toEqual(['text', 'image', 'notice', 'gap']);
-    expect(withArt.blocks[1]).toMatchObject({ span: 8, data: { artId: 'a2-001-avasta-1', aspect: '3:2', img: { src: '/textbook-art/a2/a2-001/a2-001-avasta-1.webp' } } });
-    expect(withArt.blocks[2]).toMatchObject({ span: 4, data: { title: 'Vaata pilti', lines: 'Kus Anna ja Liis on?\nMida Anna Liisile ütleb?\nMida sina ütled, kui tutvustad ennast uues kohas?' } });
-    expect(withLessonArt(withArt, 'a2-001', 'discover')).toBe(withArt);
-    expect(missingArt(withArt, 'a2-001', 'discover')).toEqual([]);
-    expect(withLessonArt(doc, 'a2-001', 'practice')).toBe(doc);
+    expect(withArt.blocks[1]).toMatchObject({ span: 8, data: { artId: 'a2-002-harjuta-2', aspect: '3:2', img: { src: '/textbook-art/a2/a2-002/a2-002-harjuta-2.webp' } } });
+    expect(withArt.blocks[2]).toMatchObject({ span: 4, data: { title: 'Vaata pilti', lines: 'Kust on Liene pärit? Kus ta elab?\nKes räägib inglise keelt?\nKuidas sa küsid õpetajalt ja kuidas kursusekaaslaselt?' } });
+    expect(withLessonArt(withArt, 'a2-002', 'practice')).toBe(withArt);
+    expect(missingArt(withArt, 'a2-002', 'practice')).toEqual([]);
+    expect(withLessonArt(doc, 'a2-002', 'discover')).toBe(doc);
+    expect(withLessonArt(doc, 'a2-001', 'discover')).toBe(doc);
   });
 });
 
 describe('older sheets with a half-width picture', () => {
   it('get ⅔ width and the „Vaata pilti” card once; other sheets stay the same object', async () => {
     const { withArtLayout } = await import('./textbookArt.js');
-    const old = { blocks: [{ id: 'p', type: 'image', width: 'half', data: { artId: 'a2-004-kasuta-1' } }, { id: 't', type: 'table', width: 'full', data: {} }] };
+    const old = { blocks: [{ id: 'p', type: 'image', width: 'half', data: { artId: 'a2-004-kasuta-2' } }, { id: 't', type: 'table', width: 'full', data: {} }] };
     const fixed = withArtLayout(old);
     expect(fixed.blocks.map((block) => [block.type, block.span])).toEqual([['image', 8], ['notice', 4], ['table', undefined]]);
-    expect(fixed.blocks[1].data.lines).toBe('Mida Sofia teeninduslaual täidab?\nMida Liis kontrollib?\nMilliseid andmeid tuleb ankeeti kirjutada?');
+    expect(fixed.blocks[1].data.lines).toBe('Mis on nimekirjas valesti? Leia kolm viga.\nÜtle perekonnanimi tähthaaval.\nMida sa sekretärile ütled?');
     expect(withArtLayout(fixed)).toBe(fixed);
     const plain = { blocks: [{ id: 'x', type: 'text', data: {} }] };
     expect(withArtLayout(plain)).toBe(plain);
