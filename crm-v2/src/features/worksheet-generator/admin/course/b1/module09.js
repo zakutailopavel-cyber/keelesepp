@@ -1,57 +1,164 @@
-// B1 course (A2 → B1 roadmap), module 9 „Töö ja ametid” (a2b1-041…045), stage B1-. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md; how: docs/FINAL_SHAPE_AUTHORING.md). One storyline in November: Jaan (cook at café
-// Kaneel, long days from 6.00 and new Friday/Saturday evening shifts) misses Oskar's final and finds the ad of the Kase
-// kool kitchen (cook Maire Kuusk retires next summer); he applies by 20 November, has his interview by phone on Thursday
-// 26 November and starts on 1 December, helping Kaneel on two December Saturdays. At Tuul Logistika the administrator has
-// left: Sofia sits at reception, then the new administrator Jelena starts. The goal, said on the first sheet: the learner
-// writes an application letter (043) and goes through a job interview (044).
-//   041 LUGU R→W  „Ametid ja tööülesanded” — predict and read episode 1 (the last Saturday evening), Kadri on the radio
-//                 („Minu amet”), kellena / vastutab … eest / tegeleb …-ga; Eksaminurk R3a (option cloze, introduced
-//                 here) on the school newsletter; Kadri's letter, the pros and cons, the continuation „Jaani otsus” (main).
-//   042 AVAS L→S  „Kus kolleeg on? ma-vorm käändes” — test first (on kohtumas / läks kontrollima / tuli söömast / jäi
-//                 saatmata), Sofia's five calls, the rule, try again; Eksaminurk L2 (radio column on remote work); the
-//                 office board, an information gap, the welcome-coffee invitation; Friday at reception: voicemails →
-//                 notes, the phone call (main), Jelena shown round, a note to Liis.
-//   043 KIRJ L→W  „Kandideerimiskiri” — the radio ad (numbers), Anna's letter of a year ago as the model, ma or da after
-//                 work verbs; register, joining sentences, the career adviser's article, Jaan's draft, the plan;
-//                 Eksaminurk W1a (the school's application questionnaire); four ads, agreeing who applies where, the
-//                 learner's own letter (main) and its better version.
-//   044 PROB R→S  „Töövestlus” — the invitation and Merike's problem (December), a first try at the interview, Anna's
-//                 interview a year ago, claim + example + link, Jaan's request to move the time; language focus after
-//                 the try; Eksaminurk S1b (agreement with an idea card, introduced here): what Jaan answers; the
-//                 director's voicemail, the phone interview (main), the talk with Merike, telling Kadri how it went.
-//   045 EKS       module exam in Harno B1 form at reduced length (all tasks of every part, fewer items), timed parts,
-//                 target 80 % in every part: before the exam (Jaan's first week at school, module language), writing
-//                 W1b + W2a and reading R1–R4, listening L1–L4 and speaking S0, S1a, S1b, S2.
-// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): the ma-infinitive with case endings -ma / -mas / -mast /
-// -mata — taught in 042 (AVAS), used again in 043 (ma or da after work verbs, olen harjunud töötama) and 044 (käisin
-// kursusel õppimas, ükski tellimus ei jäänud täitmata); kellena / vastutama … eest / tegelema …-ga in 041 (government,
-// module 8). Cast facts kept: Jaan cook, wife Kadri (paediatrician), Oskar (football), Mia; café Kaneel (owner Merike
-// Lõhmus, cook Ott); Tuul Logistika (Liis boss, Markus logistician, Anna came a year ago from shop customer service,
-// warehouse worker Rein, new administrator Jelena); Kase kool director Aivar Mänd. New: Kase kool cook Maire Kuusk,
-// head of personnel Eha Org, career adviser Piret Vaher. Earlier versions: archive/v3/b1/module09.js,
-// archive/v1/b1/module09.js.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE §13; topic „töö ja majandus”,
-// secondary „igapäevaelu”, „haridus”): topic opener 041_d_open (employment and wages 2025, minimum wage 2026, registered
-// unemployed Q3 2026, Tammsaare); news 041_p_market (Töötukassa Q3 2026: vacancies and competition by field); forum
-// 042_p_forum (work calls after hours, insertion) and „Kas teadsid?” 042_t_know (written contract, töötamise register);
-// 043_p_know (probation period, Töötukassa trial day); fiction 044_p_story „Kolmas keel” (own short story) and
-// 044_t_know (gross and net pay 2026); examiner set 045_d_warm. One 4-3-2 left (043_d_432); 041_d_picture, 042_d_survey
-// and 044_p_three are pair talks. 045_t_l2: the rule for young workers follows the employment contracts act (2026).
-// Facts and sources: the PR of agent/av-b1-module-09.
-import { B, fullSentences, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 9 „Töö ja ametid” (a2b1-041…045), stage A2+/B1- (lessons 041–060).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1–8: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, 45 min). A2+/B1- stage: text
+// 150–220 words, audio ≤ 2.5 min, writing 60–90 words, speech 90–120 s.
+//   041 game    „Kellena sa töötad?” — the module's COLD TASK first (90–120 s: one's own job or the job one wants, no
+//               help), ONE text „Kell kuus hommikul” (≈ 200 words: a bus driver, a carer, a baker, a forklift driver;
+//               kellena? -na, kelleks? -ks, vastutab … eest, hoolitseb … eest, tegeleb …-ga) — it replaces the four texts
+//               of ≈ 270 words each (041_d_open, 041_d_story, 041_d_radio, 041_p_news ≈ 1100 words). Outcome: the
+//               guessing game „Arva ära amet” with the visual „Kuus ametit”, second round about one's real job.
+//   042 infogap „Kus kolleeg on?” — three calls at an office reception (≈ 90 s, heard twice, 8 gap sentences; replaces
+//               the 165-s recording with five calls and the cast) and the ma-infinitive in its cases: läks kontrollima
+//               (-ma), on kohtumas (-mas), tuleb söömast (-mast), jäi saatmata (-mata). Outcome: the learner answers
+//               the phone at reception with the visual „Kes kus on?” and a HIDDEN-INFORMATION card (the caller's goods
+//               are late, she wants the manager's mobile number, she can be reached only until 14).
+//   043 project „Kandideerin” — a model application letter (≈ 155 words; olen harjunud töötama, käisin kursusel
+//               õppimas, oskan kasutada, mulle meeldib suhelda, olen valmis õppima) and the register of a formal letter.
+//               Outcome: a 60–90-word application letter to one of two ads (the visual „Kaks töökuulutust”, directly
+//               above the task) or to a real ad, without a given opening — the module's free writing. At home the
+//               module's LINK TASK: the real page „Tööpakkumised” of Töötukassa (https://www.tootukassa.ee/et/toopakkumised,
+//               checked 25.11.2026). The 4-3-2 monologue 043_d_432 (6 min) and the 8-min free writing 043_d_free left
+//               Avasta, the exam rubric 043_t_rubric left the ordinary lesson.
+//   044 case    „Töövestlus” — a job interview at a warehouse (≈ 80 s, heard twice, 6 choice questions as in Harno L2) and
+//               the good answer „claim + example + link” (Olen täpne. Näiteks … Seepärast …), the candidate's own
+//               questions. Outcome: an interview in pairs with the visual „Töövestlus”; the employer decides and says
+//               why; second round about one's real job without phrases.
+//   045 EKS     Control 9 (one sheet): listening (workplace announcements, a radio talk on summer jobs — both recordings
+//               kept), speaking — task 1 is the PARALLEL NEW TASK of 041's cold task, task 2 a short job interview with
+//               the teacher — and one notice to colleagues; thresholds named one way. 045 was the module exam in Harno
+//               B1 form (three sheets, 32 blocks); under v5 the full mock exams are only at 060 / 080 / 089 / 090.
+// The continuing story (Jaan leaving café Kaneel for the Kase kool kitchen, Sofia at the Tuul Logistika reception, Anna's
+// interview a year ago, Jelena …) is not used in this module: the people of the texts are made up and appear in one
+// lesson only. Drills (crossword, matching, sorting, word order, „Mäletad?”) are off the sheets: the removed blocks stay
+// in this file as hide(block, why) — ids and learners' answers are kept, and the practice engine
+// (practice/engine/extract.js) still builds Harjuta items from their form tasks. Owner 2026-11-25: texts adapted to the
+// level, facts need not be real or checked, no hard numbers; the statistics opener 041_d_open (≈ 310 words of 2025–2026
+// labour data) is off the sheet. The previous version (design v2, „final shape” storyline) is in git history (main
+// before this PR); earlier ones are archive/v3/b1/module09.js and archive/v1/b1/module09.js.
+// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): kellena? (-na) / kelleks? (-ks), vastutama … eest,
+// hoolitsema … eest, tegelema …-ga (041, after module 8's verb + case); the ma-infinitive in its cases -ma / -mas /
+// -mast / -mata (042, again in 043 and 044: käisin kursusel õppimas, ükski pakk ei jäänud viimata); ma- or
+// da-infinitive after work verbs (043: olen harjunud töötama, olen valmis õppima ↔ oskan kasutada, mulle meeldib suhelda).
+import { B, fullSentences, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-09', course: 'b1', title: 'Töö ja ametid', level: 'B1-', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-09', course: 'b1', title: 'Töö ja ametid', level: 'B1-', design: 'v3-stations', template: 'v4', theme: 'work' };
+
+// theme: a themed module gives every lesson its theme's topic, each with its own sub-topic (§7.3, v4Tasks.test.js)
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 9). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a recording in the control: heard twice, the player locked (G6)
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// a writing form of n ruled lines: the picture stands directly above the task and both fit on one page
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 041 game: guess the job (kellena? mille eest? millega?)
   'a2b1-041': {
-    title: 'Ametid ja tööülesanded',
-    canDo: 'Ma kirjutan 90–110-sõnalise jätkuloo „Jaani otsus”: kellena Jaan töötab, mille eest ta vastutab ja mis edasi juhtub.',
+    title: 'Kellena sa töötad?',
+    phases: grammar('Keel: kellena? (-na) · kelleks? (-ks) · vastutab mille eest? · hoolitseb kelle eest? · tegeleb millega?'),
+    format: 'game',
+    topic: 'work',
+    subtopic: 'professions',
+    canDo: 'Ma räägin oma tööst või tööst, mida tahaksin teha: kellena töötan, mille eest vastutan ja millega iga päev tegelen.',
+    teacherPage: {
+      goal: 'Ученик понимает текст о четырёх профессиях и рассказывает о своей работе: кем работает, за что отвечает и чем занимается (töötab kokana, vastutab … eest, tegeleb …-ga).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 90–120 секунд) → текст «Kell kuus hommikul» и 8 вопросов → пункт 4: игра «Arva ära amet» по картинке «Kuus ametit», второй раунд — о своей работе. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 9: ученик 90–120 секунд без помощи рассказывает о своей работе или о работе, которую хотел бы: кем работает, что делает каждый день, что хорошо и что трудно. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja / aga / sest / kui, формы: kellena — kokana, vastutab … eest, tegeleb …-ga). Контроль (урок 45) начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт «Minu töö» 90–120 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), текст «Kell kuus hommikul» (-na, eest, -ga в контексте), 8 вопросов, в паре: «Kellena Rasmus töötab? Millega Karl tegeleb?»',
+        '25–40: пункт 3 — заметить → правило (kellena? -na: kokana; kelleks? -ks: kokaks; vastutama / hoolitsema + родительный + eest; tegelema + -ga) → текст с выбором формы (8 пропусков, Harno B1 lugemine 3) → 8–10 своих предложений',
+        '40–65: пункт 4 — игра «Arva ära amet» по картинке «Kuus ametit»: A описывает профессию, не называя её, B спрашивает и угадывает; вторая попытка без фраз — о своей настоящей работе (или работе мечты), партнёр задаёт два вопроса',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, какие профессии были у его родителей и бабушек-дедушек и кем он хотел стать в детстве (kelleks tahtsin saada)',
+        '72–90: запас',
+      ],
+      sources: 'Текст (пункт 2) и картинка «Kuus ametit» — учебные, люди выдуманы, время работы примерное; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4 в паре: A выбирает карточку тайно, B угадывает; потом смена ролей; второй раунд — о себе. Один на один: сначала вы описываете профессию (ученик угадывает), потом ученик.',
+      errors: [
+        '«Ma töötan kokk» вместо «Ma töötan kokana» (töötama kellena? → -na).',
+        '«Ta vastutab köök eest» вместо «Ta vastutab köögi eest» (eest требует родительного падежа: köögi, laste, kauba).',
+        '«Ta tegeleb klientid» вместо «Ta tegeleb klientidega» (tegelema millega? → -ga).',
+        '«Ma tahan saada kokana» вместо «Ma tahan saada kokaks» (saama kelleks? → -ks: новая профессия).',
+      ],
+      notes: [
+        'Холодный старт и урок 45 — пара «до / после»: те же три заметки, похожая тема. Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: -na / -ks у профессии и родительный падеж перед eest. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('041_d_review', [['Mida sa teed, kui jääd kursusel teistest maha? Nimeta kaks lahendust.', 'a2b1-039'], ['Mida tellisid Markus ja Anna Kaneelis ja mis läks valesti?', 'a2b1-029'], 'Kellena sa praegu töötad või tahaksid töötada?']),
-      B.topicOpener('041_d_open', 'Teema avaleht: töö ja palk Eestis', [
+      station(teach(tag(purpose(B.speaking('041_d_cold', 'Külm start: minu töö', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Räägi oma tööst või tööst, mida sa tahaksid teha: kellena sa töötad, mida sa iga päev teed, mis on selles töös hea ja mis raske?',
+      ], [90, 120]), 'Nii räägid sa tööst mooduli alguses. Kontrollis (tund 45) on sarnane ülesanne: siis näed, kui palju rohkem sa oskad.'), { task: 'S02', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 9 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest, kui); 3) vormid: kellena (töötan kokana), mille eest (vastutan … eest), millega (tegelen …-ga). Hoia märkmed alles: tunnis 45 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(B.vocab('041_d_vocab', 'Tunni sõnad.', ['amet — профессия', 'töökoht — место работы', 'vastutama (mille eest) — отвечать за', 'hoolitsema (kelle eest) — заботиться о', 'tegelema (millega) — заниматься', 'vahetus — смена', 'tööaeg — рабочее время', 'palk — зарплата', 'ladu — склад', 'tulemus — результат'], '1'), { topic: ['amet', 'vastutama'] }), 2, 17),
+      tag(purpose(why(ownText(B.reading('041_d_story', 'Kell kuus hommikul.', 'Loe teksti. Vasta igale küsimusele 1–4 sõnaga.', 'Kell kuus hommikul', [
+        'Kell on kuus hommikul. Linn alles magab, aga paljud inimesed on juba tööl.',
+        '',
+        'Rasmus töötab bussijuhina. Ta vastutab reisijate turvalisuse eest. Enne sõitu kontrollib ta bussi üle: pidurid, uksed ja tuled. Tema vahetus kestab kaheksa tundi, aga vahel peab ta tulema ka õhtusesse vahetusse. Rasmusele meeldib, et ta näeb iga päev uusi inimesi.',
+        '',
+        'Ljudmila töötab hooldekodus hooldajana. Ta hoolitseb eakate inimeste eest: aitab neil süüa, riidesse panna ja jalutada. „Kõige tähtsam on aeg,” ütleb Ljudmila. „Vana inimene tahab, et keegi teda kuulaks.” Kaks korda nädalas on tal öövahetus. Siis hoolitseb ta korraga kahekümne inimese eest ja kirjutab hommikuks üles, kuidas igaüks magas.',
+        '',
+        'Karl on pagar. Ta tegeleb leiva ja saiaga juba kella neljast. Kella seitsmeks peab värske leib poes olema. Öösel tahaks ta küll magada, aga talle meeldib, et ta näeb kohe oma töö tulemust. Kõige rohkem tööd on tal enne pühi.',
+        '',
+        'Merilin töötab laos tõstukijuhina. Ta tegeleb kaubaga: võtab selle autodelt vastu ja paneb riiulitele. Ta vastutab selle eest, et midagi katki ei läheks. Varem töötas ta poes müüjana, aga siis läks ta kursusele ja sai tõstukijuhiks. Nüüd teenib ta rohkem ja tema tööpäev lõpeb juba kell kolm.',
+        '',
+        'Neid ameteid on Eestis väga vaja. Palk ei ole alati suur, aga ilma nende inimesteta linn ei töötaks.',
+      ], [
+        ['Kellena Rasmus töötab?', 'bussijuhina'],
+        ['Mille eest Rasmus vastutab?', 'reisijate turvalisuse eest|turvalisuse eest'],
+        ['Kelle eest Ljudmila hoolitseb?', 'eakate inimeste eest|eakate eest|vanade inimeste eest'],
+        ['Mis on Ljudmila arvates hooldaja töös kõige tähtsam?', 'aeg'],
+        ['Millega Karl kella neljast tegeleb?', 'leiva ja saiaga'],
+        ['Miks meeldib Karlile pagari töö?', 'ta näeb kohe oma töö tulemust|näeb kohe tulemust|näeb tulemust'],
+        ['Kellena Merilin varem töötas?', 'müüjana|poes müüjana'],
+        ['Kelleks Merilin pärast kursust sai?', 'tõstukijuhiks'],
+      ])), [
+        'Teine lõik: „Rasmus töötab bussijuhina.”',
+        'Teine lõik: „Ta vastutab reisijate turvalisuse eest.”',
+        'Kolmas lõik: „Ta hoolitseb eakate inimeste eest”.',
+        'Kolmas lõik: „„Kõige tähtsam on aeg,” ütleb Ljudmila.”',
+        'Neljas lõik: „Ta tegeleb leiva ja saiaga juba kella neljast.”',
+        'Neljas lõik: „talle meeldib, et ta näeb kohe oma töö tulemust”.',
+        'Viies lõik: „Varem töötas ta poes müüjana”.',
+        'Viies lõik: „läks ta kursusele ja sai tõstukijuhiks”.',
+      ]), 'Enne kui sa ise oma tööst räägid, loed, kuidas neli inimest oma tööd teevad.'), { task: 'R15' }),
+      teach(tag(purpose(B.speaking('041_d_retell', 'Kes mida teeb? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+        'Kellena Rasmus töötab ja mille eest ta vastutab?',
+        'Kelle eest Ljudmila hoolitseb ja mis on tema arvates kõige tähtsam?',
+        'Millega tegelevad Karl ja Merilin?',
+        'Kelle töö on sinu arvates kõige raskem? Miks?',
+        'Kelleks sina lapsena saada tahtsid? Kelleks said?',
+      ], [70, 100], '', 'g_read'), 'Ütled, kellena keegi töötab ja mille eest ta vastutab, õige vormiga.'), { task: 'S06', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Karl töötab bussijuhina”) ja õpilane parandab sind teksti järgi.'),
+      hide(B.review('041_d_review', [['Mida sa teed, kui jääd kursusel teistest maha? Nimeta kaks lahendust.', 'a2b1-039'], ['Mida tellisid Markus ja Anna Kaneelis ja mis läks valesti?', 'a2b1-029'], 'Kellena sa praegu töötad või tahaksid töötada?']), V5_DRILL),
+      hide(B.topicOpener('041_d_open', 'Teema avaleht: töö ja palk Eestis', [
         'Eestis töötab umbes 693 000 inimest. Statistikaameti andmetel oli 2025. aastal tööhõive määr 68,5 % ja töötuse määr 7,5 %: tööd otsis keskmiselt 56 000 inimest. Tööhõive määr näitab, kui suur osa tööealistest inimestest käib tööl. Noorte seas oli töötus palju suurem: 15–24-aastaste töötuse määr oli 20,7 %.',
         'Keskmine brutokuupalk oli 2025. aastal 2092 eurot, 5,6 % rohkem kui aasta varem. Pooled töötajad teenisid aga vähem kui 1724 eurot: see on mediaanpalk. Palgad on eri valdkondades väga erinevad. Kõige rohkem teeniti info ja side valdkonnas, keskmiselt 3651 eurot kuus, kõige vähem majutuses ja toitlustuses, 1333 eurot. Maakondadest oli keskmine palk kõige suurem Harjumaal, 2336 eurot.',
         'Kõige väiksem palk, mida tööandja tohib täistööajaga töötajale maksta, on töötasu alammäär ehk alampalk. Selle lepivad igal aastal kokku Eesti Tööandjate Keskliit ja Eesti Ametiühingute Keskliit ning valitsus kinnitab selle määrusega. Alates 1. aprillist 2026 on alampalk 946 eurot kuus ehk 5,67 eurot tunnis.',
@@ -62,30 +169,9 @@ export const LESSONS = withShapes({
         'Kuidas otsitakse tööd sinu kodumaal ja mis on Eestis teisiti?',
         'Kas alampalk peaks sinu arvates olema suurem? Miks?',
         'Kas sa oled Tammsaare lausega nõus? Mida töö sinu elule annab?',
-      ]),
-      B.text('041_d_goal', 'Moodul 9: töö', 'Selles moodulis räägime tööst: ametitest, tööpäevast, kandideerimisest ja töövestlusest. Jaan töötab kokana kohvikus Kaneel, aga pikad päevad väsitavad teda. Sofia firmas Tuul Logistika otsitakse uut administraatorit. Mooduli lõpus kirjutad ise kandideerimiskirja ja teed töövestluse. Täna loed Jaani lugu ja kirjutad, mis edasi juhtus.'),
-      tag(B.reading('041_d_story', 'Viimane laupäevaõhtu.', 'Vaata pealkirja ja pilti ning arva, miks see õhtu oli Jaanile raske. Siis loe ja kontrolli.', 'Viimane laupäevaõhtu Kaneelis', [
-        'Jaan Mets on töötanud kokana viisteist aastat. Praegu töötab ta kohvikus Kaneel, kus ta vastutab köögi eest. Iga tööpäev algab kell kuus: Jaan küpsetab kaneelirulle ja kontrollib, kas kõik toiduained on olemas. Novembrist on Kaneel reedel ja laupäeval avatud ka õhtuti, kella üheteistkümneni. Merike lootis, et õhtusöögid toovad kohvikule rohkem raha. Nii läkski, aga Jaani tööpäevad muutusid väga pikaks.',
-        '',
-        'Sel laupäeval oli Oskaril jalgpalliturniiri finaal. Jaan oli pojale lubanud, et tuleb kindlasti mängu vaatama. Aga hommikul helistas kokk Ott: ta oli haige ega saanud tööle tulla. Kohviku omanik Merike palus, et Jaan oleks terve päeva tööl. Jaan ei osanud keelduda.',
-        '',
-        'Õhtul oli kohvik rahvast täis. Jaan tegeles korraga kolme tellimusega ja aitas vahel ka ettekandjat. Kell kaheksa saatis Kadri talle video: Oskar lõi finaalis värava! Jaan vaatas videot kahe tellimuse vahel. Ta oli poja üle uhke, aga tundis end halvasti. Juba kolmandat laupäeva järjest ei olnud ta pere juures. Mia oli eelmisel nädalal küsinud, kas isa elab nüüd kohvikus.',
-        '',
-        'Kui viimased kliendid olid läinud, istus Jaan tühjas köögis ja jõi tassi teed. Ott oli talle hommikul saatnud lingi: „Kase kool otsib kokka. Tööaeg E–R 7.00–15.30.” Kase kool on Oskari kool, kodust ainult kümme minutit jalgsi. Jaan teadis, et koolisöökla kokk Maire on seal töötanud juba kakskümmend aastat.',
-        '',
-        'Jaan luges kuulutuse kaks korda läbi. Palk oli väiksem kui Kaneelis, aga õhtud ja nädalavahetused oleksid vabad. Siis tuli sõnum. Oskar kirjutas: „Issi, kas järgmisel laupäeval tuled?” Jaan vaatas telefoni kaua. Siis võttis ta paberi ja pastaka.',
-      ], [
-        ['Kui kaua on Jaan kokana töötanud?', 'viisteist aastat|15 aastat'],
-        ['Mille eest vastutab Jaan Kaneelis?', 'köögi eest'],
-        ['Miks pidi Jaan laupäeval terve päeva tööl olema?', 'Ott oli haige|kokk Ott jäi haigeks'],
-        ['Mida oli Jaan Oskarile lubanud?', 'et tuleb mängu vaatama|et tuleb finaali vaatama'],
-        ['Kuidas sai Jaan teada, et Oskar lõi värava?', 'Kadri saatis video|video kaudu'],
-        ['Miks sobiks Kase kooli töö Jaani perele?', 'õhtud ja nädalavahetused on vabad|kool on kodu lähedal'],
-        ['Mis on Kase kooli töö miinus?', 'palk on väiksem'],
-        ['Kas sinu ennustus oli õige? Mida Jaan sinu arvates paberile kirjutab?', ''],
-      ]), { task: 'R13' }),
-      B.vocab('041_d_vocab', 'Tunni sõnad.', ['amet — профессия', 'töökoht — место работы', 'vastutama — отвечать за', 'tegelema — заниматься', 'hoolitsema — заботиться', 'vahetus — смена', 'palk — зарплата', 'tööaeg — рабочее время', 'kuulutus — объявление', 'kolleeg — коллега', 'ülemus — начальник', 'kokk — повар']),
-      tag(B.listening('041_d_radio', 'Raadio: „Minu amet”.', 'Kuula, kuidas lastearst Kadri oma tööst räägib. Vasta igale küsimusele ühe-kahe sõnaga.', [
+      ]), V5_CUT),
+      hide(B.text('041_d_goal', 'Moodul 9: töö', 'Selles moodulis räägime tööst: ametitest, tööpäevast, kandideerimisest ja töövestlusest. Jaan töötab kokana kohvikus Kaneel, aga pikad päevad väsitavad teda. Sofia firmas Tuul Logistika otsitakse uut administraatorit. Mooduli lõpus kirjutad ise kandideerimiskirja ja teed töövestluse. Täna loed Jaani lugu ja kirjutad, mis edasi juhtus.'), V5_CUT),
+      hide(tag(B.listening('041_d_radio', 'Raadio: „Minu amet”.', 'Kuula, kuidas lastearst Kadri oma tööst räägib. Vasta igale küsimusele ühe-kahe sõnaga.', [
         'Ülle: Tere, kuulajad! Saates „Minu amet” on täna külas Kadri Mets. Kadri, kellena sa töötad?',
         'Kadri: Tere! Ma töötan lastearstina Tallinna lastehaigla osakonnas. Olen seal töötanud kaheksa aastat. Enne seda õppisin kuus aastat Tartus arstiks ja töötasin kaks aastat perearsti juures.',
         'Ülle: Mille eest lastearst vastutab?',
@@ -116,35 +202,53 @@ export const LESSONS = withShapes({
         'Milline peab arst olema, kui laps on väga haige? [rahulik]',
         'Mille pärast Kadri seda tööd teeb? [terve laps lehvitab|laps läheb terveks koju]',
         'Mis on Kadri arvates arsti kõige tähtsam oskus? [kannatlikkus]',
-      ]), { task: 'L03' }),
-      B.notice('041_d_notice', 'Märka: kellena? mille eest? millega?', [
-        '**Kellena** sa töötad? → **-na**: Jaan töötab **kokana**, Kadri **lastearstina**, Liis **juhatajana**.',
-        '**vastutama** + omastav + **eest**: Jaan vastutab **köögi eest**, Kadri **patsientide ravi eest**.',
-        '**hoolitsema** + omastav + **eest**: õde hoolitseb **haigete laste eest**.',
-        '**tegelema** + **-ga**: Jaan tegeles **kolme tellimusega**, Kadri tegeleb **lastega**.',
-        'Amet kolmes vormis: **olen kokk** · **töötan kokana** · **saan kokaks** (muutun).',
-      ], 'full'),
-      B.table('041_d_rule', 'Leia reegel: amet lauses', 'Kirjuta lünka sõna vorm, mida tabeli päises olev küsimus nõuab.', 'Sõna, Kellena? (-na), Kellega? (-ga), Kelle eest?', [
+      ]), { task: 'L03' }), V5_CUT),
+      hide(B.table('041_d_rule', 'Leia reegel: amet lauses', 'Kirjuta lünka sõna vorm, mida tabeli päises olev küsimus nõuab.', 'Sõna, Kellena? (-na), Kellega? (-ga), Kelle eest?', [
         'kokk | [kokana] | [kokaga] | [koka] eest', 'arst | [arstina] | [arstiga] | [arsti] eest', 'õpetaja | [õpetajana] | [õpetajaga] | [õpetaja] eest',
         'juht | [juhina] | [juhiga] | [juhi] eest', 'klient | [kliendina] | [kliendiga] | [kliendi] eest', 'patsiendid | [patsientidena] | [patsientidega] | [patsientide] eest',
-      ], 'g_notice'),
-      B.categorize('041_d_where', 'Kus nad töötavad?', 'Pane ametid rühmadesse selle järgi, kus see inimene tavaliselt töötab.', [
+      ], 'g_notice'), V5_DRILL),
+      hide(B.categorize('041_d_where', 'Kus nad töötavad?', 'Pane ametid rühmadesse selle järgi, kus see inimene tavaliselt töötab.', [
         ['haiglas', ['arst', 'õde', 'hooldaja', 'registraator']],
         ['koolis', ['õpetaja', 'direktor', 'raamatukoguhoidja', 'koolipsühholoog']],
         ['kontoris', ['raamatupidaja', 'administraator', 'sekretär', 'programmeerija']],
         ['laos ja teel', ['laotöötaja', 'autojuht', 'kuller', 'tõstukijuht']],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('041_d_picture', 'Kolm ametit pildil.', 'Kirjelda pilti paarilisele umbes ühe minutiga. Siis arutage kahte viimast küsimust ja põhjendage oma arvamust.', ['Kellena Liis, Jaan ja Markus pildil töötavad?', 'Mille eest igaüks neist vastutab?', 'Millega nad praegu tegelevad?', 'Kelle töö on sinu arvates kõige raskem? Miks?', 'Kellena sina töötad või tahaksid töötada?'], [70, 120], ['… töötab …-na', '… vastutab … eest', '… tegeleb …-ga']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti umbes minuti; õpetaja küsib vahel „Mille eest?” või „Millega?”. Siis arutavad nad, kelle töö on kõige raskem, ja võrdlevad seda õpilase enda tööga.'),
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('041_d_picture', 'Kolm ametit pildil.', 'Kirjelda pilti paarilisele umbes ühe minutiga. Siis arutage kahte viimast küsimust ja põhjendage oma arvamust.', ['Kellena Liis, Jaan ja Markus pildil töötavad?', 'Mille eest igaüks neist vastutab?', 'Millega nad praegu tegelevad?', 'Kelle töö on sinu arvates kõige raskem? Miks?', 'Kellena sina töötad või tahaksid töötada?'], [70, 120], ['… töötab …-na', '… vastutab … eest', '… tegeleb …-ga']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti umbes minuti; õpetaja küsib vahel „Mille eest?” või „Millega?”. Siis arutavad nad, kelle töö on kõige raskem, ja võrdlevad seda õpilase enda tööga.'), V5_CUT),
     ],
     practice: [
-      tag(B.categorize('041_p_verbs', 'Mis vorm järgneb?', 'Pane tegusõnad rühma selle järgi, millist küsimust ja vormi nad enda järele nõuavad.', [
+      station(B.notice('041_d_notice', 'Märka: kellena? mille eest? millega?', [
+        'Tekstist: töötab **bussijuhina** · vastutab **reisijate turvalisuse eest** · hoolitseb **eakate inimeste eest** · tegeleb **leiva ja saiaga** · sai **tõstukijuhiks**',
+        '**Kellena?** → **-na**: töötan **kokana**, **müüjana**, **õpetajana** · aga: olen **kokk** (ilma -na)',
+        '**Kelleks?** → **-ks** (uus amet): saan **kokaks**, sai **tõstukijuhiks** · tahan saada **õeks**',
+        '**vastutama** ja **hoolitsema** + omastav + **eest**: vastutan **köögi eest** · hoolitseb **laste eest**',
+        '**tegelema** + **-ga**: tegelen **klientidega**, **kaubaga**, **arvetega**',
+      ], 'full'), 3, 15),
+      teach(tag(purpose(why(B.cloze('041_p_forms', 'Eksaminurk: üks pere, kolm ametit (Harno B1 lugemine 3)', 'Vali igasse lünka sobiv vorm. Mõtle: mida tegusõna küsib — kellena, kelleks, mille eest, millega?', 'Üks pere, kolm ametit', [
+        'Liina on töötanud kümme aastat Tartu haiglas {*õena|õde|õeks}. Öösel hoolitseb ta korraga paljude {*haigete|haiged|haigetega} eest ja vastutab ka kõigi {*ravimite|ravimid|ravimitega} eest.',
+        '',
+        'Tema mees Andres töötab juba kakskümmend aastat {*ehitajana|ehitaja|ehitajaks}. Sel kuul tegeleb ta ühe vana kooli {*remondiga|remondi|remonti}.',
+        '',
+        'Nende poeg tahab tulevikus saada {*kokaks|kokana|kokk}, sest talle meeldib süüa teha. Praegu õpib ta kutsekoolis ja tegeleb õhtuti väikeses kohvikus {*tellimustega|tellimused|tellimuste}. Kohviku omanik ütleb, et noormees vastutab juba terve {*köögi|köök|köögiga} eest.',
+      ], 'g_notice'), [
+        'töötama kellena? → -na: õena.',
+        'hoolitsema + omastav + eest: haigete eest.',
+        'vastutama + omastav + eest: ravimite eest.',
+        'töötama kellena? → -na: ehitajana.',
+        'tegelema millega? → -ga: remondiga.',
+        'saama kelleks? → -ks (uus amet): kokaks.',
+        'tegelema millega? → -ga: tellimustega.',
+        'vastutama + omastav + eest: köögi eest.',
+      ]), 'Kaheksa lünka näitavad, kas amet ja tegusõna käivad sul õige vormiga.'), { task: 'R03', harno: 'R3a' }),
+      'Eksaminurk (Harno B1 lugemine 3, valiklünktekst, ~8 min). Strateegia: 1) loe kõigepealt kogu tekst läbi; 2) iga lünga juures küsi, mida eelnev tegusõna nõuab (töötab kellena → -na, vastutab mille eest → omastav, tegeleb millega → -ga, saab kelleks → -ks); 3) loe lause valitud vormiga valjult. Üks-ühele: esimese lünga lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise; pärast põhjendab õpilane kolme valikut.'),
+      tag(purpose(rows(B.writing('041_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma või pereliikme tööst: kellena, mille eest vastutab, millega tegeleb, kelleks tahab saada.', [8, 10]), 7), 'Oma laused on sinu mängu ja kodutöö materjal.'), { task: 'W01' }),
+      hide(tag(B.categorize('041_p_verbs', 'Mis vorm järgneb?', 'Pane tegusõnad rühma selle järgi, millist küsimust ja vormi nad enda järele nõuavad.', [
         ['mille eest? (+ omastav + eest)', ['vastutama', 'hoolitsema', 'tänama', 'maksma']],
         ['millega? (+ -ga)', ['tegelema', 'harjuma', 'kohtuma', 'nõustuma']],
         ['millest? (+ -st)', ['huvituma', 'unistama', 'loobuma', 'puuduma']],
         ['millele? (+ -le)', ['kandideerima', 'vastama', 'helistama', 'keskenduma']],
-      ], 'full', 'g_notice'), { task: 'G08' }),
-      teach(tag(B.cloze('041_p_news', 'Eksaminurk: kooli uudiskiri (Harno B1 lugemine 3)', 'Vali igasse lünka sobiv sõna. Mõtle nii vormile kui ka lause mõttele.', 'Kase kooli uudiskiri, november', [
+      ], 'full', 'g_notice'), { task: 'G08' }), V5_DRILL),
+      hide(teach(tag(B.cloze('041_p_news', 'Eksaminurk: kooli uudiskiri (Harno B1 lugemine 3)', 'Vali igasse lünka sobiv sõna. Mõtle nii vormile kui ka lause mõttele.', 'Kase kooli uudiskiri, november', [
         'Head lapsevanemad! Täna kirjutame teile meie kooli köögist, kus toimub iga päev palju rohkem, kui lapsed arvavad. Köögis on tulemas suured muutused. Kokk Maire Kuusk on töötanud meie {*koolis|kooli|kooliga} juba kakskümmend aastat. Järgmisel suvel {*läheb|lähen|minna} ta pensionile. Kogu koolipere tänab teda juba praegu maitsvate lõunate eest. Paljud vanemad mäletavad Maire pannkooke veel oma koolipõlvest.',
         '',
         'Seepärast otsime köögile uut kokka, kes {*alustaks|alustas|alustama} tööd juba detsembris. Uus kokk hakkab koos Mairega igal päeval {*valmistama|valmistada|valmistab} hommikusööki ja lõunat umbes neljasajale lapsele. Esimesel aastal õpetab Maire talle kõike, mida ta ise teab. Köögis töötab veel kaks abikokka ja üks nõudepesija, nii et meeskond on väike, aga sõbralik.',
@@ -155,8 +259,8 @@ export const LESSONS = withShapes({
         '',
         'Kui te tunnete mõnda head kokka, {*andke|annate|andma} talle palun see uudis edasi! Kandideerimiskiri ja CV tuleb saata 20. novembriks direktor Aivar {*Männile|Mänd|Männi}. Töövestlused toimuvad novembri lõpus. Uue koka nime avaldame detsembri uudiskirjas. Ootame teie soovitusi ja küsimusi kooli kantseleisse. Ja kui teie laps tahab teada, kuidas koolilõuna valmib, võib ta tulla koos klassiga kööki vaatama.',
       ], 'g_notice'), { harno: 'R3a' }),
-      'Eksaminurk (Harno B1 lugemine 3, valiklünktekst, ~8 min), formaati tutvustatakse siin. Strateegia: 1) loe kõigepealt kogu tekst läbi ja saa aru mõttest; 2) iga lünga juures küsi: mis sõna on enne ja pärast, mida see nõuab (vastutab … eest → omastav, peab → ma-vorm, oskama → da-vorm); 3) loe lause valitud sõnaga valjult läbi. Üks-ühele: kaks esimest lünka lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise 8 minutiga; pärast põhjendab õpilane kolme valikut.'),
-      tag(B.reading('041_p_market', 'Uudis: kus on tööd kõige rohkem?', 'Loe Töötukassa andmetel põhinevat uudist. Vasta küsimustele ühe kuni kolme sõnaga; viimasele küsimusele vasta oma arvamusega.', 'Töötuid on vähem, tööpakkumisi rohkem', [
+      'Eksaminurk (Harno B1 lugemine 3, valiklünktekst, ~8 min), formaati tutvustatakse siin. Strateegia: 1) loe kõigepealt kogu tekst läbi ja saa aru mõttest; 2) iga lünga juures küsi: mis sõna on enne ja pärast, mida see nõuab (vastutab … eest → omastav, peab → ma-vorm, oskama → da-vorm); 3) loe lause valitud sõnaga valjult läbi. Üks-ühele: kaks esimest lünka lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise 8 minutiga; pärast põhjendab õpilane kolme valikut.'), V5_CUT),
+      hide(tag(B.reading('041_p_market', 'Uudis: kus on tööd kõige rohkem?', 'Loe Töötukassa andmetel põhinevat uudist. Vasta küsimustele ühe kuni kolme sõnaga; viimasele küsimusele vasta oma arvamusega.', 'Töötuid on vähem, tööpakkumisi rohkem', [
         'Töötukassa andmetel oli 2026. aasta kolmandas kvartalis Eestis keskmiselt 38 000 registreeritud töötut. Seda oli 5600 inimese võrra vähem kui aasta varem. Viimati oli töötuid nii vähe 2020. aasta alguses.',
         '',
         'Samal ajal otsivad tööandjad rohkem töötajaid. Töötukassa kaudu pakuti kolmandas kvartalis keskmiselt 5250 vaba töökohta, üle veerandi rohkem kui aasta tagasi. Kõige rohkem on vabu töökohti juurde tulnud töötlevas tööstuses, kaubanduses ja ehituses.',
@@ -175,14 +279,14 @@ export const LESSONS = withShapes({
         ['Millises valdkonnas on kõige raskem tööd leida?', 'finants- ja kindlustusvaldkonnas|finantsvaldkonnas'],
         ['Millest sõltub töö leidmine Brit Rammuli sõnul?', 'inimese oskustest|oskustest'],
         ['Millise ameti valiksid sina nende andmete põhjal? Miks?', ''],
-      ]), { task: 'R19', voice: 'news' }),
-      B.wordforms('041_p_who', 'Kes seda teeb?', 'Tee tegusõnast tegija nimi lõpuga -ja nii, et see sobiks lausesse.', [
+      ]), { task: 'R19', voice: 'news' }), V5_CUT),
+      hide(B.wordforms('041_p_who', 'Kes seda teeb?', 'Tee tegusõnast tegija nimi lõpuga -ja nii, et see sobiks lausesse.', [
         ['õpetama', 'Oskari … on kannatlik ja rõõmsameelne.', 'õpetaja'], ['müüma', 'Viktor on laupäeviti Nõmme turul …', 'müüja'], ['koristama', 'Kontori … tuleb igal õhtul kell kuus.', 'koristaja'],
         ['juhatama', 'Tuul Logistika … on rahulik ja täpne Liis.', 'juhataja'], ['teenindama', 'Hea … naeratab ja kuulab klienti.', 'teenindaja'], ['tööd andma', 'Kase kool võib saada Jaani uueks …', 'tööandjaks'],
         ['töötama', 'Uus … alustab tööd esmaspäeva hommikul.', 'töötaja'], ['kuulama', 'Raadiosaate iga … võib stuudiosse helistada.', 'kuulaja'], ['ostma', 'Iga … saab täna kohvi tasuta.', 'ostja'],
         ['lugema', 'Linnalehe üks … kirjutas toimetusele kirja.', 'lugeja'],
-      ]),
-      B.examListen('041_p_day', 'Jaani pikk laupäev.', 'Jaan räägib Viktorile telefonis oma laupäevast. Ühenda kellaaeg ja see, mida Jaan siis tegi.', 'match', [
+      ]), V5_DRILL),
+      hide(B.examListen('041_p_day', 'Jaani pikk laupäev.', 'Jaan räägib Viktorile telefonis oma laupäevast. Ühenda kellaaeg ja see, mida Jaan siis tegi.', 'match', [
         'Viktor: Jaan, tere! Kadri ütles, et sa olid eile terve päeva tööl. Kuidas läks?',
         'Jaan: Tere, onu! Väsitav päev. Alustasin kell kuus, nagu alati: küpsetasin kaneelirulle.',
         'Jaan: Pool kaheksa helistas Ott ja ütles, et on haige.',
@@ -200,8 +304,8 @@ export const LESSONS = withShapes({
       ], [
         ['kell 6.00', 'küpsetas kaneelirulle'], ['kell 7.30', 'sai Oti kõne'], ['kell 9.00', 'rääkis Merikega'], ['kell 11.00', 'tellis puuduvad toiduained'], ['kell 13.00', 'tegi lõuna kahekümnele'],
         ['kell 15.00', 'pesi ise nõud'], ['kell 17.00', 'valmistas kastmed'], ['kell 20.00', 'vaatas Oskari videot'], ['kell 23.00', 'koristas köögi'], ['kell 0.30', 'jõudis koju'],
-      ], 'g_read'),
-      B.transformation('041_p_say', 'Ütle teisiti.', 'Kirjuta lause ümber antud tegusõnaga. Mõtle, millist vormi see tegusõna nõuab.', [
+      ], 'g_read'), V5_CUT),
+      hide(B.transformation('041_p_say', 'Ütle teisiti.', 'Kirjuta lause ümber antud tegusõnaga. Mõtle, millist vormi see tegusõna nõuab.', [
         ['Kadri on juba kaheksa aastat lastearst.', 'töötab', 'Kadri töötab juba kaheksa aastat lastearstina.'],
         ['Jaani ülesanne kohvikus on kogu köök.', 'vastutab', 'Jaan vastutab kohvikus kogu köögi eest.'],
         ['Anna töö firmas on klientide küsimused.', 'tegeleb', 'Anna tegeleb firmas klientide küsimustega.'],
@@ -212,18 +316,35 @@ export const LESSONS = withShapes({
         ['Oskar tahab tulevikus olla jalgpallur.', 'saada', 'Oskar tahab tulevikus saada jalgpalluriks.'],
         ['Sofia ülesanne on praegu telefonikõned.', 'tegeleb', 'Sofia tegeleb praegu telefonikõnedega.'],
         ['Viktor on igal detsembril jõuluvana.', 'töötab', 'Viktor töötab igal detsembril jõuluvanana.'],
-      ]),
-      B.crossword('041_p_cross', 'Ametite ristsõna.', 'Loe, mida inimene tööl teeb, ja kirjuta tema amet ristsõnasse.', [
+      ]), V5_DRILL),
+      hide(B.crossword('041_p_cross', 'Ametite ristsõna.', 'Loe, mida inimene tööl teeb, ja kirjuta tema amet ristsõnasse.', [
         ['Ravib haigeid ja kirjutab retsepte.', 'arst'], ['Õpetab lastele matemaatikat või keeli.', 'õpetaja'], ['Valmistab restoranis süüa.', 'kokk'], ['Toob pakke koju või kontorisse.', 'kuller'],
         ['Lõikab ja värvib juukseid.', 'juuksur'], ['Müüb poes või turul kaupa.', 'müüja'], ['Juhib bussi ja peatub peatustes.', 'bussijuht'], ['Kontrollib firma arveid ja raha.', 'raamatupidaja'],
         ['Parandab autosid töökojas.', 'automehaanik'], ['Toob restoranis toidu lauda.', 'ettekandja'],
-      ], 'half', 'g_vocab'),
-      teach(tag(B.speaking('041_p_retell', 'Jutusta Jaani laupäevast.', 'Räägi Jaani laupäeva lugu kaks korda järjest. Teisel korral on aega ainult 90 sekundit.', ['Kellena Jaan töötab ja mille eest ta vastutab?', 'Miks pidi ta laupäeval terve päeva tööl olema?', 'Millega ta õhtul tegeles?', 'Mis juhtus kell kaheksa?', 'Mida Jaan öösel köögis leidis ja tegi?'], [90, 150], ['Kõigepealt…', 'Siis…', 'Lõpuks…']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega. Teisel korral 90 sekundit — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'),
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('041_p_retell', 'Jutusta Jaani laupäevast.', 'Räägi Jaani laupäeva lugu kaks korda järjest. Teisel korral on aega ainult 90 sekundit.', ['Kellena Jaan töötab ja mille eest ta vastutab?', 'Miks pidi ta laupäeval terve päeva tööl olema?', 'Millega ta õhtul tegeles?', 'Mis juhtus kell kaheksa?', 'Mida Jaan öösel köögis leidis ja tegi?'], [90, 150], ['Kõigepealt…', 'Siis…', 'Lõpuks…']), { task: 'S07', fluency: true }),
+        'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega. Teisel korral 90 sekundit — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'), V5_CUT),
     ],
     transfer: [
-      B.text('041_t_sit', 'Pühapäeva hommik', 'Pühapäeva hommikul leidis Jaan köögilaualt Kadri kirja. Kadri oli varakult haiglasse läinud. Loe kirja, arutage Jaani kahtlusi ja järjestage, mis on töös kõige tähtsam. Lõpuks kirjuta lugu: mida Jaan otsustas ja mis edasi juhtus.'),
-      B.insertion('041_t_letter', 'Kadri kiri köögilaual.', 'Kirjast on välja võetud seitse lauset. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Kallis Jaan!', [
+      station(teach(tag(purpose(B.rolecards('041_t_doubt', 'Arva ära amet!', 'Vaata pilti üleval. A kirjeldab salaja valitud ametit nime ütlemata, B küsib ja arvab. Siis vahetage.',
+        'Vali pildilt üks amet. Räägi 60–90 sekundit, aga ära ütle ameti nime: kus sa töötad, mille eest vastutad, millega iga päev tegeled ja mis on raske.\nTeine kord räägi oma päris tööst: B küsib kaks küsimust.',
+        'Kuula ja küsi kaks küsimust. Siis arva ära, kellena A töötab. Kui arvasid õigesti, ütle üks lause: kas sa tahaksid seda tööd teha ja miks.',
+        ['Ma töötan …', 'Ma vastutan … eest.', 'Iga päev tegelen …-ga.'], ['Kas sa vastutad … eest?', 'Kas sa tegeled …-ga?', 'Sa töötad …-na!']), 'Pärast mängu oskad sa oma tööd selgitada nii, et teine saab aru, mida sa teed.'), { task: 'S05', main: true, level: 4 }),
+      'Kõigepealt vaatab kumbki pilti (1 min). A valib kaardi salaja ja räägib 60–90 sekundit ilma ameti nimeta; B küsib kaks küsimust ja arvab („Sa töötad õena!”). Siis vahetage. Õnnestunud, kui amet on arvatud ja vormid on õiged: kellena (-na), mille eest (omastav + eest), millega (-ga). Teine katse ilma fraasideta: kumbki räägib oma päris tööst (või tööst, mida tahaks) ja paariline küsib kaks küsimust („Mis on sinu töös kõige raskem?”, „Kelleks sa tahaksid saada?”). Üks-ühele: kõigepealt kirjeldad sina ametit ja õpilane arvab, siis vastupidi; teisel ringil räägib õpilane oma tööst.'), 4, 25, { final: 'explain' }),
+      tag(exitCheck(why(purpose(B.gaps('041_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Minu noorem vend töötab kohvikus [kokana] (kokk).',
+        'Hea kokk vastutab alati terve [köögi] eest (köök).',
+        'Pärast kursust tegeleb mu sõber laos [kaubaga] (kaup).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas amet ja tegusõna on käes.'), ['töötama kellena? → -na: kokana.', 'vastutama + omastav + eest: köögi eest.', 'tegelema millega? → -ga: kaubaga.'])), {}),
+      purpose(B.selfcheck('041_t_self', ['Ma ütlen, kellena keegi töötab: töötab kokana, müüjana.', 'Ma ütlen, mille eest ta vastutab ja millega ta tegeleb.', 'Ma saan aru tekstist nelja ameti kohta.', 'Ma selgitan oma tööd nii, et teine saab aru.'], 'Amet arvatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('041_t_rec', 'Kodus: minu töö.', 'Salvesta 60–90 sekundit.', [
+        'Kellena sa töötad või tahaksid töötada?',
+        'Mille eest sa vastutad ja millega iga päev tegeled?',
+        'Mis on selles töös hea ja mis raske?',
+      ], [60, 90]), 'Õpetaja ütleb, kas amet ja tegusõna tulid õige vormiga.')), { task: 'S15', fluency: true }),
+      homework('041_t_homework', ['1. Kirjuta oma töö kolme lausega: kellena töötan, mille eest vastutan, millega tegelen.', '2. Salvesta oma töö (ülesanne üleval).', '3. Kirjuta vihikusse kuus ametit kolmes vormis: kokk — kokana — kokaks.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('041_t_sit', 'Pühapäeva hommik', 'Pühapäeva hommikul leidis Jaan köögilaualt Kadri kirja. Kadri oli varakult haiglasse läinud. Loe kirja, arutage Jaani kahtlusi ja järjestage, mis on töös kõige tähtsam. Lõpuks kirjuta lugu: mida Jaan otsustas ja mis edasi juhtus.'), V5_CUT),
+      hide(B.insertion('041_t_letter', 'Kadri kiri köögilaual.', 'Kirjast on välja võetud seitse lauset. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Kallis Jaan!', [
         'Ma nägin öösel, et sa istusid kaua köögis ja kirjutasid midagi. [[Hommikul leidsin laualt sinu paberi: „Kase kool — poolt ja vastu”.]] Ma lugesin selle läbi. Loodan, et sa ei pahanda.',
         '',
         'Sinu paberil on vastu kolm asja: väiksem palk, suur köök ja uued kolleegid. [[Aga poolt on palju rohkem: vabad õhtud, vabad nädalavahetused ja kool on kodu lähedal.]] Sa oled viisteist aastat kohvikutes töötanud. Sa oskad süüa teha ka neljasajale inimesele, ma olen kindel.',
@@ -235,33 +356,105 @@ export const LESSONS = withShapes({
         '[[Ma tean, et sulle meeldib Kaneelis ja Merike on hea ülemus.]] Aga sa võid temaga ausalt rääkida. [[Ta on ise ema ja saab sinust kindlasti aru.]]',
         '',
         'Kandideerimiskiri tuleb saata 20. novembriks. [[Kui tahad, loen sinu kirja enne saatmist läbi.]] Tulen haiglast kell viis. Kallistan, Kadri',
-      ], ['Merike on juba otsustanud, et Kaneel suletakse jõuludeks.', 'Ma helistasin hommikul ise direktorile ja ütlesin, et sa tuled.']),
-      teach(tag(B.rolecards('041_t_doubt', 'Kas vahetada töökohta?', 'A on Jaan, kes kahtleb, B on Kadri. Arutage poolt- ja vastuargumente ning öelge lõpus oma otsus.',
-        'Oled Jaan. Sulle meeldib Kaneelis ja Merike on hea ülemus. Kooli palk on 200 eurot väiksem ja sa ei tea, kas sööklatöö on huvitav. Ütle oma mured ja põhjenda neid.',
-        'Oled Kadri. Sa tahad, et Jaan oleks õhtuti ja nädalavahetustel kodus. Too vähemalt kolm põhjust, miks kooli töö sobib, ja vasta Jaani muredele.',
-        ['Ma kardan, et…', 'Teisest küljest…', 'Mis siis, kui…?'], ['Minu arvates…, sest…', 'Mõtle sellele, et…', 'Kokkuvõttes…']), { task: 'S11' }),
-      'Üks-ühele: õpetaja on Kadri ja vastab igale Jaani murele ühe argumendiga; siis vahetage rollid. Lõpus ütleb õpilane oma otsuse ühe lausega ja põhjendab seda.'),
-      teach(tag(B.speaking('041_t_rank', 'Mis on töös kõige tähtsam?', 'Järjestage koos seitse asja: mis on hea töö juures kõige tähtsam? Leppige kokku kolm esimest.', ['hea palk', 'mõistlik tööaeg', 'toredad kolleegid', 'huvitav töö', 'töökoht kodu lähedal', 'vabad nädalavahetused', 'võimalus õppida ja areneda', 'Mis on teie kolm esimest ja miks?'], [90, 180], ['Esimesele kohale paneme…, sest…', 'Mulle on tähtsam…', 'Lepime kokku, et…']), { task: 'S12' }),
-        'Üks-ühele: õpetaja ja õpilane järjestavad koos; õpetaja panustab alguses palgale ja õpilane peab põhjendama, miks Jaani jaoks on tööaeg tähtsam. Lõpus on kolm esimest kirjas.'),
-      tag(B.examWriting('041_t_story', 'Lugu: Jaani otsus.', 'Kirjuta Jaani loole jätk umbes 100 sõnaga. Kirjuta kõigist neljast punktist.', 'jutt', {
+      ], ['Merike on juba otsustanud, et Kaneel suletakse jõuludeks.', 'Ma helistasin hommikul ise direktorile ja ütlesin, et sa tuled.']), V5_CUT),
+      hide(teach(tag(B.speaking('041_t_rank', 'Mis on töös kõige tähtsam?', 'Järjestage koos seitse asja: mis on hea töö juures kõige tähtsam? Leppige kokku kolm esimest.', ['hea palk', 'mõistlik tööaeg', 'toredad kolleegid', 'huvitav töö', 'töökoht kodu lähedal', 'vabad nädalavahetused', 'võimalus õppida ja areneda', 'Mis on teie kolm esimest ja miks?'], [90, 180], ['Esimesele kohale paneme…, sest…', 'Mulle on tähtsam…', 'Lepime kokku, et…']), { task: 'S12' }),
+        'Üks-ühele: õpetaja ja õpilane järjestavad koos; õpetaja panustab alguses palgale ja õpilane peab põhjendama, miks Jaani jaoks on tööaeg tähtsam. Lõpus on kolm esimest kirjas.'), V5_CUT),
+      hide(tag(B.examWriting('041_t_story', 'Lugu: Jaani otsus.', 'Kirjuta Jaani loole jätk umbes 100 sõnaga. Kirjuta kõigist neljast punktist.', 'jutt', {
         situation: 'Kirjuta jutt pealkirjaga „Jaani otsus”. Alusta sellest, mida Jaan pühapäeval tegi.',
         points: ['mida Jaan pühapäeval otsustas ja miks', 'kellega ta rääkis ja mida ta ütles', 'mis juhtus järgmisel laupäeval', 'kuidas Jaan end lõpus tundis'],
         words: [90, 110],
-      }), { main: true }),
-      teach(tag(B.speaking('041_t_rec', 'Kodus: minu amet.', 'Räägi 1–2 minutit ja salvesta: kellena sa töötad või tahad töötada, mille eest vastutad ja mis selles töös meeldib.', ['Kellena sa töötad või tahad töötada?', 'Mille eest sa vastutad?', 'Millega sa iga päev tegeled?', 'Mis on selles töös hea ja mis raske?'], [60, 120], ['Ma töötan …-na.', 'Ma vastutan … eest.', 'Mulle meeldib, et…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis küsib õpetaja kaks küsimust ameti kohta.'),
-      B.rubricW2('041_t_rubric', 'Hindamine: jutt „Jaani otsus” (12 punkti).'),
-      B.selfcheck('041_t_self', ['Ma nimetan vähemalt 15 ametit.', 'Ma ütlen, kellena keegi töötab ja mille eest ta vastutab.', 'Ma valin valiklüngas õige vormi ja põhjendan valikut.', 'Ma kirjutan umbes 100-sõnalise jätkuloo.'], 'Ametid ja tööülesanded'),
+      }), { main: true }), V5_CUT),
+      hide(B.rubricW2('041_t_rubric', 'Hindamine: jutt „Jaani otsus” (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 042 infogap: the phone at reception (ma-infinitive in its cases)
   'a2b1-042': {
-    title: 'Kus kolleeg on? ma-vorm käändes',
-    canDo: 'Ma vastan kontori telefonile ja räägin helistajaga 2–3 minutit: ütlen ma-vormidega, kus kolleeg on ja millal ta tagasi tuleb (on kliendiga kohtumas, tuleb söömast), ja võtan sõnumi vastu.',
+    title: 'Kus kolleeg on?',
+    phases: grammar('Keel: ma-vorm käändes — läks kontrollima (-ma) · on kohtumas (-mas) · tuleb söömast (-mast) · jäi saatmata (-mata)'),
+    format: 'infogap',
+    topic: 'work',
+    subtopic: 'office-day',
+    canDo: 'Ma räägin töö juures telefonis: ütlen, kus kolleeg on ja millal ta tagasi tuleb (on kohtumas, tuleb söömast), ja võtan sõnumi vastu.',
+    teacherPage: {
+      goal: 'Ученик понимает звонки в офис и сам отвечает на телефон: где коллега и когда вернётся — ma-инфинитив в падежах (läks kontrollima, on kohtumas, tuleb söömast, jäi saatmata).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → три звонка на ресепшен (2 раза, 8 предложений с пропусками) → пункт 4: звонок по картинке «Kes kus on?», у учителя скрытая информация. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kus sa eile kell kümme olid ja mida sa seal tegid?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 41 без записей: кем ты работаешь и чем занимаешься (töötan …-na, tegelen …-ga).',
+      plan: [
+        '0–8: пункт 1 — где ученик был вчера в десять; одно предложение töötan …-na / tegelen …-ga (повторение урока 41)',
+        '8–25: пункт 2 — слова, три звонка (2 раза; -ma, -mas, -mast, -mata в контексте), 8 предложений с пропусками; в паре: «Kus Tõnis on? Millal ta tagasi tuleb?»',
+        '25–40: пункт 3 — заметить → правило (kuhu? -ma: läks kontrollima; kus? -mas: on kohtumas, käib külastamas; kust? -mast: tuleb söömast; ilma? -mata: jäi saatmata) → 8 форм → 8–10 своих предложений',
+        '40–65: пункт 4 — ученик на ресепшене по картинке «Kes kus on?»; учитель звонит со скрытой информацией (товар опаздывает, просит мобильный номер директора, доступна только до 14); вторая попытка без фраз — ученик сам звонит на свою работу, в школу или к врачу и ищет человека',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, кто и как отвечает на телефон у него на работе и что делать, если нужного человека нет',
+        '72–90: запас',
+      ],
+      sources: 'Звонки (пункт 2) и картинка «Kes kus on?» — учебные, фирма «Põhjatäht» и люди выдуманы.',
+      groups: 'Пункт 4 в паре: B получает карточку звонящего (копия вашей), A её не видит; потом смена ролей. Один на один вы — звонящий.',
+      errors: [
+        '«Ta on kliendiga kohtuma» вместо «Ta on kliendiga kohtumas» (kus? → -mas).',
+        '«Ta läks lattu kontrollimas» вместо «Ta läks lattu kontrollima» (kuhu? → -ma).',
+        '«Ta tuleb sööma» вместо «Ta tuleb söömast» (kust? — он возвращается с обеда → -mast).',
+        '«Kiri jäi saatma» вместо «Kiri jäi saatmata» (не сделано → -mata).',
+      ],
+      notes: [
+        'Звонок — продукт урока: в нём должны быть минимум три разные формы (-mas, -ma или -mast, -mata) и записанное сообщение (кто, номер, что передать).',
+        'Обратная связь, 2 цели: -ma / -mas / -mast по вопросу kuhu? kus? kust? и -mata. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('042_d_review', [['Mida Jaan laupäeva öösel kirjutas? Mis on sinu arvates õige otsus?', 'a2b1-041'], ['Kuidas sa telefonis restoranis laua broneerid? Ütle kaks lauset.', 'a2b1-027'], 'Kus sa eile kell kaksteist olid?']),
-      B.text('042_d_hook', 'Esmaspäev vastuvõtus', 'Tuul Logistika administraator läks eelmisel nädalal teise firmasse. Kuni uus inimene tööle tuleb, istub Sofia vastuvõtus ja vastab telefonile. Kolleegid on kogu aeg kuskil mujal. Enne kui reeglit näed, proovi ise: kas öelda „Anna on kliendiga kohtuma” või „Anna on kliendiga kohtumas”?'),
-      B.choice('042_d_test', 'Kõigepealt proovi.', 'Vali igasse lausesse tegusõna vorm. Ära vaata veel reeglit — otsusta lause mõtte järgi.', [
+      station(teach(tag(purpose(half(B.speaking('042_d_warm', 'Kus sa eile olid?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kus sa eile kell kümme olid ja mida sa seal tegid?',
+        'Ütle ilma märkmeteta: kellena sa töötad ja millega iga päev tegeled?',
+      ], [70, 90])), 'Sinu päev on tänase tunni algus: lõpus vastad töö juures telefonile.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: räägi kõigepealt, kus sina eile kell kümme olid (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Kuhu sa pärast läksid?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('042_d_vocab', 'Tunni sõnad.', ['vastuvõtt — приёмная', 'koosolek — совещание', 'koolitus — обучение', 'ladu (lattu, laos) — склад', 'klient — клиент', 'tellimus — заказ', 'arve — счёт', 'sõnum — сообщение', 'tagasi helistama — перезвонить', 'kohtumine — встреча'], '2')), { topic: ['vastuvõtt', 'tagasi helistama'] }), 2, 17),
+      tag(purpose(why(ownText(twice(B.listening('042_d_calls', 'Kolm kõnet vastuvõttu.', 'Loe enne laused läbi. Siis kuula kaks korda ja kirjuta igasse lünka üks sõna.', [
+        'Administraator: Põhjatäht, tere! Kuidas saan aidata?',
+        'Mart: Tere! Siin Mart Lepp firmast Puit. Kas ma saaksin juhataja Tõnisega rääkida?',
+        'Administraator: Kahjuks mitte. Tõnis on praegu ühe kliendiga kohtumas. Ta tuleb tagasi umbes kell üks.',
+        'Mart: Selge. Palun öelge talle, et ma helistasin. Meie hinnapakkumine on veel saatmata.',
+        'Administraator: Ütlen kindlasti. Kas ta võib teile tagasi helistada?',
+        'Mart: Jah, pärast kella kahte.',
+        'Administraator: Põhjatäht, tere!',
+        'Tiina: Tere! Siin Tiina lasteaiast Rõõm. Ma otsin Rainerit, meil on tellimuse kohta küsimus.',
+        'Administraator: Rainer läks kell üheksa lattu kaupa kontrollima. Seal ta telefoni ei kuule.',
+        'Tiina: Eile jäi meil kümme kasti paberit toomata. Need on meil vaja juba homme.',
+        'Administraator: Selge, ma kirjutan kõik üles. Rainer helistab teile, kui ta laost tagasi tuleb.',
+        'Administraator: Põhjatäht, tere!',
+        'Peeter: Tere, siin Peeter. Kas raamatupidaja Ene on juba lõunalt tagasi?',
+        'Administraator: Veel mitte, ta on alles söömas. Ta tuleb söömast kella poole kaheks.',
+        'Peeter: Hea, siis helistan uuesti. Mul on üks arve veel maksmata ja ma tahan teada, kas see on probleem.',
+        'Administraator: Ma ütlen Enele, et te helistasite. Head päeva!',
+      ], [
+        'Tõnis on praegu ühe kliendiga [kohtumas].',
+        'Mart Lepa firma hinnapakkumine on veel [saatmata].',
+        'Tõnis võib Mardile helistada pärast kella [kahte|2].',
+        'Rainer läks kell üheksa lattu kaupa [kontrollima].',
+        'Lasteaial jäi eile kümme kasti paberit [toomata].',
+        'Raamatupidaja Ene on veel lõunal [söömas].',
+        'Ene tuleb söömast kella poole [kaheks].',
+        'Peetril on üks arve veel [maksmata].',
+      ], 'g_read'))), [
+        'Administraator: „Tõnis on praegu ühe kliendiga kohtumas.”',
+        'Mart: „Meie hinnapakkumine on veel saatmata.”',
+        'Mart: „Jah, pärast kella kahte.”',
+        'Administraator: „Rainer läks kell üheksa lattu kaupa kontrollima.”',
+        'Tiina: „Eile jäi meil kümme kasti paberit toomata.”',
+        'Administraator: „Veel mitte, ta on alles söömas.”',
+        'Administraator: „Ta tuleb söömast kella poole kaheks.”',
+        'Peeter: „Mul on üks arve veel maksmata”.',
+      ]), 'Enne kui sa ise telefonile vastad, kuuled, kuidas administraator ütleb, kus kolleeg on.'), { task: 'L04' }),
+      teach(tag(purpose(B.speaking('042_d_retell', 'Kus nad on? Küsi paarilisel.', 'Küsi paarilisel kõnede järgi. B vastab terve lausega. Siis vahetage.', [
+        'Kus Tõnis praegu on ja millal ta tagasi tuleb?',
+        'Kuhu Rainer läks ja mida ta seal teeb?',
+        'Kus sina tavaliselt lõunat sööd? Millal tuled söömast tagasi?',
+      ], [70, 100], '', 'g_read'), 'Ütled kõnede järgi, kus keegi on ja kust ta tuleb, õige ma-vormiga.'), { task: 'S09', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Rainer on laos kontrollima”) ja õpilane parandab sind.'),
+      hide(B.review('042_d_review', [['Mida Jaan laupäeva öösel kirjutas? Mis on sinu arvates õige otsus?', 'a2b1-041'], ['Kuidas sa telefonis restoranis laua broneerid? Ütle kaks lauset.', 'a2b1-027'], 'Kus sa eile kell kaksteist olid?']), V5_DRILL),
+      hide(B.text('042_d_hook', 'Esmaspäev vastuvõtus', 'Tuul Logistika administraator läks eelmisel nädalal teise firmasse. Kuni uus inimene tööle tuleb, istub Sofia vastuvõtus ja vastab telefonile. Kolleegid on kogu aeg kuskil mujal. Enne kui reeglit näed, proovi ise: kas öelda „Anna on kliendiga kohtuma” või „Anna on kliendiga kohtumas”?'), V5_CUT),
+      hide(B.choice('042_d_test', 'Kõigepealt proovi.', 'Vali igasse lausesse tegusõna vorm. Ära vaata veel reeglit — otsusta lause mõtte järgi.', [
         ['Anna ei ole laua taga, ta on praegu kliendiga …', 'kohtumas', 'kohtuma', 'kohtumast'],
         ['Kell üheksa läks Markus lattu kaupa …', 'kontrollima', 'kontrollimas', 'kontrollimast'],
         ['Liis on juba tagasi, ta tuli just kohvikust lõunat …', 'söömast', 'sööma', 'söömas'],
@@ -272,58 +465,14 @@ export const LESSONS = withShapes({
         ['Uus kolleeg läks esimesel päeval meiega lõunat …', 'sööma', 'söömas', 'söömast'],
         ['Liis lahkus koosolekult midagi …', 'ütlemata', 'ütlema', 'ütlemas'],
         ['Pärast tööd lähevad Sofia ja Anna ujulasse …', 'ujuma', 'ujumas', 'ujumast'],
-      ], 'full', 'g_notice'),
-      B.listening('042_d_calls', 'Telefon heliseb.', 'Kuula Sofia viit telefonikõnet. Kirjuta igasse lünka üks tegusõna sobivas vormis.', [
-        'Sofia: Tuul Logistika, tere, Sofia kuuleb.',
-        'Mart: Tere! Siin Mart Lepp firmast Puit. Kas ma saaksin Annaga rääkida?',
-        'Sofia: Kahjuks mitte, Anna on praegu ühe kliendiga kohtumas. Ta peaks tagasi olema umbes kell üks.',
-        'Mart: Selge. Palun öelge talle, et ma helistasin. Meie hinnapakkumine on ikka veel saatmata.',
-        'Sofia: Ütlen kindlasti. Head päeva!',
-        'Sofia: Tuul Logistika, tere!',
-        'Helen: Tere, siin Helen Kase koolist. Ma otsin Markust, meil on tellimuse kohta küsimus.',
-        'Sofia: Markus läks kell üheksa lattu kaupa kontrollima. Seal on väga lärmakas ja ta ei kuule telefoni.',
-        'Helen: Hea küll. Palun paluge tal mulle tagasi helistada. Meie köögi jaoks tellitud riiulid on vale suurusega ja me peame selle täna ära lahendama.',
-        'Sofia: Selge, ma kirjutan kõik üles. Kas Markus saab teile helistada pärast kella kahte?',
-        'Helen: Jah, pärast kahte olen kantseleis. Aitäh!',
-        'Liis: Sofia, siin Liis. Olen Tartus koolitusel. Kas kontoris on kõik korras? Kus Markus on?',
-        'Sofia: Markus on laos tellimusi kontrollimas. Muidu on kõik korras, ainult printer jäi hommikul parandamata, sest meister jäi haigeks.',
-        'Liis: Pole hullu. Homme hakkan ise meistrile helistama. Kui kellelgi on vaja midagi printida, võib ta minna teisele korrusele, raamatupidamisse.',
-        'Sofia: Hea mõte, ma ütlen kõigile. Kas sa jõuad homme hommikuks tagasi?',
-        'Liis: Jah, rong jõuab Tallinnasse kell kaheksa. Aitäh, et sa vastuvõtus aitad!',
-        'Rein: Tere, siin laost Rein. Markus läks just lõunat sööma. Kas ta jättis oma autovõtmed kontorisse? Me peame pärast lõunat kauba Kase kooli viima ja ilma võtmeta ei saa auto ära liikuda.',
-        'Sofia: Jah, võtmed on siin laual. Ma annan need talle, kui ta tuleb söömast.',
-        'Anna: Sofia, siin Anna. Ma käisin hommikul Pirital uut klienti külastamas ja kohtumine venis pikaks.',
-        'Sofia: Mart Lepp helistas sulle. Ta ütles, et hinnapakkumine on veel saatmata.',
-        'Anna: Oi, see jäi mul eile tegemata! Saadan selle kohe pärast lõunat. Ja palun ütle Liisile, et uus klient on huvitatud pikemast lepingust.',
-        'Sofia: Ütlen. Kas sa jõuad kella üheks?',
-        'Anna: Jõuan küll. Aitäh, Sofia, sa oled täna nagu päris administraator!',
-      ], [
-        'Anna on praegu ühe kliendiga [kohtumas].',
-        'Mart Lepa firma hinnapakkumine on ikka veel [saatmata].',
-        'Kell üheksa läks Markus lattu kaupa [kontrollima].',
-        'Liisile ütleb Sofia, et Markus on laos tellimusi [kontrollimas].',
-        'Kontori printer jäi hommikul [parandamata].',
-        'Homme hakkab Liis ise meistrile [helistama].',
-        'Reini sõnul läks Markus just lõunat [sööma].',
-        'Sofia annab Markusele võtmed, kui ta tuleb [söömast].',
-        'Anna käis hommikul Pirital uut klienti [külastamas].',
-        'Anna ütleb, et hinnapakkumine jäi tal eile [tegemata].',
-      ]),
-      tag(B.vocab('042_d_vocab', 'Tunni sõnad.', ['vastuvõtt — приёмная', 'koosolek — совещание', 'koolitus — обучение', 'ladu — склад', 'klient — клиент', 'tellimus — заказ', 'hinnapakkumine — коммерческое предложение', 'sõnum — сообщение', 'tagasi helistama — перезвонить', 'kohtuma — встречаться', 'kontrollima — проверять', 'lõunapaus — обеденный перерыв']), { topic: ['hinnapakkumine', 'lõunapaus'] }),
-      B.notice('042_d_notice', 'Märka: ma-vorm käändes', [
-        '**Kuhu?** (mida tegema?) → **-ma**: Markus läks lattu kaupa **kontrollima**. Lähen lõunat **sööma**.',
-        '**Kus?** (mida tegemas?) → **-mas**: Anna on kliendiga **kohtumas**. Markus on laos **kontrollimas**.',
-        '**Kust?** (mida tegemast?) → **-mast**: Liis tuli just lõunat **söömast**.',
-        '**Ilma mida tegemata?** → **-mata**: E-kiri jäi **saatmata**. Printer on **parandamata**.',
-        '**käima** + **-mas**: Anna **käib** neljapäeviti Tartus kliente **külastamas** (läheb ja tuleb tagasi).',
-      ]),
-      tag(B.categorize('042_d_rule', 'Leia reegel: kuhu, kus, kust või ilma?', 'Loe laused. Pane iga lause veergu, mille küsimusele selle ma-vorm vastab.', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(tag(B.categorize('042_d_rule', 'Leia reegel: kuhu, kus, kust või ilma?', 'Loe laused. Pane iga lause veergu, mille küsimusele selle ma-vorm vastab.', [
         ['-ma: kuhu? mida tegema?', ['Lähen kohvikusse lõunat sööma.', 'Markus läks lattu kaupa kontrollima.', 'Pärast tööd lähen ujuma.', 'Liis sõitis Tartusse koolitusele õppima.']],
         ['-mas: kus? mida tegemas?', ['Anna on kliendiga kohtumas.', 'Markus on laos tellimusi kontrollimas.', 'Sofia käib reedeti ujulas ujumas.', 'Lapsed on õues jalgpalli mängimas.']],
         ['-mast: kust? mida tegemast?', ['Liis tuli just lõunat söömast.', 'Oskar tuli õuest jalgpalli mängimast.', 'Sofia tuli poest leiba ostmast.', 'Kadri tuli koju öösel töötamast.']],
         ['-mata: ilma mida tegemata?', ['E-kiri jäi saatmata.', 'Printer on veel parandamata.', 'Jaan läks tööle hommikust söömata.', 'Uus töötaja lahkus midagi ütlemata.']],
-      ], 'full', 'g_notice'), { task: 'G02' }),
-      B.formtext('042_d_again', 'Proovi uuesti.', 'Nüüd tead reeglit. Kirjuta sulgudes olev tegusõna õigesse ma-vormi.', 'Sofia sõnum Liisile', [
+      ], 'full', 'g_notice'), { task: 'G02' }), V5_DRILL),
+      hide(B.formtext('042_d_again', 'Proovi uuesti.', 'Nüüd tead reeglit. Kirjuta sulgudes olev tegusõna õigesse ma-vormi.', 'Sofia sõnum Liisile', [
         'Tere, Liis! Kirjutan lühidalt, mis kontoris täna juhtus. Markus läks pärast koosolekut õue autot [parkima] (parkima) ja on nüüd laos kaupa [laadimas] (laadima).',
         '',
         'Anna käis hommikul Pirital uut klienti [külastamas] (külastama). Ta tuli just sealt [kohtumast] (kohtuma) ja ütles, et klient tahab pikemat lepingut. Kahjuks jäi tema hinnapakkumine eile [saatmata] (saatma), aga ta saadab selle täna.',
@@ -331,25 +480,52 @@ export const LESSONS = withShapes({
         'Printer on ikka veel [parandamata] (parandama). Ma ei saanud meistrile helistada, sest olin terve hommiku telefonile [vastamas] (vastama). Kõne tuli iga viie minuti järel, nii et ma ei jõudnud isegi kohvi juua.',
         '',
         'Uus administraator hakkab neljapäeval tööd [tegema] (tegema). Ma lähen nüüd lõunat [sööma] (sööma) ja olen kell üks tagasi. Rein jäi täna haiguse tõttu tööle [tulemata] (tulema). Sofia',
-      ]),
-      B.match('042_d_answer', 'Mida vastab Sofia?', 'Leia helistaja küsimusele Sofia vastus, mis sobib kõige paremini.', [
+      ]), V5_DRILL),
+      hide(B.match('042_d_answer', 'Mida vastab Sofia?', 'Leia helistaja küsimusele Sofia vastus, mis sobib kõige paremini.', [
         ['Kas ma saaksin Annaga rääkida?', 'Kahjuks on ta praegu kliendiga kohtumas.'], ['Millal Markus laost tagasi tuleb?', 'Umbes kell kaksteist, enne lõunat.'],
         ['Kas Liis on täna kontoris?', 'Ei, ta on terve päeva Tartus koolitusel.'], ['Kas ma võin talle sõnumi jätta?', 'Muidugi, ma kirjutan kohe üles.'],
         ['Kas ta saab mulle tagasi helistada?', 'Jah, palun öelge oma number.'], ['Kas Anna on juba lõunalt tagasi?', 'Veel mitte, ta on alles söömas.'],
         ['Kas hinnapakkumine on juba saadetud?', 'Kahjuks on see veel saatmata.'], ['Kas printer on juba korras?', 'Ei, meister tuleb alles homme.'],
         ['Kus Markus praegu on?', 'Ta läks just lõunat sööma.'], ['Kas teil on uus administraator juba olemas?', 'Veel mitte, ta alustab neljapäeval.'],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('042_d_survey', 'Kus sa olid ja mida tegemas?', 'Küsi paarilisel need küsimused ja märgi vastused üles. Siis vahetage rollid ja tee lõpus lühike kokkuvõte.', ['Kus sa eile kell kümme hommikul olid ja mida sa seal tegemas olid?', 'Kuhu sa pärast tööd või kooli tavaliselt lähed ja mida tegema?', 'Kust sa täna siia tulid? Mida sa seal tegemas käisid?', 'Mis jäi sul sel nädalal tegemata ja miks?', 'Kokkuvõte: mida sinu paariline vastas ja mis oli teil sarnast?'], [70, 120], ['Eile kell kümme olin … -mas.', 'Pärast tööd lähen … -ma.', 'Mul jäi … -mata, sest…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib küsimused õpetajalt ja õpetaja küsib siis õpilaselt. Lõpus teeb õpilane kokkuvõtte, võrdleb vastuseid ja kasutab vähemalt kolme eri ma-vormi.'),
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('042_d_survey', 'Kus sa olid ja mida tegemas?', 'Küsi paarilisel need küsimused ja märgi vastused üles. Siis vahetage rollid ja tee lõpus lühike kokkuvõte.', ['Kus sa eile kell kümme hommikul olid ja mida sa seal tegemas olid?', 'Kuhu sa pärast tööd või kooli tavaliselt lähed ja mida tegema?', 'Kust sa täna siia tulid? Mida sa seal tegemas käisid?', 'Mis jäi sul sel nädalal tegemata ja miks?', 'Kokkuvõte: mida sinu paariline vastas ja mis oli teil sarnast?'], [70, 120], ['Eile kell kümme olin … -mas.', 'Pärast tööd lähen … -ma.', 'Mul jäi … -mata, sest…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane küsib küsimused õpetajalt ja õpetaja küsib siis õpilaselt. Lõpus teeb õpilane kokkuvõtte, võrdleb vastuseid ja kasutab vähemalt kolme eri ma-vormi.'), V5_CUT),
     ],
     practice: [
-      B.wordorder('042_p_order', 'Kontori laused.', 'Pane sõnad sellisesse järjekorda, et tekiks loogiline lause.', [
+      station(B.notice('042_d_notice', 'Märka: ma-vorm käändes', [
+        'Kõnedest: Tõnis on kliendiga **kohtumas** · Rainer läks lattu kaupa **kontrollima** · Ene tuleb **söömast** · hinnapakkumine on **saatmata**',
+        '**Kuhu?** (mida tegema?) → **-ma**: läks lattu **kontrollima** · lähen lõunat **sööma** · hakkab **vastama**',
+        '**Kus?** (mida tegemas?) → **-mas**: on kliendiga **kohtumas** · on lõunal **söömas** · **käib** kliente **külastamas**',
+        '**Kust?** (mida tegemast?) → **-mast**: tuleb lõunat **söömast** · tuli laost kaupa **kontrollimast**',
+        '**Ilma mida tegemata?** → **-mata**: kiri jäi **saatmata** · arve on **maksmata** · kastid jäid **toomata**',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('042_p_forms', 'Leia reegel: kuhu, kus, kust või ilma?', 'Kirjuta sulgudes olev tegusõna õiges ma-vormis. Mõtle: kuhu? kus? kust? või ilma?', [
+        'Raamatupidaja läks panka arvet [maksma] (maksma).',
+        'Logistik on laos kaupa [kontrollimas] (kontrollima).',
+        'Kolleeg tuli just kohvikust lõunat [söömast] (sööma).',
+        'Tähtis e-kiri jäi eile [saatmata] (saatma).',
+        'Müügijuht käib neljapäeviti Tartus kliente [külastamas] (külastama).',
+        'Homme hakkab uus töötaja telefonile [vastama] (vastama).',
+        'Ma ei saa praegu rääkida, olen autot [juhtimas] (juhtima).',
+        'Kuller tuli just laost pakke [toomast] (tooma).',
+      ], '', 'full', 'g_notice'), [
+        'kuhu? (läks panka) → -ma: maksma.',
+        'kus? (on laos) → -mas: kontrollimas.',
+        'kust? (tuli kohvikust) → -mast: söömast.',
+        'ilma? (ei saadetud) → -mata: saatmata.',
+        'käima → -mas: külastamas.',
+        'hakkama → -ma: vastama.',
+        'kus? (olen praegu) → -mas: juhtimas.',
+        'kust? (tuli laost) → -mast: toomast.',
+      ]), 'Kaheksa lauset näitavad, kas ma-vormi käänded on käes.'), { task: 'G03' }),
+      tag(purpose(B.writing('042_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: kus su tuttavad praegu on (…-mas), kuhu keegi läks (…-ma), kust tuli (…-mast), mis jäi tegemata (…-mata).', [8, 10]), 'Oma laused on sinu telefonikõne materjal.'), { task: 'W02' }),
+      hide(B.wordorder('042_p_order', 'Kontori laused.', 'Pane sõnad sellisesse järjekorda, et tekiks loogiline lause.', [
         'Markus on terve hommiku laos tellimusi kontrollimas.', 'Anna läks pärast koosolekut kliendiga lõunat sööma.', 'Uus administraator hakkab esmaspäeval telefonile vastama.',
         'Sofia käis lõunapausil postkontoris pakki saatmas.', 'Printer jäi eile kahjuks jälle parandamata.', 'Kas sa tuled pärast tööd minuga ujuma?',
         'Anna ei ole veel kohtumiselt tagasi jõudnud.', 'Ma ei saa praegu rääkida, olen autot juhtimas.', 'Kell kolm tuli Markus laost väsinuna tagasi.',
         'Liis lahkus koosolekult ühtegi küsimust esitamata.',
-      ], 'full', 'g_vocab'),
-      teach(tag(B.examListen('042_p_radio', 'Eksaminurk: raadiosaade „Kodus või kontoris?” (Harno B1 kuulamine 2)', 'Kuula raadiosaadet kaks korda. Vali igale küsimusele üks õige vastus.', 'choice', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.examListen('042_p_radio', 'Eksaminurk: raadiosaade „Kodus või kontoris?” (Harno B1 kuulamine 2)', 'Kuula raadiosaadet kaks korda. Vali igale küsimusele üks õige vastus.', 'choice', [
         'Ülle: Tere, kuulajad! Saates „Tööelu” räägib täna Tuul Logistika personalijuht Eha Org kodus töötamisest.',
         'Eha: Tere! Viis aastat tagasi käisid kõik meie töötajad iga päev kontoris töötamas. Täna on pilt teine. Muutus algas pandeemia ajal, kui kõik pidid äkki kodus töötama hakkama.',
         'Eha: Meie firmas töötab umbes pool inimestest kaks päeva nädalas kodus. Esmaspäeval ja reedel on kontoris kõige vaiksem.',
@@ -374,8 +550,8 @@ export const LESSONS = withShapes({
         ['Mida soovitab Eha uutele töötajatele?', 'esimesel kuul olla iga päev kontoris', 'töötada kohe kodus', 'tulla tööle ainult teisipäeval'],
         ['Mida peaks kodus töötaja lõunapausil tegema?', 'minema õue jalutama', 'sööma arvuti ees', 'kirjutama e-kirju'],
       ]), { harno: 'L2' }),
-      'Eksaminurk (Harno B1 kuulamine 2, ~9 min). Enne kuulamist loeb õpilane küsimused ja valikud läbi (1 minut) ning jooni alla võtmesõnad (millal, miks, kes). Esimesel kuulamisel märgib vastuse, teisel kontrollib. Üks-ühele: pärast kontrolli kuulake üks lõik uuesti ja õpilane ütleb, milline sõna andis vastuse.'),
-      tag(B.reading('042_p_board', 'Kontori nädalatahvel.', 'Loe tahvlilt kolleegide nädalaplaani. Vasta küsimustele terve lausega ja kasuta ma-vormi.', 'Tuul Logistika, nädal 47', [
+      'Eksaminurk (Harno B1 kuulamine 2, ~9 min). Enne kuulamist loeb õpilane küsimused ja valikud läbi (1 minut) ning jooni alla võtmesõnad (millal, miks, kes). Esimesel kuulamisel märgib vastuse, teisel kontrollib. Üks-ühele: pärast kontrolli kuulake üks lõik uuesti ja õpilane ütleb, milline sõna andis vastuse.'), V5_CUT),
+      hide(tag(B.reading('042_p_board', 'Kontori nädalatahvel.', 'Loe tahvlilt kolleegide nädalaplaani. Vasta küsimustele terve lausega ja kasuta ma-vormi.', 'Tuul Logistika, nädal 47', [
         'Esmaspäev. Liis on terve päeva Tartus koolitusel, kontorisse tuleb ta teisipäeval. Markus kontrollib kella üheksast kaheteistkümneni laos tellimusi. Anna kohtub kell kümme Pirital uue kliendiga ja on kontoris pärast kella üht.',
         '',
         'Teisipäev. Kõik on kontoris. Kell kümme on nädala koosolek ja kell kaksteist ühine lõuna kohvikus Kaneel. Kell kolm tuleb vestlusele administraatori kandidaat Jelena. Vestlusel osalevad Liis ja personalijuht Eha Org.',
@@ -394,8 +570,8 @@ export const LESSONS = withShapes({
         ['Miks ei saa neljapäeva hommikul Annaga kohtuda?', 'ta on Tartus kliente külastamas'],
         ['Kuhu lähevad kolleegid reedel kell neli?', 'keeglit mängima'],
         ['Millal oleks sinu arvates hea aeg Liisiga kohtumiseks? Miks?', 'teisipäeval|neljapäeval'],
-      ]), { task: 'R08' }),
-      B.errorfix('042_p_fix', 'Paranda ma-vorm.', 'Igas lauses on ma-vorm valesti. Kirjuta lause õigesti.', [
+      ]), { task: 'R08' }), V5_CUT),
+      hide(B.errorfix('042_p_fix', 'Paranda ma-vorm.', 'Igas lauses on ma-vorm valesti. Kirjuta lause õigesti.', [
         ['Anna on praegu oma kliendiga kohtuma.', 'Anna on praegu oma kliendiga kohtumas.'],
         ['Markus läks hommikul lattu kaupa kontrollimas.', 'Markus läks hommikul lattu kaupa kontrollima.'],
         ['Liis tuli just kohvikust lõunat sööma.', 'Liis tuli just kohvikust lõunat söömast.'],
@@ -406,8 +582,8 @@ export const LESSONS = withShapes({
         ['Arve on veel maksmas, palun makske see täna.', 'Arve on veel maksmata, palun makske see täna.'],
         ['Ott oli haige ja jäi eile tööle tulemas.', 'Ott oli haige ja jäi eile tööle tulemata.'],
         ['Lapsed on õues suurt lumememme tegema.', 'Lapsed on õues suurt lumememme tegemas.'],
-      ]),
-      tag(B.insertion('042_p_forum', 'Foorum: kas vastata töökõnedele pärast tööd?', 'Loe foorumi arutelu. Postitustest on välja võetud viis lauset. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Kas töökõnedele peab vastama ka õhtul?', [
+      ]), V5_DRILL),
+      hide(tag(B.insertion('042_p_forum', 'Foorum: kas vastata töökõnedele pärast tööd?', 'Loe foorumi arutelu. Postitustest on välja võetud viis lauset. Pane iga lause oma kohale; kaks lauset jääb üle.', 'Kas töökõnedele peab vastama ka õhtul?', [
         'Kristi, raamatupidaja: Eile õhtul olin lastega ujulas ujumas, kui ülemus hakkas helistama. [[Kui ma koju jõudsin, oli mul viis vastamata kõnet ja kaks sõnumit.]] Ülemus oli pahane, et ma ei vastanud. Kas ma pean ka õhtul kättesaadav olema?',
         '',
         'Margus, programmeerija: Meie firmas on kokku lepitud, et pärast kella kuut ei saada keegi tööasju. [[Kui midagi jääb päeval tegemata, teeme selle järgmisel hommikul.]] Alguses oli harjumatu, nüüd on kõik rahul ja keegi ei ole õhtul väsinud.',
@@ -419,22 +595,34 @@ export const LESSONS = withShapes({
         'Moderaator: Aitäh kõigile! [[Tasub teada, et tööaeg peab olema töölepingus kirjas.]] Kui ülemus ootab, et oled kogu aeg kättesaadav, rääkige sellest ausalt ja leppige reeglid kokku.',
         '',
         'Allikas: töölepingu seadus, § 5 (Riigi Teataja).',
-      ], ['Seepärast töötan ma nüüd ainult nädalavahetusel.', 'Ülemus ostis mulle selle eest uue arvuti.'], 'g_read'), { task: 'R10', voice: 'forum' }),
-      teach(B.rolecards('042_p_gap', 'Kus keegi on?', 'A ja B näevad tahvlil eri infot. Küsige teineteiselt, kus kolleegid on, ja täitke tahvel.',
-        'Sinu tahvel: Anna — kell 10 Pirital kliendiga; Markus — ?; Liis — kell 14 tagasi Tartust; Rein — ?; Sofia — kell 12–13 lõunapausil postkontoris. Küsi puuduvat infot ja vasta B küsimustele.',
-        'Sinu tahvel: Anna — ?; Markus — kell 9–12 laos tellimusi kontrollimas; Liis — ?; Rein — haige, homme tagasi; Sofia — ?. Küsi puuduvat infot ja vasta A küsimustele.',
-        ['Kus Markus praegu on?', 'Mida ta seal teeb?', 'Millal ta tagasi tuleb?'], ['Ta on … -mas.', 'Ta läks … -ma.', 'Ta tuleb … -mast kell…']),
-      'Üks-ühele: õpetaja võtab ühe kaardi ja õpilane teise; õpilane peab iga vastuse ütlema ma-vormiga (on kohtumas, läks kontrollima). Lõpus võrdlete tahvleid.'),
-      B.examWriting('042_p_invite', 'Kutse kolleegidele.', 'Kirjuta kolleegidele 50–70-sõnaline kutse kohvile, kus kõik saavad uue administraatoriga tuttavaks.', 'kutse', {
+      ], ['Seepärast töötan ma nüüd ainult nädalavahetusel.', 'Ülemus ostis mulle selle eest uue arvuti.'], 'g_read'), { task: 'R10', voice: 'forum' }), V5_CUT),
+      hide(B.examWriting('042_p_invite', 'Kutse kolleegidele.', 'Kirjuta kolleegidele 50–70-sõnaline kutse kohvile, kus kõik saavad uue administraatoriga tuttavaks.', 'kutse', {
         situation: 'Neljapäeval alustab Tuul Logistikas uus administraator Jelena. Liis palus Sofial kutsuda kõik kolleegid samal päeval tervituskohvile.',
         points: ['millal ja kus kohvi juuakse', 'kes on Jelena ja mida ta hakkab tegema', 'kes peaks tulema ja mida kaasa võtma', 'mida teha, kui keegi on sel ajal kliendiga kohtumas'],
         words: [50, 70], opening: 'Head kolleegid!', closing: 'Sofia',
-      }),
+      }), V5_CUT),
     ],
     transfer: [
-      B.text('042_t_sit', 'Reede vastuvõtus', 'Reedel on Sofia haige ja Liis on terve päeva Tartus. Täna istud vastuvõtus sina. Jelena on tööl teist päeva ja vaatab, kuidas sa töötad. Kuula hommikul kõneposti sõnumeid, vasta telefonile tahvli järgi ja kirjuta päeva lõpus Liisile.'),
-      B.tip('042_t_board', 'Kontori tahvel, reede', ['Liis — Tartus koolitusel, tagasi esmaspäeval', 'Markus — 9–12 laos tellimusi kontrollimas, 13–15 Peterburi tee laos riiuleid üles panemas', 'Anna — 10–12 Pirital kliendiga kohtumas, pärast lõunat kontoris', 'Rein — haige kuni teisipäevani', 'Jelena — vastuvõtus koos sinuga', 'Kell 16 — kõik lähevad keeglit mängima']),
-      tag(B.listening('042_t_voice', 'Hommikused sõnumid.', 'Kuula kõneposti nelja sõnumit. Märgi lünka, mida pead tegema või kellele midagi edasi ütlema.', [
+      station(teach(tag(purpose(B.rolecards('042_p_gap', 'Vastuvõtt: telefon heliseb', 'Sina istud töö juures vastuvõtus. Vaata tahvlit üleval, vasta telefonile ja võta sõnum vastu.',
+        'Olukord: neljapäev kell 11, sa istud vastuvõtus. Helistaja otsib kolleegi.\nEesmärk: ütle tahvli järgi, kus kolleeg on ja millal ta tagasi tuleb, kirjuta sõnum üles (kes, number, mida öelda) ja lepi kokku, millal kolleeg tagasi helistab.\nSiis uus olukord: sina helistad oma päris töökohta, kooli või arsti juurde ja otsid kedagi.',
+        'Helistaja kaart on õpetajal: keda ta otsib, miks ja üks probleem. Küsi ja kuula.',
+        ['Põhjatäht, tere!', 'Ta on praegu …-mas.', 'Kas ma võin sõnumi üles kirjutada?'], []), 'Pärast kõnet on sul sõnum kirjas ja helistaja teab, millal talle tagasi helistatakse.'), { task: 'S04', harno: 'S2', main: true, level: 4 }),
+      'Eksaminurk (Harno B1 rääkimine 2, telefonikõne). Üks-ühele, õpetaja kaart (helistaja Kati Rebane firmast Lill). Varjatud info: Kati otsib logistikut, sest tellitud kakskümmend kasti pidid täna kella kolmeks kohal olema ja neid ei ole; ta tahab juhataja mobiilinumbrit (seda ei tohi anda — õpilane pakub sõnumit või tagasihelistamist); Katit saab kätte ainult kella kaheni, tema number on 5123 4567. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Tere, ma otsin logistikut. Kas ta on seal?” 2) „Mul on väga kiire: kaup pidi täna kella kolmeks kohal olema!” 3) „Andke mulle palun juhataja mobiilinumber.” 4) „Mind saab kätte ainult kella kaheni.” Õnnestunud, kui õpilane ütleb tahvli järgi, kus logistik on ja millal ta tagasi tuleb (on laos kaupa kontrollimas, tuleb tagasi kell 11), reageerib viisakalt numbri palvele, kirjutab sõnumi (nimi, firma, number, mure), kordab numbri üle ja lepib kokku, et logistik helistab enne kella kahte. Teine katse ilma fraasideta (lehel „uus olukord”): õpilane helistab oma päris töökohta, kooli või arsti juurde. Varjatud info: vajalik inimene on reedeni koolitusel, aga tema asendaja on kohal ja võtab kõne pärast lõunat. Õnnestunud, kui õpilane küsib, millal inimene tagasi tuleb, ja lepib asendajaga aja kokku.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.gaps('042_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev tegusõna õiges ma-vormis.', [
+        'Meie juhataja on praegu ühe kliendiga [kohtumas] (kohtuma).',
+        'Logistik läks hommikul kell üheksa lattu [kontrollima] (kontrollima).',
+        'Üks arve jäi mul eile kahjuks [maksmata] (maksma).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas ma-vormi käänded on käes.'), ['kus? → -mas: kohtumas.', 'kuhu? → -ma: kontrollima.', 'ilma? → -mata: maksmata.'])), {}),
+      purpose(B.selfcheck('042_t_self', ['Ma ütlen, kus kolleeg on ja mida ta teeb: on kohtumas, on söömas.', 'Ma ütlen, kuhu keegi läks ja kust ta tuleb: läks kontrollima, tuleb söömast.', 'Ma saan aru lühikestest kõnedest vastuvõttu.', 'Ma vastan töö juures telefonile ja võtan sõnumi vastu.'], 'Sõnum kirjas', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('042_t_rec', 'Kodus: häälsõnum kolleegile.', 'Salvesta 60–90 sekundit, nagu jätaksid kolleegile häälsõnumi.', [
+        'Kus sa praegu oled ja mida sa teed?',
+        'Mis jäi täna tegemata ja miks?',
+        'Millal sa tagasi tuled ja mida kolleeg peab vahepeal tegema?',
+      ], [60, 90]), 'Õpetaja ütleb, kas ma-vormid tulid õigesti.')), { task: 'S15', fluency: true }),
+      homework('042_t_homework', ['1. Kirjuta sõnum, mille sa tunnis üles võtsid, puhtalt ümber (kes, number, mida öelda).', '2. Salvesta häälsõnum kolleegile (ülesanne üleval).', '3. Kirjuta neli lauset oma päevast: üks -ma, üks -mas, üks -mast ja üks -mata.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('042_t_sit', 'Reede vastuvõtus', 'Reedel on Sofia haige ja Liis on terve päeva Tartus. Täna istud vastuvõtus sina. Jelena on tööl teist päeva ja vaatab, kuidas sa töötad. Kuula hommikul kõneposti sõnumeid, vasta telefonile tahvli järgi ja kirjuta päeva lõpus Liisile.'), V5_CUT),
+      hide(B.tip('042_t_board', 'Kontori tahvel, reede', ['Liis — Tartus koolitusel, tagasi esmaspäeval', 'Markus — 9–12 laos tellimusi kontrollimas, 13–15 Peterburi tee laos riiuleid üles panemas', 'Anna — 10–12 Pirital kliendiga kohtumas, pärast lõunat kontoris', 'Rein — haige kuni teisipäevani', 'Jelena — vastuvõtus koos sinuga', 'Kell 16 — kõik lähevad keeglit mängima']), V5_CUT),
+      hide(tag(B.listening('042_t_voice', 'Hommikused sõnumid.', 'Kuula kõneposti nelja sõnumit. Märgi lünka, mida pead tegema või kellele midagi edasi ütlema.', [
         'Mart: Tere, siin Mart Lepp firmast Puit. Anna lubas meile hinnapakkumise saata, aga seda pole ikka tulnud. Palun öelge talle, et ootame seda täna kella neljani. Kui see jääb täna saatmata, peame tellima teiselt firmalt. Meil on Annaga hea koostöö ja ma ei tahaks seda teha. Meie klient ootab vastust juba esmaspäeval ja me peame enne seda hinnad kokku leppima. Minu number on viis üks kaks, kolm neli, viis kuus. Helistage julgelt ka pärast kella viit.',
         'Helen: Tere, siin Helen Kase koolist. Teie kuller tõi eile kakskümmend kasti paberit, aga meie tellisime kolmkümmend. Kümme kasti jäi toomata. Palun öelge Markusele, et need on meil vaja juba esmaspäeval. Kooli kantselei on avatud kella kolmeni. Kui Markus ei jõua täna helistada, kirjutage mulle e-kiri. Ma olen kantseleis kuni kolmeni, pärast seda tunnis kehalise kasvatuse saalis. Detsembris tuleb meile uus kokk ja köögis on vaja kõik riiulid enne seda paika saada.',
         'Liis: Tere, siin Liis. Tartus on kõik hästi, koolitus on huvitav. Täna räägime sellest, kuidas uusi töötajaid paremini juhendada, nii et see on Jelena pärast väga kasulik. Telefon on mul vaikseks pandud, sest olen terve päeva loengus istumas. Palun jätke mulle kõik sõnumid ühte teatesse. Ja tuletage Jelenale meelde, et ta peab täna täitma oma lepingu paberid. Paberid on minu laua sinises kaustas. Kui midagi on väga kiire, saatke mulle sõnum, ma vaatan telefoni lõunapausil.',
@@ -450,35 +638,113 @@ export const LESSONS = withShapes({
         'Jelena peab täna täitma oma [lepingu] paberid.',
         'Rein tuleb tööle tagasi alles [teisipäeval].',
         'Riiulid tuleb üles panna koos kellegagi, sest need on [rasked].',
-      ]), { task: 'L07' }),
-      B.know('042_t_know', [
+      ]), { task: 'L07' }), V5_CUT),
+      hide(B.know('042_t_know', [
         'Kui töö kestab üle kahe nädala, tuleb tööleping sõlmida kirjalikult. Lepingus peavad olema kirjas näiteks tööülesanded, töötasu ja palgapäev, tööaeg, töö tegemise koht, puhkuse pikkus ja katseaja kestus.',
         'Enne kui töötaja tööle asub, peab tööandja kandma ta Maksu- ja Tolliameti töötamise registrisse. Töötaja saab oma andmeid kontrollida Maksu- ja Tolliameti e-teeninduses rubriigis „Minu töötamised”. Töölepinguga töötaja ravikindlustus hakkab kehtima 14 päeva pärast registrisse kantud tööle asumise päeva.',
-      ], 'töölepingu seadus, § 4 ja § 5 (Riigi Teataja); Maksu- ja Tolliamet, „Töötamise registreerimine”', 'Kas teadsid? Tööleping ja töötamise register'),
-      teach(tag(B.phoneCards('042_t_call', 'Telefon heliseb: kus kolleeg on?', 'A helistab Tuul Logistikasse ja otsib kolleegi, B vastab tahvli järgi. Siis vahetage kaardid.', 'Reede hommik, Tuul Logistika vastuvõtt. B istub vastuvõtus ja vaatab kontori tahvlit.', ['Helistaja (klient või partner)', [
+      ], 'töölepingu seadus, § 4 ja § 5 (Riigi Teataja); Maksu- ja Tolliamet, „Töötamise registreerimine”', 'Kas teadsid? Tööleping ja töötamise register'), V5_CUT),
+      hide(teach(tag(B.phoneCards('042_t_call', 'Telefon heliseb: kus kolleeg on?', 'A helistab Tuul Logistikasse ja otsib kolleegi, B vastab tahvli järgi. Siis vahetage kaardid.', 'Reede hommik, Tuul Logistika vastuvõtt. B istub vastuvõtus ja vaatab kontori tahvlit.', ['Helistaja (klient või partner)', [
         'Tervita, ütle oma nimi ja firma.', 'Küsi Markust: tellimusest on puudu kakskümmend kasti.', 'Küsi, kus Markus praegu on ja millal ta tagasi tuleb.', 'Küsi Annat: teil on täna kokkulepe.', 'Jäta sõnum ja ütle oma telefoninumber.',
       ]], ['Vastuvõtja (sina)', [
         'Vasta firma nimega ja tervita.', 'Ütle tahvli järgi, kus Markus on ja mida ta teeb.', 'Ütle, millal Markus tagasi tuleb ja kas ta saab helistada.', 'Ütle, kus Anna on ja millal ta kontorisse jõuab.', 'Kirjuta sõnum üles ja korda number üle.',
       ]], [120, 180]), { main: true }),
-      'Üks-ühele: õpetaja on helistaja ja küsib vahepeal midagi, mida kaardil ei ole („Kas Liisi saab kätte?”). Õpilane vastab tahvli järgi ma-vormidega ja kordab numbri üle. Siis vahetage kaardid; kõne kestab 2–3 minutit.'),
-      teach(tag(B.speaking('042_t_jelena', 'Tere tulemast, Jelena!', 'Tutvusta Jelenale kontorit ja kolleege kaks korda: teisel korral räägi sama info ühe minutiga.', ['Kes sa oled ja mida sa Tuul Logistikas teed?', 'Kes on Liis, Markus ja Anna ning kus nad täna on?', 'Kuhu käivad kolleegid lõunat söömas?', 'Mida Jelena peab tegema, kui kedagi pole kohal?', 'Küsi Jelenalt kaks küsimust tema varasema töö kohta.'], [70, 120], ['Liis on täna Tartus koolitusel.', 'Markus on laos … -mas.', 'Kui kedagi pole, siis…']), { task: 'S01', fluency: true }),
-        'Üks-ühele: õpetaja on Jelena ja küsib vahel üle. Esimene ring on vaba, teisel korral räägib õpilane sama info ühe minutiga ja sujuvamalt.'),
-      B.examWriting('042_t_note', 'Teade Liisile.', 'Kirjuta Liisile umbes 70 sõna: kes helistas, mis on tehtud ja mis jäi tegemata.', 'teade', {
+      'Üks-ühele: õpetaja on helistaja ja küsib vahepeal midagi, mida kaardil ei ole („Kas Liisi saab kätte?”). Õpilane vastab tahvli järgi ma-vormidega ja kordab numbri üle. Siis vahetage kaardid; kõne kestab 2–3 minutit.'), V5_CUT),
+      hide(teach(tag(B.speaking('042_t_jelena', 'Tere tulemast, Jelena!', 'Tutvusta Jelenale kontorit ja kolleege kaks korda: teisel korral räägi sama info ühe minutiga.', ['Kes sa oled ja mida sa Tuul Logistikas teed?', 'Kes on Liis, Markus ja Anna ning kus nad täna on?', 'Kuhu käivad kolleegid lõunat söömas?', 'Mida Jelena peab tegema, kui kedagi pole kohal?', 'Küsi Jelenalt kaks küsimust tema varasema töö kohta.'], [70, 120], ['Liis on täna Tartus koolitusel.', 'Markus on laos … -mas.', 'Kui kedagi pole, siis…']), { task: 'S01', fluency: true }),
+        'Üks-ühele: õpetaja on Jelena ja küsib vahel üle. Esimene ring on vaba, teisel korral räägib õpilane sama info ühe minutiga ja sujuvamalt.'), V5_CUT),
+      hide(B.examWriting('042_t_note', 'Teade Liisile.', 'Kirjuta Liisile umbes 70 sõna: kes helistas, mis on tehtud ja mis jäi tegemata.', 'teade', {
         situation: 'Reedel kell neli lähed keeglit mängima. Liis tuleb esmaspäeval ja tahab teada, mis kontoris juhtus.',
         points: ['kes helistas ja miks', 'mis on tehtud', 'mis jäi tegemata ja miks', 'mida Liis peab esmaspäeval tegema'],
         words: [60, 80], opening: 'Tere, Liis!',
-      }),
-      B.rubricSpeaking('042_t_rubric', 'Hindamine: kõne vastuvõtus (20 punkti).'),
-      B.selfcheck('042_t_self', ['Ma ütlen ma-vormidega, kus kolleeg on ja mida ta teeb.', 'Ma eristan vorme kontrollima, kontrollimas, kontrollimast ja kontrollimata.', 'Ma vastan kontori telefonile ja võtan sõnumi vastu.', 'Ma kirjutan ülemusele lühikese teate.'], 'ma-vorm käändes'),
+      }), V5_CUT),
+      hide(B.rubricSpeaking('042_t_rubric', 'Hindamine: kõne vastuvõtus (20 punkti).'), V5_CUT),
     ],
   },
+
+  // ---------------------------------------------------------------- 043 project: the application letter (ma- or da-infinitive)
   'a2b1-043': {
-    title: 'Kandideerimiskiri',
-    canDo: 'Ma kirjutan töökuulutusele 90–110-sõnalise kandideerimiskirja: kes ma olen, mida oskan, miks see töö mulle sobib ja millal saan alustada.',
+    title: 'Kandideerin',
+    phases: grammar('Keel: olen harjunud töötama (-ma) · oskan kasutada (-da)'),
+    format: 'project',
+    topic: 'work',
+    subtopic: 'job-application',
+    canDo: 'Ma kirjutan töökuulutusele 60–90-sõnalise kandideerimiskirja: millisele kohale kandideerin, mida oskan ja olen harjunud tegema, miks töö mulle sobib ja millal saan alustada.',
+    teacherPage: {
+      goal: 'Ученик понимает образец сопроводительного письма и сам пишет 60–90 слов на вакансию, правильно выбирая ma- или da-форму после рабочих глаголов (olen harjunud töötama, oskan kasutada).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → образец письма Ольги (8 вопросов) → пункт 4: своё письмо на одну из вакансий на картинке «Kaks töökuulutust» или на настоящую вакансию. Пункт 3 — коротко или дома в «Harjuta».',
+      hook: '«Millist tööd sa tahaksid teha ja miks?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 42 без записей: где сейчас твой коллега или друг и что он делает (on …-mas).',
+      plan: [
+        '0–8: пункт 1 — какую работу ученик хотел бы; одно предложение с -mas (повторение урока 42)',
+        '8–25: пункт 2 — слова, письмо Ольги (что в каждом абзаце; ma / da в контексте), 8 вопросов, в паре: «Mida Olga oskab? Millal ta saab alustada?»',
+        '25–40: пункт 3 — заметить → правило (-ma после olen harjunud, olen valmis, hakkan, käin + -mas; -da после oskan, soovin, saan, mulle meeldib) → 8 форм → 8–10 своих предложений (официальный тон — по образцу письма)',
+        '40–65: пункт 4 — письмо 60–90 слов на вакансию A или B (картинка) или на настоящую вакансию, без готового начала; партнёр — работодатель: читает, задаёт два вопроса и решает, пригласит ли на собеседование; вторая попытка: переписать абзац об умениях с примером',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (настоящая страница Töötukassa)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как ищут работу у него на родине и что там пишут работодателю',
+        '72–90: запас',
+      ],
+      sources: 'Письмо (пункт 2) и картинка «Kaks töökuulutust» — учебные, люди и фирмы выдуманы. Домашнее задание — настоящая страница Töötukassa «Tööpakkumised» (https://www.tootukassa.ee/et/toopakkumised), адрес проверен 25.11.2026.',
+      groups: 'Пункт 4: каждый пишет сам, потом партнёр читает как работодатель и задаёт два вопроса. Один на один вы — работодатель.',
+      errors: [
+        '«Olen harjunud töötada» вместо «Olen harjunud töötama» (olema harjunud / olema valmis + -ma).',
+        '«Oskan arvutit kasutama» вместо «Oskan arvutit kasutada» (oskama, soovima, mulle meeldib + -da).',
+        '«Tere, Tiit!» в официальном письме вместо «Lugupeetud Tiit Kask!»; в конце «Lugupidamisega» и имя.',
+        '«Ma olen väga hea töötaja» без примера; лучше: «Olen harjunud töötama kiiresti: näiteks …».',
+      ],
+      notes: [
+        'Письмо — продукт урока и свободное письмо модуля: без готового начала, но в нём должны быть и ma-, и da-формы и четыре пункта.',
+        'Обратная связь, 2 цели: ma / da после рабочих глаголов и официальный тон (Lugupeetud …, Lugupidamisega). Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('043_d_review', [['Kus olid sinu kolleegid või sõbrad eile kell kümme? Vasta ma-vormiga.', 'a2b1-042'], ['Mis juhtus Markuse lõunaga kontori külmkapis?', 'a2b1-028'], 'Millisele tööle sa tahaksid kandideerida?']),
-      B.text('043_d_hook', 'Kiri tuleb saata reedeks', 'Jaan otsustas kandideerida. Kandideerimiskiri tuleb saata 20. novembriks, aga Jaan pole kunagi sellist kirja kirjutanud. Täna kuulad kooli raadioreklaami, loed Anna kirja, mille ta saatis aasta tagasi Tuul Logistikasse, ja kirjutad lõpuks oma kandideerimiskirja.'),
-      tag(B.listening('043_d_ad', 'Raadioreklaam: Kase kool otsib kokka.', 'Kuula reklaami ja direktori juttu. Kirjuta lünka number, kellaaeg, kuupäev või summa.', [
+      station(teach(tag(purpose(B.speaking('043_d_warm', 'Milline töö sulle sobiks?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Millist tööd sa tahaksid teha ja miks?',
+        'Ütle ilma märkmeteta: kus su kolleeg või sõber praegu on ja mida ta teeb?',
+      ], [70, 90]), 'Sinu soov on tänase tunni algus: lõpus kirjutad tööandjale.'), { task: 'S14', fluency: true }),
+      'Üks-ühele: räägi kõigepealt, millist tööd sina kunagi tahtsid (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida sa selleks oskad?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('043_d_vocab', 'Tunni sõnad.', ['kandideerima — подавать заявку', 'ametikoht — должность', 'kogemus — опыт', 'oskus — умение', 'tööandja — работодатель', 'sobima — подходить', 'alustama — начинать', 'olen harjunud — я привык(ла)', 'olen valmis — я готов(а)', 'lugupidamisega — с уважением'], '2'), { topic: ['kandideerima', 'lugupidamisega'] }), 2, 17),
+      tag(purpose(why(ownText(B.reading('043_d_model', 'Kandideerimiskiri.', 'Loe kirja. Vasta igale küsimusele 1–4 sõnaga.', 'Teema: kandideerin klienditeenindaja ametikohale', [
+        'Lugupeetud Tiit Kask!',
+        '',
+        'Kandideerin linnaraamatukogu klienditeenindaja ametikohale. Nägin teie kuulutust Töötukassa portaalis ja see töö huvitab mind väga.',
+        '',
+        'Olen viis aastat töötanud poes müüjana. Minu ülesanne oli klientidega suhelda, kaupa tellida ja kassas töötada. Olen harjunud töötama kiiresti ja täpselt. Kaks aastat vastutasin ka kassa eest ja õpetasin uusi töötajaid. Eelmisel aastal käisin õhtuti arvutikursusel õppimas, nii et oskan hästi arvutit kasutada.',
+        '',
+        'Raamatukogu töö sobib mulle, sest mulle meeldib inimestega suhelda ja ma loen palju. Räägin eesti, vene ja inglise keelt. Olen valmis õppima uusi asju ja töötama ka õhtuti. Minu endised kolleegid ütlevad, et olen rahulik ka siis, kui tööd on palju. Raamatukogus käin ise iga nädal ja tean, kui tähtis on, et lugeja leiab kiiresti õige raamatu.',
+        '',
+        'Saan tööd alustada juba 1. veebruarist. Lisan kirjale oma CV ja endise juhataja soovituse. Olen valmis tulema vestlusele igal tööpäeval pärast kella nelja. Mind on kõige parem kätte saada telefoni teel.',
+        '',
+        'Lugupidamisega',
+        'Olga Smirnova',
+      ], [
+        ['Millisele ametikohale Olga kandideerib?', 'klienditeenindaja|klienditeenindaja ametikohale'],
+        ['Kust ta kuulutuse leidis?', 'Töötukassa portaalist|Töötukassa portaalis|portaalist'],
+        ['Kellena ta varem töötas?', 'müüjana|poes müüjana'],
+        ['Kus ta eelmisel aastal õhtuti käis?', 'arvutikursusel|kursusel'],
+        ['Miks raamatukogu töö talle sobib?', 'talle meeldib inimestega suhelda|ta loeb palju|meeldib suhelda'],
+        ['Millal saab ta tööd alustada?', '1. veebruarist|veebruarist'],
+        ['Mida ta kirjale lisab?', 'CV ja soovituse|oma CV ja endise juhataja soovituse|CV ja juhataja soovituse|CV'],
+        ['Miks alustab Olga sõnadega „Lugupeetud …”, mitte „Tere”?', 'see on ametlik kiri|tööandjale kirjutatakse viisakalt|ametlik kiri'],
+      ])), [
+        'Esimene lõik: „Kandideerin linnaraamatukogu klienditeenindaja ametikohale.”',
+        'Esimene lõik: „Nägin teie kuulutust Töötukassa portaalis”.',
+        'Teine lõik: „Olen viis aastat töötanud poes müüjana.”',
+        'Teine lõik: „Eelmisel aastal käisin õhtuti arvutikursusel õppimas”.',
+        'Kolmas lõik: „mulle meeldib inimestega suhelda ja ma loen palju”.',
+        'Neljas lõik: „Saan tööd alustada juba 1. veebruarist.”',
+        'Neljas lõik: „Lisan kirjale oma CV ja endise juhataja soovituse.”',
+        'Kiri läheb tööandjale, keda Olga ei tunne: ametlik kiri algab „Lugupeetud …” ja lõpeb „Lugupidamisega”.',
+      ]), 'Enne kui sa ise kirjutad, näed, mida tööandjale kirjutatakse ja millises järjekorras.'), { task: 'R12' }),
+      teach(tag(purpose(B.speaking('043_d_retell', 'Mis kirjas on? Küsi paarilisel.', 'Küsi paarilisel kirja järgi. B vastab terve lausega. Siis vahetage.', [
+        'Millisele kohale Olga kandideerib ja kust ta kuulutuse leidis?',
+        'Mida ta on harjunud tegema ja mida ta oskab?',
+        'Millal saab ta alustada ja mida ta kirjale lisab?',
+        'Kas sina kutsuksid Olga vestlusele? Miks?',
+        'Mida kirjutaksid sina oma kirja esimesse lõiku?',
+      ], [70, 100], '', 'g_read'), 'Ütled kirja järgi, mida kandidaat oskab, ja valid ma- või da-vormi.'), { task: 'S13', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Olga on harjunud töötada aeglaselt”) ja õpilane parandab sind kirja järgi.'),
+      hide(B.review('043_d_review', [['Kus olid sinu kolleegid või sõbrad eile kell kümme? Vasta ma-vormiga.', 'a2b1-042'], ['Mis juhtus Markuse lõunaga kontori külmkapis?', 'a2b1-028'], 'Millisele tööle sa tahaksid kandideerida?']), V5_DRILL),
+      hide(B.text('043_d_hook', 'Kiri tuleb saata reedeks', 'Jaan otsustas kandideerida. Kandideerimiskiri tuleb saata 20. novembriks, aga Jaan pole kunagi sellist kirja kirjutanud. Täna kuulad kooli raadioreklaami, loed Anna kirja, mille ta saatis aasta tagasi Tuul Logistikasse, ja kirjutad lõpuks oma kandideerimiskirja.'), V5_CUT),
+      hide(tag(B.listening('043_d_ad', 'Raadioreklaam: Kase kool otsib kokka.', 'Kuula reklaami ja direktori juttu. Kirjuta lünka number, kellaaeg, kuupäev või summa.', [
         'Teadustaja: Raadio Linnahääl, töökuulutused. Kase kool Tallinnas otsib kokka. Räägib kooli direktor Aivar Mänd.',
         'Aivar: Tere! Meie koolis õpib nelisada kakskümmend last ja peaaegu kõik söövad koolis lõunat.',
         'Aivar: Meie kokk Maire Kuusk on köögis töötanud kakskümmend aastat. Järgmisel suvel läheb ta pensionile. Lapsed armastavad tema pannkooke ja me tahame, et köök jääks sama heaks ka pärast teda.',
@@ -500,59 +766,58 @@ export const LESSONS = withShapes({
         'Katseaeg kestab [3|kolm] kuud.',
         'Kandideerimiskiri tuleb saata [20. novembriks|kahekümnendaks novembriks].',
         'Töövestlused on [26. novembril|kahekümne kuuendal novembril].',
-      ], 'g_vocab'), { task: 'L10' }),
-      tag(B.vocab('043_d_vocab', 'Tunni sõnad.', ['kandideerima — подавать заявку', 'kandidaat — кандидат', 'kogemus — опыт', 'oskus — умение', 'haridus — образование', 'soovitus — рекомендация', 'tööandja — работодатель', 'sobima — подходить', 'alustama — начинать', 'katseaeg — испытательный срок', 'kursus — курс', 'lugupidamisega — с уважением']), { topic: ['katseaeg', 'lugupidamisega'] }),
-      tag(B.reading('043_d_model', 'Anna kiri aasta tagasi.', 'Loe Anna kandideerimiskirja. Leia, mida teeb kirja iga lõik, ja vasta küsimustele.', 'Kandideerimine: projektijuhi assistent', [
-        'Lugupeetud Eha Org!',
-        '',
-        'Kandideerin Tuul Logistika projektijuhi assistendi ametikohale. Nägin teie kuulutust 3. oktoobril töökuulutuste portaalis ja lugesin teie kodulehelt, et firma kasvab kiiresti. Tahaksin olla osa sellest meeskonnast.',
-        '',
-        'Olen viis aastat töötanud klienditeenindajana kaubamajas Kaubahall. Minu ülesanne oli tellida kaupa, vastata klientide küsimustele ja lahendada probleeme. Olen harjunud töötama kiiresti ja täpselt. Eelmisel aastal käisin õhtuti kursusel logistikat õppimas. Kursuse lõpus tegin projekti, kus planeerisin ühe poe kaubaveo terveks kuuks.',
-        '',
-        'Teie firma töö huvitab mind, sest tahan tegeleda suuremate projektidega ja õppida juurde. Mulle meeldib plaane teha ja ma ei karda telefonikõnesid. Räägin eesti, vene ja inglise keelt. Minu endised kolleegid ütlevad, et olen rahulik ka siis, kui klient on vihane ja tööd on palju.',
-        '',
-        'Praegune leping lõpeb oktoobri lõpus, nii et saan alustada tööd 1. novembrist. Lisan kirjale oma CV ja endise juhataja soovituse. Olen valmis tulema vestlusele igal tööpäeval pärast kella viit. Mind on kõige parem kätte saada telefonil.',
-        '',
-        'Lugupidamisega',
-        'Anna',
-      ], [
-        ['Mis on kirja esimese lõigu ülesanne?', 'öelda, millisele kohale ta kandideerib|nimetada ametikoht'],
-        ['Millises lõigus kirjutab Anna oma töökogemusest?', 'teises|teises lõigus'],
-        ['Mida Anna kaubamajas tegi?', 'tellis kaupa, vastas klientide küsimustele ja lahendas probleeme'],
-        ['Kuidas näitab Anna, et ta tahab õppida?', 'ta käis kursusel logistikat õppimas'],
-        ['Miks huvitab Annat Tuul Logistika töö?', 'ta tahab tegeleda suuremate projektidega ja õppida'],
-        ['Millest räägib Anna kirja viimases lõigus?', 'millal saab alustada, mida lisab ja millal saab vestlusele tulla'],
-        ['Mida Anna kirjale lisab?', 'CV ja soovituse|oma CV ja juhataja soovituse'],
-        ['Miks alustab Anna kirja sõnadega „Lugupeetud Eha Org”, mitte „Tere, Eha”?', 'see on ametlik kiri|tööandjale kirjutatakse viisakalt'],
-      ]), { task: 'R09' }),
-      B.notice('043_d_notice', 'Märka: kandideerimiskirja keel', [
-        'Algus: **Kandideerin** … ametikohale. · **Nägin teie kuulutust** …',
-        '**ma-vorm**: **olen harjunud** kiiresti **töötama** · **olen valmis õppima** · **hakkan vastutama** · **käisin** kursusel **õppimas**',
-        '**da-vorm**: **oskan** arvutit **kasutada** · **mulle meeldib** inimestega **suhelda** · **tahan** juurde **õppida**',
-        'Lõpp: **Saan alustada** 1. detsembrist. · **Lisan** kirjale CV. · **Lugupidamisega**',
-      ], 'full'),
-      B.categorize('043_d_maorda', 'ma või da?', 'Pane tegusõnad ja väljendid kahte rühma: kas nende järel tuleb ma- või da-vorm?', [
+      ], 'g_vocab'), { task: 'L10' }), V5_CUT),
+      hide(B.categorize('043_d_maorda', 'ma või da?', 'Pane tegusõnad ja väljendid kahte rühma: kas nende järel tuleb ma- või da-vorm?', [
         ['… + ma-vorm (töötama)', ['hakkama', 'pidama', 'olema harjunud', 'olema valmis', 'minema', 'kutsuma', 'õppima', 'jääma']],
         ['… + da-vorm (töötada)', ['oskama', 'tahtma', 'võima', 'meeldima', 'proovima', 'otsustama', 'soovima', 'on vaja']],
-      ], 'full', 'g_notice'),
-      teach(tag(B.speaking('043_d_432', 'Minu esimene töö.', 'Räägi oma esimesest tööst kolm korda järjest: 3 minutit, siis 2 minutit ja lõpuks 1 minut.', ['Mis oli sinu esimene töö ja kus see oli?', 'Mida sa seal tegid ja mille eest vastutasid?', 'Mida sa sellel tööl õppisid?', 'Mis oli kõige raskem või naljakam?', 'Miks sa sealt lahkusid või miks jäid?'], [70, 180], ['Minu esimene töö oli…', 'Olin harjunud … -ma.', 'Seal õppisin … -ma.']), { task: 'S08' }),
-        'Üks-ühele (4-3-2): õpilane räägib sama lugu õpetajale kolm korda, õpetaja hoiab aega (3, 2 ja 1 minut) ega katkesta. Iga ring peab tulema sujuvamalt; pärast kolmandat ütleb õpetaja ühe ma- või da-vormi, mis tuli hästi välja.'),
-      tag(B.writing('043_d_free', 'Kaheksa minutit peatumata.', 'Vaata pilti ja kirjuta kaheksa minutit peatumata: kes kandideerib, mida ta kirjutab ja mis edasi saab.', [8, 10], ['kandideerin', 'oskan', 'olen valmis', 'olen harjunud'], 2), { task: 'W06', fluency: true }),
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(teach(tag(B.speaking('043_d_432', 'Minu esimene töö.', 'Räägi oma esimesest tööst kolm korda järjest: 3 minutit, siis 2 minutit ja lõpuks 1 minut.', ['Mis oli sinu esimene töö ja kus see oli?', 'Mida sa seal tegid ja mille eest vastutasid?', 'Mida sa sellel tööl õppisid?', 'Mis oli kõige raskem või naljakam?', 'Miks sa sealt lahkusid või miks jäid?'], [70, 180], ['Minu esimene töö oli…', 'Olin harjunud … -ma.', 'Seal õppisin … -ma.']), { task: 'S08' }),
+        'Üks-ühele (4-3-2): õpilane räägib sama lugu õpetajale kolm korda, õpetaja hoiab aega (3, 2 ja 1 minut) ega katkesta. Iga ring peab tulema sujuvamalt; pärast kolmandat ütleb õpetaja ühe ma- või da-vormi, mis tuli hästi välja.'), V5_CUT),
+      hide(tag(B.writing('043_d_free', 'Kaheksa minutit peatumata.', 'Vaata pilti ja kirjuta kaheksa minutit peatumata: kes kandideerib, mida ta kirjutab ja mis edasi saab.', [8, 10], ['kandideerin', 'oskan', 'olen valmis', 'olen harjunud'], 2), { task: 'W06', fluency: true }), V5_CUT),
     ],
     practice: [
-      B.choice('043_p_register', 'Kirja keel.', 'Vali iga olukorra jaoks lause, mis sobib ametlikku kandideerimiskirja.', [
-        ['Kuidas alustad kirja, kui tead tööandja nime?', 'Lugupeetud Eha Org!', 'Tere, Eha!', 'Hei, kallis Eha!'],
-        ['Kuidas alustad kirja, kui tööandja nime ei tea?', 'Lugupeetud tööandja!', 'Tere, sõbrad!', 'Hei, Kase kool!'],
-        ['Kuidas ütled, millisele kohale kandideerid?', 'Kandideerin koka ametikohale.', 'Ma tahan teie koka kohta.', 'Andke mulle palun see töö.'],
-        ['Kuidas räägid ametlikult oma kogemusest?', 'Olen töötanud kokana viisteist aastat.', 'Ma olen väga-väga hea kokk.', 'Kõik ütlevad, et mu toit on super.'],
-        ['Kuidas ütled viisakalt, miks see töö sind huvitab?', 'Soovin töötada päeval ja olla õhtuti perega.', 'Mul on praegusest tööst kõrini.', 'Õhtuti töötamine on täielik jama.'],
-        ['Kuidas näitad, et oled valmis uut õppima?', 'Olen valmis õppima uusi retsepte.', 'Ma ei pea midagi õppima.', 'Õppimine ei ole minu jaoks.'],
-        ['Kuidas ütled, millal saad tööd alustada?', 'Saan alustada tööd 1. detsembrist.', 'Tulen siis, kui mul aega on.', 'Võib-olla alustan kunagi.'],
-        ['Kuidas ütled, mida kirjale lisad?', 'Lisan kirjale oma CV ja soovituse.', 'CV on kuskil arvutis.', 'Soovitust ma ei saa.'],
-        ['Kuidas pakud tööandjale vestluse aega?', 'Saan vestlusele tulla tööpäeviti pärast kella nelja.', 'Helistage mulle millal tahes, ka öösel.', 'Vestlusele ma ei tule.'],
-        ['Kuidas lõpetad ametliku kandideerimiskirja?', 'Lugupidamisega, Jaan Mets', 'Musi-musi, Jaan', 'Tšau, Jaan'],
-      ], 'full', 'g_notice'),
-      tag(B.transformation('043_p_join', 'Ühenda laused.', 'Tee kahest lausest üks. Kasuta antud sidesõna ja muuda vajadusel sõnajärge.', [
+      station(B.notice('043_d_notice', 'Märka: kandideerimiskirja keel', [
+        'Kirjast: **Kandideerin** … ametikohale · **olen harjunud töötama** · **käisin** kursusel **õppimas** · **oskan** arvutit **kasutada** · **mulle meeldib suhelda** · **olen valmis õppima** · **Saan** tööd **alustada** …',
+        '**-ma** pärast: **olen harjunud**, **olen valmis**, **hakkan**, **pean** — olen harjunud **töötama**, olen valmis **õppima** · **käin** + **-mas**: käisin kursusel **õppimas**',
+        '**-da** pärast: **oskan**, **tahan**, **soovin**, **võin**, **saan**, **mulle meeldib** — oskan **kasutada**, soovin **töötada**, mulle meeldib **suhelda**',
+        'Kirja plaan: 1) millisele kohale ja kust kuulutus · 2) kogemus ja oskused · 3) miks see töö sobib · 4) millal saan alustada, mida lisan · **Lugupidamisega**, nimi',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('043_p_forms', 'Ma või da?', 'Kirjuta sulgudes olev tegusõna ma- või da-vormis. Mõtle: mis on ees?', [
+        'Olen harjunud iga päev klientidega [suhtlema] (suhtlema).',
+        'Oskan arvutis kiiresti tabeleid [teha] (tegema).',
+        'Olen valmis vajaduse korral ka nädalavahetusel [töötama] (töötama).',
+        'Mulle meeldib tööl uusi asju [õppida] (õppima).',
+        'Soovin [töötada] päeval, sest õhtuti olen lastega (töötama).',
+        'Saan tööd [alustada] juba 1. märtsist (alustama).',
+        'Eelmisel aastal käisin õhtuti kursusel [õppimas] (õppima).',
+        'Kui te mind valite, hakkan kohe uusi retsepte [proovima] (proovima).',
+      ], '', 'full', 'g_notice'), [
+        'olema harjunud → ma-vorm: suhtlema.',
+        'oskama → da-vorm: teha (tegema → teha).',
+        'olema valmis → ma-vorm: töötama.',
+        'meeldima → da-vorm: õppida.',
+        'soovima → da-vorm: töötada.',
+        'saama (võimalus) → da-vorm: alustada.',
+        'käima → -mas: õppimas.',
+        'hakkama → ma-vorm: proovima.',
+      ]), 'Kaheksa lauset näitavad, kas ma- ja da-vorm on käes.'), { task: 'G02' }),
+      hide(tag(purpose(why(B.choice('043_p_register', 'Ametlik või mitte?', 'Vali iga olukorra jaoks lause, mis sobib ametlikku kandideerimiskirja.', [
+        ['Kuidas alustad kirja, kui tead tööandja nime?', 'Lugupeetud Tiit Kask!', 'Tere, Tiit!', 'Hei, kallis Tiit!'],
+        ['Kuidas ütled, millisele kohale kandideerid?', 'Kandideerin koka abi ametikohale.', 'Ma tahan teie tööd.', 'Andke mulle palun see töö.'],
+        ['Kuidas räägid oma kogemusest?', 'Olen töötanud kokana viis aastat.', 'Ma olen väga-väga hea kokk.', 'Kõik ütlevad, et mu toit on super.'],
+        ['Kuidas ütled, millal saad alustada?', 'Saan tööd alustada 1. märtsist.', 'Tulen siis, kui mul aega on.', 'Võib-olla alustan kunagi.'],
+        ['Kuidas ütled, mida kirjale lisad?', 'Lisan kirjale oma CV.', 'CV on kuskil arvutis.', 'CV-d mul ei ole.'],
+        ['Kuidas lõpetad kirja?', 'Lugupidamisega, Olga Smirnova', 'Musi-musi, Olga', 'Tšau, Olga'],
+      ], 'full', 'g_notice'), [
+        'Ametlik kiri algab „Lugupeetud” + ees- ja perekonnanimi.',
+        'Esimeses lauses: „Kandideerin … ametikohale.”',
+        'Kogemus: kus ja kui kaua, ilma liialdamata.',
+        'Täpne kuupäev: „Saan tööd alustada …”.',
+        'Lisa nimetatakse: „Lisan kirjale …”.',
+        'Ametlik lõpp: „Lugupidamisega” ja nimi.',
+      ]), 'Kuus valikut näitavad, kas sa tunned ametliku kirja keele ära.'), { task: 'G04' }), 'v5 (2026-11-25): teine suletud ülesanne jaamas 3 — ametlik toon on näidiskirjas ja kirja juhises'),
+      tag(purpose(rows(B.writing('043_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset endast tööandjale: mida oskad, mida oled harjunud tegema, milleks oled valmis, millal saad alustada.', [8, 10]), 7), 'Oma laused on sinu kirja materjal.'), { task: 'W11' }),
+      hide(tag(B.transformation('043_p_join', 'Ühenda laused.', 'Tee kahest lausest üks. Kasuta antud sidesõna ja muuda vajadusel sõnajärge.', [
         ['Soovin töötada päeval. Siis saan õhtuti perega olla.', 'sest', 'Soovin töötada päeval, sest siis saan õhtuti perega olla.'],
         ['Kooli palk on väiksem. Nädalavahetused on vabad.', 'aga', 'Kooli palk on väiksem, aga nädalavahetused on vabad.'],
         ['Ma tean allergiatest palju. Mu pojal on pähkliallergia.', 'kuna', 'Ma tean allergiatest palju, kuna mu pojal on pähkliallergia.'],
@@ -563,8 +828,8 @@ export const LESSONS = withShapes({
         ['Te otsite kokka. Kokk oskab teha tervislikku toitu.', 'kes', 'Te otsite kokka, kes oskab teha tervislikku toitu.'],
         ['Ma ei ole koolis töötanud. Olen valmis kiiresti õppima.', 'kuid', 'Ma ei ole koolis töötanud, kuid olen valmis kiiresti õppima.'],
         ['Lisan kirjale oma CV. Lisan ka soovituse.', 'ja', 'Lisan kirjale oma CV ja soovituse.'],
-      ], 'full', 'g_use'), { task: 'W09' }),
-      tag(B.reading('043_p_advice', 'Nõustaja nõuanded.', 'Loe karjäärinõustaja artiklit. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Kiri, mida tööandja tahab lugeda', [
+      ], 'full', 'g_use'), { task: 'W09' }), V5_DRILL),
+      hide(tag(B.reading('043_p_advice', 'Nõustaja nõuanded.', 'Loe karjäärinõustaja artiklit. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Kiri, mida tööandja tahab lugeda', [
         'Karjäärinõustaja Piret Vaher on aidanud kandideerimiskirju kirjutada juba kümme aastat. Tema kogemuse järgi vaatab tööandja ühe kirja esimest korda läbi sageli vaid poole minutiga. Seepärast peab kiri olema lühike ja selge. Kui esimesest lõigust ei selgu, millisele kohale inimene kandideerib, jääb ülejäänud kiri sageli lugemata.',
         '',
         '„Hea kandideerimiskiri mahub ühele lehele,” ütleb Vaher. „Kolm-neli lõiku on täiesti piisav.” Pikad kirjad, kus inimene kirjutab kogu oma elust, jäävad sageli poolikult lugemata. Kui tööandja nimi on kuulutuses olemas, tuleb kiri alustada tema nimega. „Lugupeetud tööandja” on halvem, aga parem kui „Tere”.',
@@ -585,12 +850,12 @@ export const LESSONS = withShapes({
         ['Kirja lõpus peab olema kirjas palgasoov.', 'ei selgu'],
         ['Nõustaja soovitab lasta kirja enne saatmist kellelgi teisel läbi lugeda.', 'õige'],
         ['Miks on näide parem kui omadussõna „täpne”?', 'näide näitab, mida sa päriselt tegid|tööandja usub näidet rohkem'],
-      ]), { task: 'R06' }),
-      B.know('043_p_know', [
+      ]), { task: 'R06' }), V5_CUT),
+      hide(B.know('043_p_know', [
         'Töölepingu seaduse järgi on uuel töötajal tavaliselt neli kuud katseaega. Selle ajaga hindab tööandja, kas töötaja teadmised, oskused ja tervis sobivad tööle, ja töötaja näeb, kas töö sobib talle. Lepingus võib katseaja ka lühemaks teha või sellest loobuda. Kuni kaheksa kuu pikkuse tähtajalise lepingu korral on katseaeg kõige rohkem pool lepingu ajast. Kui töötaja on katseajal haige või puhkusel, seda aega katseaja hulka ei arvestata. Katseajal võivad mõlemad pooled lepingu üles öelda, kui teatavad sellest vähemalt 15 kalendripäeva ette.',
         'Alates 2026. aasta septembrist pakub Töötukassa ka proovitööd. Töötukassas registreeritud töötu, kes on kandideerinud Töötukassa portaalis avaldatud tööpakkumisele, saab ühe päeva jooksul juhendaja abiga tööandja juures tööd proovida, enne kui leping sõlmitakse.',
-      ], 'töölepingu seadus, § 10¹ ja § 96 (Riigi Teataja); Töötukassa, „Töötukassa avas proovitöö teenuse” (02.09.2026)', 'Kas teadsid? Katseaeg ja proovitöö'),
-      B.formtext('043_p_draft', 'Jaani kirja mustand.', 'Kirjuta sulgudes olev tegusõna sobivasse vormi: ma, da, mas, mast või mata.', 'Lugupeetud direktor Aivar Mänd!', [
+      ], 'töölepingu seadus, § 10¹ ja § 96 (Riigi Teataja); Töötukassa, „Töötukassa avas proovitöö teenuse” (02.09.2026)', 'Kas teadsid? Katseaeg ja proovitöö'), V5_CUT),
+      hide(B.formtext('043_p_draft', 'Jaani kirja mustand.', 'Kirjuta sulgudes olev tegusõna sobivasse vormi: ma, da, mas, mast või mata.', 'Lugupeetud direktor Aivar Mänd!', [
         'Kandideerin Kase kooli koka ametikohale, mille kuulutust kuulsin raadiost. Olen viisteist aastat kohvikutes ja restoranides töötanud. Praegu vastutan kohviku Kaneel köögi eest ja olen harjunud kiiresti [töötama] (töötama).',
         '',
         'Oskan [teha] (tegema) toitu ka allergiaga inimestele, sest minu pojal on pähkliallergia. Eelmisel aastal käisin Soomes kokakursusel [õppimas] (õppima). Mulle meeldib uusi retsepte [proovida] (proovima).',
@@ -600,17 +865,33 @@ export const LESSONS = withShapes({
         'Saan tööd [alustada] (alustama) 1. detsembril. Olen valmis vestlusele [tulema] (tulema) igal tööpäeval pärast kella kolme. Kui te tahate minu toitu [maitsma] (maitsma) tulla, ootan teid kohvikus Kaneel.',
         '',
         'Lisan kirjale CV ja kohviku omaniku soovituse. Kase kool on minu poja kool ja ma tean, kui tähtis on lastele hea lõuna. Lugupidamisega, Jaan Mets',
-      ]),
-      B.planning('043_p_plan', 'Minu kirja plaan.', 'Mõtle tööle, mida tahaksid. Märgi iga kirjaosa kohta kaks-kolm märksõna, mitte terveid lauseid.', ['Kellele kirjutad ja kuidas pöördud?', 'Millisele ametikohale kandideerid ja kust kuulutuse leidsid?', 'Sinu haridus ja kursused', 'Sinu töökogemus: kus, kui kaua, mida tegid?', 'Kaks oskust ja näide kummagi kohta', 'Miks just see töö sulle sobib?', 'Millal saad alustada ja mida lisad?', 'Kuidas lõpetad?'], 2),
-      teach(tag(B.examWriting('043_p_form', 'Eksaminurk: kandideerimisankeet (Harno B1 kirjutamine 1)', 'Täida Kase kooli kandideerimisankeet. Vasta lühidalt; miks-küsimustele vasta sest-lausega.', 'kusimustik', {
+      ]), V5_DRILL),
+      hide(B.planning('043_p_plan', 'Minu kirja plaan.', 'Mõtle tööle, mida tahaksid. Märgi iga kirjaosa kohta kaks-kolm märksõna, mitte terveid lauseid.', ['Kellele kirjutad ja kuidas pöördud?', 'Millisele ametikohale kandideerid ja kust kuulutuse leidsid?', 'Sinu haridus ja kursused', 'Sinu töökogemus: kus, kui kaua, mida tegid?', 'Kaks oskust ja näide kummagi kohta', 'Miks just see töö sulle sobib?', 'Millal saad alustada ja mida lisad?', 'Kuidas lõpetad?'], 2), V5_CUT),
+      hide(teach(tag(B.examWriting('043_p_form', 'Eksaminurk: kandideerimisankeet (Harno B1 kirjutamine 1)', 'Täida Kase kooli kandideerimisankeet. Vasta lühidalt; miks-küsimustele vasta sest-lausega.', 'kusimustik', {
         situation: 'Kase kool palub kõigil kandidaatidel enne vestlust täita lühikese ankeedi. Vasta nii, nagu kandideeriksid ise.',
         questions: ['Mis on teie nimi ja kus te elate?', 'Millise hariduse olete saanud?', 'Kus te praegu töötate?', 'Kui kaua olete köögis või teeninduses töötanud?', 'Milliseid keeli te räägite ja kui hästi?', 'Miks soovite töötada koolis?', 'Mis on teie kõige tugevam oskus? Miks?', 'Kas olete valmis õppima uusi retsepte? Miks?', 'Millal saate tööd alustada?', 'Kuidas te kuulutusest teada saite?'],
       }), { harno: 'W1a' }),
-      'Eksaminurk (Harno B1 kirjutamine 1, küsimustik, ~9 min). Harnos on kümme küsimust, osa neist „Miks?”: vastus peab olema lühike, aga miks-küsimusele vastatakse põhjusega (sest…, kuna…). Üks-ühele: õpilane kirjutab 9 minutiga; õpetaja kontrollib, kas igale küsimusele on vastatud ja kas miks-vastustes on põhjus.'),
+      'Eksaminurk (Harno B1 kirjutamine 1, küsimustik, ~9 min). Harnos on kümme küsimust, osa neist „Miks?”: vastus peab olema lühike, aga miks-küsimusele vastatakse põhjusega (sest…, kuna…). Üks-ühele: õpilane kirjutab 9 minutiga; õpetaja kontrollib, kas igale küsimusele on vastatud ja kas miks-vastustes on põhjus.'), V5_CUT),
     ],
     transfer: [
-      B.text('043_t_sit', 'Neli kuulutust', 'Sinu sõber otsib ka tööd. Te loete koos nelja kuulutust ja lepite kokku, kes millisele kohale kandideerib. Seejärel kirjutad oma kandideerimiskirja. Lõpuks loed kirja hindamisjuhendi järgi üle ja kirjutad parema versiooni.'),
-      B.profiles('043_t_ads', 'Neli töökuulutust.', 'Loe kuulutusi. Täienda laused: mida töö nõuab ja kellele see sobib.', [
+      station(teach(tag(purpose(rows(B.examWriting('043_t_letter', 'Minu kandideerimiskiri', 'Kirjuta 60–90 sõna kuulutusele pildil või päris kuulutusele: koht, oskused, miks sobib, millal alustad. Algus ja lõpp on sinu oma.', 'vastus', {
+        words: [60, 90],
+      }), 4), 'Tööandja saab teada, kes sa oled ja mida oskad.'), { task: 'W08', harno: 'W1b', main: true, level: 4 }),
+      'Õpilane kirjutab tunnis 15 minutit ilma abita (kuulutus A või B pildil või päris kuulutus), siis loeb paarilisele (või sulle) ette; kuulaja on tööandja, küsib kaks küsimust („Kus te varem töötasite?”, „Millal saate alustada?”) ja ütleb, kas kutsub vestlusele ja miks. Teine katse: õpilane kirjutab oskuste lõigu ümber ühe näitega („Olen harjunud töötama kiiresti: näiteks …”). Parandatud versioon on kodutöö. Kontrolli: neli sisupunkti, ma-vorm (olen harjunud, olen valmis, käisin …-mas) ja da-vorm (oskan, soovin, mulle meeldib), ametlik algus ja lõpp.'), 4, 25, { final: 'present' }),
+      tag(exitCheck(why(purpose(B.gaps('043_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev tegusõna ma- või da-vormis.', [
+        'Olen harjunud poes kiiresti ja täpselt [töötama] (töötama).',
+        'Oskan hästi arvutit ja kassat [kasutada] (kasutama).',
+        'Saan uuel töökohal tööd [alustada] juba esmaspäeval (alustama).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas sa valid tööandjale kirjutades õige vormi.'), ['olema harjunud → ma-vorm: töötama.', 'oskama → da-vorm: kasutada.', 'saama → da-vorm: alustada.'])), {}),
+      purpose(B.selfcheck('043_t_self', ['Ma kasutan ma-vormi: olen harjunud töötama, olen valmis õppima.', 'Ma kasutan da-vormi: oskan kasutada, mulle meeldib suhelda.', 'Ma saan aru kandideerimiskirjast ja tean, mis on igas lõigus.', 'Ma kirjutan töökuulutusele kandideerimiskirja.'], 'Kiri valmis', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('043_t_rec', 'Kodus: päris tööpakkumine.', 'Ava Töötukassa leht „Tööpakkumised” (https://www.tootukassa.ee/et/toopakkumised) ja vali üks kuulutus. Salvesta 60–90 sekundit.', [
+        'Mis amet see on ja kus see töö on?',
+        'Mida tööandja nõuab ja mida pakub?',
+        'Kas see töö sobiks sulle? Miks?',
+      ], [60, 90]), 'Päris leht päris asutuselt: loed eesti keeles päris tööpakkumist.')), { task: 'S15', fluency: true }),
+      homework('043_t_homework', ['1. Paranda kiri ja saada see õpetajale.', '2. Ava leht „Tööpakkumised”, vali üks kuulutus ja salvesta 60–90 sekundit (ülesanne lehel).', '3. Kirjuta vihikusse kolm lauset: mida sa oskad, mida oled harjunud tegema ja milleks oled valmis.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('043_t_sit', 'Neli kuulutust', 'Sinu sõber otsib ka tööd. Te loete koos nelja kuulutust ja lepite kokku, kes millisele kohale kandideerib. Seejärel kirjutad oma kandideerimiskirja. Lõpuks loed kirja hindamisjuhendi järgi üle ja kirjutad parema versiooni.'), V5_CUT),
+      hide(B.profiles('043_t_ads', 'Neli töökuulutust.', 'Loe kuulutusi. Täienda laused: mida töö nõuab ja kellele see sobib.', [
         ['Kokk — Kase kool', ['E–R 7.00–15.30, nädalavahetus vaba', 'vähemalt 3 aastat köögikogemust', 'oskab teha toitu allergiaga lastele', 'palk 1500 € kuus, tasuta lõuna', 'kiri ja CV 20. novembriks'],
           ['Selle töö juures on õhtud ja nädalavahetused [vabad].', 'Köögis peab olema töötanud vähemalt [kolm|3] aastat.', 'Kokk peab oskama teha toitu ka [allergiaga] lastele.', 'See töö sobib inimesele, kes tahab õhtuti olla [kodus|perega].', 'Kirja ja CV peab saatma [20. novembriks|kahekümnendaks novembriks].']],
         ['Laotöötaja — Tuul Logistika', ['töö vahetustega: hommikul või õhtul', 'kontrollib ja pakib kaupa', 'tõstukiluba on eelis', 'peab saama hakkama raskete kastidega', 'koolitus esimesel nädalal'],
@@ -619,29 +900,95 @@ export const LESSONS = withShapes({
           ['Töö on osalise [ajaga].', 'Klienditeenindaja töötab nädalas neli [õhtut].', 'Ta laenutab raamatuid ja aitab [lugejaid].', 'Töö sobib ka [üliõpilasele], kes õpib päeval.', 'Raamatukokku kandideeritakse [e-kirjaga].']],
         ['Müüja — Nõmme turu talupood', ['T–L 9–17', 'müüb talunike piima, juustu ja liha', 'peab varakult tõusma', 'kogemus ei ole vajalik, õpetame', 'helista poe juhatajale'],
           ['Talupood on avatud teisipäevast [laupäevani].', 'Müüja müüb talunike piima, juustu ja [liha].', 'Selle töö juures peab hommikul [varakult] tõusma.', 'Kogemust ei ole vaja, sest uut müüjat [õpetatakse].', 'Kandideerimiseks tuleb [helistada] poe juhatajale.']],
-      ], '2', 'g_vocab'),
-      teach(tag(B.ideaCard('043_t_choose', 'Leppige kokku: kes kuhu kandideerib?', 'Arutage sõbraga nelja kuulutust. Leppige kokku, kummale kumb töö sobib ja miks.', 'Sina ja su sõber otsite mõlemad tööd. Sõber õpib päeval ülikoolis ja saab töötada ainult õhtuti. Sina tahad täiskohaga tööd, kus saab midagi uut õppida.', ['kokk Kase koolis', 'laotöötaja Tuul Logistikas', 'raamatukogu klienditeenindaja', 'talupoe müüja', 'palk ja tööaeg', 'kogemus ja oskused'], 'Kes millisele kohale kandideerib ja miks?'), { level: 4 }),
-        'Üks-ühele: õpetaja on sõber ja tahab alguses sama tööd mis õpilane; õpilane põhjendab kuulutuste nõuete järgi ja pakub kompromissi. Lõpus on kokkulepe ühe lausega kirjas.'),
-      tag(B.examWriting('043_t_letter', 'Minu kandideerimiskiri.', 'Kirjuta valitud kuulutusele kandideerimiskiri umbes 100 sõnaga. Kirjuta kõigist viiest punktist.', 'vastus', {
-        situation: 'Sa kandideerid ühele neljast kuulutusest. Kiri läheb tööandjale, nii et kirjuta ametlikult.',
-        points: ['millisele kohale kandideerid ja kust kuulutuse leidsid', 'sinu haridus ja töökogemus', 'kaks oskust koos näitega', 'miks see töö sulle sobib', 'millal saad alustada ja mida lisad'],
-        words: [90, 110], opening: 'Lugupeetud …!', closing: 'Lugupidamisega',
-      }), { level: 4, main: true }),
-      tag(B.writing('043_t_better', 'Parem versioon.', 'Loe oma kiri hindamisjuhendi järgi üle. Paranda kolm asja ja kirjuta kiri puhtalt uuesti.', [8, 12], ['kandideerin', 'olen harjunud', 'oskan', 'saan alustada'], 3), { task: 'W10' }),
-      teach(tag(B.speaking('043_t_rec', 'Kodus: minut tööandjale.', 'Tutvusta ennast tööandjale umbes ühe minutiga ja salvesta: kes sa oled, mida oskad ja miks see töö sulle sobib.', ['Kes sa oled ja mis kogemus sul on?', 'Mida sa hästi oskad?', 'Miks see töö sulle sobib?'], [60, 120], ['Minu nimi on…', 'Mul on … kogemus.', 'See töö sobib mulle, sest…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis on õpetaja tööandja ja küsib kaks lisaküsimust.'),
-      B.rubricW2('043_t_rubric', 'Hindamine: kandideerimiskiri (12 punkti).'),
-      B.selfcheck('043_t_self', ['Ma saan aru töökuulutuse numbritest: tööaeg, palk, tähtaeg.', 'Ma valin ma- või da-vormi: olen harjunud töötama, oskan teha.', 'Ma täidan kandideerimisankeedi ja põhjendan vastuseid.', 'Ma kirjutan umbes 100-sõnalise kandideerimiskirja.'], 'Kandideerimiskiri'),
+      ], '2', 'g_vocab'), V5_CUT),
+      hide(teach(tag(B.ideaCard('043_t_choose', 'Leppige kokku: kes kuhu kandideerib?', 'Arutage sõbraga nelja kuulutust. Leppige kokku, kummale kumb töö sobib ja miks.', 'Sina ja su sõber otsite mõlemad tööd. Sõber õpib päeval ülikoolis ja saab töötada ainult õhtuti. Sina tahad täiskohaga tööd, kus saab midagi uut õppida.', ['kokk Kase koolis', 'laotöötaja Tuul Logistikas', 'raamatukogu klienditeenindaja', 'talupoe müüja', 'palk ja tööaeg', 'kogemus ja oskused'], 'Kes millisele kohale kandideerib ja miks?'), { level: 4 }),
+        'Üks-ühele: õpetaja on sõber ja tahab alguses sama tööd mis õpilane; õpilane põhjendab kuulutuste nõuete järgi ja pakub kompromissi. Lõpus on kokkulepe ühe lausega kirjas.'), V5_CUT),
+      hide(tag(B.writing('043_t_better', 'Parem versioon.', 'Loe oma kiri hindamisjuhendi järgi üle. Paranda kolm asja ja kirjuta kiri puhtalt uuesti.', [8, 12], ['kandideerin', 'olen harjunud', 'oskan', 'saan alustada'], 3), { task: 'W10' }), V5_CUT),
+      hide(B.rubricW2('043_t_rubric', 'Hindamine: kandideerimiskiri (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 044 case: the job interview (claim + example + link)
   'a2b1-044': {
     title: 'Töövestlus',
-    canDo: 'Ma räägin töövestlusel oma kogemusest ja oskustest, toon iga tugevuse kohta näite, esitan ise kaks küsimust ja lepin kokku, millal tööd alustan.',
+    phases: grammar('Keel: hea vastus = väide + näide + seos — Olen täpne. Näiteks … Seepärast … · Kes mind juhendama hakkab?'),
+    format: 'case',
+    topic: 'work',
+    subtopic: 'job-interview',
+    canDo: 'Ma vastan töövestlusel küsimustele 3–4 lausega (väide, näide, seos), küsin ise kaks küsimust ja ütlen, millal saan alustada.',
+    teacherPage: {
+      goal: 'Ученик понимает запись собеседования и сам проходит собеседование в паре: отвечает 3–4 предложениями (утверждение, пример, связь), сам задаёт два вопроса.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → собеседование на складе (2 раза, 6 вопросов с выбором ответа) → пункт 4: собеседование в паре по картинке «Töövestlus», работодатель решает. Пункт 3 — коротко или дома в «Harjuta».',
+      hook: '«Kas sa oled käinud töövestlusel? Mida seal küsiti?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 43 без записей: что ты умеешь и к чему привык на работе (oskan …-da, olen harjunud …-ma).',
+      plan: [
+        '0–8: пункт 1 — опыт собеседований; одно предложение oskan + da / olen harjunud + ma (повторение урока 43)',
+        '8–25: пункт 2 — слова, запись собеседования (2 раза, 6 вопросов с выбором, как Harno B1 kuulamine 2), в паре: «Mis on Igori tugevus? Millise näite ta tõi?»',
+        '25–40: пункт 3 — заметить → правило (väide + näide + seos; слабая сторона + что сделал; свои вопросы: Kes mind juhendama hakkab?) → 8 форм → три свои сильные стороны с примерами (8–10 предложений)',
+        '40–65: пункт 4 — собеседование в паре по картинке «Töövestlus»: работодатель задаёт пять вопросов и один уточняющий, кандидат отвечает 3–4 предложениями и задаёт два вопроса; работодатель решает и объясняет почему; вторая попытка без фраз — о своей настоящей работе',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как проходят собеседования у него на родине и что там спрашивают',
+        '72–90: запас',
+      ],
+      sources: 'Запись (пункт 2) и картинка «Töövestlus» — учебные, люди и склад выдуманы.',
+      groups: 'Пункт 4 в паре: A — кандидат, B — работодатель, потом смена ролей. Один на один вы — работодатель и задаёте один неожиданный вопрос («Miks te praegusest töökohast lahkute?»).',
+      errors: [
+        'Ответ одним словом или одним предложением («Jah, olen täpne.») — нужен пример и связь (Näiteks … Seepärast …).',
+        '«Mul ei ole nõrkusi» — лучше слабая сторона и что ты с ней сделал (Varem kartsin …, aga käisin kursusel õppimas).',
+        '«Kes mind hakkab juhendada?» вместо «Kes mind juhendama hakkab?» (hakkama + -ma).',
+        '«Ükski pakk ei jäänud viima» вместо «Ükski pakk ei jäänud viimata» (-mata: не сделано).',
+      ],
+      notes: [
+        'Собеседование — продукт урока: в каждом ответе 3–4 предложения, минимум один пример с «näiteks», два своих вопроса.',
+        'Обратная связь, 2 цели: структура ответа (väide, näide, seos) и формы -ma / -mas / -mata. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('044_d_review', [['Mida sa oma kandideerimiskirja lisad ja miks?', 'a2b1-043'], ['Räägi kolme lausega oma kõige ootamatumast päevast.', 'a2b1-024'], 'Kas sa oled kunagi töövestlusel käinud? Kuidas läks?']),
-      B.text('044_d_hook', 'Kutse vestlusele', 'Jaan sai Kase koolist kutse töövestlusele. Kõik tundub hea, aga on kaks probleemi. Loe kirju ja proovi kohe ise vestlust. Siis kuula, kuidas Anna aasta tagasi oma vestlusel vastas, ja võrdle. Tunni lõpus helistab direktor ja sina teed telefonivestluse.'),
-      tag(B.reading('044_d_mails', 'Kaks kirja.', 'Loe direktori ja Merike kirja. Vasta küsimustele: mis on Jaani probleem ja miks?', 'Kutse ja vastus', [
+      station(teach(tag(purpose(half(B.speaking('044_d_warm', 'Töövestlus', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kas sa oled käinud töövestlusel? Mida seal küsiti?',
+        'Ütle ilma märkmeteta: mida sa oskad ja mida oled harjunud tööl tegema?',
+      ], [70, 90])), 'Sinu kogemus on tänase tunni algus: lõpus teed ise töövestluse.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma esimesest töövestlusest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mis oli kõige raskem küsimus?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('044_d_vocab', 'Tunni sõnad.', ['tugevus — сильная сторона', 'nõrkus — слабая сторона', 'näide — пример', 'täpne — точный', 'meeskond — команда', 'juhendama — наставлять, обучать', 'katseaeg — испытательный срок', 'kandidaat — кандидат', 'tööle võtma — брать на работу', 'kokkulepe — договорённость'], '2')), { topic: ['tugevus', 'katseaeg', 'juhendama'] }), 2, 17),
+      tag(purpose(why(ownText(B.examListen('044_d_listen', 'Töövestlus laos.', 'Loe enne küsimused läbi. Siis kuula kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Juhataja: Tere, Igor! Palun rääkige natuke endast.',
+        'Igor: Tere! Olen Igor ja elan Tartus. Viimased neli aastat olen töötanud kullerina.',
+        'Juhataja: Mille eest te seal vastutasite?',
+        'Igor: Vastutasin selle eest, et pakid jõuaksid õigel ajal kohale. Iga päev oli mul umbes kuuskümmend aadressi.',
+        'Juhataja: Mis on teie kõige suurem tugevus?',
+        'Igor: Olen täpne. Näiteks kontrollin igal hommikul kõik aadressid kaardil üle. Nelja aasta jooksul ei jäänud ükski pakk minu süül viimata. Seepärast arvan, et sobin teie lattu.',
+        'Juhataja: Ja teie nõrkus?',
+        'Igor: Varem kartsin telefonis eesti keelt rääkida. Aga käisin eelmisel kevadel kursusel õppimas ja nüüd helistan julgelt.',
+        'Juhataja: Miks te tahate just meie juures töötada?',
+        'Igor: Tahan töötada ühes kohas, mitte terve päeva autos istuda. Ja teie ladu on minu kodu lähedal.',
+        'Juhataja: Kas teil on meile küsimusi?',
+        'Igor: Jah, kaks. Kes mind esimesel nädalal juhendama hakkab? Ja kas töö on vahetustega?',
+        'Juhataja: Esimesel nädalal juhendab teid laojuhataja. Töö on kahes vahetuses, hommikul ja õhtul. Anname teile reedeks teada.',
+      ], [
+        ['Kellena on Igor viimased neli aastat töötanud?', 'kullerina', 'laotöötajana', 'bussijuhina'],
+        ['Mille eest vastutas Igor oma eelmisel töökohal?', 'et pakid jõuaksid õigel ajal kohale', 'kaupluse kassa eest', 'uute töötajate eest'],
+        ['Millise näite toob Igor oma täpsuse kohta?', 'ta kontrollib igal hommikul aadressid üle', 'ta ei jää kunagi tööle hiljaks', 'ta teeb kõik tööd üksi'],
+        ['Mida ütleb Igor oma nõrkuse kohta?', 'ta kartis telefonis rääkida, aga käis kursusel', 'tal ei ole ühtegi nõrkust', 'ta ei oska arvutit kasutada'],
+        ['Miks tahab Igor töötada just selles laos?', 'ta ei taha terve päeva autos istuda', 'palk on seal suurem', 'tema sõber töötab seal'],
+        ['Kuidas töötatakse uues laos?', 'kahes vahetuses, hommikul ja õhtul', 'ainult hommikul', 'ainult nädalavahetusel'],
+      ], 'g_read')), [
+        'Igor: „Viimased neli aastat olen töötanud kullerina.”',
+        'Igor: „Vastutasin selle eest, et pakid jõuaksid õigel ajal kohale.”',
+        'Igor: „Näiteks kontrollin igal hommikul kõik aadressid kaardil üle.”',
+        'Igor: „Varem kartsin telefonis eesti keelt rääkida. Aga käisin … kursusel õppimas”.',
+        'Igor: „Tahan töötada ühes kohas, mitte terve päeva autos istuda.”',
+        'Juhataja: „Töö on kahes vahetuses, hommikul ja õhtul.”',
+      ]), 'Enne kui sa ise vestlusele lähed, kuuled, kuidas kandidaat vastab ja ise küsib. Eksamil (Harno B1 kuulamine 2) on sama ülesanne.'), { task: 'L02', harno: 'L2' }),
+      teach(tag(purpose(B.speaking('044_d_retell', 'Kuidas Igor vastas? Küsi paarilisel.', 'Küsi paarilisel vestluse järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mis on Igori tugevus ja millise näite ta tõi?',
+        'Kuidas Igor oma nõrkusest rääkis?',
+        'Mida Igor ise küsis?',
+        'Kas sina võtaksid Igori tööle? Miks?',
+      ], [70, 100], '', 'g_read'), 'Ütled, mis tegi Igori vastused heaks: väide, näide ja seos.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Igor ei toonud ühtegi näidet”) ja õpilane parandab sind.'),
+      hide(B.review('044_d_review', [['Mida sa oma kandideerimiskirja lisad ja miks?', 'a2b1-043'], ['Räägi kolme lausega oma kõige ootamatumast päevast.', 'a2b1-024'], 'Kas sa oled kunagi töövestlusel käinud? Kuidas läks?']), V5_DRILL),
+      hide(B.text('044_d_hook', 'Kutse vestlusele', 'Jaan sai Kase koolist kutse töövestlusele. Kõik tundub hea, aga on kaks probleemi. Loe kirju ja proovi kohe ise vestlust. Siis kuula, kuidas Anna aasta tagasi oma vestlusel vastas, ja võrdle. Tunni lõpus helistab direktor ja sina teed telefonivestluse.'), V5_CUT),
+      hide(tag(B.reading('044_d_mails', 'Kaks kirja.', 'Loe direktori ja Merike kirja. Vasta küsimustele: mis on Jaani probleem ja miks?', 'Kutse ja vastus', [
         'Esimene kiri tuli esmaspäeva hommikul Kase kooli direktorilt Aivar Männilt.',
         '„Lugupeetud Jaan Mets! Täname teid kandideerimiskirja eest. Kutsume teid töövestlusele neljapäeval, 26. novembril kell 11.00 kooli direktori kabinetis. Vestlus kestab umbes pool tundi ja sellel osaleb ka meie kokk Maire Kuusk.',
         'Palun võtke kaasa oma haridust tõendav dokument. Vestlusel küsime teie kogemuse, oskuste ja motivatsiooni kohta. Kuna Maire läheb järgmisel suvel pensionile, vajame inimest, kes oleks valmis tulevikus köögi eest vastutama. Uus kokk peaks alustama juba 1. detsembril.”',
@@ -658,11 +1005,10 @@ export const LESSONS = withShapes({
         ['Kuidas suhtub Merike sellesse, et Jaan lahkub?', 'tal on kahju, aga ta saab aru'],
         ['Mida palub Merike Jaanilt ja miks?', 'jääda 20. detsembrini või aidata laupäeviti, sest detsembris on palju pidusid'],
         ['Mida sina teed, kui sul on sama valik? Miks?', ''],
-      ]), { task: 'R12' }),
-      teach(B.speaking('044_d_try', 'Proovi kohe: viis küsimust.', 'Kujuta ette, et sina oled kandidaat. Vasta direktori viiele küsimusele. Ära valmistu, räägi kohe.', ['Palun rääkige endast natuke.', 'Kus te varem töötanud olete ja mida seal tegite?', 'Mis on teie kõige suurem tugevus?', 'Miks te tahate just meie juures töötada?', 'Kas teil on meile küsimusi?'], [90, 150]),
-        'Üks-ühele: proovi enne reeglit. Õpetaja on direktor ja ei aita; ta märgib iga vastuse kohta üles, kas see oli üks lause või pikem ja kas seal oli näide. Pärast Anna vestluse kuulamist võrrelge.'),
-      B.vocab('044_d_vocab', 'Tunni sõnad.', ['tugevus — сильная сторона', 'nõrkus — слабая сторона', 'näide — пример', 'meeskond — команда', 'täpne — точный', 'paindlik — гибкий', 'juhendaja — наставник', 'kutse — приглашение', 'dokument — документ', 'pension — пенсия', 'lahkuma — уходить', 'kokkulepe — договорённость']),
-      B.examListen('044_d_anna', 'Anna vestlus aasta tagasi.', 'Kuula salvestust: Liis küsitleb Annat. Kas väide on õige või vale?', 'truefalse', [
+      ]), { task: 'R12' }), V5_CUT),
+      hide(teach(B.speaking('044_d_try', 'Proovi kohe: viis küsimust.', 'Kujuta ette, et sina oled kandidaat. Vasta direktori viiele küsimusele. Ära valmistu, räägi kohe.', ['Palun rääkige endast natuke.', 'Kus te varem töötanud olete ja mida seal tegite?', 'Mis on teie kõige suurem tugevus?', 'Miks te tahate just meie juures töötada?', 'Kas teil on meile küsimusi?'], [90, 150]),
+        'Üks-ühele: proovi enne reeglit. Õpetaja on direktor ja ei aita; ta märgib iga vastuse kohta üles, kas see oli üks lause või pikem ja kas seal oli näide. Pärast Anna vestluse kuulamist võrrelge.'), V5_CUT),
+      hide(B.examListen('044_d_anna', 'Anna vestlus aasta tagasi.', 'Kuula salvestust: Liis küsitleb Annat. Kas väide on õige või vale?', 'truefalse', [
         'Liis: Tere tulemast, Anna! Palun rääkige natuke endast.',
         'Anna: Tere! Olen Anna, elan Sauel ja mul on koer Bruno. Viimased viis aastat olen töötanud klienditeenindajana kaubamajas Kaubahall.',
         'Liis: Mille eest te seal vastutasite?',
@@ -687,14 +1033,8 @@ export const LESSONS = withShapes({
         ['Anna ei esita Liisile ühtegi küsimust.', false],
         ['Esimesel kuul hakkab Annat juhendama Markus.', true],
         ['Anna võib kodus töötada juba esimesest päevast.', false],
-      ], 'g_read'),
-      B.notice('044_d_notice', 'Märka: hea vastus = väide + näide + seos', [
-        '**Väide**: Olen täpne. → **Näide**: Näiteks kontrollisin iga hommik kõik tellimused üle. → **Seos**: Seepärast saan teie juures tellimustega hästi hakkama.',
-        'ma-vorm teeb vastuse täpsemaks: **olen harjunud** kiiresti **töötama** · **käisin** kursusel **õppimas** · ükski tellimus **ei jäänud täitmata**',
-        'Küsi ise: **Kes mind** esimestel nädalatel **juhendama hakkab**? · **Millal saaksin alustada**?',
-        'Ära vasta ainult „jah” või „ei” — hea vastus on 3–4 lauset.',
-      ]),
-      B.transformation('044_d_longer', 'Tee vastus täpsemaks.', 'Kirjuta lause ümber antud sõnadega ja ma-vormiga. Nii kõlab vastus töövestlusel täpsemalt.', [
+      ], 'g_read'), V5_CUT),
+      hide(B.transformation('044_d_longer', 'Tee vastus täpsemaks.', 'Kirjuta lause ümber antud sõnadega ja ma-vormiga. Nii kõlab vastus töövestlusel täpsemalt.', [
         ['Eelmisel aastal õppisin Soomes kokakursusel.', 'käisin', 'Eelmisel aastal käisin Soomes kokakursusel õppimas.'],
         ['Ma töötan kiiresti, see on minu jaoks tavaline.', 'olen harjunud', 'Ma olen harjunud kiiresti töötama.'],
         ['Kõik tellimused said minu ajal täidetud.', 'ükski … ei jäänud', 'Ükski tellimus ei jäänud minu ajal täitmata.'],
@@ -705,12 +1045,39 @@ export const LESSONS = withShapes({
         ['Anna kohtub praegu Pirital ühe uue kliendiga.', 'on', 'Anna on praegu Pirital ühe uue kliendiga kohtumas.'],
         ['Ma unustasin eile ühe arve maksta.', 'jäi', 'Üks arve jäi mul eile maksmata.'],
         ['Sofia ujub igal neljapäeval ujulas.', 'käib', 'Sofia käib igal neljapäeval ujulas ujumas.'],
-      ]),
-      B.text('044_d_ott', 'Jaani sõnum Otile', 'Ott, appi! Direktor kutsus mu neljapäeval kell 11 vestlusele. Aga neljapäeval on meil kell 11 suur lõuna, nelikümmend inimest! Ma ei saa ju ära minna. Kirjutan talle, et tulen hiljem. Kas kell 4 sobiks? Või võiks ta mulle helistada. Merike teab juba, et ma kandideerin, aga lõuna ajal ma ära minna ei saa.'),
-      tag(B.letter('044_d_polite', 'Kas vestluse aega saab muuta?', 'Jaan kirjutas Otile vabalt. Kirjuta sama sõnum direktorile viisakalt ja teie-vormis.', 'Lugupeetud direktor Aivar Mänd!', 'Lugupidamisega, Jaan Mets', [70, 90]), { task: 'W12' }),
+      ]), V5_DRILL),
+      hide(B.text('044_d_ott', 'Jaani sõnum Otile', 'Ott, appi! Direktor kutsus mu neljapäeval kell 11 vestlusele. Aga neljapäeval on meil kell 11 suur lõuna, nelikümmend inimest! Ma ei saa ju ära minna. Kirjutan talle, et tulen hiljem. Kas kell 4 sobiks? Või võiks ta mulle helistada. Merike teab juba, et ma kandideerin, aga lõuna ajal ma ära minna ei saa.'), V5_CUT),
+      hide(tag(B.letter('044_d_polite', 'Kas vestluse aega saab muuta?', 'Jaan kirjutas Otile vabalt. Kirjuta sama sõnum direktorile viisakalt ja teie-vormis.', 'Lugupeetud direktor Aivar Mänd!', 'Lugupidamisega, Jaan Mets', [70, 90]), { task: 'W12' }), V5_CUT),
     ],
     practice: [
-      B.errorfix('044_p_fix', 'Kandidaatide vead.', 'Need laused on kandidaatide vastustest. Igas lauses on üks viga — kirjuta lause õigesti.', [
+      station(B.notice('044_d_notice', 'Märka: hea vastus = väide + näide + seos', [
+        'Vestlusest: **Olen täpne.** → **Näiteks** kontrollin igal hommikul kõik aadressid üle. → **Seepärast** arvan, et sobin teie lattu.',
+        'Hea vastus on 3–4 lauset: **väide** (mis?) + **näide** (millal? mida tegid?) + **seos** (miks see tööandjale kasulik on?)',
+        'Nõrkus + mida sa tegid: Varem **kartsin** telefonis rääkida, aga **käisin** kursusel **õppimas** ja nüüd helistan julgelt.',
+        'ma-vorm teeb vastuse täpseks: **olen harjunud töötama** · ükski pakk **ei jäänud viimata** · **Kes mind juhendama hakkab?**',
+        'Küsi ise: **Kes mind** esimesel nädalal **juhendama hakkab?** · **Kas töö on vahetustega?** · **Kui pikk on katseaeg?**',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('044_p_forms', 'Töövestluse laused.', 'Kirjuta sulgudes olev tegusõna sobivas vormis: ma, da, mas või mata.', [
+        'Olen harjunud iseseisvalt [töötama] (töötama).',
+        'Eelmisel talvel käisin kursusel arvutit [õppimas] (õppima).',
+        'Nelja aasta jooksul ei jäänud ükski tellimus [täitmata] (täitma).',
+        'Mulle meeldib meeskonnas [töötada] (töötama).',
+        'Olen valmis uusi asju [õppima] (õppima).',
+        'Varem kartsin telefonis [rääkida] (rääkima).',
+        'Kas teate juba, kes mind [juhendama] hakkab? (juhendama)',
+        'Millal ma saaksin tööd [alustada]? (alustama)',
+      ], '', 'full', 'g_notice'), [
+        'olema harjunud → ma-vorm: töötama.',
+        'käima → -mas: õppimas.',
+        'ei jäänud tegemata → -mata: täitmata.',
+        'meeldima → da-vorm: töötada.',
+        'olema valmis → ma-vorm: õppima.',
+        'kartma → da-vorm: rääkida.',
+        'hakkama → ma-vorm: juhendama.',
+        'saama → da-vorm: alustada.',
+      ]), 'Kaheksa lauset näitavad, kas vestluse vormid on käes.'), { task: 'G03' }),
+      tag(purpose(B.writing('044_p_sent', 'Kirjuta terved laused: minu kolm tugevust.', 'Kirjuta oma kolm tugevust, igaühe juurde näide ja seos: kokku 8–10 lauset (Olen … Näiteks … Seepärast …).', [8, 10]), 'Oma tugevused näidetega on sinu vestluse materjal.'), {}),
+      hide(B.errorfix('044_p_fix', 'Kandidaatide vead.', 'Need laused on kandidaatide vastustest. Igas lauses on üks viga — kirjuta lause õigesti.', [
         ['Ma töötasin viis aastat kokk Tartus.', 'Ma töötasin viis aastat kokana Tartus.'],
         ['Minu eelmises töös vastutasin kassa.', 'Minu eelmises töös vastutasin kassa eest.'],
         ['Ma tegelesin seal klientide kaebused.', 'Ma tegelesin seal klientide kaebustega.'],
@@ -721,8 +1088,8 @@ export const LESSONS = withShapes({
         ['Ma oskan arvutis tabeleid tegema.', 'Ma oskan arvutis tabeleid teha.'],
         ['Olen valmis alustada juba esmaspäeval.', 'Olen valmis alustama juba esmaspäeval.'],
         ['Tahaksin teada, kes mind hakkab juhendada.', 'Tahaksin teada, kes mind hakkab juhendama.'],
-      ]),
-      B.adsmatch('044_p_ads', 'Kes kuhu kandideerib?', 'Leia igale inimesele kuulutus, mis sobib tema oskuste ja sooviga. Üks kuulutus võib sobida mitmele.', [
+      ]), V5_DRILL),
+      hide(B.adsmatch('044_p_ads', 'Kes kuhu kandideerib?', 'Leia igale inimesele kuulutus, mis sobib tema oskuste ja sooviga. Üks kuulutus võib sobida mitmele.', [
         ['Kase kool otsib kokka', 'E–R 7.00–15.30. Vähemalt kolm aastat köögikogemust. Oskus teha toitu allergiaga lastele. Algus 1. detsembril.'],
         ['Tuul Logistika: laotöötaja', 'Vahetustega töö laos. Kauba kontroll ja pakkimine. Tõstukiluba on eelis. Õpetame ise.'],
         ['Linnaraamatukogu: klienditeenindaja', 'Neli õhtut nädalas 16–20. Sobib üliõpilasele. Armastad raamatuid ja suhtled meelsasti.'],
@@ -740,12 +1107,12 @@ export const LESSONS = withShapes({
         ['Priit on olnud kümme aastat restoranis kokk ja tahab päevast tööd.', 'A'],
         ['Kärt tahab hoolitseda laste eest, aga kogemust tal pole.', 'D'],
         ['Kati tahab laos füüsilist tööd ja on valmis õppima.', 'B'],
-      ]),
-      B.translation('044_p_ru', 'Tõlgi vestluse laused.', 'Tõlgi töövestluse laused eesti keelde. Kasuta tunnis õpitud väljendeid.', [
+      ]), V5_CUT),
+      hide(B.translation('044_p_ru', 'Tõlgi vestluse laused.', 'Tõlgi töövestluse laused eesti keelde. Kasuta tunnis õpitud väljendeid.', [
         'Я пятнадцать лет работал поваром.', 'Я привык работать быстро и точно.', 'В прошлом году я ходил на курсы учить финский язык.', 'Я отвечал за заказ продуктов.', 'Моя сильная сторона — терпение.',
         'Например, я разговаривал со многими недовольными клиентами.', 'Я готов учиться новому.', 'Когда я мог бы начать работу?', 'Кто будет меня обучать в первые недели?', 'Спасибо за приглашение на собеседование.',
-      ]),
-      tag(B.bankText('044_p_tips', 'Nõuanded töövestluseks.', 'Täida lüngad pangas olevate sõnadega. Iga sõna kasutad üks kord; kaks sõna jääb üle.', 'Kuidas töövestluseks valmistuda', [
+      ]), V5_DRILL),
+      hide(tag(B.bankText('044_p_tips', 'Nõuanded töövestluseks.', 'Täida lüngad pangas olevate sõnadega. Iga sõna kasutad üks kord; kaks sõna jääb üle.', 'Kuidas töövestluseks valmistuda', [
         'Karjäärinõustaja Piret Vaher ütleb, et töövestlus algab juba kodus. Enne vestlust tasub lugeda tööandja [[kodulehte]] ja kuulutus veel kord läbi. Mõtle, millised sinu oskused sobivad kuulutuse [[nõuetega]].',
         '',
         'Vestlusel küsitakse peaaegu alati sinu tugevuste ja [[nõrkuste]] kohta. Ära ütle, et sul nõrkusi ei ole. Parem on rääkida, mida sa oled teinud, et oma nõrkusest üle [[saada]].',
@@ -755,10 +1122,10 @@ export const LESSONS = withShapes({
         'Vestluse lõpus küsib tööandja tavaliselt, kas sul on [[küsimusi]]. Siis on hea küsida, kes sind [[juhendama]] hakkab või kui pikk on katseaeg.',
         '',
         'Kui vestlus toimub telefonis, otsi vaikne koht ja võta [[paber]] ning pastakas. Pärast vestlust saada lühike [[tänukiri]]. Sellest jääb hea mulje.',
-      ], ['palka', 'vihaseks'], 'g_vocab'), { task: 'R04', level: 2 }),
-      teach(tag(B.speaking('044_p_three', 'Minu kolm tugevust.', 'Räägi paarilisele oma kolmest tugevusest. Iga tugevuse juurde too näide; paariline küsib pärast iga tugevust ühe täpsustava küsimuse.', ['Mis on sinu esimene tugevus? Too näide.', 'Mis on sinu teine tugevus? Too näide.', 'Mis on sinu kolmas tugevus? Too näide.', 'Kuidas need tugevused aitavad sind uuel töökohal?', 'Mida tahaksid veel õppida?'], [70, 120], ['Minu tugevus on…', 'Näiteks…', 'Seepärast…']), { fluency: true }),
-        'Üks-ühele: õpilane räägib õpetajale oma kolmest tugevusest; õpetaja on direktor ja küsib iga tugevuse järel „Kas oskate tuua veel ühe näite?”. Iga tugevuse juures peab olema näide.'),
-      tag(B.reading('044_p_story', 'Ilukirjandus: lühijutt.', 'Loe lühijuttu (kirjutatud selle õpiku jaoks). Vasta küsimustele ühe kuni kolme sõnaga.', 'Kolmas keel', [
+      ], ['palka', 'vihaseks'], 'g_vocab'), { task: 'R04', level: 2 }), V5_CUT),
+      hide(teach(tag(B.speaking('044_p_three', 'Minu kolm tugevust.', 'Räägi paarilisele oma kolmest tugevusest. Iga tugevuse juurde too näide; paariline küsib pärast iga tugevust ühe täpsustava küsimuse.', ['Mis on sinu esimene tugevus? Too näide.', 'Mis on sinu teine tugevus? Too näide.', 'Mis on sinu kolmas tugevus? Too näide.', 'Kuidas need tugevused aitavad sind uuel töökohal?', 'Mida tahaksid veel õppida?'], [70, 120], ['Minu tugevus on…', 'Näiteks…', 'Seepärast…']), { fluency: true }),
+        'Üks-ühele: õpilane räägib õpetajale oma kolmest tugevusest; õpetaja on direktor ja küsib iga tugevuse järel „Kas oskate tuua veel ühe näite?”. Iga tugevuse juures peab olema näide.'), V5_CUT),
+      hide(tag(B.reading('044_p_story', 'Ilukirjandus: lühijutt.', 'Loe lühijuttu (kirjutatud selle õpiku jaoks). Vasta küsimustele ühe kuni kolme sõnaga.', 'Kolmas keel', [
         'Svetlana oli töötanud kaksteist aastat Narvas raamatupidajana. Kui firma suleti, kolis ta Tartusse ja hakkas otsima uut tööd. Eesti keelt oli ta õppinud kaks aastat õhtuti kursusel.',
         '',
         'Kutse töövestlusele tuli neljapäeval. Terve õhtu seisis Svetlana peegli ees ja kordas: „Olen harjunud töötama täpselt. Näiteks…” Mees vaatas teda uksel ja naeris: „Peegel võtab sind kindlasti tööle.”',
@@ -775,13 +1142,30 @@ export const LESSONS = withShapes({
         ['Mis juhtus teise küsimuse ajal?', 'sõnad kadusid peast|ta unustas sõnad'],
         ['Miks tulid sõnad tagasi?', 'ta rääkis oma tööst|ta rääkis asjast, mida tundis'],
         ['Mis oli Svetlana esimene ülesanne uuel töökohal?', 'õpetada kolleegile tabelite tegemist|õpetada noort kolleegi'],
-      ]), { task: 'R15', voice: 'fiction' }),
-      teach(tag(B.ideaCard('044_p_agree', 'Eksaminurk: leppige kokku (Harno B1 rääkimine 1, teine osa)', 'Arutage Kadriga Jaani olukorda ja leppige kokku, mida Jaan Merikele ja koolile vastab.', 'Kool tahab, et Jaan alustaks 1. detsembril. Merike vajab teda detsembris jõulupidude ajal. Jaan peab reedeks mõlemale vastama.', ['alustada koolis 1. detsembril', 'jääda Kaneeli 20. detsembrini', 'aidata Kaneelit kahel laupäevaõhtul', 'leida Merikele uus kokk', 'küsida koolilt hilisemat algust', 'rääkida Merikega kohe esmaspäeval'], 'Mida Jaan otsustab ja kuidas ta seda Merikele ja direktorile ütleb?'), { harno: 'S1b' }),
-      'Eksaminurk (Harno B1 rääkimine 1, teine osa: kokkulepe ideekaardiga, ~8 min), formaati tutvustatakse siin. Strateegia: 1) vaadake kaarti üks minut; 2) igaüks teeb ettepaneku ja põhjendab seda; 3) reageerige partnerile (olen nõus, aga…; mis siis, kui…?); 4) lõpetage selge kokkuleppega: „Lepime kokku, et…”. Harnos on ülesanne hästi tehtud ainult siis, kui jõutakse kokkuleppele. Üks-ühele: õpetaja on Kadri ja on ühe ideega vastu; õpilane peab ta ümber veenma või leidma kompromissi.'),
+      ]), { task: 'R15', voice: 'fiction' }), V5_CUT),
+      hide(teach(tag(B.ideaCard('044_p_agree', 'Eksaminurk: leppige kokku (Harno B1 rääkimine 1, teine osa)', 'Arutage Kadriga Jaani olukorda ja leppige kokku, mida Jaan Merikele ja koolile vastab.', 'Kool tahab, et Jaan alustaks 1. detsembril. Merike vajab teda detsembris jõulupidude ajal. Jaan peab reedeks mõlemale vastama.', ['alustada koolis 1. detsembril', 'jääda Kaneeli 20. detsembrini', 'aidata Kaneelit kahel laupäevaõhtul', 'leida Merikele uus kokk', 'küsida koolilt hilisemat algust', 'rääkida Merikega kohe esmaspäeval'], 'Mida Jaan otsustab ja kuidas ta seda Merikele ja direktorile ütleb?'), { harno: 'S1b' }),
+      'Eksaminurk (Harno B1 rääkimine 1, teine osa: kokkulepe ideekaardiga, ~8 min), formaati tutvustatakse siin. Strateegia: 1) vaadake kaarti üks minut; 2) igaüks teeb ettepaneku ja põhjendab seda; 3) reageerige partnerile (olen nõus, aga…; mis siis, kui…?); 4) lõpetage selge kokkuleppega: „Lepime kokku, et…”. Harnos on ülesanne hästi tehtud ainult siis, kui jõutakse kokkuleppele. Üks-ühele: õpetaja on Kadri ja on ühe ideega vastu; õpilane peab ta ümber veenma või leidma kompromissi.'), V5_CUT),
     ],
     transfer: [
-      B.text('044_t_sit', 'Neljapäev kell 16', 'Direktor nõustus: vestlus toimub telefonis neljapäeval kell neli. Kolmapäeva õhtul helistas Jaanile kokk Maire, et ta saaks vestluseks valmistuda. Kuula nende juttu ja tee telefonivestlus. Õhtul räägib Jaan Merikega ja siis Kadrile, kuidas kõik läks.'),
-      tag(B.listening('044_t_voice', 'Maire kõne.', 'Kuula Maire ja Jaani kõnet. Täienda laused: mida see tähendab Jaanile ja mida ta peab tegema?', [
+      station(teach(tag(purpose(B.rolecards('044_t_job', 'Töövestlus: sina oled kandidaat', 'Vaata pilti üleval. B on tööandja ja küsib viis küsimust, A on kandidaat. Siis vahetage rollid.',
+        'Vali töö: kuulutus tunnist 43 või sinu enda soov; teine kord räägi oma päris tööst. Vasta igale küsimusele 3–4 lausega: väide, näide, seos. Lõpus küsi ise kaks küsimust ja ütle, millal saad alustada.',
+        'Sina oled tööandja. Küsi pildi viis küsimust ja ühe vastuse järel küsi: „Kas oskate tuua näite?” Lõpus otsusta: kas võtaksid kandidaadi tööle? Ütle, miks.',
+        ['Olen harjunud …', 'Näiteks …', 'Seepärast …'], ['Palun rääkige endast.', 'Kas oskate tuua näite?', 'Ma võtaksin teid tööle, sest …']), 'Pärast vestlust tead, kuidas oma kogemusest ja oskustest nii rääkida, et tööandja sind usub.'), { task: 'S03', main: true, level: 4 }),
+      'Kõigepealt vaatab kumbki pilti ja mõtleb oma tööle (2 min). B küsib viis küsimust ja ühe täpsustava küsimuse; A vastab 3–4 lausega (väide, näide, seos), küsib lõpus kaks küsimust ja ütleb alguskuupäeva; B otsustab ja põhjendab („Ma võtaksin teid tööle, sest …”). Siis vahetage rollid. Õnnestunud, kui igas vastuses on näide, nõrkuse juures on öeldud, mida kandidaat tegi, ja kandidaat küsib ise. Teine katse ilma fraasideta: kumbki räägib oma päris tööst või soovist. Üks-ühele: sina oled tööandja ja küsid ühe ootamatu küsimuse („Miks te praegusest töökohast lahkute?”); õpilane vastab rahulikult ja positiivselt.'), 4, 25, { final: 'decide' }),
+      tag(exitCheck(why(purpose(B.gaps('044_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev tegusõna sobivas vormis.', [
+        'Kevadel käisin õhtuti kursusel eesti keelt [õppimas] (õppima).',
+        'Nelja aasta jooksul ei jäänud ükski pakk [viimata] (viima).',
+        'Kes mind esimesel nädalal laos [juhendama] hakkab? (juhendama)',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas vestluse vormid on käes.'), ['käima → -mas: õppimas.', 'ei jäänud tehtud → -mata: viimata.', 'hakkama → ma-vorm: juhendama.'])), {}),
+      purpose(B.selfcheck('044_t_self', ['Ma vastan töövestlusel 3–4 lausega: väide, näide, seos.', 'Ma räägin oma nõrkusest ja ütlen, mida ma tegin.', 'Ma saan aru töövestluse salvestusest.', 'Ma küsin tööandjalt ise kaks küsimust.'], 'Vestlus tehtud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('044_t_rec', 'Kodus: minu vastused töövestlusel.', 'Salvesta 60–90 sekundit.', [
+        'Rääkige endast: kes te olete ja mis kogemus teil on?',
+        'Mis on teie kõige suurem tugevus? Tooge näide.',
+        'Miks te tahate just seda tööd?',
+      ], [60, 90]), 'Õpetaja ütleb, kas igas vastuses oli näide ja seos.')), { task: 'S15', fluency: true }),
+      homework('044_t_homework', ['1. Kirjuta üles kolm küsimust, mida sa tööandjalt küsiksid.', '2. Salvesta oma vastused (ülesanne üleval).', '3. Kirjuta oma suurim tugevus kolme lausega: väide, näide, seos.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('044_t_sit', 'Neljapäev kell 16', 'Direktor nõustus: vestlus toimub telefonis neljapäeval kell neli. Kolmapäeva õhtul helistas Jaanile kokk Maire, et ta saaks vestluseks valmistuda. Kuula nende juttu ja tee telefonivestlus. Õhtul räägib Jaan Merikega ja siis Kadrile, kuidas kõik läks.'), V5_CUT),
+      hide(tag(B.listening('044_t_voice', 'Maire kõne.', 'Kuula Maire ja Jaani kõnet. Täienda laused: mida see tähendab Jaanile ja mida ta peab tegema?', [
         'Maire: Tere, Jaan! Siin Maire Kuusk Kase koolist. Kas sul on hetk aega?',
         'Jaan: Tere, Maire! Muidugi, jõudsin just kohvikust koju.',
         'Maire: Direktor palus mul helistada. Ta sai sinu kirja kätte ja saab aru, et neljapäeva lõuna ajal sa kohvikust ära tulla ei saa. Vestlus toimub telefonis neljapäeval kell neli.',
@@ -810,36 +1194,116 @@ export const LESSONS = withShapes({
         'Algust ei saa edasi lükata, sest nädalavahetusel on kooli [talvelaager|laager].',
         'Laupäevade kohta peaks Jaan rääkima [direktoriga].',
         'Vestluse lõpus peaks Jaan ise midagi [küsima].',
-      ]), { task: 'L06', level: 3 }),
-      teach(tag(B.phoneCards('044_t_interview', 'Telefonivestlus direktoriga.', 'A on direktor ja küsib kaardi järgi, B on kandidaat ja vastab. Siis vahetage rollid.', 'Neljapäeval kell 16 helistab Kase kooli direktor kandidaadile. Vestlus kestab umbes viis minutit.', ['Direktor (helistaja)', [
+      ]), { task: 'L06', level: 3 }), V5_CUT),
+      hide(teach(tag(B.phoneCards('044_t_interview', 'Telefonivestlus direktoriga.', 'A on direktor ja küsib kaardi järgi, B on kandidaat ja vastab. Siis vahetage rollid.', 'Neljapäeval kell 16 helistab Kase kooli direktor kandidaadile. Vestlus kestab umbes viis minutit.', ['Direktor (helistaja)', [
         'Tervita, tutvusta end ja küsi, kas kandidaadil on sobiv aeg rääkida.', 'Palu kandidaadil rääkida oma töökogemusest.', 'Küsi tema suurima tugevuse kohta ja palu näidet.', 'Küsi, miks ta tahab koolis töötada.', 'Küsi, millal ta saab alustada, ja vasta tema küsimustele.',
       ]], ['Kandidaat (sina)', [
         'Vasta igale küsimusele 3–4 lausega: väide, näide, seos.', 'Kasuta vähemalt üht ma-vormi: olen harjunud…, käisin … -mas.', 'Too iga tugevuse kohta näide oma elust.', 'Küsi ise kaks küsimust: tööaeg, juhendaja või katseaeg.', 'Lepi kokku alguskuupäev ja täna lõpus.',
       ]], [180, 300]), { main: true }),
-      'Üks-ühele: õpetaja on direktor ja küsib kaardi järgi; ühe vastuse järel küsib ta lisaks „Kas oskate tuua näite?”. Õpilane on kandidaat ja esitab lõpus kaks küsimust. Siis vahetage rollid: õpilane küsib, õpetaja vastab halvasti ja õpilane ütleb, mida parandada.'),
-      teach(tag(B.rolecards('044_t_merike', 'Jutt Merikega.', 'A on Jaan, B on Merike. Jaan ütleb, et lahkub; leidke koos lahendus detsembri jaoks.',
+      'Üks-ühele: õpetaja on direktor ja küsib kaardi järgi; ühe vastuse järel küsib ta lisaks „Kas oskate tuua näite?”. Õpilane on kandidaat ja esitab lõpus kaks küsimust. Siis vahetage rollid: õpilane küsib, õpetaja vastab halvasti ja õpilane ütleb, mida parandada.'), V5_CUT),
+      hide(teach(tag(B.rolecards('044_t_merike', 'Jutt Merikega.', 'A on Jaan, B on Merike. Jaan ütleb, et lahkub; leidke koos lahendus detsembri jaoks.',
         'Oled Jaan. Said koolist töö ja alustad 1. detsembril. Ütle Merikele ausalt, miks sa lähed, ja paku abi: kaks laupäevaõhtut detsembris. Põhjenda, miks rohkem ei saa.',
         'Oled Merike. Sul on kahju ja detsembris on kaksteist pidu. Palu alguses, et Jaan jääks 20. detsembrini. Kui see ei sobi, leppige kokku kompromiss ja küsi, keda Jaan soovitaks asendajaks.',
         ['Mul on sulle üks uudis…', 'Ma saan aidata…, aga mitte…', 'Mida sa arvad, kui…?'], ['Mul on kahju, aga…', 'Kas sa saaksid…?', 'Lepime siis kokku, et…']), { task: 'S10' }),
-      'Üks-ühele: õpetaja on Merike ja tahab alguses, et Jaan jääks jõuludeni; õpilane põhjendab ja pakub kompromissi. Lõpus ütleb õpilane kokkuleppe ühe lausega.'),
-      teach(tag(B.speaking('044_t_kadri', 'Kuidas läks?', 'Õhtul küsib Kadri, kuidas vestlus läks. Räägi talle kaks korda: teisel korral ühe minutiga.', ['Mida direktor ja Maire küsisid?', 'Mida sa vastasid ja millise näite tõid?', 'Mida sa ise küsisid?', 'Mis jäi ütlemata või läks halvasti?', 'Mida sa Merikega kokku leppisid?'], [70, 120], ['Direktor küsis, …', 'Ma tõin näite: …', 'Me leppisime kokku, et…']), { task: 'S13', fluency: true }),
-        'Üks-ühele: õpetaja on Kadri. Esimesel korral räägib õpilane vabalt, teisel korral sama sisu ühe minutiga; õpetaja küsib lõpus ühe täpsustava küsimuse.'),
-      B.know('044_t_know', [
+      'Üks-ühele: õpetaja on Merike ja tahab alguses, et Jaan jääks jõuludeni; õpilane põhjendab ja pakub kompromissi. Lõpus ütleb õpilane kokkuleppe ühe lausega.'), V5_CUT),
+      hide(teach(tag(B.speaking('044_t_kadri', 'Kuidas läks?', 'Õhtul küsib Kadri, kuidas vestlus läks. Räägi talle kaks korda: teisel korral ühe minutiga.', ['Mida direktor ja Maire küsisid?', 'Mida sa vastasid ja millise näite tõid?', 'Mida sa ise küsisid?', 'Mis jäi ütlemata või läks halvasti?', 'Mida sa Merikega kokku leppisid?'], [70, 120], ['Direktor küsis, …', 'Ma tõin näite: …', 'Me leppisime kokku, et…']), { task: 'S13', fluency: true }),
+        'Üks-ühele: õpetaja on Kadri. Esimesel korral räägib õpilane vabalt, teisel korral sama sisu ühe minutiga; õpetaja küsib lõpus ühe täpsustava küsimuse.'), V5_CUT),
+      hide(B.know('044_t_know', [
         'Töökuulutuses ja lepingus on tavaliselt kirjas brutopalk. Sellest peetakse kinni maksud ja maksed ning töötaja saab kätte netopalga. 2026. aastal peab tööandja palgast kinni 1,6 % töötuskindlustusmakset, kogumispensioni ehk II samba makse (2, 4 või 6 %, kui inimene kogub II sambasse) ja 22 % tulumaksu.',
         'Tulumaksu ei arvestata maksuvabalt tulult: 2026. aastal on see 700 eurot kuus. Maksuvaba tulu saab kasutada ainult ühe tööandja juures ja selleks tuleb tööandjale kirjutada avaldus. Lisaks maksab tööandja palga pealt ise 33 % sotsiaalmaksu ja 0,8 % töötuskindlustusmakset.',
-      ], 'Maksu- ja Tolliamet, „Maksumuudatused 2026. aastal” (27.11.2025)', 'Kas teadsid? Bruto- ja netopalk'),
-      B.rubricSpeaking('044_t_rubric', 'Hindamine: telefonivestlus (20 punkti).'),
-      B.selfcheck('044_t_self', ['Ma vastan töövestluse küsimustele 3–4 lausega: väide, näide, seos.', 'Ma kasutan vestlusel ma-vorme: olen harjunud töötama, käisin õppimas.', 'Ma lepin partneriga ideekaardi abil kokku.', 'Ma esitan tööandjale ise kaks küsimust.'], 'Töövestlus'),
+      ], 'Maksu- ja Tolliamet, „Maksumuudatused 2026. aastal” (27.11.2025)', 'Kas teadsid? Bruto- ja netopalk'), V5_CUT),
+      hide(B.rubricSpeaking('044_t_rubric', 'Hindamine: telefonivestlus (20 punkti).'), V5_CUT),
     ],
   },
+
+  // ---------------------------------------------------------------- 045 control 9 (one sheet): listening, speaking, writing
   'a2b1-045': {
-    title: 'Eksam 9 — töö',
+    title: 'Kontroll 9: töö ja ametid',
+    format: 'exam',
     assessment: true,
-    canDo: 'Ma sooritan mooduli eksami Harno B1 vormis (lühendatud): kirjutan, loen, kuulan ja räägin töö teemal ning saan igas osas vähemalt 80 % punktidest.',
+    canDo: 'Ma saan aru töö juures kuuldud teadetest ja raadiojutust, räägin ilma abita oma tööst, vastan töövestlusel ja kirjutan kolleegidele teate.',
     discover: [
-      B.text('045_d_intro', 'Mooduli eksam Harno B1 vormis', 'Täna teed mooduli 9 eksami Harno B1 vormis. Eksam on lühendatud: igas osas on kõik Harno ülesanded, aga vähem küsimusi. Kirjutamine (35 min, 20 punkti) ja lugemine (40 min, 26 punkti) on teisel lehel, kuulamine (umbes 30 min, 23 punkti) ja rääkimine (umbes 12 min, 20 punkti) kolmandal. Eesmärk: vähemalt 80 % igas osas. Kõigepealt loed, kuidas Jaani esimene nädal koolis läks, ja kordad mooduli keelt.'),
-      B.vocab('045_d_vocab', 'Mooduli võtmesõnad.', ['amet — профессия', 'vastutama — отвечать за', 'tegelema — заниматься', 'vahetus — смена', 'koosolek — совещание', 'kohtuma — встречаться', 'kandideerima — подавать заявку', 'kogemus — опыт', 'oskus — умение', 'tugevus — сильная сторона', 'juhendaja — наставник', 'alustama — начинать']),
-      fullSentences(B.reading('045_d_week', 'Jaani esimene nädal.', 'Loe Jaani kirja onu Viktorile. Vasta igale küsimusele oma sõnadega terve lausega.', 'Tere, onu Viktor!', [
+      half(B.text('045_d_intro', 'Kontroll 9', `See on mooduli 9 kontroll: kuulamine 15 minutit, rääkimine 15 minutit ja kirjutamine 15 minutit, ilma sõnaraamatuta. Rääkimise esimene ülesanne on paralleelne tunni 41 külma stardiga: lõpus võrdled. ${THRESHOLDS}`)),
+      half(B.examPart('045_t_lpart', 'L', { part: 'Kuulamine', minutes: 15, points: 16, tasks: 2, target: 60, note: `Iga salvestist kuulad kaks korda. Loe enne küsimused läbi. ${THRESHOLDS}` })),
+      tag(why(locked(B.examListen('045_t_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake viit lühikest teksti. Iga tekst kõlab kaks korda. Valige õige vastus.', 'choice', [
+        'Esimene tekst. Head kolleegid! Homme algab nädala koosolek erandlikult kell üksteist, mitte kell kümme, sest juhataja tuleb Tartust rongiga ja rong jõuab Tallinnasse alles poole üheteistkümne ajal. Palun võtke kaasa oma nädala plaanid ja ärge unustage, et pärast koosolekut on ühine lõuna.',
+        'Teine tekst. Tere, siin Kaia personaliosakonnast. Teie töölepingu paberid on valmis. Palun tulge neile alla kirjutama homme kella kolmeni, teisel korrusel, tuba kakskümmend kaks. Võtke kaasa ka oma isikutunnistus ja pangakonto number, et saaksime palga õigele kontole maksta.',
+        'Kolmas tekst. Head kliendid, tähelepanu! Meie kauplus otsib suveks müüjaid. Töö on osalise ajaga, kolm päeva nädalas, ja sobib hästi ka koolinoortele. Kandideerimiseks küsige ankeeti kassast ning tooge see täidetult tagasi hiljemalt mai lõpuks. Aitäh ja head ostlemist!',
+        'Neljas tekst. Tere, Triin! Siin Martin. Mu buss jäi ummikusse ja ma ei jõudnud hommikusele koosolekule. Kas sa saaksid mulle oma märkmed e-postiga saata? Ma tahan teada, mida juhataja uue projekti kohta ütles. Ma tulen kontorisse alles pärast lõunat.',
+        'Viies tekst. Raadio Linnahääl, uudised. Tallinna linn avab jaanuaris Lasnamäel uue koolituskeskuse, kus töötud saavad tasuta õppida arvutit kasutama. Kursused toimuvad hommikul ja õhtul, et ka väikeste lastega vanemad saaksid osaleda. Registreerida saab juba detsembris.',
+      ], [
+        ['Mis kell algab homme firma nädala koosolek?', 'kell üksteist', 'kell kümme', 'kell kaksteist'],
+        ['Miks algab nädala koosolek homme hiljem kui tavaliselt?', 'juhataja tuleb Tartust rongiga', 'koosolekuruum on remondis', 'paljud töötajad on haiged'],
+        ['Mida peab uus töötaja homme kella kolmeni tegema?', 'allkirjastama lepingu paberid', 'tooma oma töölepingu', 'helistama personaliosakonda'],
+        ['Mida peab töötaja personaliosakonda kaasa võtma?', 'isikutunnistuse ja pangakonto numbri', 'töölepingu ja CV', 'foto ja tervisetõendi'],
+        ['Kust saab suvetööle kandideerija poes ankeedi?', 'kassast', 'kodulehelt', 'juhatajalt'],
+        ['Mida palub Martin oma kolleegil Triinul teha?', 'saata koosoleku märkmed', 'oodata teda bussipeatuses', 'tulla pärast lõunat kontorisse'],
+        ['Mida saavad töötud uues koolituskeskuses tasuta teha?', 'õppida arvutit kasutama', 'leida endale tööd', 'õppida võõrkeeli'],
+        ['Millal toimuvad uues koolituskeskuses kursused?', 'hommikul ja õhtul', 'ainult nädalavahetusel', 'ainult päeval'],
+      ])), [
+        'Esimene tekst: „Homme algab nädala koosolek erandlikult kell üksteist”.',
+        'Esimene tekst: „sest juhataja tuleb Tartust rongiga”.',
+        'Teine tekst: „Palun tulge neile alla kirjutama homme kella kolmeni”.',
+        'Teine tekst: „Võtke kaasa ka oma isikutunnistus ja pangakonto number”.',
+        'Kolmas tekst: „küsige ankeeti kassast”.',
+        'Neljas tekst: „Kas sa saaksid mulle oma märkmed e-postiga saata?”',
+        'Viies tekst: „töötud saavad tasuta õppida arvutit kasutama”.',
+        'Viies tekst: „Kursused toimuvad hommikul ja õhtul”.',
+      ]), { harno: 'L1', task: 'L06' }),
+      tag(why(locked(B.examListen('045_t_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu kaks korda. Valige igale küsimusele õige vastus.', 'choice', [
+        'Teadustaja: Saade „Tööelu”. Täna räägib karjäärinõustaja Piret Vaher noorte suvetööst.',
+        'Piret: Igal kevadel helistab meile sadu noori, kes otsivad suveks tööd. Kõige rohkem tööd pakuvad kohvikud, poed ja turismifirmad. Suvel tuleb Eestisse palju turiste ja kõikjal on vaja lisatöötajaid. Mõni noor leiab töö ka maal, näiteks talus maasikaid korjamas.',
+        'Piret: Paljud noored arvavad, et suvetöö on ainult raha teenimiseks. Raha on muidugi tähtis, aga suvetööl õpib noor ka seda, mida koolis ei õpetata.',
+        'Piret: Näiteks õpib ta tulema tööle õigel ajal, rääkima klientidega ja vastutama oma töö eest. Neid oskusi küsib iga tööandja hiljem töövestlusel. Ma olen näinud, kuidas vaikne noor muutub ühe suvega julgeks ja enesekindlaks.',
+        'Piret: Kooliõpilastele on seaduses oma reeglid. Koolivaheajal võib kolmeteist- või neljateistaastane noor töötada kuni seitse tundi päevas. Vanemad peavad selleks nõusoleku andma, aga kõige rohkem pooleks koolivaheajast. Õhtul pärast kella kaheksat kooliõpilane töötada ei tohi.',
+        'Piret: Paljud küsivad, kui palju suvetööl teenib. See sõltub tööst. Kohvikus saab tunnis umbes kuus-seitse eurot, maasikapõllul makstakse sageli korjatud kilode järgi. Tähtis on enne tööd kokku leppida, millal ja kuidas palk makstakse.',
+        'Piret: Suvetööd tasub otsima hakata juba märtsis. Juunis on parimad kohad juba täis ja alles jäävad ainult need tööd, mida keegi teha ei taha. Kirjutage oma CV valmis juba talvel.',
+        'Piret: Kui noorel pole veel töökogemust, võib ta oma CV-sse kirjutada vabatahtliku töö või huviringi. Ka see näitab, mida ta oskab.',
+        'Piret: Lapsevanematele soovitan: ärge otsige lapsele tööd ise. Las noor helistab ja kirjutab ise, nii õpib ta kõige rohkem. Kui esimene tööandja ütleb ei, ei ole see probleem. Iga kõne on hea harjutus järgmiseks töövestluseks.',
+        'Piret: Ja veel üks asi, mis on väga tähtis: enne tööle asumist tuleb alati sõlmida kirjalik leping. Ilma lepinguta ei ole töötajal kaitset, kui midagi juhtub.',
+      ], [
+        ['Kes pakuvad noortele kõige rohkem suvetööd?', 'kohvikud, poed ja turismifirmad', 'koolid ja haiglad', 'pangad ja kontorid'],
+        ['Mida õpib noor suvetööl peale raha teenimise?', 'oskusi, mida koolis ei õpetata', 'võõrkeeli', 'autot juhtima'],
+        ['Kui kaua võib neljateistaastane koolivaheajal päevas töötada?', 'kuni seitse tundi', 'kuni neli tundi', 'kuni kümme tundi'],
+        ['Millal soovitab nõustaja suvetööd otsima hakata?', 'märtsis', 'juunis', 'mais'],
+        ['Mida võib noor CV-sse kirjutada, kui tal pole töökogemust?', 'vabatahtliku töö või huviringi', 'oma hinded koolis', 'vanemate töökoha'],
+        ['Mida soovitab nõustaja lapsevanematele?', 'lasta noorel ise helistada ja kirjutada', 'otsida lapsele ise töö', 'kirjutada lapse eest CV'],
+        ['Mida arvab nõustaja sellest, kui tööandja ütleb ei?', 'see ei ole probleem, iga kõne on harjutus', 'siis tuleb otsimine lõpetada', 'siis tuleb kirjutada kaebus'],
+        ['Mida ütleb nõustaja töölepingu kohta?', 'lepingu peab alati sõlmima', 'noorel pole lepingut vaja', 'lepingu sõlmivad vanemad'],
+      ])), [
+        'Piret: „Kõige rohkem tööd pakuvad kohvikud, poed ja turismifirmad.”',
+        'Piret: „suvetööl õpib noor ka seda, mida koolis ei õpetata”.',
+        'Piret: „võib … noor töötada kuni seitse tundi päevas”.',
+        'Piret: „Suvetööd tasub otsima hakata juba märtsis.”',
+        'Piret: „võib ta oma CV-sse kirjutada vabatahtliku töö või huviringi”.',
+        'Piret: „Las noor helistab ja kirjutab ise”.',
+        'Piret: „Kui esimene tööandja ütleb ei, ei ole see probleem.”',
+        'Piret: „enne tööle asumist tuleb alati sõlmida kirjalik leping”.',
+      ]), { harno: 'L2', task: 'L02' }),
+      half(B.examPart('045_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele. Ülesanne 1 on ilma abita; ülesanne 2 on töövestlus õpetajaga.' })),
+      teach(tag(half(B.speaking('045_t_s1', 'Rääkimine 1. Minu töö.', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta.', [
+        'Räägi oma tööst või tööst, mida sa tahaksid teha: kellena sa töötad, mille eest vastutad, mida oled harjunud tegema ja miks see töö sulle sobib?',
+      ], [90, 120])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 41 külm start): sama hindamine, sarnane teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: kellena -na, mille eest, millega -ga, ma- või da-vorm) ja võrdle tunni 41 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.rolecards('045_t_interview', 'Rääkimine 2. Töövestlus.', 'Õpetaja on tööandja. Vasta küsimustele ja küsi ise kaks küsimust.',
+        'Sina oled kandidaat. Vali töö (kuulutus või sinu soov). Vasta igale küsimusele 3–4 lausega: väide, näide, seos. Lõpus küsi ise kaks küsimust.',
+        'Sina oled tööandja. Küsi kolm küsimust ja üks ootamatu küsimus.',
+        [], []), { harno: 'S1a', task: 'S11' }),
+      'Õpetaja on tööandja ja küsib kolm küsimust („Rääkige endast.”, „Mis on teie tugevus?”, „Miks just see töö?”) ja ühe ootamatu („Kas saaksite alustada juba homme?”). Punktid 0–5: vastab 3–4 lausega ja toob näite 0–2, reageerib ootamatule küsimusele 0–1, küsib ise kaks küsimust 0–1, vormid (olen harjunud …-ma, oskan …-da, käisin …-mas) 0–1.'),
+      half(B.examPart('045_p_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks teade, 60–80 sõna, kõigist neljast punktist.' })),
+      tag(teach(half(rows(B.examWriting('045_p_w1', 'Kirjutamine. Teade kolleegidele.', 'Kirjuta kolleegidele teade 60–80 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
+        situation: 'Sinu firmas alustab esmaspäeval uus töötaja. Juhataja on koolitusel ja palus sul kolleegidele kirjutada.',
+        points: ['kes on uus töötaja ja millal ta alustab', 'kellena ta hakkab töötama ja mille eest vastutama', 'kes teda esimesel nädalal juhendab', 'mida kolleegid peaksid esmaspäeval tegema'],
+        words: [60, 80], opening: 'Head kolleegid!',
+      }), 6)), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (kellena -na, mille eest, ma- või da-vorm: hakkab töötama, peaks tulema; selge teade).'), { harno: 'W1b' }),
+      teach(half(B.table('045_t_profile', 'Minu tulemus.', 'Kirjuta iga osa punktid ja protsent. Lävendid: Harno 60 %, KeeleSepp 70 % / 80 %. Võrdle rääkimist tunniga 41.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Kuulamine (16 punkti) |  |  | ',
+        'Rääkimine (10 punkti) |  |  | ',
+        'Kirjutamine (8 punkti) |  |  | ',
+        'Rääkimine ilma abita (tund 41 → tund 45) |  |  | ',
+      ])), 'Õpetajale: viimane rida on tunni 41 külma stardi ja selle tunni rääkimise 1 võrdlus (kolm märget). Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (kuulamine → tunnid 42 ja 44, rääkimine → tunnid 41 ja 44, kirjutamine → tund 43).'),
+      hide(B.vocab('045_d_vocab', 'Mooduli võtmesõnad.', ['amet — профессия', 'vastutama — отвечать за', 'tegelema — заниматься', 'vahetus — смена', 'koosolek — совещание', 'kohtuma — встречаться', 'kandideerima — подавать заявку', 'kogemus — опыт', 'oskus — умение', 'tugevus — сильная сторона', 'juhendaja — наставник', 'alustama — начинать']), V5_CUT),
+      hide(fullSentences(B.reading('045_d_week', 'Jaani esimene nädal.', 'Loe Jaani kirja onu Viktorile. Vasta igale küsimusele oma sõnadega terve lausega.', 'Tere, onu Viktor!', [
         'Nüüd on mul seljataga esimene nädal Kase koolis. Kirjutan sulle reede õhtul, kodus, köögilaua taga. Kas sa kujutad ette? Reede õhtu ja ma olen kodus!',
         '',
         'Esmaspäeval olin nii närvis, et jõudsin kooli juba kell kuus. Uks oli muidugi lukus ja ma pidin pool tundi koolimaja ees ootama. Maire naeris ja ütles, et temaga juhtus kakskümmend aastat tagasi täpselt sama.',
@@ -867,8 +1331,8 @@ export const LESSONS = withShapes({
         ['Millega tegeleb Jaan praegu peamiselt?', 'suppide ja kastmetega|suppidega|kastmetega'],
         ['Mitu portsjonit suppi tuleb koolis keeta?', 'nelisada|400'],
         ['Mida kinkis Merike Jaanile lahkumiseks?', 'kaneelirullide retsepti|retsepti'],
-      ])),
-      B.choice('045_d_quiz', 'Mooduli viktoriin.', 'Vali igale küsimusele vastus, mis on mooduli lugudega kooskõlas.', [
+      ])), V5_CUT),
+      hide(B.choice('045_d_quiz', 'Mooduli viktoriin.', 'Vali igale küsimusele vastus, mis on mooduli lugudega kooskõlas.', [
         ['Kellena töötas Jaan enne Kase kooli?', 'kokana kohvikus Kaneel', 'ettekandjana restoranis', 'kullerina firmas'],
         ['Miks ei saanud Jaan laupäeval Oskari finaali vaatama minna?', 'kokk Ott jäi haigeks', 'ta oli ise haige', 'mäng jäi ära'],
         ['Mille eest vastutab Kadri haiglas?', 'patsientide ravi eest', 'haigla köögi eest', 'arstide palkade eest'],
@@ -879,8 +1343,8 @@ export const LESSONS = withShapes({
         ['Mis sobib lausesse: Olen harjunud kiiresti …', 'töötama', 'töötada', 'töötamas'],
         ['Mis sobib lausesse: Hinnapakkumine jäi eile …', 'saatmata', 'saatma', 'saatmas'],
         ['Kuidas toimus Jaani töövestlus?', 'telefonis', 'direktori kabinetis', 'kohvikus Kaneel'],
-      ], 'full', 'g_read'),
-      B.transformation('045_d_short', 'Ma-vormiga lühemalt.', 'Ütle sama mõte ma-vormiga. Kasuta antud tegusõna.', [
+      ], 'full', 'g_read'), V5_CUT),
+      hide(B.transformation('045_d_short', 'Ma-vormiga lühemalt.', 'Ütle sama mõte ma-vormiga. Kasuta antud tegusõna.', [
         ['Jelena räägib praegu telefonis ühe kliendiga.', 'on', 'Jelena on praegu telefonis ühe kliendiga rääkimas.'],
         ['Markus sõitis Peterburi tee lattu, et riiuleid üles panna.', 'sõitis', 'Markus sõitis Peterburi tee lattu riiuleid üles panema.'],
         ['Liis oli Tartus koolitusel ja jõudis just tagasi.', 'tuli', 'Liis tuli just Tartust koolitusel käimast.'],
@@ -891,12 +1355,12 @@ export const LESSONS = withShapes({
         ['Rein läks koju ja ei öelnud kellelegi head aega.', 'ütlemata', 'Rein läks koju kellelegi head aega ütlemata.'],
         ['Anna on harjunud, et ta töötab kaks päeva kodus.', 'olen harjunud', 'Anna on harjunud kaks päeva kodus töötama.'],
         ['Kadri magab pärast öövahetust terve hommiku.', 'jääb', 'Kadri jääb pärast öövahetust terveks hommikuks magama.'],
-      ]),
-      B.categorize('045_d_sort', 'Mooduli sõnad.', 'Pane sõnad rühma, kuhu need tööotsingul kõige paremini sobivad.', [
+      ]), V5_DRILL),
+      hide(B.categorize('045_d_sort', 'Mooduli sõnad.', 'Pane sõnad rühma, kuhu need tööotsingul kõige paremini sobivad.', [
         ['töökuulutus', ['tööaeg', 'palk', 'nõuded', 'katseaeg', 'osalise ajaga']], ['kandideerimiskiri', ['lugupidamisega', 'soovitus', 'haridus', 'lisan', 'kandideerin']],
         ['töövestlus', ['tugevus', 'nõrkus', 'näide', 'juhendaja', 'kutse']], ['tööpäev kontoris', ['koosolek', 'vastuvõtt', 'lõunapaus', 'hinnapakkumine', 'tellimus']],
-      ], 'full', 'g_notice'),
-      // own instruction: B.examiner's fixed wording repeats other modules' examiner sets (final shape V7)
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(// own instruction: B.examiner's fixed wording repeats other modules' examiner sets (final shape V7)
       teach(withInstruction(B.examiner('045_d_warm', 'töö ja tööturg', [
         'Kellena sa praegu töötad või mida sa õpid?',
         'Kuidas sa oma praeguse või eelmise töö leidsid?',
@@ -906,25 +1370,19 @@ export const LESSONS = withShapes({
         'Kumb on sinu jaoks tähtsam, hea palk või huvitav töö, ja miks?',
         'Mida peaks inimene tegema, kui ta kaotab töö?',
       ]), 'Eksamineerija vestleb sinuga tööelust nagu suulise eksami alguses. Ütle igale küsimusele oma arvamus mitme lausega ja lisa näide oma elust või tuttavate kogemusest.'),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'),
+        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'), V5_CUT),
     ],
     practice: [
-      B.examPart('045_p_wpart', 'W', { minutes: 35, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest ja jälgige sõnade arvu: umbes 50 ja umbes 100 sõna.' }),
-      tag(B.examWriting('045_p_w1', 'Kirjutamine 1. Teade kolleegidele.', 'Kirjutage kolleegidele teade umbes 50 sõnaga. Kirjutage kõigist neljast punktist.', 'teade', {
-        situation: 'Teie firmas alustab esmaspäeval uus töötaja. Ülemus on haige ja palus teil kolleegidele kirjutada.',
-        points: ['kes on uus töötaja ja millal ta alustab', 'mida ta hakkab tegema', 'kes teda esimesel nädalal juhendab', 'mida kolleegid peaksid esmaspäeval tegema'],
-        words: [40, 60], opening: 'Head kolleegid!',
-      }), { harno: 'W1b' }),
-      B.rubricW1('045_p_rw1', ['uus töötaja ja algus', 'tema ülesanded', 'juhendaja', 'palve kolleegidele']),
-      B.planning('045_p_draft', 'Kirjutamine 2. Mustand.', 'Enne jutu kirjutamist märgi iga punkti kohta paar märksõna. Mustandit ei hinnata.', ['Kus te töötasite ja mis päev see oli?', 'Mis läks valesti?', 'Mida te tegite ja kes aitas?', 'Kuidas päev lõppes ja mida te õppisite?'], 2),
-      tag(B.examWriting('045_p_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Kirjutage kõigist neljast punktist.', 'jutt', {
+      hide(B.rubricW1('045_p_rw1', ['uus töötaja ja algus', 'tema ülesanded', 'juhendaja', 'palve kolleegidele']), V5_CUT),
+      hide(B.planning('045_p_draft', 'Kirjutamine 2. Mustand.', 'Enne jutu kirjutamist märgi iga punkti kohta paar märksõna. Mustandit ei hinnata.', ['Kus te töötasite ja mis päev see oli?', 'Mis läks valesti?', 'Mida te tegite ja kes aitas?', 'Kuidas päev lõppes ja mida te õppisite?'], 2), V5_CUT),
+      hide(tag(B.examWriting('045_p_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Kirjutage kõigist neljast punktist.', 'jutt', {
         situation: 'Kirjutage jutt pealkirjaga „Päev, mil kõik läks tööl valesti”.',
         points: ['kus te töötasite ja mis päev see oli', 'mis läks valesti', 'mida te tegite ja kes aitas', 'kuidas päev lõppes ja mida te sellest õppisite'],
         words: [90, 110],
-      }), { harno: 'W2a' }),
-      B.rubricW2('045_p_rw2'),
-      B.examPart('045_p_rpart', 'R', { minutes: 40, points: 26, tasks: 4, note: 'Lühendatud lugemisosa: neli Harno ülesannet, vähem küsimusi. Lugege iga ülesande juhis enne teksti läbi. Lugemine 4: igasse lünka sobib üks fraas, kaks fraasi jääb üle.' }),
-      tag(B.adsmatch('045_p_r1', 'Lugemine 1. Töökuulutused.', 'Lugege olukordi ja kuulutusi. Kirjutage iga olukorra juurde sobiva kuulutuse täht; üks kuulutus võib sobida mitmele.', [
+      }), { harno: 'W2a' }), V5_CUT),
+      hide(B.rubricW2('045_p_rw2'), V5_CUT),
+      hide(B.examPart('045_p_rpart', 'R', { minutes: 40, points: 26, tasks: 4, note: 'Lühendatud lugemisosa: neli Harno ülesannet, vähem küsimusi. Lugege iga ülesande juhis enne teksti läbi. Lugemine 4: igasse lünka sobib üks fraas, kaks fraasi jääb üle.' }), V5_CUT),
+      hide(tag(B.adsmatch('045_p_r1', 'Lugemine 1. Töökuulutused.', 'Lugege olukordi ja kuulutusi. Kirjutage iga olukorra juurde sobiva kuulutuse täht; üks kuulutus võib sobida mitmele.', [
         ['Rattalaenutus Tuuleveski', 'Otsime suveks töötajat Pirita rannas. Laenutad rattaid ja parandad lihtsamaid vigu. Töö ainult päeval, ka nädalavahetusel. Rattaoskus on tähtsam kui keeleoskus.'],
         ['Kohvik Kaneel', 'Otsime abikokka reede ja laupäeva õhtuteks. Kogemust pole vaja, õpetame ise. Tasuta õhtusöök ja paindlik graafik. Sobib hästi üliõpilasele, kes tahab õppida kokaks.'],
         ['Tõlkebüroo Sõnasild', 'Otsime vene ja eesti keele tõlki. Töötad kodus oma arvutiga ja valid ise oma tööaja. Tasu tehtud töö järgi.'],
@@ -939,8 +1397,8 @@ export const LESSONS = withShapes({
         ['Henri on programmeerija ja tahab pärast tööd lastele midagi õpetada.', 'F'],
         ['Grete tahab õppida kokaks ja on vaba ainult nädalavahetusel.', 'B'],
         ['Kaspar armastab jalgrattaid ja tahab suvel rannas töötada.', 'A'],
-      ]), { harno: 'R1' }),
-      B.reading('045_p_text', 'Lugemine 2. Artikkel.', 'Lugege artiklit neljapäevasest töönädalast. Küsimused tulevad pärast teksti.', 'Neli päeva tööd, kolm päeva vaba', [
+      ]), { harno: 'R1' }), V5_CUT),
+      hide(B.reading('045_p_text', 'Lugemine 2. Artikkel.', 'Lugege artiklit neljapäevasest töönädalast. Küsimused tulevad pärast teksti.', 'Neli päeva tööd, kolm päeva vaba', [
         'Kas töönädal peab kestma viis päeva? Selle küsimuse esitas endale Tartu tarkvarafirma juht Ott Lepp. Ta otsustas eelmisel kevadel teha katse. Pool aastat töötasid kõik firma kakskümmend töötajat ainult neli päeva nädalas. Reede oli vaba, aga palk jäi samaks.',
         '',
         '„Alguses kartsin, et me ei jõua oma tööd tehtud,” räägib Lepp. Juba kuu aja pärast nägi ta, et inimesed töötavad keskendunumalt. Koosolekud muutusid lühemaks ja kõik püüdsid oma ülesanded neljapäevaks valmis saada. Lõunapausid jäid samaks, aga tühja juttu oli vähem.',
@@ -952,15 +1410,15 @@ export const LESSONS = withShapes({
         'Pärast katset küsis firma töötajatelt, mida nad edasi tahavad. Kaheksateist inimest kahekümnest soovis jääda neljapäevase nädala juurde. Kaks inimest ütlesid, et neile meeldis rohkem vana kord, sest neli pikka päeva väsitas neid. Nüüd on neljapäevane nädal firmas püsiv kord.',
         '',
         'Ka teised Eesti firmad on Lepalt nõu küsinud. Mõni on proovinud lühemat reedet, kui töö lõpeb juba kell kaksteist. Majandusteadlased hoiatavad siiski, et see mudel ei sobi igale tööle. Haiglas, poes või koolisööklas peab keegi alati kohal olema. „Neli päeva tööd on hea idee, aga ainult siis, kui töö seda lubab,” ütleb Lepp ise.',
-      ], []),
-      tag(B.choice('045_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus.', [
+      ], []), V5_CUT),
+      hide(tag(B.choice('045_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus.', [
         ['Mis muutus firmas katse ajal?', 'reede oli vaba ja palk jäi samaks', 'palk muutus väiksemaks', 'tööpäevad muutusid pikemaks'],
         ['Mida nägi Ott Lepp juba kuu aja pärast?', 'inimesed töötasid keskendunumalt', 'töö jäi tegemata', 'kliendid lahkusid'],
         ['Mis oli uue korra probleem?', 'klientidele tuli reedet selgitada', 'töötajad olid väsinud', 'koosolekud muutusid pikemaks'],
         ['Kuidas firma probleemi lahendas?', 'reedel oli üks töötaja valves', 'reedel töötasid kõik kodus', 'telefon suleti terveks nädalaks'],
         ['Mida arvab Ott Lepp neljapäevasest töönädalast?', 'see sobib ainult siis, kui töö seda lubab', 'see sobib igale tööle', 'see ei sobi tema firmale'],
-      ]), { harno: 'R2' }),
-      tag(B.cloze('045_p_r3', 'Lugemine 3. Valiklünktekst.', 'Lugege Jelena blogi. Valige igasse lünka sõna, mis sobib lause vormi ja mõttega.', 'Minu esimene nädal uuel töökohal', [
+      ]), { harno: 'R2' }), V5_CUT),
+      hide(tag(B.cloze('045_p_r3', 'Lugemine 3. Valiklünktekst.', 'Lugege Jelena blogi. Valige igasse lünka sõna, mis sobib lause vormi ja mõttega.', 'Minu esimene nädal uuel töökohal', [
         'Möödunud nädalal alustasin tööd Tuul Logistikas {*administraatorina|administraator|administraatoriks}. Esimesel päeval olin väga närvis, sest ma polnud varem logistikafirmas {*töötanud|töötama|töötades}.',
         '',
         'Mind juhendab Sofia, kes istus enne mind mitu nädalat vastuvõtus ja teab kõiki kliente nime pidi. Ta õpetas mulle, kuidas telefonile vastata ja kuidas sõnumeid {*edasi|edasist|edasine} anda.',
@@ -970,8 +1428,8 @@ export const LESSONS = withShapes({
         'Teisel päeval jäi üks tähtis sõnum mul kahjuks {*edastamata|edastama|edastamas}. Ma olin väga õnnetu, {*aga|sest|kuni} Liis ütles, et vigu teevad kõik.',
         '',
         'Neljapäeval jõime köögis tervituskohvi ja Sofia pidas lühikese kõne. Kolleegid tõid {*kooke|kook|koogi} ja kingituseks sain ilusa kruusi. Nüüd tean, et olen õiges kohas ja et kolleegid aitavad mind alati. Ootan juba järgmist {*nädalat|nädal|nädalaks}!',
-      ]), { harno: 'R3a' }),
-      tag(B.bankText('045_p_r4', 'Lugemine 4. Fraasid tekstis.', 'Lugege teksti. Valige igasse lünka sobiv fraas; kaks fraasi jääb üle.', 'Kuidas Maire kokaks sai', [
+      ]), { harno: 'R3a' }), V5_CUT),
+      hide(tag(B.bankText('045_p_r4', 'Lugemine 4. Fraasid tekstis.', 'Lugege teksti. Valige igasse lünka sobiv fraas; kaks fraasi jääb üle.', 'Kuidas Maire kokaks sai', [
         'Maire Kuusk kasvas üles Kõrvemaal, [[kus tema vanaemal oli suur köök]]. Juba väikese tüdrukuna aitas ta vanaemal pirukaid küpsetada ja kartuleid koorida. Pühapäeviti tuli vanaema juurde terve küla.',
         '',
         'Koolis tahtis Maire saada õpetajaks, aga ema arvates oli kokk parem amet, sest süüa tahavad inimesed alati. [[Pärast kooli lõpetamist]] läks ta Tallinnasse kokaks õppima.',
@@ -983,42 +1441,10 @@ export const LESSONS = withShapes({
         'Järgmisel suvel läheb Maire pensionile. Ta ütleb, et on õnnelik, [[sest köök jääb headesse kätesse]]. Uus kokk Jaan on tema arvates tubli ja kiire. Lapsed armastavad juba tema pannkooke.',
         '',
         'Pensionipõlves tahab Maire kirjutada raamatu, [[mis räägib koolitoidust]]. Sinna tulevad tema parimad retseptid ja lood laste kõige naljakamatest soovidest.',
-      ], ['kuigi ta ei armastanud süüa teha', 'Esimesel tööpäeval Kaneelis']), { harno: 'R4' }),
+      ], ['kuigi ta ei armastanud süüa teha', 'Esimesel tööpäeval Kaneelis']), { harno: 'R4' }), V5_CUT),
     ],
     transfer: [
-      B.examPart('045_t_lpart', 'L', { minutes: 30, points: 23, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne iga ülesannet on aega küsimused läbi lugeda. Kuulamine 4 on intervjuu: märkige, kas väide on õige või vale.' }),
-      tag(B.examListen('045_t_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake viit lühikest teksti. Iga tekst kõlab kaks korda. Valige õige vastus.', 'choice', [
-        'Esimene tekst. Head kolleegid! Homme algab nädala koosolek erandlikult kell üksteist, mitte kell kümme, sest juhataja tuleb Tartust rongiga ja rong jõuab Tallinnasse alles poole üheteistkümne ajal. Palun võtke kaasa oma nädala plaanid ja ärge unustage, et pärast koosolekut on ühine lõuna.',
-        'Teine tekst. Tere, siin Kaia personaliosakonnast. Teie töölepingu paberid on valmis. Palun tulge neile alla kirjutama homme kella kolmeni, teisel korrusel, tuba kakskümmend kaks. Võtke kaasa ka oma isikutunnistus ja pangakonto number, et saaksime palga õigele kontole maksta.',
-        'Kolmas tekst. Head kliendid, tähelepanu! Meie kauplus otsib suveks müüjaid. Töö on osalise ajaga, kolm päeva nädalas, ja sobib hästi ka koolinoortele. Kandideerimiseks küsige ankeeti kassast ning tooge see täidetult tagasi hiljemalt mai lõpuks. Aitäh ja head ostlemist!',
-        'Neljas tekst. Tere, Triin! Siin Martin. Mu buss jäi ummikusse ja ma ei jõudnud hommikusele koosolekule. Kas sa saaksid mulle oma märkmed e-postiga saata? Ma tahan teada, mida juhataja uue projekti kohta ütles. Ma tulen kontorisse alles pärast lõunat.',
-        'Viies tekst. Raadio Linnahääl, uudised. Tallinna linn avab jaanuaris Lasnamäel uue koolituskeskuse, kus töötud saavad tasuta õppida arvutit kasutama. Kursused toimuvad hommikul ja õhtul, et ka väikeste lastega vanemad saaksid osaleda. Registreerida saab juba detsembris.',
-      ], [
-        ['Mis kell algab homme nädala koosolek?', 'kell üksteist', 'kell kümme', 'kell kaksteist'],
-        ['Mida peab töötaja homme kella kolmeni tegema?', 'allkirjastama lepingu paberid', 'tooma oma töölepingu', 'helistama personaliosakonda'],
-        ['Kust saab suvetööle kandideerija ankeedi?', 'kassast', 'kodulehelt', 'juhatajalt'],
-        ['Mida palub Martin Triinul teha?', 'saata koosoleku märkmed', 'oodata teda bussipeatuses', 'tulla pärast lõunat kontorisse'],
-        ['Mida saavad töötud uues koolituskeskuses teha?', 'õppida tasuta arvutit kasutama', 'leida endale tööd', 'õppida võõrkeeli'],
-      ]), { harno: 'L1' }),
-      tag(B.examListen('045_t_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu kaks korda. Valige igale küsimusele õige vastus.', 'choice', [
-        'Teadustaja: Saade „Tööelu”. Täna räägib karjäärinõustaja Piret Vaher noorte suvetööst.',
-        'Piret: Igal kevadel helistab meile sadu noori, kes otsivad suveks tööd. Kõige rohkem tööd pakuvad kohvikud, poed ja turismifirmad. Suvel tuleb Eestisse palju turiste ja kõikjal on vaja lisatöötajaid. Mõni noor leiab töö ka maal, näiteks talus maasikaid korjamas.',
-        'Piret: Paljud noored arvavad, et suvetöö on ainult raha teenimiseks. Raha on muidugi tähtis, aga suvetööl õpib noor ka seda, mida koolis ei õpetata.',
-        'Piret: Näiteks õpib ta tulema tööle õigel ajal, rääkima klientidega ja vastutama oma töö eest. Neid oskusi küsib iga tööandja hiljem töövestlusel. Ma olen näinud, kuidas vaikne noor muutub ühe suvega julgeks ja enesekindlaks.',
-        'Piret: Kooliõpilastele on seaduses oma reeglid. Koolivaheajal võib kolmeteist- või neljateistaastane noor töötada kuni seitse tundi päevas. Vanemad peavad selleks nõusoleku andma, aga kõige rohkem pooleks koolivaheajast. Õhtul pärast kella kaheksat kooliõpilane töötada ei tohi.',
-        'Piret: Paljud küsivad, kui palju suvetööl teenib. See sõltub tööst. Kohvikus saab tunnis umbes kuus-seitse eurot, maasikapõllul makstakse sageli korjatud kilode järgi. Tähtis on enne tööd kokku leppida, millal ja kuidas palk makstakse.',
-        'Piret: Suvetööd tasub otsima hakata juba märtsis. Juunis on parimad kohad juba täis ja alles jäävad ainult need tööd, mida keegi teha ei taha. Kirjutage oma CV valmis juba talvel.',
-        'Piret: Kui noorel pole veel töökogemust, võib ta oma CV-sse kirjutada vabatahtliku töö või huviringi. Ka see näitab, mida ta oskab.',
-        'Piret: Lapsevanematele soovitan: ärge otsige lapsele tööd ise. Las noor helistab ja kirjutab ise, nii õpib ta kõige rohkem. Kui esimene tööandja ütleb ei, ei ole see probleem. Iga kõne on hea harjutus järgmiseks töövestluseks.',
-        'Piret: Ja veel üks asi, mis on väga tähtis: enne tööle asumist tuleb alati sõlmida kirjalik leping. Ilma lepinguta ei ole töötajal kaitset, kui midagi juhtub.',
-      ], [
-        ['Kes pakuvad noortele kõige rohkem suvetööd?', 'kohvikud, poed ja turismifirmad', 'koolid ja haiglad', 'pangad ja kontorid'],
-        ['Mida õpib noor suvetööl peale raha teenimise?', 'oskusi, mida koolis ei õpetata', 'võõrkeeli', 'autot juhtima'],
-        ['Kui kaua võib neljateistaastane koolivaheajal päevas töötada?', 'kuni seitse tundi', 'kuni neli tundi', 'kuni kümme tundi'],
-        ['Millal soovitab nõustaja suvetööd otsida?', 'märtsis', 'juunis', 'mais'],
-        ['Mida ütleb nõustaja töölepingu kohta?', 'lepingu peab alati sõlmima', 'noorel pole lepingut vaja', 'lepingu sõlmivad vanemad'],
-      ]), { harno: 'L2' }),
-      tag(B.listening('045_t_l3', 'Kuulamine 3. Vestlus.', 'Kuulake vestlust kaks korda. Vastake igale küsimusele ühe-kahe sõnaga.', [
+      hide(tag(B.listening('045_t_l3', 'Kuulamine 3. Vestlus.', 'Kuulake vestlust kaks korda. Vastake igale küsimusele ühe-kahe sõnaga.', [
         'Margus: Kaidi, tere! Kuulsin, et sa said uue töö. Palju õnne!',
         'Kaidi: Aitäh, Margus! Jah, alates esmaspäevast töötan Pirita rattalaenutuses. Ma ei uskunud, et nad mind valivad.',
         'Margus: Miks? Sa oled ju jalgratastega terve elu tegelenud.',
@@ -1051,8 +1477,8 @@ export const LESSONS = withShapes({
         'Millise keelega saab Kaidi välismaa klientidega hakkama? [inglise keelega|inglise]',
         'Millised nädalapäevad on Kaidil töö kõrvalt vabad? [esmaspäev ja teisipäev|esmaspäeval ja teisipäeval]',
         'Kui palju teenib Kaidi rattalaenutuses ühe tunni eest? [üheksa eurot|9 eurot]',
-      ]), { task: 'L03', harno: 'L3a' }),
-      tag(B.examListen('045_t_l4', 'Kuulamine 4. Intervjuu.', 'Kuulake intervjuud kaks korda. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
+      ]), { task: 'L03', harno: 'L3a' }), V5_CUT),
+      hide(tag(B.examListen('045_t_l4', 'Kuulamine 4. Intervjuu.', 'Kuulake intervjuud kaks korda. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
         'Ülle: Tere, kuulajad! Saates „Minu amet” on täna Annika, kes vahetas neljakümne viie aastaselt ametit. Annika, kellena sa varem töötasid?',
         'Annika: Tere! Töötasin kakskümmend aastat pangas klienditeenindajana. Töö oli rahulik ja palk hea, aga ma ei olnud õnnelik.',
         'Ülle: Mis juhtus?',
@@ -1080,23 +1506,21 @@ export const LESSONS = withShapes({
         ['Pagariäri omanik pakkus Annikale tööd pärast praktikat.', true],
         ['Annika tööpäev lõpeb hilja õhtul.', false],
         ['Annika soovitab enne ameti vahetamist proovida uut tööd praktikal.', true],
-      ]), { harno: 'L4' }),
-      B.examPart('045_t_spart', 'S', { minutes: 12, points: 20, tasks: 3, note: 'Rääkimine on paaris. Kõigepealt tutvumine, siis teemaküsimused ja kokkulepe ideekaardiga, lõpuks telefonivestlus.' }),
-      tag(B.speaking('045_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija esitab kolm küsimust. Vastake lühidalt, kahe-kolme lausega.', ['Kuidas teid kutsutakse ja kust te pärit olete?', 'Millega te praegu tegelete?', 'Kui kaua te olete eesti keelt õppinud ja kus?'], [70, 90]), { harno: 'S0' }),
-      tag(B.speaking('045_t_s1', 'Rääkimine 1. Teemaküsimused „Töö”', 'Eksamineerija küsib, teie vastate. Põhjendage iga vastust või tooge näide.', ['Milline töö on teie arvates hea töö? Miks?', 'Kas te töötaksite pigem kodus või kontoris? Miks?', 'Mida te oma esimesest töökohast õppisite?', 'Kuidas valmistuda töövestluseks?', 'Mis amet oli teie lapsepõlve unistus ja miks?'], [90, 150]), { harno: 'S1a' }),
-      B.planning('045_t_prep', 'Ettevalmistus kokkuleppeks.', 'Vaadake ideekaarti üks minut. Märkige kaks ettepanekut ja nende põhjused.', ['Minu esimene ettepanek ja miks', 'Minu teine ettepanek ja miks', 'Mida ma kindlasti ei taha ja miks'], 1),
-      teach(tag(B.ideaCard('045_t_s1b', 'Rääkimine 1. Kokkulepe.', 'Lugege olukorda ja ideekaarti. Arutage paarilisega ja leppige kokku üks kingitus.', 'Teie kolleeg läheb pärast kolmekümmet tööaastat pensionile. Teil kahel on kingituse jaoks 100 eurot.', ['raamat ja lilled', 'teatripiletid kahele', 'õhtusöök restoranis', 'kolleegide fotoalbum', 'spaapakett', 'jalgratta kinkekaart'], 'Mida te kingite ja miks just see?'), { harno: 'S1b' }),
-      'Üks-ühele: õpetaja on paariline ja eelistab alguses teist kingitust; õpilane põhjendab ja jõuab selge kokkuleppeni („Lepime kokku, et…”). Hinda: kas kokkulepe sündis ja kas iga ettepanek oli põhjendatud.'),
-      teach(tag(B.phoneCards('045_t_s2', 'Rääkimine 2. Telefonivestlus.', 'A helistab koolituskeskusesse ja küsib kursuse kohta, B on koolituskeskuse töötaja. Seejärel vahetage kaardid.', 'Te tahate osaleda arvutikursusel, et uuel töökohal paremini hakkama saada.', ['Helistaja', [
+      ]), { harno: 'L4' }), V5_CUT),
+      hide(tag(B.speaking('045_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija esitab kolm küsimust. Vastake lühidalt, kahe-kolme lausega.', ['Kuidas teid kutsutakse ja kust te pärit olete?', 'Millega te praegu tegelete?', 'Kui kaua te olete eesti keelt õppinud ja kus?'], [70, 90]), { harno: 'S0' }), V5_CUT),
+      hide(B.planning('045_t_prep', 'Ettevalmistus kokkuleppeks.', 'Vaadake ideekaarti üks minut. Märkige kaks ettepanekut ja nende põhjused.', ['Minu esimene ettepanek ja miks', 'Minu teine ettepanek ja miks', 'Mida ma kindlasti ei taha ja miks'], 1), V5_CUT),
+      hide(teach(tag(B.ideaCard('045_t_s1b', 'Rääkimine 1. Kokkulepe.', 'Lugege olukorda ja ideekaarti. Arutage paarilisega ja leppige kokku üks kingitus.', 'Teie kolleeg läheb pärast kolmekümmet tööaastat pensionile. Teil kahel on kingituse jaoks 100 eurot.', ['raamat ja lilled', 'teatripiletid kahele', 'õhtusöök restoranis', 'kolleegide fotoalbum', 'spaapakett', 'jalgratta kinkekaart'], 'Mida te kingite ja miks just see?'), { harno: 'S1b' }),
+      'Üks-ühele: õpetaja on paariline ja eelistab alguses teist kingitust; õpilane põhjendab ja jõuab selge kokkuleppeni („Lepime kokku, et…”). Hinda: kas kokkulepe sündis ja kas iga ettepanek oli põhjendatud.'), V5_CUT),
+      hide(teach(tag(B.phoneCards('045_t_s2', 'Rääkimine 2. Telefonivestlus.', 'A helistab koolituskeskusesse ja küsib kursuse kohta, B on koolituskeskuse töötaja. Seejärel vahetage kaardid.', 'Te tahate osaleda arvutikursusel, et uuel töökohal paremini hakkama saada.', ['Helistaja', [
         'Tervitage ja öelge, miks helistate.', 'Küsige, millal kursus algab ja kui kaua see kestab.', 'Küsige hinda ja kas tööandja võib maksta.', 'Küsige, kas tunnid on õhtuti või nädalavahetusel.', 'Registreerige end ja öelge oma nimi.',
       ]], ['Koolituskeskuse töötaja', [
         'Kursus algab 11. jaanuaril, kokku kaheksa korda.', 'Hind on 240 eurot, arve võib saata tööandjale.', 'Tunnid on teisipäeval ja neljapäeval kell 18–20.', 'Rühmas on kuni kaksteist inimest.', 'Küsige helistaja nime ja e-posti aadressi.',
       ]]), { harno: 'S2' }),
-      'Üks-ühele: õpetaja on koolituskeskuse töötaja (eksamineerija roll), siis vahetage. Hinda hindamisjuhendiga: kas kõik kaardi küsimused said küsitud ja vastatud.'),
-      B.rubricSpeaking('045_t_rs', 'Hindamine: rääkimine (20 punkti).'),
-      B.selfcheck('045_t_self', ['Ma loen töökuulutusi ja tööteemalist artiklit.', 'Ma saan aru tööteemalisest raadioloost ja intervjuust.', 'Ma kirjutan teate ja jutu kõigist punktidest.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 9 tehtud'),
+      'Üks-ühele: õpetaja on koolituskeskuse töötaja (eksamineerija roll), siis vahetage. Hinda hindamisjuhendiga: kas kõik kaardi küsimused said küsitud ja vastatud.'), V5_CUT),
+      hide(B.rubricSpeaking('045_t_rs', 'Hindamine: rääkimine (20 punkti).'), V5_CUT),
+      hide(B.selfcheck('045_t_self', ['Ma loen töökuulutusi ja tööteemalist artiklit.', 'Ma saan aru tööteemalisest raadioloost ja intervjuust.', 'Ma kirjutan teate ja jutu kõigist punktidest.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 9 tehtud'), V5_CUT),
     ],
   },
 }, {
-  'a2b1-041': 'LUGU R→W', 'a2b1-042': 'AVAS L→S', 'a2b1-043': 'KIRJ L→W', 'a2b1-044': 'PROB R→S', 'a2b1-045': 'EKS',
+  'a2b1-041': 'LUGU R→S', 'a2b1-042': 'AVAS L→S', 'a2b1-043': 'KIRJ R→W', 'a2b1-044': 'PROB L→S', 'a2b1-045': 'EKS',
 });

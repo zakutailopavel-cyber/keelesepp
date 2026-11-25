@@ -1906,8 +1906,8 @@
   },
   "a2b1-042:042_d_calls": {
     "src": "/audio/a2b1-042/042_d_calls.mp3",
-    "seconds": 164.5,
-    "hash": "52c77f98383494469c27abcebbc47ab935689ef4"
+    "seconds": 89.9,
+    "hash": "71d81c7445765dd8058c1d2313e552c21202f2ac"
   },
   "a2b1-042:042_p_radio": {
     "src": "/audio/a2b1-042/042_p_radio.mp3",
@@ -1928,6 +1928,11 @@
     "src": "/audio/a2b1-044/044_d_anna.mp3",
     "seconds": 91.4,
     "hash": "e157c4989674907b0c76f0f71966feed70268f8d"
+  },
+  "a2b1-044:044_d_listen": {
+    "src": "/audio/a2b1-044/044_d_listen.mp3",
+    "seconds": 80.3,
+    "hash": "8a3fe44d4eec7e660d0d63cdd0775a3ba9a05cf1"
   },
   "a2b1-044:044_t_voice": {
     "src": "/audio/a2b1-044/044_t_voice.mp3",
