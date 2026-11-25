@@ -1961,8 +1961,8 @@
   },
   "a2b1-046:046_d_call": {
     "src": "/audio/a2b1-046/046_d_call.mp3",
-    "seconds": 118.7,
-    "hash": "b2c9cd67f00db19a6eac587ee82cc1b81cf029ac"
+    "seconds": 98.7,
+    "hash": "70cb0d159adf8a65eb79c5478b0ad1012689e710"
   },
   "a2b1-046:046_d_radio": {
     "src": "/audio/a2b1-046/046_d_radio.mp3",
@@ -1991,8 +1991,8 @@
   },
   "a2b1-048:048_p_radio": {
     "src": "/audio/a2b1-048/048_p_radio.mp3",
-    "seconds": 112.8,
-    "hash": "09ed93e87d5763c1a2422ddf353327ffea8ee726"
+    "seconds": 83.3,
+    "hash": "01dd824470ed385b41e6954df7c07990bab35923"
   },
   "a2b1-049:049_d_lena": {
     "src": "/audio/a2b1-049/049_d_lena.mp3",
