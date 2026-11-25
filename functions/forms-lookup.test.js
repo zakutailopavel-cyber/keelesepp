@@ -237,13 +237,15 @@ test("a hanging Ekilex: each request stops at requestMs, the lookup ends with 50
 });
 
 test("the whole lookup stops at totalMs even when every single request is still within requestMs", async () => {
-  // raamatukogus → 4 candidates, concurrency 1: each search 40 ms (< requestMs) but four in a row pass totalMs
-  const fake = fakeEkilex({ delay: () => 40 });
+  // raamatukogus → 4 candidates, concurrency 1: each search 100 ms (< requestMs) but four in a row pass totalMs.
+  // Margins are wide on purpose: a slow CI runner made the old 40 ms / 160 ms version flaky (2026-11-24/25).
+  const fake = fakeEkilex({ delay: () => 100 });
   await withFakes(fake, async () => {
-    Object.assign(timing, { concurrency: 1, requestMs: 1000, totalMs: 100 });
+    Object.assign(timing, { concurrency: 1, requestMs: 1000, totalMs: 250 });
     const t0 = Date.now();
     await assert.rejects(estonianWordForms({ word: "raamatukogus" }), (error) => error.status === 504);
-    assert.ok(Date.now() - t0 < 160, `took ${Date.now() - t0} ms`);
+    // without the total limit all four searches would run: 4 × 100 = 400 ms
+    assert.ok(Date.now() - t0 < 390, `took ${Date.now() - t0} ms`);
     assert.ok(fake.calls.length < 4);
   });
 });
