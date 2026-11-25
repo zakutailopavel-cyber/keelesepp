@@ -224,6 +224,11 @@
     "seconds": 52.8,
     "hash": "124881bbed062a1d019015e58de12e6353f5d672"
   },
+  "a2-017:017_d_msg": {
+    "src": "/audio/a2-017/017_d_msg.mp3",
+    "seconds": 51,
+    "hash": "bb4f0d9ed65cbd68ba1186934855554b55934831"
+  },
   "a2-017:017_p_arvo": {
     "src": "/audio/a2-017/017_p_arvo.mp3",
     "seconds": 63.4,
@@ -256,13 +261,18 @@
   },
   "a2-019:019_p_agent": {
     "src": "/audio/a2-019/019_p_agent.mp3",
-    "seconds": 69.3,
-    "hash": "20fbb0832c76a5b06778ffbc895e73f49ce08340"
+    "seconds": 47.9,
+    "hash": "60a356d8eb40f3093e7240ccb82c070f6b45cb9a"
+  },
+  "a2-020:020_d_call": {
+    "src": "/audio/a2-020/020_d_call.mp3",
+    "seconds": 44.5,
+    "hash": "005d37298fdd0ba182a459ef06b7052a643c8f37"
   },
   "a2-020:020_p_listen": {
     "src": "/audio/a2-020/020_p_listen.mp3",
-    "seconds": 30.8,
-    "hash": "62dd24de8e73f7302f7ef66b09b7ee44e333c6d3"
+    "seconds": 33.4,
+    "hash": "187d9d84107dcfc328ce348efd5e338034bc3433"
   },
   "a2-020:020_p_listen2": {
     "src": "/audio/a2-020/020_p_listen2.mp3",
