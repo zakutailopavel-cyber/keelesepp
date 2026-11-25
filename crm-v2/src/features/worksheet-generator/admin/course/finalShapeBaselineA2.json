@@ -20,6 +20,12 @@
   "a2-013|*|V11-input",
   "a2-014|*|V11-input"
  ],
+ "a2-module-04": [
+  "a2-016|*|V11-input",
+  "a2-017|*|V11-input",
+  "a2-018|*|V11-input",
+  "a2-019|*|V11-input"
+ ],
  "a2-module-06": [
   "a2-026|transfer|V2"
  ],
