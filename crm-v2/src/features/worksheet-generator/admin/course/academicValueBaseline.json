@@ -3,6 +3,11 @@
   "*|*|av-opener",
   "b1b2-082|*|av-know"
  ],
+ "b1b2-module-18": [
+  "*|*|av-examiner",
+  "*|*|av-opener",
+  "b1b2-086|*|av-know"
+ ],
  "course:enb2": [
   "*|*|av-topics"
  ]
