@@ -96,8 +96,8 @@
   },
   "a2-007:007_t_call": {
     "src": "/audio/a2-007/007_t_call.mp3",
-    "seconds": 89.5,
-    "hash": "5c314f3e9df4ead0b5fee9fa61c42fde40e8fd74"
+    "seconds": 58.7,
+    "hash": "9a05cd318ca2ab7b29561f07fc61543cd142f7b5"
   },
   "a2-008:008_d_photo": {
     "src": "/audio/a2-008/008_d_photo.mp3",
@@ -111,18 +111,23 @@
   },
   "a2-008:008_t_call": {
     "src": "/audio/a2-008/008_t_call.mp3",
-    "seconds": 88.2,
-    "hash": "65b802977bbc202f6644f7e488a7b45e7939ce0c"
+    "seconds": 46.9,
+    "hash": "6b1a8da15f56b04c61c8ad7cdf127a5a8a2285e3"
   },
   "a2-009:009_d_radio": {
     "src": "/audio/a2-009/009_d_radio.mp3",
     "seconds": 46.5,
     "hash": "da6c76e935a7c347e429401aba74570dfbda7ab1"
   },
+  "a2-010:010_d_call": {
+    "src": "/audio/a2-010/010_d_call.mp3",
+    "seconds": 52.9,
+    "hash": "eafd1d67c02290d75d6f43f586ce2b11ad45aa2d"
+  },
   "a2-010:010_d_listen": {
     "src": "/audio/a2-010/010_d_listen.mp3",
-    "seconds": 27,
-    "hash": "9860d4a910bb3bf227ab4b99f964f22407b6d55a"
+    "seconds": 30.1,
+    "hash": "66beb8467ebdf6fca01a3af97f8bb61fab701c83"
   },
   "a2-010:010_p_listen": {
     "src": "/audio/a2-010/010_p_listen.mp3",
