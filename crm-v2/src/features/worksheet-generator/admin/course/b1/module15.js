@@ -66,7 +66,7 @@ export const LESSONS = withShapes({
     title: 'Järgmine samm: plaanid uueks aastaks',
     canDo: 'Ma loen teateid ja kursuse infot tuleviku plaanide kohta ning lepin kaaslasega kokku, mida, millal ja kui tihti me järgmisel aastal teeme.',
     discover: [
-      B.review('071_d_review', [['Kuidas leppisid vanemad kokku lugude õhtu kava, mis ei mahtunud ühe tunni sisse?', 'a2b1-069'], ['Miks pidi Karl remondi ajal päeval magama?', 'a2b1-061'], 'Mida sa järgmisel aastal kindlasti teha tahad?']),
+      B.review('071_d_review', [['Kuidas leppisid vanemad kokku lugude õhtu kava, mis ei mahtunud ühe tunni sisse?', 'a2b1-069'], ['Kuidas ütled viisakalt „ei”, nii et naaber ei solvu?', 'a2b1-061'], 'Mida sa järgmisel aastal kindlasti teha tahad?']),
       B.topicOpener('071_d_open', 'Teema avaleht: Eesti tulevik — e-riik, valimised ja töö', [
         'Eestit nimetatakse sageli e-riigiks. Alates 2002. aastast, kui hakati välja andma ID-kaarte, saab Eestis anda digiallkirja, mis kehtib samamoodi nagu allkiri paberil. Riigi andmekogud vahetavad andmeid X-tee kaudu: päevas tehakse seal ligi 13 miljonit päringut. Nii saavad ametid vajalikud andmed teineteiselt ja inimene ei pea neid igale ametile eraldi tooma. 2024. aasta detsembris sai internetis teha ka viimase riigiteenuse, abielu lahutamise avalduse.',
         'Eesti oli maailmas esimene riik, kus sai üleriigilistel valimistel hääletada interneti teel. E-hääletamine algas 2005. aastal. 2023. aasta Riigikogu valimistel andis üle poole hääletajatest oma hääle internetis, 2025. aasta kohalikel valimistel 45,8 % hääletajatest. 2027. aasta märtsis toimuvatel Riigikogu valimistel saab e-hääletada lisaks arvutile ka nutitelefoniga.',
@@ -418,7 +418,7 @@ export const LESSONS = withShapes({
     title: 'Kui…, siis…: plaan A ja plaan B',
     canDo: 'Ma saan kuuldust aru, mis tingimusel plaan teoks saab, ja kirjutan 80–100-sõnalise kirja, kus on kui-lausetega plaan A ja plaan B.',
     discover: [
-      B.review('073_d_review', [['Kes sõidab suvel Viktoriga Peipsi äärde kaasa?', 'a2b1-072'], ['Mis probleem oli perel Saaremaa hotellis?', 'a2b1-062'], 'Mida sa teed, kui sinu plaan ei õnnestu?']),
+      B.review('073_d_review', [['Kes sõidab suvel Viktoriga Peipsi äärde kaasa?', 'a2b1-072'], ['Mis oli Marguse hotellitoaga valesti ja kuidas ta selle lahendas?', 'a2b1-062'], 'Mida sa teed, kui sinu plaan ei õnnestu?']),
       B.text('073_d_hook', 'Oskari suveplaan', 'On detsember. Oskar tahab juulis minna oma jalgpalliklubi Kotkas suvelaagrisse Pärnusse. Treener Raivo kutsus lapsevanemad koosolekule ja raadios räägitakse samal ajal plaanidest, mis ei õnnestu. Täna kuulad, mis tingimusel plaan teoks saab ja mis on plaan B.'),
       tag(B.listening('073_d_info', 'Treener Raivo koosolekul.', 'Treener Raivo räägib lapsevanematele suvisest laagrist. Kuula kaks korda ja kirjuta lünka arv või kuupäev.', [
         'Raivo: Head lapsevanemad, tere õhtust! Räägin lühidalt meie suvisest laagrist Pärnus.',
@@ -646,7 +646,7 @@ export const LESSONS = withShapes({
     title: 'Minu tegevusplaan',
     canDo: 'Ma saan kuuldust aru mentorprogrammi nõuetest, koostan oma tegevusplaani (eesmärk, põhjused, sammud ja tähtajad, plaan B) ja lepin mentoriga kokku esimesed sammud.',
     discover: [
-      B.review('074_d_review', [['Mis tingimusel võib Oskar suvel jalgpallilaagrisse minna?', 'a2b1-073'], ['Kuidas lahendas Sofia palava kontori probleemi?', 'a2b1-064'], 'Mis on sinu kõige tähtsam eesmärk järgmiseks aastaks?']),
+      B.review('074_d_review', [['Mis tingimusel võib Oskar suvel jalgpallilaagrisse minna?', 'a2b1-073'], ['Mida kirjutasid kontori koosoleku kohta juhatajale?', 'a2b1-064'], 'Mis on sinu kõige tähtsam eesmärk järgmiseks aastaks?']),
       B.text('074_d_brief', 'Projekt: minu tegevusplaan', 'Selles tunnis teed mooduli projekti. Tuul Logistika mentorprogrammi küsimustik tuleb täita reedeks, 10. detsembriks. Kuula firma taskuhäälingut, täida küsimustik ja tutvusta end mentorile. Harjuta lehel teed plaani mustandi ja kirjutad mentorile. Kasuta lehel lepid mentoriga kokku oma esimesed sammud, salvestad plaani ja kirjutad selle puhtalt.'),
       B.examListen('074_d_podcast', 'Taskuhääling „Meie nädal”.', 'Markus küsitleb firma taskuhäälingus personalijuht Eha Orgi. Kuula kaks korda ja otsusta iga väite kohta, kas see on õige või vale.', 'truefalse', [
         'Markus: Tere, head kolleegid! Siin firma taskuhääling „Meie nädal” ja minu külaline on personalijuht Eha Org. Tere, Eha!',
