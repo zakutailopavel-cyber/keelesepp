@@ -45,7 +45,8 @@ export default [
   },
   {
     id: "b1b2-084-kasuta-1",
-    phase: "transfer",
+    // shown on the Avasta sheet since the v5 rewrite (2026-11-25): the Kasuta sheet has no room in its 5-block budget
+    phase: "discover",
     format: "scene",
     cast: ["Anna", "Markus"],
     scene: "Anna toimetab oma varasemat teksti kuue järjestikuse lugemise meetodil, samal ajal kui Markus kuulab tema põhjendusi. Kuus ikooni tähistavad kordusi, käändeid, sõnajärge, sidendeid, õigekirja ja sisu; parandatud lause liigub puhtale lõpplehele.",

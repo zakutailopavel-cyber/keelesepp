@@ -110,7 +110,10 @@ export function levelProblems(doc) {
   // the Kasuta sheet of a check lesson is the exam's writing part: it has no reading text of its own
   // design v3 „stations”: every station has its own small input (≤ 120 words, docs/COURSE_DESIGN_STATIONS.md); the
   // lesson's non-cast text of the level's length is checked by academicValue.js (av-voice, av-boltedon)
-  if ((phase === 'discover' || (phase === 'transfer' && !doc?.meta?.assessment)) && !isStationSheet(doc)) {
+  // methodology v5 (meta.methodV5): the input and the speech length are a lesson's, not a sheet's (methodV5.js G3 / G4:
+  // one input per lesson, a 1-minute B2 monologue)
+  const v5 = Boolean(doc?.meta?.methodV5);
+  if ((phase === 'discover' || (phase === 'transfer' && !doc?.meta?.assessment)) && !isStationSheet(doc) && !v5) {
     // design v2: any input of that length starts the phase — a dialogue, people profiles or a gapped exam text too
     const inputs = doc?.meta?.design === 'v2' ? ['reading', 'listening', 'dialogue', 'profiles', 'cloze', 'formtext', 'insertion'] : ['reading', 'listening'];
     const inputText = (b) => (b.type === 'dialogue' ? (b.data?.lines || []).map((l) => l?.text).join(' ')
@@ -123,7 +126,7 @@ export function levelProblems(doc) {
   const letters = blocks.filter((b) => b.type === 'guidedletter');
   letters.forEach((b) => { if ((Number(b.data?.minWords) || 0) < want.write) out.push({ gate: 'level', code: 'writing-short', level: 'warning', text: `kirjutamine ${b.data?.minWords || 0} sõna (${level}: vähemalt ${want.write})`, blocks: [b.id] }); });
   const speaking = blocks.filter((b) => b.type === 'speaking');
-  if (speaking.length && Math.max(...speaking.map((b) => Number(b.data?.maxSec) || 0)) < want.speakSec) {
+  if (!v5 && speaking.length && Math.max(...speaking.map((b) => Number(b.data?.maxSec) || 0)) < want.speakSec) {
     out.push({ gate: 'level', code: 'speaking-short', level: 'warning', text: `rääkimine kuni ${Math.max(...speaking.map((b) => Number(b.data?.maxSec) || 0))} s (${level}: vähemalt ${want.speakSec} s ühes ülesandes)`, blocks: speaking.map((b) => b.id) });
   }
   return out;
