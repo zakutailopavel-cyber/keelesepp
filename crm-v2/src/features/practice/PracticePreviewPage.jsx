@@ -4,6 +4,7 @@ import { COURSE_LOADERS } from '../worksheet-generator/admin/course/courseLoader
 import { COURSE_LEVELS, PRACTICE_COURSES, extractCourseItems, moduleList } from './engine/extract.js';
 import { coverageOf } from './engine/coverage.js';
 import { buildLesson, LESSON_MAX, LESSON_MIN } from './engine/lesson.js';
+import { PICTURE_WORDS, pictureWordsFor } from './engine/pictures.js';
 import { grammarLabel } from './engine/grammar.js';
 import { estonianVoice } from './engine/speech.js';
 import { TYPE_LABELS, fullSentence } from './engine/items.js';
@@ -15,6 +16,9 @@ import './practice.css';
 // course items next to it. Reads the course files only; nothing is stored (docs/PRACTICE_ENGINE.md).
 const COURSE_NAMES = { a2: 'A2', b1: 'B1 (A2 → B1)', b2: 'B2 (B1 → B2)', c1: 'C1 (B2 → C1)' };
 const LANGS = { ru: 'vene', en: 'inglise', et: 'ainult eesti' };
+// picture items (engine/pictures.js): the word pictures of the chosen module's lessons (A2 only has them), all A2 word
+// pictures, or none. A learner gets the module's ones and his own words' ones (studentPractice.js).
+const PICTURES = { module: 'mooduli sõnad', all: 'kõik A2 pildid', none: 'ei' };
 
 function useEstonianVoice() {
   const [has, setHas] = useState(() => Boolean(estonianVoice()));
@@ -35,6 +39,7 @@ export default function PracticePreviewPage({ loaders = COURSE_LOADERS }) {
   const [grammar, setGrammar] = useState('');
   const [size, setSize] = useState(10);
   const [lang, setLang] = useState('ru');
+  const [pictureMode, setPictureMode] = useState('module');
   const [seed, setSeed] = useState(1);
   const [running, setRunning] = useState(null);
   const hasVoice = useEstonianVoice();
@@ -60,7 +65,9 @@ export default function PracticePreviewPage({ loaders = COURSE_LOADERS }) {
   }, [scoped]);
 
   const start = () => {
-    const lesson = buildLesson({ pool: state.items, level: COURSE_LEVELS[course], moduleId, grammarFocus: grammar, size, canListen, seed: `preview-${seed}` });
+    const moduleLessons = [...new Set(scoped.map((it) => it.lessonId))];
+    const pictures = pictureMode === 'all' ? PICTURE_WORDS : pictureMode === 'module' ? pictureWordsFor({ lessonIds: moduleLessons }) : [];
+    const lesson = buildLesson({ pool: state.items, level: COURSE_LEVELS[course], moduleId, grammarFocus: grammar, size, canListen, pictures, seed: `preview-${seed}` });
     setRunning(lesson);
   };
   const restart = () => { setSeed((s) => s + 1); setRunning(null); };
@@ -86,6 +93,9 @@ export default function PracticePreviewPage({ loaders = COURSE_LOADERS }) {
           </Select>
           <Select label="Õpilase keel" value={lang} onChange={(e) => setLang(e.target.value)}>
             {Object.entries(LANGS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </Select>
+          <Select label="Pildiülesanded" value={pictureMode} onChange={(e) => setPictureMode(e.target.value)}>
+            {Object.entries(PICTURES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </Select>
           <div className="pr-preview__actions">
             <Button onClick={start} disabled={loading || !state.items.length}>Koosta tund</Button>

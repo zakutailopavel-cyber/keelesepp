@@ -1,3 +1,15 @@
+## 2026-11-25 — Harjuta: pildiharjutused („Mis on pildil?”, „Kuula ja vali pilt”) (agent/harjuta-pictures)
+
+- Main: 2c12977 (2026-11-25). Omanik: harjutus peab olema visuaalne nagu Duolingo, praegu ainult tekst. Ainult liides/mootor, õppesisu ei muudetud.
+- Uus `practice/engine/pictures.js`: A2 sõnapildid (`art/words/a2.js`, 154 pärast topeltpiltide väljajätmist) → tüübid `picture` (pilt + 4 sõna, raskemal sammul kirjutatakse) ja `hear` (sõna kõlab, vali 4 pildist; ainult salvestatud Neurokõne failiga). Valed valikud sama teema (= A2 mooduli sõnagrupi) piltidest.
+- `engine/lesson.js`: `buildLesson({ pictures })` paneb kuni 3 pildiülesannet (vali → kuula → kirjuta); ilma piltideta tund on sama mis enne (test). `studentPractice.js`: pildid õpilase oma sõnadest (vastus liigutab kaarti) ja A2 kursusel praeguse mooduli sõnadest, tähendus `lessonWords/a2.json`-ist; kursuse lausetel tunni stseenipilt (`textbookArt.visualsFor`, laaditakse koos tunniga).
+- Vastuse järel: pilt + sõna + tõlge + heli (mängib ise). Telefon: kõik nupud ≥ 44 px, tekst ≥ 16 px (ka olemasolevad: ✕, õ-ä nupud, „Aeglaselt”, vihjed); `.pr-lesson` täislaius.
+- Kontrollid: `npx vitest run src/features/practice src/features/students` 47 faili / 326 testi läbi; eslint 0 viga. e2e layout-suite katab ainult töölehti (sheet-lab), mitte harjutust — ei käivitatud. Ekraanipildid 390×844 tasks-lab (`?view=harjuta&kursus=1`, uus parameeter laadib päris kursuse).
+- Sarnased pildid: `CONFUSABLE` (29 gruppi, kõik 156 pilti silmaga üle vaadatud — köha/nohu, odav/kallis/hind, kalendrid, vormid, „tüdruk laua taga” jne); ühe grupi kaks pilti ei ole kunagi samas ülesandes (test: iga sõna × mõlemad tüübid × 3 seemet).
+- Staff-eelvaade `/library/harjutused`: valik „Pildiülesanded” (mooduli sõnad / kõik A2 pildid / ei).
+- Piirangud: pildid on ainult A2 sõnadel — B1+ õppijal tulevad pildid ainult siis, kui tema „Minu sõnades” on A2 pildiga sõna. Eelvaates tõlget ei näidata.
+- Järgmine samm: omaniku OK → merge → release.
+
 ## 2026-11-25 — B1 moodul 1 metoodika v5 järgi, pilootmoodul (agent/b1-m1-v5)
 
 - Main: 2c12977 (2026-11-25). Haru `agent/b1b2-method-v5` + ühendatud `origin/agent/b1b2-gates-v5` (draft-PR #1305) peale; draft-PR „B1 module 1 to methodology v5 (pilot)”. Deploy'd ega production'i kirjutusi pole.

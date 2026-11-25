@@ -26,6 +26,34 @@ export function OptionChoice({ options, value, onChange, disabled = false, verdi
   );
 }
 
+// „Kuula ja vali pilt”: the 4 pictures as big buttons (2 × 2); the word is not in the label, or the screen reader says it
+export function PictureChoice({ choices, value, onChange, disabled = false, verdict = '', expected = '' }) {
+  return (
+    <div className="pr-pictures" role="radiogroup" aria-label="Vali pilt">
+      {choices.map((pic, i) => {
+        const picked = value === pic.word;
+        const state = verdict && (pic.word === expected ? 'right' : picked ? 'wrong' : '');
+        return (
+          <button
+            key={pic.word}
+            type="button"
+            role="radio"
+            aria-checked={picked}
+            aria-label={verdict ? `Pilt ${i + 1}: ${pic.word}` : `Pilt ${i + 1}`}
+            className={`pr-pic${picked ? ' is-picked' : ''}${state ? ` is-${state}` : ''}`}
+            onClick={() => !disabled && onChange(pic.word)}
+            disabled={disabled}
+          >
+            <img src={pic.src} alt="" aria-hidden="true" decoding="async" />
+            <kbd aria-hidden="true">{i + 1}</kbd>
+            {verdict ? <span className="pr-pic__word" lang="et">{pic.word}</span> : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 const LETTERS = ['õ', 'ä', 'ö', 'ü', 'š', 'ž'];
 
 // A typed answer with the Estonian letters as buttons (a phone keyboard without them is common).

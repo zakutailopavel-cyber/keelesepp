@@ -67,3 +67,33 @@ describe('the student practice lesson', () => {
     expect(failed.items).toHaveLength(1);
   });
 });
+
+describe('picture items in the student lesson', () => {
+  const MODULES = [{
+    MODULE: { id: 'a2-m6', title: 'Toit' },
+    LESSONS: { 'a2-026': { title: 'Poes', practice: [{ id: 'w', type: 'wordorder', data: { title: 'Pane lause kokku', sentences: Array.from({ length: 12 }, (_, i) => `Ma ostan ${['leiba', 'piima', 'kala', 'liha', 'suppi', 'salatit', 'kohvi', 'teed', 'mahla', 'juustu', 'vett', 'õunu'][i]} poest`).join('\n') } }] } },
+  }];
+  const loadMeanings = async () => ({ 'a2-026': [{ et: 'leib', ru: 'хлеб' }, { et: 'piim', ru: 'молоко' }] });
+  const visual = { id: 'a2-026-harjuta-1', phase: 'practice', format: 'scene', alt: 'Poes' };
+  const loadScenes = async () => ({ visualsFor: (lessonId) => (lessonId === 'a2-026' ? [visual] : []), visualSrc: () => '/textbook-art/a2/a2-026/a2-026-harjuta-1.webp' });
+
+  it('an A2 module with word pictures gets picture items (meaning from the lesson words) and its sentences the scene', async () => {
+    const result = await loadStudentPractice({ student: { level: 'A1' }, loaders: { a2: async () => ({ MODULES }) }, seed: 's', loadMeanings, loadScenes });
+    expect(result.course).toBe('a2');
+    expect(result.pictures).toBe(3);
+    const pics = result.items.filter((item) => item.type === 'picture' || item.type === 'hear');
+    expect(pics.every((item) => item.picture.src.startsWith('/textbook-art/words/a2/'))).toBe(true);
+    expect(result.items.length).toBe(10);
+    const sentence = result.items.find((item) => item.type === 'build');
+    expect(sentence.scene).toEqual({ src: '/textbook-art/a2/a2-026/a2-026-harjuta-1.webp', alt: 'Poes' });
+  });
+
+  it('no course lesson: his own words with a picture still make picture items, and the answer moves his card', async () => {
+    const words = [{ id: 'w9', word: 'palavik', translation: 'температура' }, { id: 'w8', word: 'retsept', translation: 'рецепт' }];
+    const result = await loadStudentPractice({ student: { level: 'A2' }, words, loaders: {}, loadMeanings, loadScenes });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({ type: 'picture', word: 'palavik', meaning: 'температура', wordId: 'w9' });
+    const none = await loadStudentPractice({ student: { level: 'A2' }, words: [words[1]], loaders: {}, loadMeanings, loadScenes });
+    expect(none.items).toEqual([]);
+  });
+});
