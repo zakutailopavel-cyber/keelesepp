@@ -13,28 +13,12 @@ export default [
     scene: "Kolm inimest planeerivad köögilaua ääres reisi. Üks võrdleb eelarvet, teine näitab matkarada ja kolmas majutust; laua keskel on lihtne kaart, mille üks marsruut ühendab linna, ranna ja metsa. Kõrval on hallid bussi, praami ja majutuse sümbolid.",
     accent: "the chosen route connecting city, beach and forest",
     text: [],
-    place: "036_d_text",
+    // 2026-11-25 (v5): after the article, before the scheme „kuhu kaob raha” that sums it up (page fill ≥ 70 %)
+    place: "036_d_scheme",
     learningJob: "võrrelda sihtkohta, transporti, majutust ja hinda ning leppida kokku ühine plaan",
     alt: "Kolm inimest panevad köögilaua ääres kaardi järgi kokku reisi marsruudi ja eelarve.",
     caption: "Pilt 1. Ühine reisiplaan sünnib kompromissist.",
     prompts: ["Mida need kolm inimest köögilaua ääres planeerivad?", "Kes neist mõtleb rahale, kes majutusele ja kes matkale? Mis on nende kompromiss?", "Kes sinu peres või sõprade seas reisi planeerib ja kes maksab?"],
-  },
-  {
-    id: "b1b2-037-kasuta-1",
-    // 2026-11-25 (v5): the role-play it stood beside left the sheet; the picture (a stay that is not as described, three
-    // problems and one clear demand) now stands in Harjuta before the register task „call → complaint”
-    phase: "practice",
-    format: "scene",
-    cast: ["Anna", "Liis"],
-    // 2026-11-18 (v4): the same picture (a rented flat that is not as described), now beside the extension role-play
-    scene: "Üürikorteris helistab naine broneerimisplatvormi klienditeenindusse. Tema kõrval on näha kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget. Telefoni kõrval on klienditeenindaja ekraanil lahenduskaart.",
-    accent: "the customer-guarantee solution card",
-    text: [],
-    place: "037_p_register",
-    learningJob: "kirjeldada majutuse probleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
-    alt: "Naine teatab telefonis räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
-    caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
-    prompts: ["Millised kolm probleemi on sellel üürikorteril?", "Mida peaks naine enne kõnet tegema, et tal oleks tõend?", "Mida ütleksid sina omanikule, kui majutus ei vasta kirjeldusele?"],
   },
   {
     id: "b1b2-038-avasta-1",
@@ -53,16 +37,16 @@ export default [
   },
   {
     id: "b1b2-039-avasta-1",
-    // 2026-11-25 (v5): the input is one radio show; the picture (a balanced travel review) stands in Kasuta before the
-    // rubric of the forum review, so that no picture or self-check stands alone on a page
-    phase: "transfer",
+    // 2026-11-25 (v5): the picture (a travel experience joined into a balanced review) stands after the radio show, before
+    // the formula „hea soovitus” that sums up the guide's advice
+    phase: "discover",
     format: "scene",
     cast: ["Anna", "Jaan"],
     // 2026-11-18 (v4): the same picture (three travel memories joined into a balanced review), now beside the story
     scene: "Kaks inimest kirjutavad reisiportaalile arvustust. Laual on kolm halli fotokaarti praamisõidust, jalgratastest ja perekodust; iga kaardi juurest viib joon keskse hinnangukaardi juurde, kus pluss ja miinus on tasakaalus.",
     accent: "the balanced travel-review card",
     text: [],
-    place: "039_t_rubric",
+    place: "039_d_scheme",
     learningJob: "siduda reisi sündmused põhjendatud hinnanguga ja teha sellest soovitus",
     alt: "Kaks inimest seovad kolm reisimälestust tasakaalustatud hinnanguga.",
     caption: "Pilt 1. Hea soovitus ühendab kogemuse ja hinnangu.",
@@ -83,5 +67,26 @@ export default [
     alt: "Kaks õppijat koostavad nelja teema põhjal kordamisplaani.",
     caption: "Pilt 1. Mida ma oskan ja mida kordan?",
     prompts: ["Milliseid teemasid näitavad õpitee neli peatust?", "Milline neist teemadest on sinu jaoks kõige kindlam ja milline kõige ebakindlam?", "Mida sa kordad enne järgmist moodulit?"],
+  },
+];
+
+// Retired from the sheets in the methodology v5 rewrite (2026-11-25): the rented-flat role-play (037_t_more) it stood
+// beside left the sheet, and on Harjuta it left a page half empty (page fill ≥ 70 %); the file stays in
+// public/textbook-art/ and can return when a lesson needs it.
+export const RETIRED = [
+  {
+    id: "b1b2-037-kasuta-1",
+    phase: "transfer",
+    format: "scene",
+    cast: ["Anna", "Liis"],
+    // 2026-11-18 (v4): the same picture (a rented flat that is not as described), now beside the extension role-play
+    scene: "Üürikorteris helistab naine broneerimisplatvormi klienditeenindusse. Tema kõrval on näha kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget. Telefoni kõrval on klienditeenindaja ekraanil lahenduskaart.",
+    accent: "the customer-guarantee solution card",
+    text: [],
+    place: "037_t_more",
+    learningJob: "kirjeldada majutuse probleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
+    alt: "Naine teatab telefonis räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
+    caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
+    prompts: ["Millised kolm probleemi on sellel üürikorteril?", "Mida peaks naine enne kõnet tegema, et tal oleks tõend?", "Mida ütleksid sina omanikule, kui majutus ei vasta kirjeldusele?"],
   },
 ];

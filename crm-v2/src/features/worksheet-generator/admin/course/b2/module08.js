@@ -966,7 +966,7 @@ export const LESSONS = withShapes({
       hook: '«Väide: kõige parem puhkus on see, mille jaoks ei pea kaugele sõitma.» Ученик 2 минуты думает (можно записать слова), потом говорит 1 минуту. Это холодная задача модуля (устно; модуль 7 мерил письмо): не помогайте, не давайте фраз, не исправляйте. Запишите заметки — в уроке 040 ученик говорит параллельную задачу в тех же условиях.',
       plan: [
         '0–5: станция 1 — холодная задача: 2 минуты подумать, 1 минута речи без помощи; заметки сохраните до 040',
-        '5–25: станция 2 — 10 слов (2 мин), схема «куда уходят деньги» и картинка (3 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин)',
+        '5–25: станция 2 — 10 слов (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин), картинка и схема «куда уходят деньги» по тексту (3 мин)',
         '25–45: станция 3 — kus / kuhu / mille одной строкой, B2: придаточное ко всей мысли (mis tähendab, et; mistõttu) и с послелогом (mille eest, mille järel); 10 трансформаций, сообщение попутчикам с 9 пропусками без банка, регистр: сообщение другу → письмо в гостевой дом',
         '45–70: станция 4 — план (3 мин), разговор с попутчиком со скрытой информацией (6–8 мин), разбор по трём критериям',
         '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо попутчику 140 слов без готового начала и голосовое 1 мин',
@@ -994,7 +994,6 @@ export const LESSONS = withShapes({
       ], [60, 90]), 'Õpetaja paneb kirja, kuidas sa praegu räägid; mooduli kontrollis räägid samadel tingimustel uuest väitest ja võrdlete.'), { task: 'S16', fluency: true, harno: 'S1' }),
       'Mooduli külm ülesanne (algtase), 5 minutit, suuliselt (moodul 7 mõõtis kirjutamist, moodul 8 mõõdab rääkimist). Ära aita, ära anna fraase ega paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (seetõttu, samas …) ja 2–3 korduvat viga. Hoia märkmed alles: tunnis b1b2-040 räägib õppija paralleelse ülesande samades tingimustes (kontrolli rääkimise 1. osa) ja te võrdlete. Üks-ühele: sina oled kuulaja; pärast kõnet küsi ainult „Miks?”.')), 1, 5),
       station(tag(B.vocab('036_d_vocab', 'Tunni sõnad.', ['eelarve — бюджет', 'majutus — проживание', 'ööbima — ночевать', 'broneerima — бронировать', 'praam — паром', 'telkimiskoht — место для палатки', 'varu — запас', 'kulu — расход', 'kompromiss — компромисс', 'loobuma (millest) — отказаться (от чего)']), { topic: ['eelarve', 'majutus', 'telkimiskoht'] }), 2, 20),
-      purpose(B.diagram('036_d_scheme', 'mind', { title: 'Skeem: kuhu kaob nädalavahetuse raha?', instruction: 'Vaata skeemi enne lugemist. Lugedes lisa igale harule üks mõte tekstist: mis on seal suur kulu ja kus saab kokku hoida?', center: 'Kaks päeva, kaks inimest', nodes: 'Sõit\n- buss, auto või praam\n- pilet varakult\nÖöbimine\n- külalistemaja, telk\n- hommikusöök hinnas?\nVäikesed kulud\n- parkimine, kohv, jäätis\n- varu umbes kümnendik\nKokkulepe\n- mis on mulle tähtis\n- millest loobun' }, 'full', 'g_read'), 'Skeem aitab sul tekstist leida, kus raha kaob ja kus sünnib kompromiss.'),
       why(teach(tag(purpose(B.reading('036_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Kuhu kaob nädalavahetuse raha?', [
         'Reede õhtul on plaan lihtne: kaks päeva, kaks inimest ja kakssada eurot. Pühapäeva õhtuks on rahakott aga tühi ja keegi ei mäleta täpselt, kuhu raha läks. Reisikonsultandid kuulevad seda lugu igal suvel. Nende sõnul ei kao raha suurte kulude peale, mida kõik oskavad ette näha, vaid väikeste peale, millele keegi ei mõelnud.',
         'Suured kulud on sõit, ööbimine ja söök. Neid on lihtne võrrelda. Bussipilet on sageli odavam, kui see osta mõni nädal ette, ja kahe inimese peale võib auto tulla odavam kui buss, sest kütus jagub kahe vahel, bussipilet mitte. Külalistemaja, mille hinnas on hommikusöök, võib lõpuks olla odavam kui hotell, kus hommikusöögi eest tuleb eraldi maksta. Saarele sõitja peab mõtlema ka praamile. Suvel tasub autoga sõit ette broneerida, sest ilma broneeringuta auto jääb sadamas üldisesse järjekorda, mis tähendab, et ootamine võib kesta mitu tundi.',
@@ -1012,7 +1011,7 @@ export const LESSONS = withShapes({
         ['Mida tahab autor öelda lausega, et odav reis on see, „mille järel ei ole kahju ühestki eurost”? Järelda.', 'odavust ei mõõdeta ainult summaga; raha peab kuluma millelegi, mis on seda väärt'],
         ['Milline on autori hoiak kokkuleppe ja plaani B suhtes? Mida ta vihjab viimase lausega?', 'need on tähtsamad kui raha; hea ettevalmistus ei maksa midagi, aga päästab reisi'],
       ]), 'Pärast lugemist tead, kuhu reisiraha kaob, ja oskad reisikaaslasega plaani põhjendada.'), { task: 'R15', voice: 'expert' }),
-      'Lugemine, 20 minutit koos sõnade, skeemi ja pildiga. Enne lugemist küsi pildi järgi: kes neist kolmest mõtleb rahale ja milline on nende kompromiss? Pärast: õpilane lisab skeemi igale harule ühe mõtte tekstist. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst ilma täpsete hindadeta; kui keegi küsib praamipileti hinda, ütle: „Vaata praamid.ee lehelt.”'), [
+      'Lugemine, 20 minutit koos sõnade, skeemi ja pildiga. Pärast lugemist küsi pildi järgi: kes neist kolmest mõtleb rahale ja milline on nende kompromiss? Seejärel lisab õpilane skeemi igale harule ühe mõtte tekstist. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst ilma täpsete hindadeta; kui keegi küsib praamipileti hinda, ütle: „Vaata praamid.ee lehelt.”'), [
         '1. lõik: raha kaob „väikeste peale, millele keegi ei mõelnud”.',
         '2. lõik: külalistemaja, „mille hinnas on hommikusöök”; hotellis „tuleb eraldi maksta”.',
         '2. lõik: auto „jääb sadamas üldisesse järjekorda, mis tähendab, et ootamine võib kesta mitu tundi”.',
@@ -1021,6 +1020,7 @@ export const LESSONS = withShapes({
         'Järeldus 4. lõigust: odav reis „ei ole see, mis maksab kõige vähem” — loeb, kas raha oli seda väärt.',
         'Järeldus 5. ja 6. lõigust: „Kõige raskem ei ole aga rahaga arvestamine, vaid kokkulepe”; plaan B „ei maksa sentigi”.',
       ]),
+      purpose(B.diagram('036_d_scheme', 'mind', { title: 'Skeem: kuhu kaob nädalavahetuse raha?', instruction: 'Pärast lugemist lisa igale harule üks mõte tekstist: mis on seal suur kulu ja kus saab kokku hoida? Siis märgi oma reisi kõige suurem kulu.', center: 'Kaks päeva, kaks inimest', nodes: 'Sõit\n- buss, auto või praam\n- pilet varakult\nÖöbimine\n- külalistemaja, telk\n- hommikusöök hinnas?\nVäikesed kulud\n- parkimine, kohv, jäätis\n- varu umbes kümnendik\nKokkulepe\n- mis on mulle tähtis\n- millest loobun' }, 'full', 'g_read'), 'Skeem aitab sul tekstist leida, kus raha kaob ja kus sünnib kompromiss.'),
       retire('036_d_hook', CUT_HOOK),
       retire('036_d_talk', CUT_TALK),
       retire('036_d_open', CUT_STATS),
@@ -1474,7 +1474,7 @@ export const LESSONS = withShapes({
       hook: '«Väide: külalisele tuleb näidata seda, mida turistid näevad — vanalinna ja kuulsaid kohti.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — о месте, куда он сам водил гостя или куда его водили. Не исправляйте; отметьте прошедшие времена — это тема станции 3.',
       plan: [
         '0–5: станция 1 — утверждение и одна минута о своём госте, без фраз',
-        '5–25: станция 2 — 10 слов (2 мин), формула «хороший совет» и картинка (3 мин), радио дважды (8 мин), 10 утверждений верно / неверно, из них 3 на вывод (7 мин)',
+        '5–25: станция 2 — 10 слов (2 мин), радио дважды (8 мин), 10 утверждений верно / неверно, из них 3 на вывод (7 мин), картинка и формула «хороший совет» по радио (3 мин)',
         '25–45: станция 3 — käisin / olen käinud / olin käinud одной строкой, B2: selleks ajaks, kui; alles siis, kui; niipea kui; pärast seda, kui; 10 предложений, отзыв на форуме с 9 пропусками без банка, регистр: сообщение другу → отзыв на портале',
         '45–70: станция 4 — реальное событие или музей с сайта (5 мин), совет гостю по телефону со скрытой информацией (6–8 мин), разбор по трём критериям',
         '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: отзыв на форуме 180 слов без готового начала и голосовое 1 мин',
@@ -1502,8 +1502,7 @@ export const LESSONS = withShapes({
       ], [60, 90]), 'Sinu kogemus annab soovitusele esimese näite.'), { task: 'S07', fluency: true }),
       'Üks-ühele: vasta ka ise ühe looga. Ära paranda; pane kirja, milliseid mineviku vorme õppija kasutab ja kas ta ütleb, mis juhtus enne mida (see tuleb jaamas 3 tagasi). Kui õppija ei ole kedagi võõrustanud: „Kuhu sa viiksid sõbra, kes tuleb sinu linna esimest korda?”')), 1, 5),
       station(tag(B.vocab('039_d_vocab', 'Tunni sõnad.', ['elamus — впечатление', 'pettumus — разочарование', 'väärt — стоящий', 'soovitama — советовать', 'giid — гид', 'näitus — выставка', 'rahvarohke — многолюдный', 'külastama — посещать', 'külaline — гость', 'eelistus — предпочтение']), { topic: ['elamus', 'soovitama', 'külaline'] }), 2, 20),
-      purpose(B.diagram('039_d_scheme', 'formula', { title: 'Skeem: hea soovitus külalisele.', instruction: 'Vaata valemit enne kuulamist. Kuulates märgi iga rea juurde, mida giid selle kohta ütleb.', nodes: 'Külalise soov | Mida ta armastab? Kellega ta tuleb? Kui palju on raha ja aega?\nÜks valik, mitte kõik | Üks koht või sündmus, mis sobib just talle\nMinu kogemus | Ma käisin seal …; selleks ajaks, kui jõudsime, oli …\nPlaan B | Kui sajab või on liiga rahvarohke, siis …', note: 'Hea soovitus = soov + üks valik + oma kogemus + plaan B' }, 'full', 'g_read'), 'Valem aitab sul anda nõu, mis sobib külalisele, mitte ainult sulle.'),
-      why(teach(tag(purpose(B.examListen('039_d_radio', 'Kuulamine: raadiosaade „Kuhu viia külaline?”.', 'Raadiosaates räägib saatejuht giidiga sellest, kuhu Eestis külaline viia. Loe enne väited läbi. Kuula saadet kaks korda ja otsusta iga väite kohta: õige või vale.', 'truefalse', [
+      why(teach(tag(purpose(B.examListen('039_d_radio', 'Kuulamine: raadiosaade „Kuhu viia külaline?”.', 'Saatejuht räägib giidiga, kuhu Eestis külaline viia. Loe väited läbi, kuula kaks korda ja otsusta: õige või vale.', 'truefalse', [
         'Tõnu: Tere! Suvi on külaliste aeg. Sugulased ja sõbrad tulevad Eestisse ja võõrustaja küsib endalt: kuhu ma nad viin? Stuudios on giid Merike, kes on kakskümmend aastat külalisi Eestis ringi juhtinud. Merike, mis on kõige sagedasem viga?',
         'Merike: Tere! Kõige sagedasem viga on see, et tahetakse näidata kõike. Kolme päevaga Tallinn, Tartu, Saaremaa ja veel raba ka. Selleks ajaks, kui külaline koju sõidab, on ta nii väsinud, et ei mäleta midagi peale bussiakna. Minu nõuanne: küsi enne, mida külaline armastab, ja vali üks või kaks asja.',
         'Tõnu: Mida sina ise soovitad?',
@@ -1533,7 +1532,7 @@ export const LESSONS = withShapes({
         ['Saksa pere lugu näitab, et pettumusest võib saada elamus, kui keegi seletab, mida nähakse.', true],
         ['Merike arvates on reitingutes olevad kohad alati paremad kui need, mida soovitavad kohalikud.', false],
       ], 'g_read'), 'Kuuled, kuidas giid valib külalisele ühe koha ja plaani B; kohe teed sama oma külalisega.'), { voice: 'interview', task: 'L05', harno: 'L4' }),
-      'Kuulamine, 20 minutit koos sõnade, valemi ja pildiga (umbes 3,5 minutit, kaks korda). Enne kuulamist küsi pildi järgi: kuidas kogemusest saab soovitus? Õpilane loeb väited ja joonib alla võtmesõnad. Pärast: õpilane ütleb valemi iga rea kohta giidi näite. Väited 8–10 on järeldusväited (giidi hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud.'), [
+      'Kuulamine, 20 minutit koos sõnade, valemi ja pildiga (umbes 3 minutit, kaks korda). Enne kuulamist loeb õpilane väited ja joonib alla võtmesõnad. Pärast kuulamist küsi pildi järgi: kuidas kogemusest saab soovitus? Seejärel täidab õpilane valemi giidi näidetega. Väited 8–10 on järeldusväited (giidi hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud.'), [
         'Vale: viga on see, „et tahetakse näidata kõike”.',
         'Õige: „küsi enne, mida külaline armastab, ja vali üks või kaks asja”.',
         'Vale: piletid „olid … juba ammu otsa saanud”, kui pere hakkas otsima.',
@@ -1545,6 +1544,7 @@ export const LESSONS = withShapes({
         'Järeldus, õige: „Nii et pettumusest sai elamus.”',
         'Järeldus, vale: parimaid kohti „ei leia ühestki reitingust — küsi kohalikelt”.',
       ]),
+      purpose(B.diagram('039_d_scheme', 'formula', { title: 'Skeem: hea soovitus külalisele.', instruction: 'Pärast kuulamist kirjuta valemi iga rea juurde, mida giid selle kohta ütles. Siis mõtle oma külalisele: mis on tema soov?', nodes: 'Külalise soov | Mida ta armastab? Kellega ta tuleb? Kui palju on raha ja aega?\nÜks valik, mitte kõik | Üks koht või sündmus, mis sobib just talle\nMinu kogemus | Ma käisin seal …; selleks ajaks, kui jõudsime, oli …\nPlaan B | Kui sajab või on liiga rahvarohke, siis …' }, 'full', 'g_read'), 'Valem aitab sul anda nõu, mis sobib külalisele, mitte ainult sulle.'),
       retire('039_d_hook', CUT_HOOK),
       retire('039_d_story', 'second input: a sentence-bank story (Harno R4) — v5: one input a lesson, 039 is listening; the bank is not used for B2 gaps (G4)'),
     ],
@@ -1631,9 +1631,9 @@ export const LESSONS = withShapes({
         situation: 'Reisifoorumis küsib keegi: „Tulen suvel lapsega kolmeks päevaks Eestisse. Kuhu minna, kui autot ei ole?” Vasta oma kogemuse põhjal.',
         points: ['üks koht või sündmus ja miks see sobib lapsega perele', 'sinu oma kogemus seal (mis juhtus enne mida)', 'üks elamus ja üks pettumus või hoiatus', 'kuidas sinna jõuab ja plaan B'],
         words: [170, 190],
-      }), 'Sinu soovitust loevad inimesed, kes otsustavad, kuhu oma vaba päev minna.'), 6)), { task: 'W14', main: true, level: 4 }),
+      }), 'Sinu soovitust loevad inimesed, kes otsustavad, kuhu oma vaba päev minna.'), 3)), { task: 'W14', main: true, level: 4 }),
       writingRubric('039_t_rubric', 'Hindamisjuhend: soovitus foorumis (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma soovitan Lennusadam. See on väga hea. Me käisime seal, kui me tulime, piletid said otsa. Siis me ootasime. Lapsele meeldis. Seal on allveelaev. Kohvik oli halb. Minge bussiga. Seal on väga hea.” Hinnang: ülesanne 2 (koht, kogemus ja sõit on olemas, kuid plaani B ei ole ja ei selgu, miks see sobib lapsega perele), ülesehitus 2 (laused on järjekorras, lõike ja sidendeid peaaegu ei ole), sõnavara 2 („hea” kordub; puuduvad elamus, külastamist väärt, rahvarohke), grammatika 1 („soovitan Lennusadam” → Lennusadamat; „kui me tulime, piletid said otsa” → selleks ajaks, kui jõudsime, olid piletid otsa saanud; enneminevikku ei ole). Kui õppija lisab plaani B ja põhjenduse ning parandab ajasuhted, saab ta 9/12 (75 %).', true),
-      exitCheck(purpose(B.selfcheck('039_t_self', ['Ma saan saatest aru, kuidas külalisele kohta valida, ja järeldan giidi hoiaku.', 'Ma ütlen loos, mis juhtus enne mida: selleks ajaks, kui …; alles siis, kui …; niipea kui …; pärast seda, kui …', 'Ma leian päris lehelt sündmuse, soovitan seda külalisele ja muudan plaani, kui ta ütleb midagi uut.'], 'Soovitus antud', 'Ma oskan külalisele kohta soovitada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      exitCheck(purpose(B.selfcheck('039_t_self', ['Ma saan saatest aru ja järeldan giidi hoiaku.', 'Ma ütlen, mis juhtus enne mida: selleks ajaks, kui …; alles siis, kui …', 'Ma soovitan külalisele päris sündmust ja muudan plaani, kui vaja.'], 'Soovitus antud', 'Ma oskan külalisele kohta soovitada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
       retire('039_t_voice', CUT_SHORT),
       retire('039_t_cards', CUT_INPUT),
       retire('039_t_more', CUT_EXTRA),
