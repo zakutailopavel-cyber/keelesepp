@@ -6,12 +6,13 @@ import LessonGeneratorBar from './LessonGeneratorBar.jsx';
 
 describe('LessonGeneratorBar textbook pictures', () => {
   it('offers the lesson picture of this sheet and inserts it once it is missing', async () => {
-    const repository = { loadLesson: vi.fn().mockResolvedValue({ id: 'a2-001', title: 'A2 lähtediagnostika' }), list: vi.fn().mockResolvedValue([]) };
+    // A2 module 1 v5 (2026-11-25): a2-001 is the diagnostic without a picture; a2-002 Harjuta has the name badges
+    const repository = { loadLesson: vi.fn().mockResolvedValue({ id: 'a2-002', title: 'Tere! Kes sa oled?' }), list: vi.fn().mockResolvedValue([]) };
     const onInsertBlocks = vi.fn();
     const doc = { blocks: [{ id: 't', type: 'text', data: {} }] };
-    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><LessonGeneratorBar lessonId="a2-001" worksheetId="discover" doc={doc} onInsertBlocks={onInsertBlocks} repository={repository} vocabularyRepository={{ load: vi.fn().mockResolvedValue({ lexicon: [] }) }} /></AuthContext.Provider></MemoryRouter>);
+    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><LessonGeneratorBar lessonId="a2-002" worksheetId="practice" doc={doc} onInsertBlocks={onInsertBlocks} repository={repository} vocabularyRepository={{ load: vi.fn().mockResolvedValue({ lexicon: [] }) }} /></AuthContext.Provider></MemoryRouter>);
     fireEvent.click(await screen.findByRole('button', { name: /Lisa tunni pilt/ }));
-    expect(onInsertBlocks).toHaveBeenCalledWith([expect.objectContaining({ type: 'image', span: 8, data: expect.objectContaining({ artId: 'a2-001-avasta-1', caption: 'Pilt 1. Anna tutvustab ennast keelekeskuses.' }) }), expect.objectContaining({ type: 'notice', span: 4 })]);
+    expect(onInsertBlocks).toHaveBeenCalledWith([expect.objectContaining({ type: 'image', span: 8, data: expect.objectContaining({ artId: 'a2-002-harjuta-2', caption: 'Kes ma olen? Neli nimesilti ja kaks küsimust.' }) }), expect.objectContaining({ type: 'notice', span: 4 })]);
     expect(screen.getByRole('status')).toHaveTextContent('Lehele lisati tunni pilt.');
   });
 });

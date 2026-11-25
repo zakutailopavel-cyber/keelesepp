@@ -217,11 +217,14 @@ describe('the A2 sheets', () => {
   const sheets = COURSE_MODULES.filter((mod) => String(mod.MODULE.id).startsWith('a2')).flatMap((mod) => Object.entries(moduleSheets(mod)).flatMap(([id, phases]) => Object.entries(phases).map(([phase, doc]) => ({ id, phase, doc }))));
   const withStrips = sheets.filter(({ doc }) => strips(doc).length);
   const pictured = sheets.filter(({ id, doc }) => /^a2-0([0-4]\d|50)$/.test(id) && !doc.meta.assessment && !doc.blocks.some((block) => block.type === 'exampart'));
-  it('a2-001…050: every teaching sheet has 2–3 strips, the first in the first third', () => {
-    expect(pictured).toHaveLength(120);
+  it('a2-001…050: every teaching sheet has 2–3 strips (a methodology v5 sheet with ≤ 2 tasks: 1), the first in the first third', () => {
+    // a2-001 is a one-sheet placement diagnostic (methodology v5, 2026-11-25): 40 teaching lessons × 3 sheets − 3
+    expect(pictured).toHaveLength(117);
     for (const { id, phase, doc } of pictured) {
-      expect(strips(doc).length, `${id} ${phase}`).toBeGreaterThanOrEqual(2);
       const tasks = doc.blocks.filter(isFinalShapeTask).length;
+      // methodology v5 (docs/METHODOLOGY_A2_V5.md §3): a lean Avasta of two tasks has room for one strip (a strip needs a
+      // task between it and the next one)
+      expect(strips(doc).length, `${id} ${phase}`).toBeGreaterThanOrEqual(doc.meta.methodV5 && tasks <= 2 ? 1 : 2);
       const first = doc.blocks.slice(0, doc.blocks.indexOf(strips(doc)[0])).filter(isFinalShapeTask).length;
       expect(first, `${id} ${phase}`).toBeLessThanOrEqual(Math.ceil(tasks / 3));
     }

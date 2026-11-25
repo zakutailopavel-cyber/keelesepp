@@ -14,9 +14,9 @@ import STRICT_V5 from './strictModulesV5.json';
 // prints its gaps (blocks and minutes per sheet, every violation).
 
 describe('strictModulesV5.json', () => {
-  it('lists B1 and B2 module ids of the right course', () => {
-    expect(Object.keys(STRICT_V5).sort()).toEqual(['b1', 'b2']);
-    for (const course of ['b1', 'b2']) {
+  it('lists A2, B1 and B2 module ids of the right course', () => {
+    expect(Object.keys(STRICT_V5).sort()).toEqual(['a2', 'b1', 'b2']);
+    for (const course of ['a2', 'b1', 'b2']) {
       for (const id of STRICT_V5[course]) {
         const mod = COURSE_MODULES.find((m) => m.MODULE.id === id);
         expect(mod, `${id} is not a course module`).toBeTruthy();
@@ -179,6 +179,111 @@ describe('the B2 gates on a synthetic B2 lesson', () => {
   });
 });
 
+// ---- the A2 course (docs/METHODOLOGY_A2_V5.md): a 60-min lesson, its own length stages, a short dictation, ready
+// phrases faded by the module's last lesson, a true placement diagnostic ---------------------------------------------
+const a2sheet = (phase, blocks, meta = {}) => ({ meta: { level: 'A2', phase, methodV5: true, ...meta }, blocks });
+const a2text = (n) => text(n);
+const a2free = (id) => B.speaking(id, 'Räägi.', 'Räägi endast.', ['Kes sa oled?'], [35, 60]);
+const a2note = (id) => B.examWriting(id, 'Sõnum.', 'Kirjuta sõnum.', 'teade', { situation: 'Sõnum.', points: ['a', 'b'], words: [20, 40] });
+function cleanA2() {
+  return {
+    id: 'a2-module-99', course: 'a2', title: 'Proov',
+    lessons: {
+      'a2-001': { kind: 'diagnostic', n: 1, sheets: {
+        discover: a2sheet('discover', [
+          B.text('001_d_start', 'Lähtepunkt', 'See leht näitab, mida sa juba oskad.'),
+          a2free('001_d_cold'),
+          { ...B.examListen('001_d_listen', 'Kuula.', 'Kuulad kaks korda.', 'choice', a2text(110), [['Küsimus?', 'a', 'b', 'c']]), data: { ...B.examListen('001_d_listen', 'Kuula.', 'Kuulad kaks korda.', 'choice', a2text(110), [['Küsimus?', 'a', 'b', 'c']]).data, lockPlays: true } },
+          B.reading('001_d_read', 'Loe.', 'Loe ja vasta.', 'Tekst', a2text(90), [['Mis?', 'x']]),
+          a2note('001_d_note'),
+        ], { assessment: true }),
+      } },
+      'a2-002': { kind: 'lesson', n: 2, sheets: {
+        discover: a2sheet('discover', [B.review('002_d_rev', [['Kust sa pärit oled?', 'a2-001']]), B.reading('002_d_read', 'Loe.', 'Loe ja vasta.', 'Tekst', a2text(90), [['Mis?', 'x']]), B.notice('002_d_notice', 'Märka.', ['reegel'])]),
+        practice: a2sheet('practice', [gaps('002_p_gaps', 8), B.dictation('002_p_dict', 'Etteütlus.', 'Kirjuta.', ['Üks lause.', 'Teine lause.', 'Kolmas lause.'])]),
+        transfer: a2sheet('transfer', [B.speaking('002_t_say', 'Räägi.', 'Räägi.', ['Kes sa oled?'], [35, 60], ['Minu nimi on …']), B.examWriting('002_t_msg', 'Sõnum.', 'Kirjuta.', 'teade', { situation: 'S.', points: ['a'], words: [20, 40], opening: 'Tere!' })]),
+      } },
+      'a2-003': { kind: 'lesson', n: 3, sheets: {
+        discover: a2sheet('discover', [{ ...B.listening('003_d_call', 'Kuula.', 'Kuula kaks korda.', a2text(110), ['Ta on [kokk].']), data: { ...B.listening('003_d_call', 'Kuula.', 'Kuula kaks korda.', a2text(110), ['Ta on [kokk].']).data, plays: 2 } }]),
+        practice: a2sheet('practice', [gaps('003_p_gaps', 8)]),
+        transfer: a2sheet('transfer', [hiddenCard('003_t_call'), a2free('003_t_say'), a2note('003_t_note'), toAddr(a2note('003_t_mail'))]),
+      } },
+      'a2-005': { kind: 'control', n: 5, sheets: {
+        discover: a2sheet('discover', [
+          B.text('005_d_start', 'Kontroll', 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).'),
+          B.reading('005_d_read', 'Loe.', 'Loe ja vasta.', 'Tekst', a2text(125), [['Mis?', 'x']]),
+          a2note('005_d_msg'),
+        ], { assessment: true }),
+      } },
+    },
+  };
+}
+const toAddr = (block) => ({ ...block, data: { ...block.data, realAddressee: 'õppija oma õpetaja' } });
+const a2edit = (fn) => { const input = cleanA2(); fn(input.lessons); return codes(input); };
+
+describe('the A2 gates on a synthetic A2 module', () => {
+  it('a clean A2 v5 module has no problem', () => {
+    expect(methodV5Problems(cleanA2())).toEqual([]);
+  });
+  it('G1 the A2 budget: ≤ 14 blocks and ≤ 65 min a lesson (a 60-min lesson)', () => {
+    expect(V5.budget.a2).toEqual({ discover: 5, practice: 4, transfer: 5, lesson: 14 });
+    expect(a2edit((l) => sheetOf(l, 'a2-002', 'practice').blocks.push(...Array.from({ length: 3 }, (_, i) => B.notice(`n${i}`, 'a', ['a']))))).toContain('G1-sheet');
+    expect(a2edit((l) => ['discover', 'practice', 'transfer'].forEach((p) => sheetOf(l, 'a2-003', p).blocks.push(...Array.from({ length: 3 }, (_, i) => B.notice(`${p}${i}`, 'a', ['a'])))))).toContain('G1-lesson');
+    // 70 min of writing: over the A2 ceiling of 65, under the B1 ceiling of 90
+    expect(a2edit((l) => sheetOf(l, 'a2-002', 'practice').blocks.push(B.writing('w', 'Kirjuta.', 'Kirjuta.', [25, 30]), B.writing('w2', 'Kirjuta.', 'Kirjuta.', [25, 30])))).toContain('G1-minutes');
+  });
+  it('G1 / G9 the placement diagnostic: one sheet, ≤ 10 blocks, about 30 min, no model before the answer', () => {
+    expect(a2edit((l) => { l['a2-001'].sheets.practice = a2sheet('practice', [B.notice('p', 'a', ['a'])], { assessment: true }); })).toContain('G1-diag-sheets');
+    expect(a2edit((l) => sheetOf(l, 'a2-001', 'discover').blocks.push(...Array.from({ length: 6 }, (_, i) => B.text(`t${i}`, 'T', 'Tekst.'))))).toContain('G1-diag-blocks');
+    expect(a2edit((l) => sheetOf(l, 'a2-001', 'discover').blocks.push(B.writing('w', 'Kirjuta.', 'Kirjuta.', [20, 25])))).toContain('G1-diag-minutes');
+    expect(a2edit((l) => sheetOf(l, 'a2-001', 'discover').blocks.push(B.notice('rule', 'Märka.', ['ma olen'])))).toContain('G9-diag-model');
+    expect(a2edit((l) => sheetOf(l, 'a2-001', 'discover').blocks.push(B.vocab('v', 'Sõnad.', ['nimi — имя'])))).toContain('G9-diag-model');
+    expect(a2edit((l) => { sheetOf(l, 'a2-001', 'discover').blocks[1].data.tipText = 'Minu nimi on …'; })).toContain('G9-diag-model');
+    expect(a2edit((l) => { sheetOf(l, 'a2-001', 'discover').blocks[4].data.opening = 'Tere!'; })).toContain('G9-diag-model');
+    expect(a2edit((l) => { delete sheetOf(l, 'a2-001', 'discover').blocks[2].data.lockPlays; })).toContain('G6-lock');
+    // a lesson marked `placement: true` in the module file is a diagnostic too (methodV5Input)
+    const mod = { MODULE: { id: 'a2-module-98', course: 'a2', title: 'P' }, LESSONS: { 'a2-001': { placement: true, assessment: true } } };
+    expect(methodV5Input(mod, { 'a2-001': { discover: a2sheet('discover', [], { assessment: true }) } }).lessons['a2-001'].kind).toBe('diagnostic');
+  });
+  it('G3 the A2 stages: stage 1 reads 80–120 words, the control may hold one Harno-length text (≤ 150)', () => {
+    expect(a2edit((l) => { sheetOf(l, 'a2-002', 'discover').blocks[1].data.passage = a2text(130); })).toContain('G3-text');
+    expect(a2edit((l) => { sheetOf(l, 'a2-002', 'discover').blocks[1].data.passage = a2text(60); })).toContain('G3-input-short');
+    expect(a2edit((l) => { sheetOf(l, 'a2-005', 'discover').blocks[1].data.passage = a2text(140); })).not.toContain('G3-text');
+    expect(a2edit((l) => { sheetOf(l, 'a2-005', 'discover').blocks[1].data.passage = a2text(170); })).toContain('G3-text');
+    expect(a2edit((l) => { sheetOf(l, 'a2-003', 'discover').blocks[0].data.transcript = a2text(200); })).toContain('G3-audio');
+    expect(a2edit((l) => { sheetOf(l, 'a2-003', 'transfer').blocks[2].data.maxWords = 60; })).toContain('G3-writing');
+    expect(a2edit((l) => { sheetOf(l, 'a2-003', 'transfer').blocks[1].data.maxSec = 90; })).toContain('G3-speech');
+    // the same text at A2 lesson 060 (stage A2, 100–150 words) is fine
+    expect(a2edit((l) => { l['a2-002'].n = 60; sheetOf(l, 'a2-002', 'discover').blocks[1].data.passage = a2text(130); })).not.toContain('G3-text');
+  });
+  it('G5 A2 keeps one short dictation a lesson', () => {
+    expect(a2edit(() => {})).not.toContain('G5-dictation');
+    expect(a2edit((l) => { sheetOf(l, 'a2-002', 'practice').blocks[1].data.sentences = Array.from({ length: 7 }, (_, i) => `Lause ${i}.`).join('\n'); })).toContain('G5-dictation-long');
+    expect(a2edit((l) => sheetOf(l, 'a2-002', 'practice').blocks.push(B.dictation('d2', 'Etteütlus.', 'Kirjuta.', ['Lause.'])))).toContain('G5-dictation-many');
+  });
+  it('G8 matching stays on an A2 sheet until lesson 050', () => {
+    const match = B.match('m', 'Ühenda.', 'Ühenda.', [['a', 'b']]);
+    expect(a2edit((l) => sheetOf(l, 'a2-002', 'practice').blocks.push(match))).not.toContain('G8-off-sheet');
+    expect(a2edit((l) => { l['a2-002'].n = 51; sheetOf(l, 'a2-002', 'practice').blocks.push(match); })).toContain('G8-off-sheet');
+  });
+  it('G9 ready phrases are faded by the module end: its last teaching lesson has the free speech and the free text', () => {
+    // early phrases (a2-002) are fine; the last lesson (a2-003) loses its free tasks
+    expect(a2edit((l) => { sheetOf(l, 'a2-003', 'transfer').blocks[1].data.tipText = 'Minu nimi on …'; })).toContain('G9-speech');
+    expect(a2edit((l) => { sheetOf(l, 'a2-003', 'transfer').blocks[2].data.opening = 'Tere!'; sheetOf(l, 'a2-003', 'transfer').blocks[3].data.opening = 'Tere!'; })).toContain('G9-writing');
+    expect(a2edit((l) => sheetOf(l, 'a2-003', 'transfer').blocks.push(B.phrasebank('pb', [['Fraasid', ['Tere!']]])))).toEqual(expect.arrayContaining(['G9-speech', 'G9-writing']));
+    expect(a2edit((l) => { sheetOf(l, 'a2-003', 'transfer').blocks[0] = B.rolecards('003_t_call', 'Helista.', 'Helista.', 'A', 'B', [], []); })).toContain('G9-hidden-card');
+  });
+  it('G11 an A2 control names Harno 60 %, no zero part, and the internal 70 / 80 %', () => {
+    expect(a2edit((l) => { sheetOf(l, 'a2-005', 'discover').blocks[0].data.text = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: 70 % ja 80 %.'; })).toContain('G11-zero');
+  });
+  it('B1 and B2 keep their own rules (no A2 exception leaks)', () => {
+    expect(edit((l) => sheetOf(l, 'a2b1-072', 'practice').blocks.push(B.dictation('d', 'Etteütlus.', 'Kirjuta.', ['Lause.'])))).toContain('G5-dictation');
+    expect(edit((l) => { sheetOf(l, 'a2b1-075', 'discover').blocks[0].data.text = 'Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, sertifikaat alates 80 %.'; })).not.toContain('G11-zero');
+    expect(V5.budget.b1.lesson).toBe(15);
+    expect(V5.lessonMinutes).toBe(90);
+  });
+});
+
 describe('G2: the old sheet norms are off for a v5 sheet', () => {
   const doc = (methodV5) => ({ meta: { level: 'B1', phase: 'practice', design: 'v2', template: 'v4', ...(methodV5 ? { methodV5: true } : {}) }, blocks: [gaps('g', 8), B.errorfix('e', 'Paranda.', 'Kirjuta terve lause.', [['Vale.', 'Õige.']])] });
   it('no 40–55 min and block count in quality.js, no ≥ 25 min drills in depth.js', () => {
@@ -189,6 +294,8 @@ describe('G2: the old sheet norms are off for a v5 sheet', () => {
   });
   it('the course builder marks only the listed modules', () => {
     expect(isMethodV5({ MODULE: { id: 'a2b1-module-01', course: 'b1' } })).toBe(STRICT_V5.b1.includes('a2b1-module-01'));
+    expect(isMethodV5({ MODULE: { id: 'a2-module-01', course: 'a2' } })).toBe(STRICT_V5.a2.includes('a2-module-01'));
+    expect(isMethodV5({ MODULE: { id: 'a2-module-02', course: 'a2' } })).toBe(false);
   });
 });
 
@@ -213,5 +320,10 @@ describe('the report', () => {
     expect(lines[0]).toMatch(/^a2b1-module-01/);
     expect(lines.some((l) => /a2b1-002 \[lesson\]/.test(l))).toBe(true);
     expect(V5.budget.b1.lesson).toBe(15);
+  });
+  it('prints the A2 budget for an A2 module', () => {
+    const lines = formatMethodV5Report(methodV5Report(COURSE_MODULES.find((m) => m.MODULE.id === 'a2-module-01')));
+    expect(lines[1]).toMatch(/tund ≤ 14 plokki, ≤ 65 min/);
+    expect(lines.some((l) => /a2-001 \[diagnostic\]/.test(l))).toBe(true);
   });
 });
