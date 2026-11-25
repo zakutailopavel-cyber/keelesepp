@@ -1,3 +1,13 @@
+## 2026-11-25 — A2 moodul 2 metoodika v5 järgi (agent/a2-m2-v5)
+
+- Main kontrollitud: 1103b98 (2026-11-25). Haru `agent/a2-m2-v5` on tehtud `origin/agent/a2-v5-pilot` (draft-PR #1328) peale + `origin/main` sisse ühendatud; draft-PR „A2 module 2 to methodology v5” (ühendada pärast #1328). Deploy'd ega production'i kirjutusi pole.
+- `a2/module02.js` (a2-006…010) pilootmooduli 1 mustri järgi: 006 „Minu pere” (lugemine, mul on kaks venda / ei ole õde, Kase pere sugupuu infolünk; ainus tund loo tegelastega, G7); 007 „Kelle oma see on?” (kuulamine „Kadunud võti”, omastav, kadunud asjade laud, telefonikõne varjatud infoga kaardiga G9, Harno W2 teade „Leitud!”); 008 „Milline ta on?” (häälsõnum „mine mu emale vastu”, ta on / tal on, võrdlus, bussijaama pilt = Harno S1); 009 „Minu inimesed” (mooduli viimane tund: visiitkaardid = Harno W1, „Uus naaber” ja oma inimese tutvustus ilma fraasideta, sõnum oma õpetajale = päris adressaat G13); 010 kontroll (üks leht, 9 plokki, ≈ 43 min, 4 × 10 punkti, toorpunktid + Harno ×2 + lävendid + kontrolli 1 tulemus; 0/1/2 hindamisread on tabelis `010_d_score` tulemuse ees, endine `010_t_rubric` peidetud, sest rubric jääks lehe lõppu üksi). Iga tund ≤ 14 plokki, ≤ 62 min; üks sisend tunnis; kaks etteütlust moodulis (007, 008). Eemaldatud plokid `hide(block, why)`.
+- Uus heli (TartuNLP): `a2-007/007_t_call.mp3`, `a2-008/008_t_call.mp3`, `a2-010/010_d_listen.mp3`, `a2-010/010_d_call.mp3` (`listeningAudio.json`). Neli õpipilti (käsitsi SVG → WebP) `public/textbook-art/a2/a2-00{6,7,8,9}/…-harjuta-2.webp`, lähteülesanded `art/visuals/a2-module-02.js` (vanad tegelastega pildid `RETIRED`, failid alles). `a2/lessonGoals.js` 006–010. `strictModulesV5.json` → `"a2": ["a2-module-01", "a2-module-02"]`; `methodV5.test.js` G2 test kontrollib nüüd moodulit 3; `finalShapeBaselineA2.json` a2-module-02: V4-type-speaking, V11-input ×4 (v5 kujunduse tagajärg, nagu moodulis 1).
+- Hindamise pin: a2m02 ei ole `gradingPin.golden.js`-is, golden'it ei muudetud.
+- Kontrollid: `node tools/course-audit/method-v5.mjs --course a2 --module 2` → 0 (enne 86); `npx vitest run src/features/worksheet-generator src/features/practice src/features/worksheet-studio src/features/pet` 203 faili läbi (1 skip), 2636 testi; eslint muudetud failidel 0 viga; Vabamorf (`tools/course-audit/language.py`): tundmatud ainult nimed, „Lucía” poolitus (al, Luc) ja sõnariba tehniline väärtus „words”; `e2e/layout/sheets.spec.cjs` kasutab a2-013 (muutmata). Ekraanipildid scratchpad `mock/a2m2/` (before = main, after = haru). Lehekülgi (sheet lab, 1400 px): a2-006 enne 3+5+5, nüüd 2+2+2; a2-010 enne 5+5+6, nüüd 4 (üks leht). Viimase lehekülje täidetus ≥ 70 % kõigil lehtedel (a2-008 Avasta 72 %, a2-010 79 %).
+- Piirangud: pildid on tööpildid (Codex võib üle joonistada); V4-type-speaking ja V11-input jäävad baasjoonde nagu moodulis 1; „Uus naaber” rollikaardil (009 Harjuta) ei ole valmis fraase.
+- Järgmine samm: omanik vaatab a2-006 ja a2-010 enne/pärast ning annab OK; siis sama mall A2 moodulile 3.
+
 ## 2026-11-25 — A2 metoodika v5 + pilootmoodul 1 (agent/a2-v5-pilot)
 
 - Main kontrollitud: a53ae3f (2026-11-25). Haru `agent/a2-v5-pilot` värskest `origin/main`-ist; draft-PR „A2 methodology v5 + pilot module 1”. Deploy'd ega production'i kirjutusi pole.
@@ -38,6 +48,7 @@
 - Piirangud: pildid on tööpildid (Codex võib üle joonistada); aja hinnang `timeEstimate.js` ≈ 35–43 min tunnis (paaritöö ja teine katse hindamata), autori plaan 65 min + väljund; 044 Avasta esimene lehekülg 46 % (kuulamine 6 küsimusega ei mahu esimesele lehele); kontroll on 5 lehekülge (kaks 8-küsimuselist kuulamist); 043 kirja sisupunktid on juhises, mitte eraldi loendis (pilt ja kiri mahuvad nii ühele lehele); Kasuta viimased lehed 70–74 % (piir 70 %).
 - Järgmine samm: omanik vaatab 041 ja 045 lehti (enne/pärast) ja annab OK; pärast #1325 ühendamist sama mall moodulile 10.
 
+## 2026-11-25 — B2 moodul 6 metoodika v5 järgi (agent/b2-m6-v5)
 ## 2026-11-25 — B1 moodul 8 metoodika v5 järgi (agent/b1-m8-v5)
 
 - Main kontrollitud: 507e375 (2026-11-25). Haru `agent/b1-m8-v5` on tehtud `origin/agent/b1-m7-v5` (draft-PR #1322) peale, moodulite 1–7 mall; draft-PR „B1 module 8 to methodology v5” (ühendada pärast #1321 ja #1322). Deploy'd ega production'i kirjutusi pole.
