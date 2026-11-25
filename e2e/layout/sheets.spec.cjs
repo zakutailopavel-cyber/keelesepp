@@ -57,7 +57,7 @@ test.describe('phone 375, everything else', () => {
     expect(breaks(await page.evaluate(`(${measureInPage.toString()})()`)).filter((line) => !/targets under/.test(line))).toEqual([]);
   });
   // A2, B1 with an exam-format listening, B2, a module exam, the old template v3 copy, a teacher's own sheet, a converted v1 sheet
-  for (const set of ['course:a2-013:practice', 'course:a2b1-011:discover', 'course:a2b1-015:practice', 'course:b1b2-001:transfer', 'course:b1b2-005:practice', 'course:b1b2-001:practice:v3', 'personal', 'legacy-converted']) {
+  for (const set of ['course:a2-013:practice', 'course:a2b1-011:discover', 'course:a2b1-015:discover', 'course:b1b2-001:transfer', 'course:b1b2-005:discover', 'course:b1b2-001:practice:v3', 'personal', 'legacy-converted']) {
     test(set, async ({ page }) => {
       await open(page, `set=${encodeURIComponent(set)}`);
       expect(breaks(await page.evaluate(`(${measureInPage.toString()})()`))).toEqual([]);

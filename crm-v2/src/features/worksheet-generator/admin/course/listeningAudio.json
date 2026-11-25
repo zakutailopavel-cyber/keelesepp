@@ -1504,6 +1504,11 @@
     "seconds": 125.2,
     "hash": "b82f3a2504d19cb0d40ae633c51ef754637e1e1d"
   },
+  "a2b1-012:012_d_msg": {
+    "src": "/audio/a2b1-012/012_d_msg.mp3",
+    "seconds": 66.4,
+    "hash": "314fe87acd00a12f8a8c33086027c39dc5c7a2f7"
+  },
   "a2b1-012:012_d_plan": {
     "src": "/audio/a2b1-012/012_d_plan.mp3",
     "seconds": 103.4,
@@ -1541,8 +1546,8 @@
   },
   "a2b1-015:015_p_l3": {
     "src": "/audio/a2b1-015/015_p_l3.mp3",
-    "seconds": 43.2,
-    "hash": "91f88ab3d9ba89db3450b4a923651ab834748687"
+    "seconds": 43.5,
+    "hash": "e6763e5c9bc5a64a27c5ba2a7380b72a4117f7c6"
   },
   "a2b1-015:015_p_l4": {
     "src": "/audio/a2b1-015/015_p_l4.mp3",
@@ -1561,8 +1566,8 @@
   },
   "a2b1-017:017_d_brief": {
     "src": "/audio/a2b1-017/017_d_brief.mp3",
-    "seconds": 89.3,
-    "hash": "e2b9e402291a349f7af30f0caf136a6d38e81198"
+    "seconds": 53.1,
+    "hash": "857ded5a7bba373b17b35ff787159235a1935015"
   },
   "a2b1-017:017_d_clips": {
     "src": "/audio/a2b1-017/017_d_clips.mp3",
@@ -1586,8 +1591,8 @@
   },
   "a2b1-019:019_d_calls": {
     "src": "/audio/a2b1-019/019_d_calls.mp3",
-    "seconds": 130.9,
-    "hash": "6a84da7469d3769e19dfa230c020cf439c6d15ce"
+    "seconds": 68,
+    "hash": "ee868b1184fa7c16a930d0046497c534ebd226a4"
   },
   "a2b1-019:019_t_news": {
     "src": "/audio/a2b1-019/019_t_news.mp3",
