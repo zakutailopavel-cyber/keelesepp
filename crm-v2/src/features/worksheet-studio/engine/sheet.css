@@ -31,6 +31,8 @@
 .ws-page *, .ws-measure * { box-sizing: border-box; }
 .ws-flow { display: flex; flex-direction: column; gap: 4mm; }
 .ws-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4mm; align-items: stretch; }
+/* a picture drawn smaller so its row still fits the page (pageSplit.js canShrink); its height follows the aspect */
+.ws-row.is-pic-fit > .ws-card[data-type="image"] .ws-photo { width: calc(var(--ws-pic-scale, 1) * 100%); margin-inline: auto; }
 
 /* header */
 .ws-hdr { display: grid; grid-template-columns: 1fr 84mm 33mm; gap: 4mm; align-items: stretch; }

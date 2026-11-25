@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Volume2 } from 'lucide-react';
 import { TYPE_LABELS, fullSentence, inputOf } from './engine/items.js';
 import { playEstonian, preloadWordAudio } from '../vocabulary/wordAudio.js';
 
 // What the learner sees above the answer: the task in one line (Estonian, with the learner's language under it), then
-// the sentence with its gap, the sentence to rewrite with its cue, or the play button of a listening item.
+// the sentence with its gap, the sentence to rewrite with its cue, or the play button of a listening item. A picture item
+// shows its word picture; a sentence item of a course lesson with art shows the lesson's scene above it.
 export function ItemPrompt({ item, lang = 'ru', filled = '' }) {
   const label = TYPE_LABELS[item.type] || TYPE_LABELS.form;
   const input = inputOf(item);
@@ -14,6 +15,9 @@ export function ItemPrompt({ item, lang = 'ru', filled = '' }) {
         <strong>{item.type === 'transform' && item.fix ? 'Paranda viga' : label.et}</strong>
         {lang !== 'et' && label[lang] ? <span lang={lang}>{item.type === 'transform' && item.fix ? (lang === 'ru' ? 'Исправь ошибку' : 'Fix the mistake') : label[lang]}</span> : null}
       </p>
+      {item.scene?.src ? <figure className="pr-scene"><img src={item.scene.src} alt={item.scene.alt || ''} loading="lazy" decoding="async" /></figure> : null}
+      {item.type === 'picture' ? <figure className="pr-picture"><img src={item.picture?.src} alt="Pilt: mis sõna see on?" decoding="async" /></figure> : null}
+      {item.type === 'hear' ? <HearButton word={item.word} /> : null}
       {item.type === 'listen' ? <ListenButton item={item} /> : null}
       {item.type === 'transform' ? (
         <div className="pr-source">
@@ -55,6 +59,47 @@ function ListenButton({ item }) {
         <Volume2 size={30} aria-hidden="true" />
       </button>
       <button type="button" className="pr-listen__slow" onClick={() => say(true)}>Aeglaselt</button>
+    </div>
+  );
+}
+
+// „Kuula ja vali pilt”: the word plays once when the item opens (the tap on „Edasi” allows it), and again on each tap
+function HearButton({ word }) {
+  const played = useRef('');
+  useEffect(() => {
+    preloadWordAudio([word]);
+    if (played.current === word) return;
+    played.current = word;
+    playEstonian(word);
+  }, [word]);
+  return (
+    <div className="pr-listen">
+      <button type="button" className="pr-listen__play" onClick={() => playEstonian(word)} aria-label="Kuula sõna">
+        <Volume2 size={30} aria-hidden="true" />
+      </button>
+      <button type="button" className="pr-listen__slow" onClick={() => playEstonian(word, { slow: true })}>Aeglaselt</button>
+    </div>
+  );
+}
+
+// After a picture item: the picture, the word, its meaning and the sound (owner 2026-11-25: practice like Duolingo)
+export function WordReveal({ item, lang = 'ru' }) {
+  const played = useRef('');
+  useEffect(() => {
+    if (played.current === item.id) return;
+    played.current = item.id;
+    playEstonian(item.word);
+  }, [item.id, item.word]);
+  return (
+    <div className="pr-reveal">
+      <img src={item.picture?.src} alt="" aria-hidden="true" decoding="async" />
+      <p className="pr-reveal__text">
+        <b lang="et">{item.word}</b>
+        {item.meaning ? <span lang={lang === 'en' ? undefined : 'ru'}>{item.meaning}</span> : null}
+      </p>
+      <button type="button" className="pr-reveal__play" onClick={() => playEstonian(item.word)} aria-label={`Kuula: ${item.word}`}>
+        <Volume2 size={22} aria-hidden="true" />
+      </button>
     </div>
   );
 }

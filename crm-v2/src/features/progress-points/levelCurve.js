@@ -44,7 +44,7 @@ export function goalResults(assignments = [], keys = new Set()) {
     Object.entries(item.score?.perGoal || {}).forEach(([goal, result]) => {
       const key = `${lessonId}|${goal}`;
       if (!keys.has(key) || !(Number(result?.total) > 0)) return;
-      results.push({ key, day, ok: Number(result.ok) || 0, total: Number(result.total) });
+      results.push({ key, day, ok: Number(result.ok) || 0, total: Number(result.total), sheet: item.id || `${lessonId}|${item.completedAt}` });
     });
   });
   return results.sort((a, b) => a.day.localeCompare(b.day));
@@ -78,8 +78,10 @@ export function levelCurve({ assignments = [], goalKeys = [], points = [], level
   const anchors = ofLevel.filter((point) => ANCHOR_KINDS.has(point.kind) && point.date <= today).sort((a, b) => a.date.localeCompare(b.date) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
   const exams = ofLevel.filter((point) => point.kind === 'exam').sort((a, b) => a.date.localeCompare(b.date));
   const results = total ? goalResults(assignments, keys) : [];
+  // how many submitted course sheets the curve stands on (proficiencyCurve.js isThinCurve: too few → no percentage)
+  const measured = new Set(results.map((result) => result.sheet)).size;
   const start = [anchors[0]?.date, results[0]?.day].filter(Boolean).sort()[0];
-  if (!start || (!total && !anchors.length)) return { total, line: [], exams, anchors };
+  if (!start || (!total && !anchors.length)) return { total, line: [], exams, anchors, measured };
 
   // sample days: the anchors' days, every 7 days from the start, and today
   const days = new Set(anchors.map((anchor) => anchor.date));
@@ -100,7 +102,7 @@ export function levelCurve({ assignments = [], goalKeys = [], points = [], level
     const isAnchorDay = anchor && anchor.date === day;
     return { date: day, percent: Math.min(100, Math.round(percent)), kind: isAnchorDay ? anchor.kind : 'computed', ...(isAnchorDay ? { anchor } : {}), mastered };
   });
-  return { total, line, exams, anchors };
+  return { total, line, exams, anchors, measured };
 }
 
 // the curve's value on a day (the newest point on or before it), for comparing a mock exam

@@ -10,6 +10,8 @@
 .pf-now b.is-up { color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); }
 .pf-now b.is-down { color: #a8501a;color:light-dark(#a8501a,#f99967); }
 .pf-empty { display: grid; gap: 2px; margin: 0; padding: 12px; border-radius: var(--radius-lg); background: #f4f8f6;background:light-dark(#f4f8f6,#191e24); color: #2c3e37;color:light-dark(#2c3e37,#c6cfcb); font-size: .9rem; line-height: 1.4; }
+.pf-did { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 0 4px; padding: 0; list-style: none; }
+.pf-did strong { font: 800 1.05rem Manrope, sans-serif; }
 .pf-empty small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; }
 .pf-chart { min-width: 0; }
 .pf-chart svg { display: block; overflow: visible; touch-action: manipulation; }

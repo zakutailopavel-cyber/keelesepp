@@ -34,4 +34,13 @@ describe('PracticePreviewPage', () => {
     expect(screen.getByRole('region', { name: 'Harjutus' })).toBeInTheDocument();
     expect(screen.getByText(/9 ülesannet/)).toBeInTheDocument();
   });
+
+  it('mixes picture items in when „Pildiülesanded” is „kõik A2 pildid”', async () => {
+    render(<PracticePreviewPage loaders={loaders} />);
+    await waitFor(() => expect(screen.getByText('Katvus: B1 (A2 → B1)')).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('Pildiülesanded'), { target: { value: 'all' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Koosta tund' }));
+    expect(screen.getByText(/ülesannet · Mis on pildil\?/)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Pilt: mis sõna see on?' })).toBeInTheDocument();
+  });
 });

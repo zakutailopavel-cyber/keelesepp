@@ -1,46 +1,133 @@
-// B1 course (A2 → B1 roadmap), module 2 „Mina, pere ja suhted” (a2b1-006…010), stage A2+. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md, the pilot module; how it was written: docs/FINAL_SHAPE_AUTHORING.md §8). One storyline:
-// Helgi, the mother of Jaan and Sofia, turns 60 and the family plans a surprise party at uncle Viktor's farm. The goal,
-// said on the first sheet: at the end the learner writes the invitation letter to the relatives (009 Kasuta).
-//   006 LUGU R→W  „Vana foto” — Sofia finds a photo of Helgi and her lost cousin Maie (story → listening → kelle?-rule →
-//                 retelling); Oskar's composition, Sofia's chat with Maie's daughter, an info-gap family tree;
-//                 Maie's voice message, relatives meet at the party, the learner's own photo story (60–80 words).
-//   007 KUUL L→S  „Inimene, kes…” — Sofia's new colleagues in short voice notes, a lost child at the shopping centre
-//                 (kes/kellel/keda/kellega); a radio interview about a good babysitter, Liis's team mail, Kadri's ad;
-//                 four candidates, explain the radio advice, agree on one babysitter (idea card).
-//   008 AVAS R→S  „Kelle oma?” — test first (oma or tema? mis/mida/mille), then the rule, then test again; the radio
-//                 visits the lost-property office; Viktor leaves his backpack with Helgi's present on the train and
-//                 phones the office (phone cards).
-//   009 PROJ L→W  „Üllatus Helgile” — the project brief in Jaan's voice message (numbers), offers for the party,
-//                 proposals and reasons (sest, kuna, lepime kokku); booking call; the plan and budget, the family meeting,
-//                 the invitation letter to the relatives (80–100 words), rewritten after the rubric.
-//   010 EKS       module exam in Harno A2 form (reading 5 tasks, listening 4, writing 2, speaking intro + 2), timed parts,
-//                 target 80 % in every part; the story ends — the party, Maie and Helgi meet again and make up.
-// Love and friendship thread (owner 2026-11-01, themes from the textbook „Minu eesti keel”, no text taken from it): 006 Helgi
-// and Maie once quarrelled (tülli minema, ära leppima), Oskar tells his grandparents' love story, the story retold as Helgi;
-// 007 what holds people together (usaldama, austama, hoolima, toetama, klapp); 008 a forum post about a jealous boyfriend with
-// three replies of different tone, the learner's own reply, noticing a friend's trouble; 009 Viktor's letter tells why the
-// cousins quarrelled (Maie loved Sofia's father first) and asks to phone Maie before the party; 010 they make up.
-// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): kes/mis relative clauses (007, 008); the genitive (006, 008).
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE §13, topic: families in Estonia):
-// 006 the topic opener „Pered Eestis” (Statistikaamet: births, marriages, census 2021 families; family days) and a
-// popular-science text on Estonian surnames and family research (Rahvusarhiiv); the Helgi retelling was cut, the picture
-// talk is no longer a 3-2-1 and compares generations at home and in Estonia. 007 „Kas teadsid?” on nursery and
-// kindergarten places (alusharidusseadus 2025). 008 „Kas teadsid?” on what to do with a found thing (PPA). 009 an
-// article on name days and St Martin's / St Catherine's day. 010 the examiner's question set on family (010_d_warm).
-// Every fact is sourced in its block; the PR lists the URLs.
-// Earlier versions: archive/v3/b1/module02.js, archive/v1/b1/module02.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 2 „Mina, pere ja suhted” (a2b1-006…010), stage A2 (lessons 001–020).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of module 1 (the pilot): one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, 45 min). Lengths of the A2 stage: text
+// 80–150 words, audio ≤ 1.5 min, writing 30–60 words, speech 30–60 s.
+//   006 case    „Kes on sinu pere?” — the module's COLD TASK first (45–60 s about your family, no help), a family photo
+//               text (the genitive in context) and the learning visual „Tatjana suguvõsa” (a family tree). Outcome: a
+//               30–60-word story of a photo from the learner's own album, read to a partner who asks „Kelle …?”.
+//   007 game    „Milline inimene ta on?” — an ad „Otsime lastele vanaema” (kes / kellel / keda / kellega in context) and the
+//               visual „Neli inimest”. Outcome: describe a person so the partner finds them, agree whom to recommend, and
+//               write the family a short message.
+//   008 infogap „Kadunud asi” — the park café's notice of found things (mis / mida / mille, oma). Outcome: a phone call
+//               to the lost-property office with a HIDDEN-INFORMATION card (three similar black bags, opening hours,
+//               the wallet is missing); the visual „Kolm musta kotti”.
+//   009 project „Teeme peo!” — a voice message with a party plan (ettepanek, sest / kuna; heard twice). Outcome: a family
+//               meeting (pair, second attempt without phrases) with the visual „Kolm võimalust” and an invitation to a
+//               REAL person (the module's link task, data.realAddressee), who answers.
+//   010 EKS     Control 2 (one sheet): listening and speaking + one short message, the PARALLEL NEW TASK of 006's cold
+//               task (same criteria, new content); thresholds named one way; recordings heard twice and locked.
+// The continuing story (Helgi, Sofia, Jaan, Viktor …) is not used in this module: the people of the texts are made up and
+// appear in one lesson only. Drills (crossword, matching, sorting, word order, „Mäletad?”) are off the sheets: the removed
+// blocks stay in this file as hide(block, why) — ids and learners' answers are kept, and the practice engine
+// (practice/engine/extract.js) still builds Harjuta items from their form tasks. Owner 2026-11-25: texts adapted to A2,
+// facts need not be real or checked, no hard numbers. The previous version (design v2, „final shape” storyline: Helgi's
+// surprise party) is in git history (main before this PR) and archive/v3/b1/module02.js.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
-export const MODULE = { id: 'a2b1-module-02', course: 'b1', title: 'Mina, pere ja suhted', level: 'A2+', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-02', course: 'b1', title: 'Mina, pere ja suhted', level: 'A2', design: 'v3-stations', template: 'v4' };
+
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 2). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a real addressee (methodV5.js G13): the learner sends the text to a real person
+const toAddressee = (block, who) => ({ ...block, data: { ...block.data, realAddressee: who } });
+// a recording in the control: heard twice, the player counts and locks (G6)
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 006 case: a family photo (omastav, kelle?)
   'a2b1-006': {
     title: 'Pere ja lähedased',
-    canDo: 'Ma kirjutan 60–80-sõnalise loo ühest pildist oma perealbumist: kes on pildil, kes nad mulle on ja mis siis juhtus.',
+    phases: grammar('Keel: omastav — kelle? (minu õe poeg, venna naine, vanaema maja)'),
+    format: 'case',
+    topic: 'family',
+    canDo: 'Ma kirjutan 30–60-sõnalise loo pildist oma perealbumist: kes on pildil ja kes nad mulle on (minu ema vend, õe tütar).',
+    teacherPage: {
+      goal: 'Ученик рассказывает и пишет 30–60 слов о фото из своего семейного альбома: кто на фото и кем они ему приходятся (omastav: minu õe poeg, venna naine); партнёр задаёт вопросы «Kelle …?».',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 1 минута) → пункт 2 без семейного дерева → пункт 4: история в классе, исправление дома. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля: ученик 45–60 секунд без помощи рассказывает о своей семье. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja/aga/sest, формы: kelle-vorm, minevik). Урок 10 начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт: «Kes on sinu pere?» 45–60 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), текст «Üks pilt, kolm põlvkonda» (omastav в контексте), 7 вопросов (суть, детали, «почему»), семейное дерево «Tatjana suguvõsa»: A спрашивает, B отвечает полным предложением, смена ролей',
+        '25–40: пункт 3 — заметить → правило → текст из 8 форм → 4–5 своих предложений о своей родне',
+        '40–65: пункт 4 — история фото из своего альбома (10–12 мин без помощи), чтение партнёру, партнёр задаёт 2 вопроса «Kelle …?», исправленная версия; вторая попытка: рассказать то же устно новому партнёру без текста',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рисует свою семейную схему и объясняет её партнёру',
+        '72–90: запас',
+      ],
+      sources: 'Текст пункта 2 и семейное дерево — учебные (Tatjana и её семья выдуманы, ситуация типичная); реальных цифр нет. Фото пункта 4 — из альбома самого ученика (в телефоне) или нарисованное.',
+      groups: 'Пункт 2: семейное дерево в парах (A спрашивает, B отвечает, смена). Пункт 4: каждый пишет сам, потом читает партнёру; партнёр задаёт два вопроса. Один на один вы — партнёр.',
+      errors: [
+        '«minu õde poeg» вместо «minu õe poeg» (kelle? → omastav: õde → õe, vend → venna, laps → lapse).',
+        '«See on Igor naine» вместо «See on Igori naine» (имя тоже в omastav: Igor → Igori, Galina → Galina).',
+        '«vanaema majas» верно, но «vanaema jalge ees» — omastav перед послелогом (ees, kõrval, juures).',
+        'В истории нет связи: сначала кто и кем приходится, потом что происходит на фото, в конце — почему фото важно.',
+      ],
+      notes: [
+        'Холодный старт и урок 10 — пара «до / после»: те же три заметки, другая тема. Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: omastav (õe, venna, Igori) и порядок «кто → кем приходится → что делает». Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('006_d_review', [['Kirjelda oma tavalist tööpäeva kolme lausega: millal, kus, kellega?', 'a2b1-005'], ['Mis päev on sinu nädalas kõige toredam ja miks?', 'a2b1-004'], ['Kelle telefon see on? Vasta: See on minu … telefon.', 'a2-007']]),
-      B.topicOpener('006_d_opener', 'Teema avaleht: pered Eestis', [
+      station(teach(tag(purpose(B.speaking('006_d_cold', 'Külm start: kes on sinu pere?', 'Räägi 45–60 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Kes on sinu pere ja kus nad elavad?',
+      ], [45, 60]), 'Sinu minut näitab, kust moodul algab; tunnis 10 võrdled.'), { task: 'S02', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 2 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest); 3) vormid: kelle-vorm (minu õe …), minevik. Hoia märkmed alles: tunnis 10 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(B.vocab('006_d_vocab', 'Tunni sõnad.', ['sugulane — родственник', 'suguvõsa — род, вся родня', 'onu — дядя', 'tädi — тётя', 'nõbu — двоюродный брат / сестра', 'vanavanemad — бабушка и дедушка', 'lapselaps — внук / внучка', 'põlvkond — поколение', 'abikaasa — супруг(а)', 'süles hoidma — держать на руках']), { topic: ['suguvõsa', 'põlvkond', 'nõbu'] }), 2, 17),
+      B.topicOpener('006_d_text', 'Üks pilt, kolm põlvkonda', [
+        'See pilt on tehtud eelmisel suvel minu vanaema sünnipäeval. Keskel istub vanaema Maria. Tema kõrval seisab minu isa, vanaema vanem poeg. Isa õe nimi on Galina, ta on minu tädi. Galina mees Peeter hoiab süles nende tütart Lenat. Lena on minu nõbu.',
+        'Vasakul on minu vend Igor ja tema naine Kristel. Kristel on eestlane, seepärast räägib vanaema temaga eesti keeles. Venna poeg Mark istub vanaema jalge ees. Ta on vanaema esimene lapselapselaps.',
+        'Mina seisan paremal ja hoian vanaema kooki. Ühte inimest pildil ei ole: minu ema. Tema tegi selle pildi. Mulle meeldib see pilt, sest kogu suguvõsa on koos. — Tatjana',
+      ], 'KeeleSepa õppetekst', [
+        'Millal sinu suguvõsa kokku saab?',
+        'Kas sinu arvates on hea, kui kogu suguvõsa saab kord aastas kokku? Miks?',
+        'Kas mõnes teises riigis, mida sa tead, elavad vanavanemad lastega koos?',
+      ]),
+      tag(purpose(why(B.choice('006_d_read', 'Kes on pildil?', 'Loe Tatjana teksti ja vali õige vastus.', [
+        ['Millest Tatjana kirjutab?', 'pildist vanaema sünnipäevalt', 'oma uuest kodust', 'vanaema pulmadest'],
+        ['Kes on Galina Tatjanale?', 'tädi', 'õde', 'ema'],
+        ['Kes on Lena Tatjanale?', 'nõbu', 'õde', 'venna tütar'],
+        ['Miks räägib vanaema Kristeliga eesti keeles?', 'Kristel on eestlane.', 'Vanaema õpib eesti keelt.', 'Kristel töötab koolis.'],
+        ['Kelle poeg on Mark?', 'Tatjana venna poeg', 'Galina poeg', 'Tatjana poeg'],
+        ['Miks ei ole Tatjana ema pildil?', 'Tema tegi pildi.', 'Ta oli haige.', 'Ta oli tööl.'],
+        ['Miks Tatjanale see pilt meeldib?', 'Kogu suguvõsa on koos.', 'Vanaema kook oli väga hea.', 'Pilt on väga vana.'],
+      ], 'full', 'g_read'), [
+        'Kogu tekst: üks pilt vanaema sünnipäevalt.',
+        'Esimene lõik: isa õde = tädi.',
+        'Esimene lõik: tädi tütar = nõbu.',
+        'Teine lõik: Kristel on eestlane, seepärast eesti keeles.',
+        'Teine lõik: venna poeg Mark.',
+        'Kolmas lõik: ema tegi selle pildi.',
+        'Kolmas lõik: kogu suguvõsa on koos.',
+      ]), 'Enne kui sa oma pildist räägid, saad aru, kuidas Tatjana oma pere tutvustab.'), { task: 'R12' }),
+      teach(tag(purpose(B.speaking('006_d_tree', 'Kes on kes? Räägi sugupuu järgi.', 'Küsi paariliselt sugupuu järgi. Vastake tervete lausetega. Siis vahetage.', [
+        'Kes on Galina Tatjanale?',
+        'Kelle tütar on Lena?',
+        'Kelle poeg on Mark?',
+        'Kes on Peeter Lenale?',
+        'Kes on Maria Markile?',
+      ], [45, 60], '', 'g_read'), 'Ütled sugulust kelle-vormiga nii, et paariline leiab inimese sugupuust.'), { task: 'S06', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kolm. Teisel ringil ütled sa ühe vea („Mark on Galina poeg”) ja õpilane parandab sind sugupuu järgi.'),
+      hide(B.review('006_d_review', [['Kirjelda oma tavalist tööpäeva kolme lausega: millal, kus, kellega?', 'a2b1-005'], ['Mis päev on sinu nädalas kõige toredam ja miks?', 'a2b1-004'], ['Kelle telefon see on? Vasta: See on minu … telefon.', 'a2-007']]), V5_DRILL),
+      hide(B.topicOpener('006_d_opener', 'Teema avaleht: pered Eestis', [
         'Milline on üks Eesti pere? Ühte õiget vastust ei ole. On peresid, kus elavad koos ema, isa ja lapsed. On peresid, kus on ainult üks vanem. Paljudes peredes kasvavad lapsed, kelle vanemad ei ole abielus. Mõnes kodus elavad koos vanavanemad, vanemad ja lapselapsed — kolm põlvkonda ühe katuse all. Pere ei ole ainult need, kes elavad ühes kodus: ka tädid, onud, nõod ja nende lapsed on pere. Suures suguvõsas ei tunne kõik üksteist isegi nime järgi.',
         '2021. aasta rahvaloenduse andmetel elab keskmises Eesti peres 2,94 inimest. Abielupaarid on 55 % peredest ja vabaabielus paarid 27 %. Peaaegu pooltes peredes (45 %) kasvavad alaealised lapsed. Üksikvanemaga peresid on 18 % ja enamasti elab laps siis emaga. Paljud inimesed elavad ka üksi: 37 % kõigist leibkondadest on ühe liikmega.',
         'Statistikaameti andmetel sündis 2025. aastal Eestis 9240 last. See on rekordiliselt väike arv. Abielus vanematele sündis 47,7 % lastest ehk peaaegu pooled. Aastal 2010 oli neid 40,9 %. Esimese lapse sünni ajal oli ema keskmiselt 29,4-aastane.',
@@ -51,10 +138,9 @@ export const LESSONS = withShapes({
         'Miks sünnib Eestis sinu arvates nii vähe lapsi?',
         'Kas sinu kodumaal abiellutakse nooremalt või vanemalt kui Eestis?',
         'Kas sinu peres tähistatakse emadepäeva, isadepäeva või vanavanemate päeva ja kuidas?',
-      ]),
-      B.text('006_d_goal', 'Moodul 2: pere ja suhted', 'Jaani ja Sofia ema Helgi saab järgmisel kuul 60-aastaseks. Pere tahab teha talle üllatuspeo. Selles moodulis räägid oma lähedastest ja aitad pidu planeerida. Mooduli lõpus kirjutad sugulastele peokutse. Täna loed lugu ühest vanast fotost ja kirjutad lõpuks loo pildist oma perealbumist.'),
-      tag(B.vocab('006_d_vocab', 'Tunni sõnad.', ['sugulane — родственник', 'onu — дядя', 'tädi — тётя', 'nõbu — двоюродный брат / сестра', 'vanavanemad — бабушка и дедушка', 'lapselaps — внук / внучка', 'mälestus — воспоминание', 'kolima — переезжать', 'suhtlema — общаться', 'armuma — влюбляться', 'kohting — свидание', 'abielluma — жениться / выходить замуж', 'pulmad — свадьба', 'tülli minema — поссориться', 'ära leppima — помириться']), { topic: ['nõbu', 'kohting'] }),
-      tag(B.reading('006_d_story', 'Vana foto.', 'Vaata pealkirja ja pilti. Arva, mida Sofia leiab. Siis loe ja kontrolli.', 'Vana foto', [
+      ]), V5_CUT),
+      hide(B.text('006_d_goal', 'Moodul 2: pere ja suhted', 'Jaani ja Sofia ema Helgi saab järgmisel kuul 60-aastaseks. Pere tahab teha talle üllatuspeo. Selles moodulis räägid oma lähedastest ja aitad pidu planeerida. Mooduli lõpus kirjutad sugulastele peokutse. Täna loed lugu ühest vanast fotost ja kirjutad lõpuks loo pildist oma perealbumist.'), V5_CUT),
+      hide(tag(B.reading('006_d_story', 'Vana foto.', 'Vaata pealkirja ja pilti. Arva, mida Sofia leiab. Siis loe ja kontrolli.', 'Vana foto', [
         'Laupäeval sõitis Sofia Tartusse ema juurde. Helgi tegi köögis pannkooke ja Sofia istus elutoas. Riiulil oli vana perealbum. Sofia võttis albumi ja hakkas pilte vaatama.',
         '',
         'Esimesel pildil oli tema isa noorena. Teisel pildil olid Jaan ja Sofia lastena onu Viktori talus. Kolmas pilt oli väga vana. Seal istusid kaks tüdrukut õunapuu all. Üks tüdruk oli Helgi, see oli kohe selge. Aga kes oli teine tüdruk? Tal olid pikad heledad patsid ja suur naeratus.',
@@ -73,8 +159,8 @@ export const LESSONS = withShapes({
         ['Miks Helgi ja Maie enam ei suhtle?', 'nad läksid tülli|nad läksid tülli ja ei leppinud ära'],
         ['Kuidas Helgi end tunneb, kui ta pilti vaatab?', 'kurvalt|tal on kahju|kurb'],
         ['Mis mõte Sofial tekkis? Kas sinu arvamus oli õige?', 'kutsuda Maie ema peole|Maie võiks tulla peole'],
-      ]), { task: 'R13' }),
-      tag(B.listening('006_d_memory', 'Helgi meenutab.', 'Kuula Helgi ja Sofia juttu kaks korda. Kirjuta igasse lünka üks või kaks sõna.', [
+      ]), { task: 'R13' }), V5_CUT),
+      hide(tag(B.listening('006_d_memory', 'Helgi meenutab.', 'Kuula Helgi ja Sofia juttu kaks korda. Kirjuta igasse lünka üks või kaks sõna.', [
         'Sofia: Ema, räägi mulle Maiest. Kus te koos olite?',
         'Helgi: Iga suvi olime vanaema talus Kõrvemaal. Praegu on see sinu onu Viktori talu.',
         'Sofia: Kes seal veel olid?',
@@ -96,19 +182,19 @@ export const LESSONS = withShapes({
         'Helgi nägi Maiet viimati oma [pulmas].',
         'Pulmas mängis Maie [kitarri].',
         'Helgi arvab, et Maiel on juba [lapselapsed|lapselapsi].',
-      ]), { task: 'L03' }),
-      B.notice('006_d_notice', 'Märka: kelle?', [
+      ]), { task: 'L03' }), V5_CUT),
+      hide(B.notice('006_d_notice', 'Märka: kelle?', [
         'Kelle tütar? **onu Akseli** tütar · Kelle talu? **onu Viktori** talu · Kelle pannkoogid? **ema** pannkoogid',
         'Omastav vastab küsimusele **kelle?**: Viktor → Viktor**i**, Maie → Maie, õde → **õe**, vend → **venna**, laps → **lapse**',
         'Sugulus kahe sõnaga: **minu ema vend** = onu · **minu isa õde** = tädi · **minu onu tütar** = nõbu',
         'Mitmus: **vanemad** → **vanemate** maja · **lapsed** → **laste** toad · **sugulased** → **sugulaste** pidu',
-      ], 'full'),
-      B.table('006_d_rule', 'Leia reegel: kes? → kelle?', 'Otsi sõnad loost või kuulamisest. Kirjuta, kuidas sõna kelle-vormis muutub.', 'Kes?, Kelle …?', [
+      ], 'full'), V5_CUT),
+      hide(B.table('006_d_rule', 'Leia reegel: kes? → kelle?', 'Otsi sõnad loost või kuulamisest. Kirjuta, kuidas sõna kelle-vormis muutub.', 'Kes?, Kelle …?', [
         'Viktor | onu [Viktori] talu', 'Aksel | onu [Akseli] tütar', 'Helgi | [Helgi] nõbu', 'vanaema | [vanaema] voodi',
         'Maie | [Maie] vend', 'õde | minu [õe] laps', 'vend | minu [venna] tütar', 'sugulased | [sugulaste] pidu',
         'Tamm | perekond [Tamme] kodu', 'Kask | perekond [Kase] lapsed',
-      ], 'g_notice'),
-      tag(B.reading('006_d_names', 'Kust tulevad eesti perekonnanimed?', 'Loe populaarteaduslikku teksti. Vasta küsimustele lühidalt.', 'Nimi, mis on vanem kui vanaema', [
+      ], 'g_notice'), V5_DRILL),
+      hide(tag(B.reading('006_d_names', 'Kust tulevad eesti perekonnanimed?', 'Loe populaarteaduslikku teksti. Vasta küsimustele lühidalt.', 'Nimi, mis on vanem kui vanaema', [
         'Enne 19. sajandit oli enamikul eestlastel ainult eesnimi ja lisanimi. Perekonnanimi oli aadlikel, vaimulikel ja vähestel vabadel talupoegadel.',
         '',
         'Talupojad said perekonnanime pärast pärisorjuse kaotamist. Lõuna-Eestis pidid kõigi inimeste perekonnanimed olema kirjas 1826. aastaks, Põhja-Eestis said inimesed nime aastatel 1830–1835. Paljud neist nimedest olid võõrapärased.',
@@ -130,12 +216,35 @@ export const LESSONS = withShapes({
         ['Mida leiab Saaga portaalist ja kas see maksab?', 'vanad kirikuraamatud, registreerimine on tasuta|kirikuraamatud, tasuta'],
         ['Kui kaugele saab enamik eestlasi oma sugupuu viia?', '18. sajandi algusesse|kaheksateistkümnenda sajandi algusesse'],
         ['Kust tuleb sinu perekonnanimi? Kas sa tead selle lugu?', ''],
-      ]), { task: 'R19', voice: 'popsci' }),
-      teach(tag(B.speaking('006_d_photo', 'Kirjelda pilti.', 'Kirjelda pilti paarilisele umbes üks minut. Siis arutage koos kahte viimast küsimust.', ['Kes on pildil?', 'Kes nad üksteisele võiksid olla?', 'Kelle ratas see on?', 'Mida iga inimene teeb?', 'Kas sinu meelest on hea, kui kolm põlvkonda elab ühes kodus?', 'Mis on sinu kodumaal tavalisem: kas vanavanemad elavad lastega koos või eraldi?'], [60, 120], ['Pildil on…', 'See võiks olla tema…', 'Minu meelest…, sest…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti üks minut, õpetaja küsib vahel „Kelle…?”. Siis arutate kahte viimast küsimust: õpetaja räägib, kuidas on Eestis, õpilane võrdleb oma kodumaaga.'),
+      ]), { task: 'R19', voice: 'popsci' }), V5_CUT),
+      hide(teach(tag(B.speaking('006_d_photo', 'Kirjelda pilti.', 'Kirjelda pilti paarilisele umbes üks minut. Siis arutage koos kahte viimast küsimust.', ['Kes on pildil?', 'Kes nad üksteisele võiksid olla?', 'Kelle ratas see on?', 'Mida iga inimene teeb?', 'Kas sinu meelest on hea, kui kolm põlvkonda elab ühes kodus?', 'Mis on sinu kodumaal tavalisem: kas vanavanemad elavad lastega koos või eraldi?'], [60, 120], ['Pildil on…', 'See võiks olla tema…', 'Minu meelest…, sest…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti üks minut, õpetaja küsib vahel „Kelle…?”. Siis arutate kahte viimast küsimust: õpetaja räägib, kuidas on Eestis, õpilane võrdleb oma kodumaaga.'), V5_CUT),
     ],
     practice: [
-      B.cloze('006_p_msg', 'Sofia sõnum Jaanile.', 'Vali igasse lünka sõna, mis sobib nii mõtte kui vormiga.', 'Saladus!', [
+      station(B.notice('006_p_notice', 'Märka: kelle?', [
+        'Kelle? → omastav: **isa** õde · **venna** poeg · **õe** tütar · **lapse** nimi · **Igori** naine',
+        'Sugulus kahe sõnaga: minu **ema vend** = onu · minu **isa õde** = tädi · minu **tädi tütar** = nõbu',
+        'Omastav enne kaassõna: **vanaema** kõrval · **ema** juures · **laste** ees',
+        'Mitmus: **vanemad** → **vanemate** maja · **sugulased** → **sugulaste** pidu',
+      ], 'full'), 3, 15),
+      purpose(why(B.formtext('006_p_family', 'Rasmuse suguvõsa.', 'Kirjuta sulgudes olev sõna kelle-vormis.', 'Minu suguvõsa', [
+        'Minu nimi on Rasmus. Minu [isa] (isa) pere elab Pärnus ja minu [ema] (ema) pere Narvas.',
+        '',
+        'Mul on üks õde. Minu [õe] (õde) mees on soomlane ja nende lapsed räägivad kolme keelt. Minu [venna] (vend) tütar õpib Tartus ja elab oma [vanaema] (vanaema) korteris.',
+        '',
+        'Suvel oleme kõik maal minu [onu] (onu) juures. Ka [vanavanemate] (vanavanemad) maja on seal, mere ääres. Igal suvel on meil suur [sugulaste] (sugulased) pidu.',
+      ]), [
+        'Kelle pere? isa → isa (omastav on sama).',
+        'Kelle pere? ema → ema.',
+        'õde → õe: minu õe mees.',
+        'vend → venna: minu venna tütar.',
+        'vanaema → vanaema korteris.',
+        'onu → onu juures (kaassõna ees omastav).',
+        'Mitmus: vanavanemad → vanavanemate maja.',
+        'Mitmus: sugulased → sugulaste pidu.',
+      ]), 'Rasmus tutvustab oma suguvõsa; sinu vormid teevad selgeks, kes on kelle sugulane.'),
+      tag(purpose(B.writing('006_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma suguvõsast neli-viis lauset kelle-vormiga: „Minu ema vend elab …”, „Minu õe poeg …”.', [4, 5]), 'Neli-viis oma lauset on sinu pildiloo materjal.'), { task: 'W05' }),
+      hide(B.cloze('006_p_msg', 'Sofia sõnum Jaanile.', 'Vali igasse lünka sõna, mis sobib nii mõtte kui vormiga.', 'Saladus!', [
         'Tere, Jaan! Olin eile ema juures Tartus. Leidsin riiulilt vana {*perealbumi|perealbum|perealbumis}. Ühel pildil on ema koos Maiega. Maie on ema {*nõbu|vend|tütar}, onu Akseli tütar.',
         '',
         'Lapsena veetsid nad kõik suved {*vanaema|vanaemal|vanaemale} talus. Praegu on see meie {*onu|onul|onule} Viktori talu. Maie kolis ammu Pärnusse. Kord läksid nad tülli ja nüüd ei ole nad enam {*suhelnud|kolinud|leidnud}.',
@@ -143,12 +252,12 @@ export const LESSONS = withShapes({
         'Ema rääkis, et nad ujusid suvel järves ja lugesid õhtul raamatuid. Kui ta pilti vaatas, oli ta kurb. Ma ei ole ema kunagi nii vaikse ja kurvana näinud.',
         '',
         'Mul on idee: kutsume Maie ema sünnipäevale! Võib-olla lepivad nad siis lõpuks ära. Ma otsin ta internetist üles. Võib-olla on tal juba {*lapselapsed|vanavanemad|vanemad}. Palun ära ütle emale midagi. See on meie {*saladus|saladust|saladuse}! Ja ära räägi ka {*Miale|Mia|Miat}, sest ta räägib vanaemaga iga päev telefonis. Sinu õde Sofia',
-      ], 'g_vocab'),
-      B.wordforms('006_p_words', 'Üks sõna kahest.', 'Tee kahest sõnast üks sugulus- või peresõna.', [
+      ], 'g_vocab'), V5_DRILL),
+      hide(B.wordforms('006_p_words', 'Üks sõna kahest.', 'Tee kahest sõnast üks sugulus- või peresõna.', [
         ['vend + tütar', 'minu venna tütar', 'vennatütar'], ['õde + poeg', 'minu õe poeg', 'õepoeg'], ['laps + laps', 'minu lapse laps', 'lapselaps'], ['abielu + paar', 'kaks inimest, kes on abielus', 'abielupaar'],
         ['õde + tütar', 'minu õe tütar', 'õetütar'], ['pere + album', 'raamat pere piltidega', 'perealbum'], ['pulm + pilt', 'pilt pulmapäevast', 'pulmapilt'], ['sünnipäev + pidu', 'pidu sünnipäeva puhul', 'sünnipäevapidu'],
-      ], 'half', 'g_vocab'),
-      B.formtext('006_p_oskar', 'Oskari kirjand.', 'Oskar kirjutas koolis kirjandi. Pane sulgudes olevad sõnad kelle-vormi.', 'Minu suur pere', [
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(B.formtext('006_p_oskar', 'Oskari kirjand.', 'Oskar kirjutas koolis kirjandi. Pane sulgudes olevad sõnad kelle-vormi.', 'Minu suur pere', [
         'Minu nimi on Oskar ja ma olen kolmanda klassi õpilane. Minu [isa] (isa) nimi on Jaan. Ta on kokk ja oskab kõike parandada. Minu [ema] (ema) töökoht on lastehaigla, sest ta on lastearst.',
         '',
         'Mul on väike õde Mia. Ta on kuueaastane ja joonistab terve päeva. Meie koer Muki magab öösel minu [õe] (õde) voodi kõrval. Hommikul äratab Muki meid kõiki ja tahab kohe õue minna.',
@@ -164,8 +273,8 @@ export const LESSONS = withShapes({
         'Pühapäeviti helistab vanaema meile videokõnega. Mia näitab talle oma pilte ja mina räägin jalgpallist. Vanaema kuulab alati väga hoolega ja küsib palju küsimusi.',
         '',
         'Mulle meeldib minu pere. Kui ma suureks saan, tahan olla kokk nagu isa.',
-      ], 'g_notice'),
-      B.dialogue('006_p_chat', 'Sõnumid Kristiga.', 'Sofia otsib Maiet. Loe sõnumeid ja kirjuta lünka sobiv sõna.', 'Sofia', 'Kristi', [
+      ], 'g_notice'), V5_DRILL),
+      hide(B.dialogue('006_p_chat', 'Sõnumid Kristiga.', 'Sofia otsib Maiet. Loe sõnumeid ja kirjuta lünka sobiv sõna.', 'Sofia', 'Kristi', [
         ['A', 'Tere! Mina olen Sofia Mets, Helgi Metsa [tütar].'],
         ['A', 'Ma otsin oma ema [nõbu] Maie Lepikut. Kas teie olete tema tütar?'],
         ['B', 'Tere! Jah, Maie on minu [ema]. Kust te teda tunnete?'],
@@ -175,22 +284,43 @@ export const LESSONS = withShapes({
         ['B', 'Kui tore! Ema elab Pärnus, minu ja minu [laste] lähedal.'],
         ['A', 'Kas ma võin talle helistada? Meil on üks [saladus] ja minu ema ei tohi sellest teada.'],
         ['B', 'Muidugi. Ma annan talle teie numbri. Ta helistab teile ise!'],
-      ], 'g_read'),
-      B.match('006_d_family', 'Kes see on?', 'Ühenda sugulus ja sõna, mis seda tähendab.', [
+      ], 'g_read'), V5_CUT),
+      hide(B.match('006_d_family', 'Kes see on?', 'Ühenda sugulus ja sõna, mis seda tähendab.', [
         ['minu ema vend', 'onu'], ['minu isa õde', 'tädi'], ['minu onu tütar', 'nõbu'], ['minu poja tütar', 'lapselaps'],
         ['minu venna tütar', 'vennatütar'], ['minu õe poeg', 'õepoeg'], ['minu ema ja isa', 'vanemad'], ['minu vanaema ja vanaisa', 'vanavanemad'],
         ['minu isa isa', 'vanaisa'], ['minu õe tütar', 'õetütar'],
-      ], 'full', 'g_vocab'),
-      teach(B.rolecards('006_p_tree', 'Kes on kes?', 'A ja B näevad Helgi suguvõsa skeemi eri pooli. Küsige ja täitke koos terve skeem.',
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(B.rolecards('006_p_tree', 'Kes on kes?', 'A ja B näevad Helgi suguvõsa skeemi eri pooli. Küsige ja täitke koos terve skeem.',
         'Sinu skeemil on Helgi, tema vend Viktor, Helgi lapsed Jaan ja Sofia ning Jaani lapsed Mia ja Oskar. Sa ei tea Helgi onu peret. Küsi B-lt: Kes on Aksel? Kelle tütar on Maie? Kes on Kristi?',
         'Sinu skeemil on Helgi onu Aksel, tema lapsed Maie ja Rein, Maie tütar Kristi ja Kristi kaks last. Sa ei tea Helgi lapsi. Küsi A-lt: Kes on Jaan? Kelle lapsed on Mia ja Oskar?',
         ['Kes on …?', 'Kelle tütar on …?', 'Kes on … Helgile?'], ['… on Helgi onu.', 'Ta on … tütar.', 'Siis on Maie Helgi nõbu.']),
-      'Üks-ühele: õpetaja on B ja vastab õpilase küsimustele; siis vahetage. Lõpus joonistab õpilane terve skeemi ja selgitab, kes kellele on.'),
-      tag(B.letter('006_p_card', 'Kaart Maiele.', 'Kirjuta Sofia nimel Maiele kaart: kes ta on, kelle tütar ja miks ta kirjutab.', 'Kallis Maie!', 'Soojade tervitustega, Sofia', [60, 80]), { task: 'W03' }),
+      'Üks-ühele: õpetaja on B ja vastab õpilase küsimustele; siis vahetage. Lõpus joonistab õpilane terve skeemi ja selgitab, kes kellele on.'), V5_CUT),
+      hide(tag(B.letter('006_p_card', 'Kaart Maiele.', 'Kirjuta Sofia nimel Maiele kaart: kes ta on, kelle tütar ja miks ta kirjutab.', 'Kallis Maie!', 'Soojade tervitustega, Sofia', [60, 80]), { task: 'W03' }), V5_CUT),
     ],
     transfer: [
-      B.text('006_t_sit', 'Suur pidu tuleb', 'Helgi peole tuleb umbes 30 sugulast. Paljud ei ole üksteist aastaid näinud ja mõned on kunagi tülli läinud. Vahepeal helistas Maie Sofiale tagasi! Kuula tema sõnumit. Siis tutvustad end kaugele sugulasele ja kirjutad loo pildist oma perealbumist.'),
-      tag(B.listening('006_t_voice', 'Maie häälsõnum.', 'Kuula Maie sõnumit kaks korda. Märgi üles, mida Sofia peab teadma.', [
+      station(teach(tag(purpose(B.examWriting('006_t_story', 'Pilt minu perealbumist.', 'Vali telefonist või albumist üks pilt oma perest (või joonista see). Kirjuta 30–60 sõna. Algus ja lõpp on sinu oma.', 'jutt', {
+        situation: 'Sinu paariline ei tunne sinu peret. Kirjuta pildist nii, et ta saab aru, kes on kes. Siis loe tekst paarilisele ette: paariline küsib kaks küsimust „Kelle …?”. Teisel korral räägi sama lugu uuele paarilisele ilma tekstita.',
+        points: ['kes on pildil ja kes nad sulle on', 'kus ja millal pilt tehti', 'miks see pilt sulle tähtis on'],
+        words: [30, 60],
+      }), 'Sinu paariline tunneb pärast seda sinu peret ja oskab küsida, kes on kelle sugulane.'), { harno: 'W2a', task: 'W06', main: true, level: 4 }),
+      'Õpilane kirjutab tunnis 10–12 minutit ilma abita, siis loeb paarilisele (või sulle) ette; kuulaja küsib kaks küsimust („Kelle tütar ta on?”, „Kelle maja see on?”). Teine katse: õpilane jutustab sama loo uuele paarilisele ilma tekstita. Parandatud versioon on kodutöö. Kontrolli: kolm sisupunkti, omastav (õe, venna, Igori), järjekord kes → kes sulle → miks tähtis.'), 4, 25, { final: 'present' }),
+      tag(exitCheck(why(purpose(B.gaps('006_t_exit', 'Kontrolli end: kolm vormi.', 'Kirjuta sulgudes olev sõna kelle-vormis.', [
+        'Mark on minu [venna] poeg. (vend)',
+        'Lena on minu [õe] tütar. (õde)',
+        'Pühapäeval oleme [vanavanemate] juures. (vanavanemad)',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kelle-vorm on käes.'), ['vend → venna.', 'õde → õe.', 'vanavanemad → vanavanemate.'])), {}),
+      purpose(B.selfcheck('006_t_self', ['Ma ütlen, kes on minu suguvõsas ja kes nad mulle on.', 'Ma moodustan kelle-vormi: venna, õe, Igori, vanavanemate.', 'Ma kirjutan 30–60-sõnalise loo pildist oma perealbumist.', 'Ma küsin: Kelle …? Kelle oma see on?'], 'Pere tutvustatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('006_t_home', 'Kodus: eksamineerija küsib pere kohta.', 'Vasta kolmele küsimusele (vali ise), igale kaks-kolm lauset. Salvestus kokku 45–60 sekundit.', [
+        'Kes on sinu peres ja kus nad elavad?',
+        'Kui tihti te sugulastega kokku saate?',
+        'Kellega sa oma peres kõige paremini läbi saad ja miks?',
+        'Kas vanavanemad peaksid sinu arvates elama lastega koos? Miks?',
+        'Mis on sinu meelest hea pere juures kõige tähtsam?',
+        'Kuidas on pered Eestis ja mõnes teises riigis, mida sa tead, erinevad?',
+      ], [45, 60]), 'Need on eksami teemaküsimused pere kohta; õpetaja kuulab ja ütleb, mis läks kõige selgemalt.')), { task: 'S02', fluency: true }),
+      homework('006_t_homework', ['1. Paranda oma pildilugu tagasiside järgi ja saada see õpetajale.', '2. Vasta kolmele küsimusele ja salvesta 45–60 sekundit (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('006_t_sit', 'Suur pidu tuleb', 'Helgi peole tuleb umbes 30 sugulast. Paljud ei ole üksteist aastaid näinud ja mõned on kunagi tülli läinud. Vahepeal helistas Maie Sofiale tagasi! Kuula tema sõnumit. Siis tutvustad end kaugele sugulasele ja kirjutad loo pildist oma perealbumist.'), V5_CUT),
+      hide(tag(B.listening('006_t_voice', 'Maie häälsõnum.', 'Kuula Maie sõnumit kaks korda. Märgi üles, mida Sofia peab teadma.', [
         'Maie: Tere, Sofia! Siin räägib Maie Lepik, sinu ema nõbu. Mu tütar Kristi andis mulle sinu numbri.',
         'Maie: Ma olin nii üllatunud! Ma mõtlen sinu emale väga tihti. Meil on nii palju ilusaid mälestusi.',
         'Maie: Ma elan Pärnus, Kuuse tänaval. Minu mees Toomas on juba pensionil ja aitab tütrel lapsi hoida.',
@@ -210,32 +340,96 @@ export const LESSONS = withShapes({
         'Peole võtab Maie kaasa [kitarri].',
         'Pühapäeval peab Maie olema [kodus].',
         'Sofia võib helistada õhtul pärast [kuut|6|kella kuut].',
-      ]), { task: 'L07' }),
-      teach(tag(B.rolecards('006_t_meet', 'Peol: kauged sugulased.', 'A ja B on Helgi peol ega tunne üksteist. Tutvustage ennast suguluse kaudu.',
+      ]), { task: 'L07' }), V5_CUT),
+      hide(teach(tag(B.rolecards('006_t_meet', 'Peol: kauged sugulased.', 'A ja B on Helgi peol ega tunne üksteist. Tutvustage ennast suguluse kaudu.',
         'Sa oled Kristi, Maie tütar Pärnust. Ütle, kelle tütar sa oled ja kus elad. Küsi, kelle poeg B on ja kas tal on lapsi.',
         'Sa oled Jaan, Helgi poeg. Vasta ja küsi vastu: mida Kristi teeb ja kes on tema lapsed. Leidke koos, kes te üksteisele olete.',
         ['Mina olen … tütar.', 'Minu ema on Helgi nõbu.', 'Kelle poeg sina oled?'], ['Minu ema on …', 'Siis on meie emad nõod!', 'Kas sul on lapsi?']), { task: 'S01', fluency: true }),
-      'Üks-ühele: õpetaja on Jaan, õpilane Kristi; siis vahetage. Teises ringis mängivad mõlemad iseennast ja tutvustavad oma päris sugulasi („Minu isa õde elab…”).'),
-      teach(B.speaking('006_t_mine', 'Pilt minu perealbumist.', 'Vali üks pilt oma perest (telefonist või joonista). Räägi sellest 1–2 minutit ja salvesta oma jutt.', ['Kes on pildil ja kes nad sulle on?', 'Kus ja millal pilt tehti?', 'Mis siis juhtus?', 'Miks see pilt sulle tähtis on?', 'Mis tunne sul on, kui sa seda pilti vaatad?'], [90, 120], ['Pildil on minu … ja tema …', 'Pilt on tehtud…', 'See pilt on mulle tähtis, sest…']),
-        'Kodus salvestab õpilane oma loo. Tunnis kuulab õpetaja salvestuse, küsib kaks küsimust („Kelle…?”, „Mis siis juhtus?”) ja näitab siis oma pilti — nüüd küsib õpilane.'),
-      B.planning('006_t_plan', 'Loo plaan.', 'Kirjuta märksõnad: millest räägib sinu lugu?', ['Pealkiri: Foto meie perealbumist — kes on pildil?', 'Kes nad sulle on? (minu ema vend…)', 'Kus ja millal pilt tehti?', 'Mis siis juhtus? (2–3 sündmust)', 'Mis tunne sul on, kui pilti vaatad?', 'Viimane lause: miks see pilt on tähtis?'], 2),
-      tag(B.examWriting('006_t_story', 'Lugu: foto meie perealbumist.', 'Kirjuta plaani järgi lugu 60–80 sõnaga. Kasuta kelle-vorme.', 'jutt', {
-        situation: 'Kirjuta lugu pealkirjaga „Foto meie perealbumist”.',
-        points: ['kes on pildil ja kes nad sulle on', 'kus ja millal pilt tehti', 'mis siis juhtus', 'miks see pilt sulle tähtis on'],
-        words: [60, 80],
-      }), { main: true }),
-      B.rubricW2('006_t_rubric', 'Hindamine: sinu lugu (12 punkti).'),
-      B.selfcheck('006_t_self', ['Ma tean sugulussõnu: onu, tädi, nõbu, lapselaps.', 'Ma moodustan kelle-vormi: venna, õe, Viktori.', 'Ma tutvustan ennast suguluse kaudu.', 'Ma räägin, kuidas kaks inimest armusid, abiellusid, tülli läksid ja ära leppisid.', 'Ma kirjutan 60–80-sõnalise loo pildist.'], 'Pere ja sugulased'),
+      'Üks-ühele: õpetaja on Jaan, õpilane Kristi; siis vahetage. Teises ringis mängivad mõlemad iseennast ja tutvustavad oma päris sugulasi („Minu isa õde elab…”).'), V5_CUT),
+      hide(teach(B.speaking('006_t_mine', 'Pilt minu perealbumist.', 'Vali üks pilt oma perest (telefonist või joonista). Räägi sellest 1–2 minutit ja salvesta oma jutt.', ['Kes on pildil ja kes nad sulle on?', 'Kus ja millal pilt tehti?', 'Mis siis juhtus?', 'Miks see pilt sulle tähtis on?', 'Mis tunne sul on, kui sa seda pilti vaatad?'], [90, 120], ['Pildil on minu … ja tema …', 'Pilt on tehtud…', 'See pilt on mulle tähtis, sest…']),
+        'Kodus salvestab õpilane oma loo. Tunnis kuulab õpetaja salvestuse, küsib kaks küsimust („Kelle…?”, „Mis siis juhtus?”) ja näitab siis oma pilti — nüüd küsib õpilane.'), V5_CUT),
+      hide(B.planning('006_t_plan', 'Loo plaan.', 'Kirjuta märksõnad: millest räägib sinu lugu?', ['Pealkiri: Foto meie perealbumist — kes on pildil?', 'Kes nad sulle on? (minu ema vend…)', 'Kus ja millal pilt tehti?', 'Mis siis juhtus? (2–3 sündmust)', 'Mis tunne sul on, kui pilti vaatad?', 'Viimane lause: miks see pilt on tähtis?'], 2), V5_CUT),
+      hide(B.rubricW2('006_t_rubric', 'Hindamine: sinu lugu (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 007 game: who is it? (kes-laused)
   'a2b1-007': {
-    title: 'Välimus ja iseloom',
-    canDo: 'Ma räägin kes-lausetega, milline inimene sobib lastele hoidjaks, ja lepin paarilisega kokku ühe kandidaadi.',
+    title: 'Milline inimene ta on?',
+    phases: grammar('Keel: kes-laused — inimene, kes … / kellel … / keda … / kellega …'),
+    format: 'game',
+    topic: 'neighbours',
+    canDo: 'Ma kirjeldan inimese välimust ja iseloomu kes-lausetega, lepin paarilisega kokku, keda soovitada, ja põhjendan oma valikut.',
+    teacherPage: {
+      goal: 'Ученик описывает человека (внешность и характер) придаточными с kes / kellel / keda / kellega так, что партнёр находит его на картинке, договаривается, кого рекомендовать семье, и обосновывает выбор.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → объявление и вопросы (без «Mõtle kaasa») → пункт 4: игра «кто это?» и договорённость; короткое сообщение семье — дома. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kes oli sinu lapsepõlves inimene, kes sind aitas või kellega sa palju aega veetsid?» Сначала ответьте сами 2–3 предложениями (настоящий человек), потом ученик. Не исправляйте первые 5 минут.',
+      plan: [
+        '0–8: пункт 1 — крючок: человек из детства; вопрос из урока 6 без записей („Kes on sinu õe / venna laps?”)',
+        '8–25: пункт 2 — слова, объявление «Otsime lastele vanaema» (kes-laused в контексте), 7 вопросов (суть, детали, «почему»), «Mõtle kaasa» (3–4 предложения о себе)',
+        '25–40: пункт 3 — заметить → правило → 8 предложений (kes / kellel / keda / kellega) → 4–5 своих предложений',
+        '40–65: пункт 4 — картинка «Neli inimest»: A описывает одного без имени, B угадывает (смена, 2 раунда); договориться, кого рекомендовать семье и почему (два аргумента)',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик описывает коллегу или соседа, учитель угадывает',
+        '72–90: запас',
+      ],
+      sources: 'Объявление (пункт 2) и четыре человека на картинке — учебные, люди выдуманы. Реальных цифр нет.',
+      groups: 'Пункт 4 в парах: A описывает, B угадывает, потом наоборот; договорённость вдвоём. Один на один: вы описываете второго человека, ученик угадывает.',
+      errors: [
+        '«inimene, kes on prillid» вместо «inimene, kellel on prillid» (у кого есть → kellel).',
+        '«naaber, kes ma usaldan» вместо «naaber, keda ma usaldan» (кого? → keda).',
+        'Нет запятых: «Ta on mees, kellel on habe, ja …» — придаточное с обеих сторон отделяется запятой.',
+        '«Ta on sinised silmad» вместо «Tal on sinised silmad» (у него есть → tal on).',
+      ],
+      notes: [
+        'Описание без имени — проверка смысла: если партнёр нашёл человека, описание сработало. Попросите одну черту характера и одну деталь внешности.',
+        'Обратная связь, 2 цели: выбор kes / kellel / keda / kellega и запятые. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('007_d_review', [['Kes on Maie Helgile ja kus ta elab?', 'a2b1-006'], ['Kelle talus veetsid Helgi ja Maie lapsena suved?', 'a2b1-006'], ['Kui tihti sa sõpradega kohtud?', 'a2b1-003']]),
-      B.text('007_d_hook', 'Uus töökoht', 'Sofia alustas esmaspäeval uues kontoris. Esimesel päeval kukkusid kõik kaustad maha ja kõik tulid appi. Vaata pilti: millised inimesed seal töötavad? Täna kuulad, kuidas inimesi kirjeldatakse, ja räägid lõpuks, milline inimene sobib Jaani lastele hoidjaks.'),
-      tag(B.examListen('007_d_clips', 'Sofia esimene nädal.', 'Kuula kaheksat lühikest häälsõnumit. Vali igale küsimusele õige vastus.', 'choice', [
+      station(teach(tag(purpose(B.speaking('007_d_warm', 'Inimene sinu lapsepõlvest.', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kes oli sinu lapsepõlves inimene, kes sind aitas või kellega sa palju aega veetsid?',
+        'Milline ta oli: välimus ja iseloom?',
+        'Kes on sinu õe, venna või sõbra laps? Ütle üks lause ilma märkmeteta.',
+      ], [45, 60]), 'Sinu enda inimene on tänase tunni algus: lõpus kirjeldad inimesi nii, et teine nad ära tunneb.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris inimesest (2–3 lauset), siis küsi õpilaselt ühe lisaküsimuse („Miks just tema?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('007_d_vocab', 'Tunni sõnad.', ['välimus — внешность', 'iseloom — характер', 'habe — борода', 'prillid — очки', 'lokkis — кудрявый', 'kannatlik — терпеливый', 'rahulik — спокойный', 'usaldama — доверять (keda?)', 'igatsema — скучать (kelle järele?)', 'kartma — бояться (keda? mida?)']), { topic: ['kannatlik', 'igatsema'] }), 2, 17),
+      B.text('007_d_ad', 'Otsime lastele vanaema!', [
+        'Meie pere kolis eelmisel aastal Tartusse. Meie vanavanemad elavad kaugel ja lapsed igatsevad nende järele. Seepärast otsime inimest, kes võiks olla meie lastele „laenatud vanaema” või „laenatud vanaisa”.',
+        '',
+        'Me otsime inimest, kes on rahulik ja kannatlik. Hea oleks, kui see on inimene, kellel on aega kaks õhtut nädalas. Meie poeg Robin on kaheksa-aastane ja armastab malet. Tütar Eliise on viiene ja joonistab kogu aeg.',
+        '',
+        'Me ei otsi lapsehoidjat, keda peab igal õhtul ootama. Me otsime sõpra, kellega lapsed saavad rääkida, küpsetada ja jalutada. Meie kodus elab suur koer, aga ta on väga sõbralik.',
+        '',
+        'Robin vajab vahel abi koolitööga ja Eliise tahab, et keegi loeks talle õhtul raamatut. Esimene kohtumine on meie kodus, et lapsed saaksid teid tundma õppida.',
+        '',
+        'Kirjutage meile! Merike ja Aivar',
+        '',
+        '*Allikas: KeeleSepa õppetekst.*',
+      ].join('\n')),
+      tag(purpose(why(B.choice('007_d_read', 'Keda pere otsib?', 'Loe kuulutust ja vali õige vastus.', [
+        ['Mida pere otsib?', 'sõpra, kes oleks lastele nagu vanaema või vanaisa', 'lapsehoidjat igaks õhtuks', 'uut kodu Tartus'],
+        ['Miks lapsed vanavanemate järele igatsevad?', 'Vanavanemad elavad kaugel.', 'Vanavanemad on haiged.', 'Vanavanemad ei räägi eesti keelt.'],
+        ['Milline inimene peab olema?', 'rahulik ja kannatlik', 'noor ja energiline', 'range ja täpne'],
+        ['Kui palju aega peab inimesel olema?', 'kaks õhtut nädalas', 'iga õhtu', 'ainult laupäeval'],
+        ['Mida Robin armastab?', 'malet', 'joonistamist', 'jalgpalli'],
+        ['Miks ei otsi pere tavalist lapsehoidjat?', 'Nad tahavad lastele sõpra, mitte inimest, keda peab igal õhtul ootama.', 'Lapsehoidja on liiga kallis.', 'Lapsed on juba suured.'],
+        ['Mida peab teadma inimene, kes kardab koeri?', 'Kodus elab suur, aga sõbralik koer.', 'Koer elab õues.', 'Peres ei ole koera.'],
+      ], 'full', 'g_read'), [
+        'Esimene lõik: „laenatud vanaema” või „laenatud vanaisa” — sõber, mitte hoidja.',
+        'Esimene lõik: vanavanemad elavad kaugel.',
+        'Teine lõik: inimene, kes on rahulik ja kannatlik.',
+        'Teine lõik: kellel on aega kaks õhtut nädalas.',
+        'Teine lõik: Robin armastab malet.',
+        'Kolmas lõik: mitte hoidja, keda peab ootama, vaid sõber, kellega rääkida.',
+        'Kolmas lõik: suur koer, aga väga sõbralik.',
+      ]), 'Enne kui sa kedagi soovitad, tead täpselt, millist inimest pere vajab ja miks.'), { task: 'R01' }),
+      teach(tag(purpose(B.writing('007_d_think', 'Mõtle kaasa.', 'Kirjuta 3–4 lauset: kas sina sobiksid sellele perele? Miks või miks mitte? Loe laused paarilisele, paariline küsib ühe küsimuse.', [3, 4], [], 0, 'g_read'), 'Võrdled ennast kuulutusega ja tead, mida pere tähtsaks peab.'), { task: 'W08' }),
+      'Üks-ühele: õpilane loeb laused sulle; sina küsid ühe küsimuse („Mida sa lastega teeksid?” → lihtsamalt: „Mida sa lastega teed?”) ja õpilane vastab ühe-kahe lausega.'),
+      hide(B.review('007_d_review', [['Kes on Maie Helgile ja kus ta elab?', 'a2b1-006'], ['Kelle talus veetsid Helgi ja Maie lapsena suved?', 'a2b1-006'], ['Kui tihti sa sõpradega kohtud?', 'a2b1-003']]), V5_DRILL),
+      hide(B.text('007_d_hook', 'Uus töökoht', 'Sofia alustas esmaspäeval uues kontoris. Esimesel päeval kukkusid kõik kaustad maha ja kõik tulid appi. Vaata pilti: millised inimesed seal töötavad? Täna kuulad, kuidas inimesi kirjeldatakse, ja räägid lõpuks, milline inimene sobib Jaani lastele hoidjaks.'), V5_CUT),
+      hide(tag(B.examListen('007_d_clips', 'Sofia esimene nädal.', 'Kuula kaheksat lühikest häälsõnumit. Vali igale küsimusele õige vastus.', 'choice', [
         'Sofia: Ema, minu ülemus on Liis. Ta on naine, kellel on lühikesed tumedad juuksed ja punane kampsun.',
         'Liis: Tere tulemast meeskonda! Mina olen Liis. Mulle meeldivad inimesed, kes tulevad tööle täpselt kell üheksa.',
         'Sofia: Markus on mees, kellel on suur habe ja väga hea huumorimeel. Ta naerab peaaegu kogu aeg.',
@@ -253,9 +447,8 @@ export const LESSONS = withShapes({
         ['Kes aitas Sofiat esimesel päeval kõigepealt?', 'Markus', 'Liis', 'Anna'],
         ['Mida arvab Liis Sofiast?', 'temaga on lihtne töötada', 'ta jääb tihti hiljaks', 'ta räägib liiga palju'],
         ['Mida tõi Sofia reedel kolleegidele?', 'kooki', 'lilli', 'kohvi'],
-      ]), { task: 'L01' }),
-      tag(B.vocab('007_d_vocab', 'Tunni sõnad.', ['välimus — внешность', 'iseloom — характер', 'habe — борода', 'prillid — очки', 'lokkis — кудрявый', 'kannatlik — терпеливый', 'tagasihoidlik — скромный', 'abivalmis — отзывчивый', 'hoolima — заботиться / дорожить (kellest?)', 'usaldama — доверять (keda?)', 'austama — уважать (keda?)', 'toetama — поддерживать (keda?)', 'klapp — взаимопонимание (hea klapp)']), { topic: ['kannatlik', 'klapp'] }),
-      B.listening('007_d_mall', 'Teadaanne kaubanduskeskuses.', 'Kuula teadaannet ja vestlust kaks korda. Kirjuta lünka 1–3 sõna.', [
+      ]), { task: 'L01' }), V5_CUT),
+      hide(B.listening('007_d_mall', 'Teadaanne kaubanduskeskuses.', 'Kuula teadaannet ja vestlust kaks korda. Kirjuta lünka 1–3 sõna.', [
         'Teadustaja: Tähelepanu! Kaubanduskeskuses otsitakse väikest poissi.',
         'Teadustaja: Poisi nimi on Oskar. Ta on üheksa-aastane ja pikk, tal on heledad lühikesed juuksed.',
         'Teadustaja: Oskaril on seljas roheline jope ja peas sinine müts. Tal on käes jalgpall.',
@@ -270,19 +463,19 @@ export const LESSONS = withShapes({
       ], [
         'Kadunud poisi nimi on [Oskar].', 'Poiss on [üheksa-aastane|9-aastane].', 'Tal on heledad [lühikesed] juuksed.', 'Tal on seljas roheline [jope].',
         'Tal on peas sinine [müts].', 'Poiss ei räägi [võõrastega].', 'Infolett on teisel [korrusel].', 'Oskar vaatas spordipoes [jalgpallisaapaid|saapaid].',
-      ]),
-      B.notice('007_d_notice', 'Märka: inimene, kes…', [
+      ]), V5_CUT),
+      hide(B.notice('007_d_notice', 'Märka: inimene, kes…', [
         'Liis on naine, **kellel** on lühikesed juuksed. (Kellel on? → **kellel**)',
         'Anna on kolleeg, **keda** kõik usaldavad. (Keda usaldavad? → **keda**)',
         'Inimene, **kes** mind kohe aitas, oli Markus. (Kes aitas? → **kes**)',
         'Sofia on inimene, **kellega** on lihtne töötada. (Kellega? → **kellega**)',
         'Kõrvallause ees ja järel on koma: Poiss**,** keda me otsime**,** on rahulik.',
-      ], 'full'),
-      B.categorize('007_d_sort', 'Välimus või iseloom?', 'Pane sõnad kahte rühma: mida näed kohe ja mida märkad alles suheldes.', [
+      ], 'full'), V5_CUT),
+      hide(B.categorize('007_d_sort', 'Välimus või iseloom?', 'Pane sõnad kahte rühma: mida näed kohe ja mida märkad alles suheldes.', [
         ['välimus', ['suur habe', 'prillid', 'lokkis juuksed', 'lühike soeng', 'pikk', 'sale', 'tumedad silmad']],
         ['iseloom', ['rahulik', 'täpne', 'kannatlik', 'tagasihoidlik', 'abivalmis', 'jutukas', 'hooliv', 'armukade']],
-      ], 'full', 'g_vocab'),
-      tag(B.transformation('007_d_join', 'Kaks lauset üheks.', 'Ühenda laused sõnaga kes, kellel, keda või kellega. Ära unusta koma!', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.transformation('007_d_join', 'Kaks lauset üheks.', 'Ühenda laused sõnaga kes, kellel, keda või kellega. Ära unusta koma!', [
         ['Siim on treener. Ta mängib lastega jalgpalli.', 'kes', 'Siim on treener, kes mängib lastega jalgpalli.'],
         ['Kertu on üliõpilane. Tal on väike koer.', 'kellel', 'Kertu on üliõpilane, kellel on väike koer.'],
         ['Aino on naaber. Teda austavad kõik lapsed.', 'keda', 'Aino on naaber, keda austavad kõik lapsed.|Aino on naaber, keda kõik lapsed austavad.'],
@@ -291,27 +484,44 @@ export const LESSONS = withShapes({
         ['Mia on tüdruk. Tal on alati pliiats käes.', 'kellel', 'Mia on tüdruk, kellel on alati pliiats käes.'],
         ['Viktor on onu. Teda ootavad lapsed iga pühapäev.', 'keda', 'Viktor on onu, keda lapsed iga pühapäev ootavad.|Viktor on onu, keda ootavad lapsed iga pühapäev.'],
         ['Madis on tema peigmees. Temaga saavad kõik hästi läbi.', 'kellega', 'Madis on tema peigmees, kellega saavad kõik hästi läbi.'],
-      ]), { task: 'W09' }),
-      teach(tag(B.speaking('007_d_survey', 'Hea kolleeg.', 'Küsi kolmelt inimeselt järjest samad küsimused. Siis räägi, mida nad vastasid.', ['Milline inimene on hea kolleeg?', 'Kellega sul on tööl kõige parem klapp ja miks?', 'Keda sa oma töö- või kooliajast hästi mäletad?', 'Milline on selle inimese välimus?', 'Räägi lõpuks: kõik kolm ütlesid, et hea kolleeg on inimene, kes…'], [60, 120], ['Hea kolleeg on inimene, kes…', 'Me saame hästi läbi, sest…', 'Kõik ütlesid, et…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda, õpetaja vastab iga kord teise inimesena (kolleeg, õpetaja, sõber). Lõpus teeb õpilane kokkuvõtte.'),
-      tag(B.writing('007_d_story', 'Sofia esimene päev.', 'Vaata pilti. Kirjuta 8 minutit ilma peatumata: mis juhtus Sofia esimesel tööpäeval?', [7, 9], ['kes', 'kellel', 'kaustad', 'aitas'], 2), { task: 'W06', fluency: true }),
+      ]), { task: 'W09' }), V5_DRILL),
+      hide(teach(tag(B.speaking('007_d_survey', 'Hea kolleeg.', 'Küsi kolmelt inimeselt järjest samad küsimused. Siis räägi, mida nad vastasid.', ['Milline inimene on hea kolleeg?', 'Kellega sul on tööl kõige parem klapp ja miks?', 'Keda sa oma töö- või kooliajast hästi mäletad?', 'Milline on selle inimese välimus?', 'Räägi lõpuks: kõik kolm ütlesid, et hea kolleeg on inimene, kes…'], [60, 120], ['Hea kolleeg on inimene, kes…', 'Me saame hästi läbi, sest…', 'Kõik ütlesid, et…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda, õpetaja vastab iga kord teise inimesena (kolleeg, õpetaja, sõber). Lõpus teeb õpilane kokkuvõtte.'), V5_CUT),
+      hide(tag(B.writing('007_d_story', 'Sofia esimene päev.', 'Vaata pilti. Kirjuta 8 minutit ilma peatumata: mis juhtus Sofia esimesel tööpäeval?', [7, 9], ['kes', 'kellel', 'kaustad', 'aitas'], 2), { task: 'W06', fluency: true }), V5_CUT),
     ],
     practice: [
-      B.match('007_p_opp', 'Vastandid.', 'Leia igale iseloomuomadusele vastand.', [
-        ['rahulik', 'närviline'], ['tagasihoidlik', 'uhke'], ['jutukas', 'vaikne'], ['hooliv', 'ükskõikne'],
-        ['abivalmis', 'isekas'], ['kannatlik', 'kärsitu'], ['julge', 'arg'], ['töökas', 'laisk'],
-      ], 'full', 'g_vocab'),
-      B.gaps('007_p_who', 'Kes, kellel, keda või kellega?', 'Vali, kas lünka sobib kes, kellel, keda või kellega, ja kirjuta see.', [
+      station(B.notice('007_p_notice', 'Märka: inimene, kes …', [
+        'Kes? → **kes**: Otsime inimest, **kes** on rahulik.',
+        'Kellel on? → **kellel**: inimene, **kellel** on aega · mees, **kellel** on habe',
+        'Keda? → **keda**: hoidja, **keda** peab ootama · naaber, **keda** ma usaldan',
+        'Kellega? → **kellega**: sõber, **kellega** lapsed saavad rääkida',
+        'Koma kõrvallause ees ja järel: Naine**,** kellel on prillid**,** on minu tädi.',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('007_p_who', 'Kes, kellel, keda või kellega?', 'Vali, kas lünka sobib kes, kellel, keda või kellega, ja kirjuta see.', [
         'Kertu on hoidja, [kes] õpib ülikoolis pedagoogikat.',
         'Siim on treener, [kellel] on alati vile kaelas.',
         'Aino on endine õpetaja, [keda] lapsed väga armastavad.',
         'Lapsed, [kellega] Kertu praegu töötab, on viieaastased.',
         'Hea sõber on inimene, [kes] toetab sind raskel ajal.',
         'Margit on medõde, [kellel] on kolm last.',
-        'Anna on kolleeg, [keda] ma kõige rohkem usaldan.',
-        'Markus on inimene, [kellega] mul oli kohe hea klapp.',
-      ]),
-      tag(B.examListen('007_p_radio', 'Raadiointervjuu: hea lapsehoidja.', 'Kuula raadiointervjuud kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', [
+        'Minu naaber on inimene, [keda] ma kõige rohkem usaldan.',
+        'Kolleeg Rein on inimene, [kellega] mul oli kohe hea klapp.',
+      ]), [
+        'Kes õpib? → kes.',
+        'Kellel on vile? → kellel.',
+        'Keda armastavad? → keda.',
+        'Kellega töötab? → kellega.',
+        'Kes toetab? → kes.',
+        'Kellel on lapsed? → kellel.',
+        'Keda ma usaldan? → keda.',
+        'Kellega oli klapp? → kellega.',
+      ]), 'Kaheksa inimest näitavad, kuidas küsimus valib kes-sõna vormi.'), { task: 'G13' }),
+      tag(purpose(B.writing('007_p_sent', 'Kirjuta terved laused.', 'Kirjuta neli-viis lauset inimestest oma elus: üks lause sõnaga kes, üks kellel, üks keda ja üks kellega.', [4, 5]), 'Oma laused aitavad sul mängus inimest kiiresti kirjeldada.'), { task: 'W09' }),
+      hide(B.match('007_p_opp', 'Vastandid.', 'Leia igale iseloomuomadusele vastand.', [
+        ['rahulik', 'närviline'], ['tagasihoidlik', 'uhke'], ['jutukas', 'vaikne'], ['hooliv', 'ükskõikne'],
+        ['abivalmis', 'isekas'], ['kannatlik', 'kärsitu'], ['julge', 'arg'], ['töökas', 'laisk'],
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.examListen('007_p_radio', 'Raadiointervjuu: hea lapsehoidja.', 'Kuula raadiointervjuud kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', [
         'Ülle: Tere, kuulajad! Täna on stuudios Marika Põld lapsehoidjate ühingust. Tere, Marika!',
         'Marika: Tere, Ülle! Aitäh kutse eest.',
         'Ülle: Marika, milline on hea lapsehoidja?',
@@ -334,8 +544,8 @@ export const LESSONS = withShapes({
         ['Esimene kohtumine peaks olema kohvikus.', false],
         ['Hoidja tunnihind ei sõltu kogemusest.', false],
         ['Rohkem infot on raadio kodulehel.', true],
-      ]), { task: 'L05', voice: 'interview' }),
-      tag(B.bankText('007_p_team', 'Liisi kiri meeskonnale.', 'Pane igasse lünka sobiv sõna pangast. Kaks sõna jääb üle.', 'Tere tulemast, Sofia!', [
+      ]), { task: 'L05', voice: 'interview' }), V5_CUT),
+      hide(tag(B.bankText('007_p_team', 'Liisi kiri meeskonnale.', 'Pane igasse lünka sobiv sõna pangast. Kaks sõna jääb üle.', 'Tere tulemast, Sofia!', [
         'Kallid kolleegid! Esmaspäeval alustas meie meeskonnas Sofia. Ta on inimene, [[kes]] õpib eesti keelt ja räägib juba väga hästi.',
         '',
         'Sofia töötab koos Annaga, [[keda]] kõik usaldavad. Anna on abivalmis kolleeg, [[kellel]] on palju kogemusi. Ta on ka inimene, [[kellelt]] võib alati nõu küsida.',
@@ -343,8 +553,8 @@ export const LESSONS = withShapes({
         'Markus on mees, [[kellega]] on lõunal kõige lõbusam. Ta on see kolleeg, [[kellest]] me kõik räägime, kui köögis on jälle kook.',
         '',
         'Meie meeskonnas on hea klapp ja me saame hästi läbi. Palun toetage Sofiat! Ta on uus inimene, [[kellele]] meie töö on veel võõras. Ja pidage meeles: kolleeg, [[kelle]] sünnipäev on sel nädalal, toob kooki! Teie Liis',
-      ], ['mis', 'mida'], 'g_notice'), { task: 'R04' }),
-      B.reading('007_p_ad', 'Kadri kuulutus.', 'Loe Kadri kuulutust. Vasta lühidalt, osa vastuseid oma sõnadega.', 'Otsime lastele hoidjat', [
+      ], ['mis', 'mida'], 'g_notice'), { task: 'R04' }), V5_CUT),
+      hide(B.reading('007_p_ad', 'Kadri kuulutus.', 'Loe Kadri kuulutust. Vasta lühidalt, osa vastuseid oma sõnadega.', 'Otsime lastele hoidjat', [
         'Otsime oma kahele lapsele hoidjat esmaspäeval, kolmapäeval ja reedel kella 16–20. Mia on kuueaastane ja Oskar üheksa-aastane.',
         '',
         'Mia on rahulik tüdruk, kes armastab joonistada ja raamatuid vaadata. Oskar on energiline poiss, kellel on alati pall käes. Ta tahab iga päev õues joosta.',
@@ -370,16 +580,32 @@ export const LESSONS = withShapes({
         ['Mis loom on pere kodus?', 'koer|Muki'],
         ['Kus on bussipeatus?', 'maja kõrval'],
         ['Mis päevani ootavad Kadri ja Jaan kirju?', 'reedeni|reede'],
-      ]),
-      teach(tag(B.rolecards('007_p_desk', 'Infoletis.', 'A otsib kaubanduskeskuses kadunud pereliiget, B töötab infoletis. Siis vahetage rollid.',
+      ]), V5_CUT),
+      hide(teach(tag(B.rolecards('007_p_desk', 'Infoletis.', 'A otsib kaubanduskeskuses kadunud pereliiget, B töötab infoletis. Siis vahetage rollid.',
         'Sinu laps või vanaema on kadunud. Kirjelda teda: vanus, välimus, riided, iseloom. Kasuta kes- ja kellel-lauseid.',
         'Sa töötad infoletis. Küsi vähemalt viis täpsustavat küsimust. Lõpus korda kirjeldus üle ja tee teadaanne.',
         ['Ma otsin poissi, kellel on…', 'Ta on inimene, kes…', 'Tal on seljas…'], ['Mis värvi juuksed tal on?', 'Mida tal on seljas?', 'Tähelepanu! Otsime …, kellel on…']), { task: 'S10' }),
-      'Üks-ühele: õpetaja on infoleti töötaja ja küsib palju („Kas tal on prillid?”); siis vahetage — õpetaja kirjeldab ja õpilane teeb lõpus teadaande.'),
+      'Üks-ühele: õpetaja on infoleti töötaja ja küsib palju („Kas tal on prillid?”); siis vahetage — õpetaja kirjeldab ja õpilane teeb lõpus teadaande.'), V5_CUT),
     ],
     transfer: [
-      B.text('007_t_sit', 'Pere otsib hoidjat', 'Jaan ja Kadri said oma kuulutusele neli vastust. Kadri kuulas ka raadiost, milline on hea hoidja, aga Jaan ei jõudnud saadet kuulata. Täna valite koos hoidja ja lepite kokku, keda pere kutsub esimesele kohtumisele.'),
-      B.profiles('007_t_cards', 'Neli kandidaati.', 'Loe kandidaatide kaarte. Täienda iga kaardi lauseid.', [
+      station(teach(tag(purpose(B.ideaCard('007_t_choose', 'Kes see on? Keda soovitada?', 'Vaata pilti „Neli inimest”. Kõigepealt kirjelda paarilisele üht inimest kes- ja kellel-lausetega, nime ütlemata; paariline arvab, kes see on. Siis vahetage. Lõpuks leppige kokku, keda te perele soovitate.',
+        'Merike ja Aivar otsivad lastele „laenatud vanaema” või „laenatud vanaisa” (kuulutus jaamas 2). Pildil on neli inimest, kes tahavad aidata.',
+        ['A — Vaike', 'B — Toomas', 'C — Helju', 'D — Arvo'],
+        'Keda te soovitate ja miks? Kes ei sobi ja miks?', [60, 120]), 'Sinu kirjeldus aitab paarilisel inimese ära tunda ja perel hea valiku teha.'), { harno: 'S1b', task: 'S12', main: true, level: 4 }),
+      'Üks-ühele: kirjelda sina ühte inimest (õpilane arvab), siis kirjeldab õpilane teist. Leppimisel kaitse alguses teist kandidaati kui õpilane („Mulle tundub, et Arvo sobib, sest tal on oma koer”); õpilane põhjendab kes-lausetega ja lõpus on üks kokkulepe. Õnnestunud, kui kirjeldus on nii täpne, et inimene leitakse, ja valikul on kaks põhjust.'), 4, 25, { final: 'decide' }),
+      tag(exitCheck(why(purpose(B.transformation('007_t_exit', 'Kontrolli end: kolm lauset.', 'Ühenda kaks lauset üheks sõnaga kes, kellel või kellega.', [
+        ['Toomas on mees. Tal on hall habe.', 'kellel', 'Toomas on mees, kellel on hall habe.'],
+        ['Vaike on naine. Ta joonistab hästi.', 'kes', 'Vaike on naine, kes joonistab hästi.'],
+        ['Helju on naaber. Temaga on lastel lõbus.', 'kellega', 'Helju on naaber, kellega on lastel lõbus.|Helju on naaber, kellega lastel on lõbus.'],
+      ], 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kes-laused ja komad on käes.'), ['Kellel on habe? → kellel.', 'Kes joonistab? → kes.', 'Kellega on lõbus? → kellega.'])), {}),
+      purpose(B.selfcheck('007_t_self', ['Ma kirjeldan inimese välimust ja iseloomu.', 'Ma ühendan laused: inimene, kes / kellel / keda / kellega.', 'Ma kirjeldan inimest nii, et teine tunneb ta ära.', 'Ma lepin teisega kokku ja põhjendan valikut.'], 'Inimene leitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('007_t_home', 'Kodus: räägi 45–60 sekundit.', 'Salvesta 45–60 sekundit inimesest, keda sa väga usaldad.', [
+        'Kes ta on ja milline ta on: välimus ja iseloom?',
+        'Miks sa teda usaldad?',
+      ], [45, 60]), 'Õpetaja kuulab sinu kirjelduse enne järgmist tundi ja annab ühe nõu.')), { task: 'S15', fluency: true }),
+      homework('007_t_homework', ['1. Kirjuta Merikesele 3–4 lauset: keda te soovitate ja miks (kes-lausetega).', '2. Räägi 45–60 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('007_t_sit', 'Pere otsib hoidjat', 'Jaan ja Kadri said oma kuulutusele neli vastust. Kadri kuulas ka raadiost, milline on hea hoidja, aga Jaan ei jõudnud saadet kuulata. Täna valite koos hoidja ja lepite kokku, keda pere kutsub esimesele kohtumisele.'), V5_CUT),
+      hide(B.profiles('007_t_cards', 'Neli kandidaati.', 'Loe kandidaatide kaarte. Täienda iga kaardi lauseid.', [
         ['Kertu', ['22 aastat, õpib pedagoogikat', 'rõõmus ja energiline', 'mängib kitarri ja laulab', 'kardab natuke suuri koeri', 'vaba: esmaspäev ja reede'],
           ['Kertu on üliõpilane, [kes] õpib pedagoogikat.', 'Ta on [rõõmus] ja energiline.', 'Kertu mängib lastele [kitarri].', 'Ta on inimene, [kellega] lastel on lõbus.', 'Kertu kardab natuke suuri [koeri].', 'Tal on vaba aega esmaspäeval ja [reedel].']],
         ['Siim', ['30 aastat, jalgpallitreener', 'lõbus, palju energiat', 'käib lastega meelsasti õues', 'ei oska süüa teha', 'vaba: esmaspäev, kolmapäev, reede'],
@@ -388,28 +614,95 @@ export const LESSONS = withShapes({
           ['Aino on õpetaja, [kes] on nüüd pensionil.', 'Ta on väga rahulik ja [kannatlik].', 'Aino loeb lastele [raamatuid] ja küpsetab.', 'Ta ei karda koeri, sest tal on endal [koer].', 'Ainol on vaba aega iga [päev].', 'Ta sobiks hästi [Miale].']],
         ['Margit', ['35 aastat, medõde', 'täpne ja hooliv', 'aitab koolitööga', 'töötab vahel öösiti', 'vaba: esmaspäev ja kolmapäev'],
           ['Margit on medõde, [kellel] on kolm last.', 'Ta on täpne ja [hooliv].', 'Margit aitab lapsi [koolitööga].', 'Ta töötab vahel [öösiti].', 'Reedel ei ole tal [aega].', 'Inimene, [keda] Oskar vajab koolitöös, on just tema.']],
-      ], '2', 'g_read'),
-      teach(tag(B.speaking('007_t_explain', 'Seleta Jaanile.', 'Jaan ei kuulnud raadiosaadet. Seleta talle oma sõnadega, mida Marika soovitas.', ['Milline on Marika meelest hea hoidja?', 'Mida tuleb kõigepealt küsida?', 'Kus peab olema esimene kohtumine ja miks?', 'Kui palju hoidja tund maksab?', 'Mis on sinu meelest kõige tähtsam?', 'Kes hoiab väikesi lapsi sinu kodumaal: hoidja, lasteaed või vanavanemad?'], [90, 150], ['Marika ütles, et hea hoidja on inimene, kes…', 'Ta soovitas…', 'Minu meelest…']), { task: 'S13' }),
-        'Üks-ühele: õpetaja on Jaan, kes saadet ei kuulnud, ja küsib täpsustusi („Kas hoidja peab olema noor?”). Õpilane seletab oma sõnadega, mitte ei loe väiteid ette.'),
-      B.know('007_t_know', [
+      ], '2', 'g_read'), V5_CUT),
+      hide(teach(tag(B.speaking('007_t_explain', 'Seleta Jaanile.', 'Jaan ei kuulnud raadiosaadet. Seleta talle oma sõnadega, mida Marika soovitas.', ['Milline on Marika meelest hea hoidja?', 'Mida tuleb kõigepealt küsida?', 'Kus peab olema esimene kohtumine ja miks?', 'Kui palju hoidja tund maksab?', 'Mis on sinu meelest kõige tähtsam?', 'Kes hoiab väikesi lapsi sinu kodumaal: hoidja, lasteaed või vanavanemad?'], [90, 150], ['Marika ütles, et hea hoidja on inimene, kes…', 'Ta soovitas…', 'Minu meelest…']), { task: 'S13' }),
+        'Üks-ühele: õpetaja on Jaan, kes saadet ei kuulnud, ja küsib täpsustusi („Kas hoidja peab olema noor?”). Õpilane seletab oma sõnadega, mitte ei loe väiteid ette.'), V5_CUT),
+      hide(B.know('007_t_know', [
         'Hoidja ei ole ainus võimalus. Eestis peab vald või linn andma lapsele koha lastehoius alates poolteise aasta vanusest ja lasteaias kolme- kuni seitsmeaastasele lapsele, kui vanem seda soovib. Nii on see alates 1. septembrist 2025, kui hakkas kehtima uus alusharidusseadus.',
         'Lasteaias käimine ei ole kohustuslik: laps võib õppida ka kodus. Valla või linna lasteaias ei tohi ühe lapse kohatasu olla üle 20 % töötasu alammäärast. Toidu eest maksab pere eraldi.',
-      ], 'Haridus- ja Teadusministeerium, „Alusharidus”', 'Kas teadsid? Lastehoid ja lasteaed'),
-      teach(tag(B.ideaCard('007_t_choose', 'Leppige kokku: kes on hoidja?', 'Arutage nelja kandidaati. Leppige kokku, kelle te esimesele kohtumisele kutsute.', 'Jaan ja Kadri vajavad hoidjat kolmeks õhtuks nädalas. Mia on rahulik, Oskar energiline, kodus on koer.', ['Kertu, üliõpilane', 'Siim, treener', 'Aino, endine õpetaja', 'Margit, medõde'], 'Keda te kutsute ja miks? Kellega on lastel hea klapp? Kes ei sobi?'), { main: true }),
-        'Üks-ühele: õpetaja on Kadri ja kaitseb alguses teist kandidaati kui õpilane. Õpilane põhjendab kes-lausetega („Meil on vaja inimest, kes…”); lõpus on üks kokkulepe.'),
-      B.letter('007_t_msg', 'Sõnum kandidaadile.', 'Kirjuta valitud kandidaadile sõnum: miks valisite, millised on lapsed, millal on kohtumine.', 'Tere!', 'Parimate soovidega, Jaan ja Kadri', [50, 70]),
-      B.rubricSpeaking('007_t_rubric', 'Hindamine: kokkulepe (20 punkti).'),
-      B.selfcheck('007_t_self', ['Ma kirjeldan inimese välimust ja iseloomu.', 'Ma ütlen, keda ma usaldan ja austan ning kes mind toetab.', 'Ma ühendan laused: inimene, kes / kellel / keda / kellega.', 'Ma saan aru raadiointervjuust ja seletan seda teisele.', 'Ma lepin teisega kokku ja põhjendan valikut.'], 'Inimene, kes…'),
+      ], 'Haridus- ja Teadusministeerium, „Alusharidus”', 'Kas teadsid? Lastehoid ja lasteaed'), V5_CUT),
+      hide(B.letter('007_t_msg', 'Sõnum kandidaadile.', 'Kirjuta valitud kandidaadile sõnum: miks valisite, millised on lapsed, millal on kohtumine.', 'Tere!', 'Parimate soovidega, Jaan ja Kadri', [50, 70]), V5_CUT),
+      hide(B.rubricSpeaking('007_t_rubric', 'Hindamine: kokkulepe (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 008 infogap: a lost thing (oma / tema, mis-laused)
   'a2b1-008': {
-    title: 'Kelle? Kelle oma?',
-    canDo: 'Ma helistan leitud asjade büroosse, kirjeldan oma kaotatud asja mis-lausetega ja küsin, kuidas selle tagasi saan.',
+    title: 'Kadunud asi',
+    phases: grammar('Keel: oma või tema; mis-laused — kott, mis … / mille … / mida …'),
+    format: 'infogap',
+    topic: 'town',
+    canDo: 'Ma helistan leitud asjade büroosse, kirjeldan oma kadunud asja mis-lausetega ja lepin kokku, kuidas ma selle kätte saan.',
+    teacherPage: {
+      goal: 'Ученик звонит в бюро находок, описывает вещь (mis / mille / mida, oma), реагирует на скрытую информацию и договаривается, как получить вещь.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → объявление и вопросы без «Mõtle kaasa» → пункт 4 (звонок). Пункт 3 — дома в «Harjuta».',
+      hook: '«Mille sa viimati kaotasid või kuhu unustasid? Kas leidsid üles?» Сначала ответьте сами (настоящая история), потом ученик.',
+      plan: [
+        '0–8: пункт 1 — крючок: что ты потерял; вопрос из урока 7 без записей („Kirjelda üht inimest kellel-lausega.”)',
+        '8–25: пункт 2 — слова, объявление кафе «Leitud asjad» (mis / mille / mida и oma в контексте), 8 коротких ответов (детали, «почему»), «Mõtle kaasa» (3–4 предложения)',
+        '25–40: пункт 3 — образец звонка (прочитать по ролям, найти oma / mille / millel), заметить → правило → 8 предложений с ошибкой (oma / tema, mis / mille / mida) → 4–5 своих предложений',
+        '40–65: пункт 4 — звонок в бюро находок (у учителя скрытая информация, картинка «Kolm musta kotti»); вторая попытка без фраз — новая ситуация на карточке (телефон в такси)',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, что он сделал бы с найденным кошельком и почему',
+        '72–90: запас',
+      ],
+      sources: 'Объявление кафе (пункт 2), бюро находок и три сумки на картинке — учебный сценарий, не реальные данные.',
+      groups: 'Пункт 4 в паре: B получает карточку сотрудника бюро (копия вашей), A её не видит; потом смена с карточкой такси. Вы слушаете по очереди.',
+      errors: [
+        '«Ma kaotasin minu koti» вместо «Ma kaotasin oma koti» (вещь подлежащего → oma).',
+        '«kott, mis ma kaotasin» вместо «kott, mille ma kaotasin» (что потерял — законченное действие → mille).',
+        '«asi, mida on laual» вместо «asi, mis on laual» (mis — подлежащее придаточного).',
+        'Звонок без сути: сначала что и когда потерял, потом описание, в конце — когда и куда прийти.',
+      ],
+      notes: [
+        'Скрытая информация даёт настоящую задачу: ученик должен уточнить, какая из трёх сумок его, и решить проблему со временем. Не подсказывайте — ждите вопроса.',
+        'Обратная связь, 2 цели: oma / tema и mis / mille / mida. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('008_d_review', [['Kirjelda üht kolleegi kes- või kellel-lausega.', 'a2b1-007'], ['Keda Jaan ja Kadri hoidjaks valisid ja miks?', 'a2b1-007'], ['Kus sa elad ja kellega?', 'a2b1-001']]),
-      B.text('008_d_hook', 'Pärast piknikku', 'Jaani pere ja sõbrad pidasid pargis pikniku. Kõik läksid koju, aga laual on veel palju asju. Proovi kõigepealt ise, kelle asjad need on. Siis leiad reegli ja proovid uuesti.'),
-      B.choice('008_d_test', 'Proovi kõigepealt ise.', 'Vali sobiv sõna. Reeglit sa veel ei tea, lihtsalt proovi.', [
+      station(teach(tag(purpose(B.speaking('008_d_warm', 'Mille sa kaotasid?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Mille sa viimati kaotasid või kuhu sa midagi unustasid?',
+        'Kas sa leidsid selle üles? Kuidas?',
+        'Kirjelda üht oma sõpra kellel-lausega. Ütle üks lause ilma märkmeteta.',
+      ], [45, 60]), 'Sinu enda lugu on tänase tunni algus: lõpus helistad ja kirjeldad oma kadunud asja.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma päris lugu kadunud asjast (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mis selle sees oli?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('008_d_vocab', 'Tunni sõnad.', ['kaotama — терять', 'leidma — находить', 'unustama — забывать', 'kaduma — пропадать', 'omanik — владелец', 'leitud asjad — бюро находок', 'oma — свой', 'sees — внутри', 'küljes — прикреплён (к чему-то)', 'dokument — документ']), { topic: ['omanik', 'küljes'] }), 2, 17),
+      tag(purpose(why(B.reading('008_d_found', 'Teade: leitud asjad.', 'Loe pargi kohviku teadet. Vasta lühidalt, oma sõnadega.', 'Leitud asjad', [
+        'Pühapäeval oli pargis suur perepäev. Inimesi oli palju ja õhtul läksid kõik kiiresti koju. Asjad, mis jäid pinkide juurde, on nüüd meie kohvikus.',
+        '',
+        'Leidsime musta koti, mille sees on raamat ja prillid. Leidsime ka lapse sinise mütsi, millel on valge täht, ja võtmed, mille küljes on punane kass. Rohelise termose, mida keegi pingilt ei võtnud, tõi meile koristaja.',
+        '',
+        'Kas see on teie asi? Tulge kohvikusse tööpäeviti kella 9–18. Öelge, mis on teie asja sees või mis värvi see on. Nii teame, et asi on tõesti teie oma. Võtke kaasa ka oma dokument.',
+        '',
+        'Asjad, mida keegi kuu aja jooksul ei küsi, viime linna leitud asjade büroosse. Eelmisel nädalal tuli kohvikusse väike poiss vanaisaga ja sai oma palli tagasi. Ta oli väga õnnelik.',
+        '',
+        'Pargi kohvik',
+        '',
+        'Allikas: KeeleSepa õppetekst.',
+      ], [
+        ['Kus on pargist leitud asjad praegu?', 'pargi kohvikus|kohvikus'],
+        ['Mis on musta koti sees?', 'raamat ja prillid|raamat|prillid'],
+        ['Kuidas tunned ära lapse mütsi?', 'sellel on valge täht|valge täht|tal on valge täht'],
+        ['Mis on võtmete küljes?', 'punane kass|kass'],
+        ['Millal saab asjale järele tulla?', 'tööpäeviti|tööpäeviti kella 9–18|kella 9–18'],
+        ['Miks peab omanik ütlema, mis on asja sees?', 'et kohvik teaks, et asi on tema oma|et tõestada, et asi on tema oma|nii teatakse, et asi on tema oma'],
+        ['Mida peab omanik kaasa võtma?', 'dokumendi|oma dokumendi|dokument'],
+        ['Mis saab asjadest, mida keegi kuu aja jooksul ei küsi?', 'need viiakse leitud asjade büroosse|leitud asjade büroosse|büroosse'],
+      ]), [
+        'Esimene lõik: asjad on nüüd meie kohvikus.',
+        'Teine lõik: kott, mille sees on raamat ja prillid.',
+        'Teine lõik: müts, millel on valge täht.',
+        'Teine lõik: võtmed, mille küljes on punane kass.',
+        'Kolmas lõik: tööpäeviti kella 9–18.',
+        'Kolmas lõik: nii teame, et asi on tõesti teie oma.',
+        'Kolmas lõik: võtke kaasa oma dokument.',
+        'Neljas lõik: kuu aja pärast leitud asjade büroosse.',
+      ]), 'Enne kui sa helistad, tead, kuidas leitud asja tagasi saab ja mida tuleb öelda.'), { task: 'R07' }),
+      tag(purpose(B.writing('008_d_think', 'Mõtle kaasa.', 'Kirjuta 3–4 lauset: mis asi on sul alati kaasas? Milline see on ja mis selle sees on? Kuidas tunneks omanik selle ära?', [3, 4], [], 0, 'g_read'), 'Oma asja kirjeldus on kõne jaoks valmis.'), { task: 'W07' }),
+      hide(B.review('008_d_review', [['Kirjelda üht kolleegi kes- või kellel-lausega.', 'a2b1-007'], ['Keda Jaan ja Kadri hoidjaks valisid ja miks?', 'a2b1-007'], ['Kus sa elad ja kellega?', 'a2b1-001']]), V5_DRILL),
+      hide(B.text('008_d_hook', 'Pärast piknikku', 'Jaani pere ja sõbrad pidasid pargis pikniku. Kõik läksid koju, aga laual on veel palju asju. Proovi kõigepealt ise, kelle asjad need on. Siis leiad reegli ja proovid uuesti.'), V5_CUT),
+      hide(B.choice('008_d_test', 'Proovi kõigepealt ise.', 'Vali sobiv sõna. Reeglit sa veel ei tea, lihtsalt proovi.', [
         ['Oskar jättis … jope pingile.', 'oma', 'tema', 'temal'],
         ['Viktor otsis … vihmavarju terve õhtu.', 'oma', 'tema', 'temale'],
         ['Anna leidis laualt telefoni. See oli … telefon.', 'tema', 'oma', 'ise'],
@@ -418,9 +711,8 @@ export const LESSONS = withShapes({
         ['Asi, … on pingi all, on Sofia müts.', 'mis', 'mida', 'mille'],
         ['Vihmavari, … Viktor otsib, on must.', 'mida', 'mis', 'mille'],
         ['Sofia küsis Annalt: „Kas see on … müts?”', 'sinu', 'oma', 'sina'],
-      ], 'full', 'g_notice'),
-      tag(B.vocab('008_d_vocab', 'Tunni sõnad.', ['kaotama — терять', 'leidma — находить', 'unustama — забывать', 'kaduma — пропадать', 'omanik — владелец', 'leitud asjad — бюро находок', 'oma — свой', 'büroo — бюро', 'tasu — вознаграждение', 'armukade — ревнивый', 'lahku minema — расстаться', 'hästi läbi saama — хорошо ладить']), { topic: ['armukade'] }),
-      tag(B.reading('008_d_board', 'Teade pargi kohvikus.', 'Loe kohviku teadet leitud asjadest. Vasta, kus asjad on ja kuidas need tagasi saab.', 'Leitud asjad', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(tag(B.reading('008_d_board', 'Teade pargi kohvikus.', 'Loe kohviku teadet leitud asjadest. Vasta, kus asjad on ja kuidas need tagasi saab.', 'Leitud asjad', [
         'Eile õhtul, pärast pikniku lõppu, leidsime pargist mitu asja. Inimesi oli palju ja kõik läksid kiiresti koju. Asjad, mis jäid pinkide juurde, on nüüd pargi kohvikus.',
         '',
         'Leitud on väike must kott. Selle sees on raamat ja prillid. Leitud on ka lapse sinine müts, millel on valge täht. Kolmas asi on võtmed, mille küljes on punane kass. Neljas asi on roheline termos, mida keegi pingilt ei võtnud.',
@@ -443,19 +735,19 @@ export const LESSONS = withShapes({
         ['Mida peab omanik kaasa võtma?', 'dokumendi|dokument'],
         ['Mis saab asjadest kuu aja pärast?', 'need viiakse leitud asjade büroosse|büroosse'],
         ['Mida tõi poisi vanaisa kohvikule ja miks?', 'kommikarbi, sest poiss sai oma palli tagasi|kommikarbi tänuks'],
-      ]), { task: 'R07' }),
-      B.notice('008_d_notice', 'Märka: oma või tema? Asi, mis…', [
+      ]), { task: 'R07' }), V5_CUT),
+      hide(B.notice('008_d_notice', 'Märka: oma või tema? Asi, mis…', [
         'Oskar jättis **oma** jope maha. (Oskari enda jope) · Oskar võttis **tema** jope. (kellegi teise jope)',
         '**oma** näitab lause alust: **Ma** otsin **oma** prille. **Sa** unustasid **oma** koti.',
         'Asi, **mis** on laual, on Anna oma. (mis? — lause alus)',
         '**mida** — tegevus kestab: vihmavari, **mida** Viktor otsib · **mille** — tegevus on lõpetatud: kott, **mille** ma kaotasin',
         'Kelle oma see on? — See on **Oskari oma**. = See on Oskari jope.',
-      ], 'full'),
-      tag(B.categorize('008_d_rule', 'Leia reegel: oma või tema?', 'Kelle asi see on? Pane laused rühma: lause aluse asi või kellegi teise asi.', [
+      ], 'full'), V5_CUT),
+      hide(tag(B.categorize('008_d_rule', 'Leia reegel: oma või tema?', 'Kelle asi see on? Pane laused rühma: lause aluse asi või kellegi teise asi.', [
         ['lause aluse enda asi', ['Mia pani oma palli kotti.', 'Ma helistasin oma õele.', 'Viktor unustas oma prillid rongi.', 'Kas sa võtsid oma võtmed?', 'Lapsed korjasid oma asjad kokku.', 'Anna usaldab oma õde.', 'Jaan parandas oma ratta ise.', 'Sofia unustas oma vihmavarju bussi.']],
         ['kellegi teise asi', ['Anna nägi Viktorit ja tema koera.', 'Sofia võttis ema telefoni ja helistas tema sõbrale.', 'Kadri kiitis Oskarit, sest tema joonistus oli ilus.', 'Naaber tõi Jaanile tema võtmed.', 'Me aitasime Maiel tema kohvrit kanda.', 'Mia mängis Oskari ja tema sõpradega.', 'Oskar leidis Mia ja tema jänese.', 'Sofia kohtus Kristiga ja rääkis tema emast.']],
-      ], 'full', 'g_notice'), { task: 'G02' }),
-      tag(B.listening('008_d_train', 'Teadaanne rongis.', 'Kuula rongi teadaannet ja Viktori kõnet. Kirjuta lünka, mida tuleb teha või öelda.', [
+      ], 'full', 'g_notice'), { task: 'G02' }), V5_DRILL),
+      hide(tag(B.listening('008_d_train', 'Teadaanne rongis.', 'Kuula rongi teadaannet ja Viktori kõnet. Kirjuta lünka, mida tuleb teha või öelda.', [
         'Rongisaatja: Head reisijad! Järgmine peatus on Balti jaam. See on rongi viimane peatus.',
         'Rongisaatja: Palun kontrollige, kas teil on kõik asjad kaasas. Ärge unustage oma kotte ja vihmavarje!',
         'Rongisaatja: Asjad, mis jäävad rongi, viime rongifirma leitud asjade büroosse.',
@@ -477,8 +769,8 @@ export const LESSONS = withShapes({
         'Viktor [unustas] oma seljakoti rongi.',
         'Kotis on Viktori prillid ja Helgi [kingitus|sünnipäevakingitus].',
         'Büroole tuleb öelda, mis [värvi] kott on.',
-      ], 'g_vocab'), { task: 'L06' }),
-      B.transformation('008_d_again', 'Proovi uuesti: üks lause.', 'Nüüd tead reeglit. Ühenda laused sõnaga mis, mida või mille.', [
+      ], 'g_vocab'), { task: 'L06' }), V5_CUT),
+      hide(B.transformation('008_d_again', 'Proovi uuesti: üks lause.', 'Nüüd tead reeglit. Ühenda laused sõnaga mis, mida või mille.', [
         ['Viktor kaotas koti. Kott on pruun.', 'mille', 'Kott, mille Viktor kaotas, on pruun.'],
         ['Pingi all on müts. Müts on Sofia oma.', 'mis', 'Müts, mis on pingi all, on Sofia oma.'],
         ['Kadri otsib termost. Termos on roheline.', 'mida', 'Termos, mida Kadri otsib, on roheline.'],
@@ -487,22 +779,47 @@ export const LESSONS = withShapes({
         ['Oskar kannab jopet. Jope on talle suur.', 'mida', 'Jope, mida Oskar kannab, on talle suur.'],
         ['Jaan ostis tordi. Tort oli väga hea.', 'mille', 'Tort, mille Jaan ostis, oli väga hea.'],
         ['Kohvikus on asjad. Asjad leiti pargist.', 'mis', 'Asjad, mis on kohvikus, leiti pargist.'],
-      ]),
-      teach(tag(B.speaking('008_d_432', 'Asi, mille ma kaotasin.', 'Räägi kolm korda, iga kord uuele paarilisele: 2 minutit, siis 90 sekundit, siis 1 minut.', ['Mille sa kord kaotasid või unustasid?', 'Kus ja millal see juhtus?', 'Milline see asi oli ja mis selle sees oli?', 'Kas sa leidsid selle üles? Kuidas?', 'Mis tunne sul oli?'], [90, 120], ['Asi, mille ma kaotasin, oli…', 'Selle sees oli…', 'Lõpuks…']), { task: 'S08', fluency: true }),
-        'Üks-ühele: õpilane räägib sama lugu õpetajale kolm korda, õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja ühe vormi, mis tuli hästi välja.'),
+      ]), V5_DRILL),
+      hide(teach(tag(B.speaking('008_d_432', 'Asi, mille ma kaotasin.', 'Räägi kolm korda, iga kord uuele paarilisele: 2 minutit, siis 90 sekundit, siis 1 minut.', ['Mille sa kord kaotasid või unustasid?', 'Kus ja millal see juhtus?', 'Milline see asi oli ja mis selle sees oli?', 'Kas sa leidsid selle üles? Kuidas?', 'Mis tunne sul oli?'], [90, 120], ['Asi, mille ma kaotasin, oli…', 'Selle sees oli…', 'Lõpuks…']), { task: 'S08', fluency: true }),
+        'Üks-ühele: õpilane räägib sama lugu õpetajale kolm korda, õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja ühe vormi, mis tuli hästi välja.'), V5_CUT),
     ],
     practice: [
-      B.errorfix('008_p_fix', 'Paranda viga: oma või minu?', 'Igas lauses on vale asesõna või vorm. Kirjuta parandatud lause.', [
+      station(teach(tag(purpose(half(B.dialogue('008_p_call', 'Kõne büroosse: näidis.', 'Loe kõnet paarilisega rollides. Leia sõnad oma, mille ja millel: mida need näitavad?', 'Helistaja', 'Büroo', [
+        ['B', 'Leitud asjade büroo, tere!'],
+        ['A', 'Tere! Ma unustasin eile trammi oma vihmavarju.'],
+        ['B', 'Meil on mitu vihmavarju. Milline on vihmavari, mille te kaotasite?'],
+        ['A', 'See on roheline vihmavari, millel on valged täpid.'],
+        ['B', 'Jah, see on siin. Võtke homme kaasa oma dokument.'],
+        ['A', 'Aitäh! Ma tulen homme kell kümme.'],
+      ], 'g_notice')), 'Näidiskõne näitab, kuidas asja kirjeldada ja aeg kokku leppida.'), { task: 'G02' }),
+      'Üks-ühele: loe sina büroo rolli, õpilane helistaja rolli; siis vahetage. Õpilane näitab sõnad oma, mille ja millel ning ütleb, miks just see vorm.'), 3, 15),
+      half(B.notice('008_p_notice', 'Märka: oma või tema? Asi, mis …', [
+        '**oma** = lause aluse enda asi: **Ma** otsin **oma** prille. **Peeter** unustas **oma** koti.',
+        '**tema** = kellegi teise asi: Peeter nägi Kaiat ja **tema** koera.',
+        'Asi, **mis** on laual … (mis? — kõrvallause alus) · müts, **millel** on täht',
+        'Kott, **mille** ma kaotasin … (tegevus on lõpetatud) · vihmavari, **mida** ma otsin … (tegevus kestab)',
+      ], 'half')),
+      purpose(why(B.errorfix('008_p_fix', 'Paranda viga: oma või minu?', 'Igas lauses on vale asesõna või vorm. Kirjuta parandatud lause.', [
         ['Ma unustasin minu võtmed koju.', 'Ma unustasin oma võtmed koju.'],
-        ['Viktor otsib tema prille, aga ei leia.', 'Viktor otsib oma prille, aga ei leia.'],
+        ['Peeter otsib tema prille, aga ei leia.', 'Peeter otsib oma prille, aga ei leia.'],
         ['Kas sa võtsid sinu vihmavarju kaasa?', 'Kas sa võtsid oma vihmavarju kaasa?'],
         ['Ma usaldan minu parimat sõpra.', 'Ma usaldan oma parimat sõpra.'],
         ['Kott, mis ma kaotasin, oli punane.', 'Kott, mille ma kaotasin, oli punane.'],
         ['Asi, mida on laual, on minu telefon.', 'Asi, mis on laual, on minu telefon.'],
-        ['See on Oskar uus jope.', 'See on Oskari uus jope.'],
+        ['See on Robin uus jope.', 'See on Robini uus jope.'],
         ['Lapsed võtsid nende mänguasjad kaasa.', 'Lapsed võtsid oma mänguasjad kaasa.'],
-      ]),
-      tag(B.reading('008_p_forum', 'Perefoorum: Epu mure.', 'Epp küsib foorumis nõu ja saab kolm erinevat vastust. Leia iga vastuse toon.', 'Ta luges minu sõnumeid', [
+      ]), [
+        'Alus on ma → oma võtmed.',
+        'Alus on Peeter, prillid on tema enda → oma.',
+        'Alus on sa → oma vihmavari.',
+        'Alus on ma → oma sõber.',
+        'Ma kaotasin (lõpetatud) → mille.',
+        'Mis on laual? → mis (alus).',
+        'Kelle jope? → Robini (omastav).',
+        'Alus on lapsed → oma mänguasjad.',
+      ]), 'Kaheksa tüüpilist viga näitavad, kus oma ja mis-sõnad lähevad sassi.'),
+      tag(purpose(B.writing('008_p_sent', 'Kirjuta terved laused.', 'Kirjuta neli-viis lauset oma asjadest: üks lause sõnaga oma, üks mis, üks mille ja üks mida („Kott, mille ma eile ostsin …”).', [4, 5]), 'Oma laused aitavad sul kõnes asja täpselt kirjeldada.'), { task: 'W02' }),
+      hide(tag(B.reading('008_p_forum', 'Perefoorum: Epu mure.', 'Epp küsib foorumis nõu ja saab kolm erinevat vastust. Leia iga vastuse toon.', 'Ta luges minu sõnumeid', [
         'Epp, 31: Tere! Mul on mure ja ma ei tea, kellega rääkida. Elan juba kaks aastat koos oma poiss-sõbra Rainoga. Alguses oli meil väga hea klapp. Me saime hästi läbi ja tegime kõike koos. Aga nüüd on ta armukade. Eile võttis ta minu telefoni ja luges minu sõnumeid. Oma telefoni ta mulle ei näita! Ma läksin närvi ja me läksime tülli. Hommikul ta vabandas ja me leppisime ära. Aga ma ei usalda teda enam. Kas me peame lahku minema?',
         '',
         'Tõnis: Jäta ta kohe maha! Mees, kes loeb sinu sõnumeid, ei austa sind. Sellest ei tule midagi head. Võta oma asjad ja mine.',
@@ -519,8 +836,8 @@ export const LESSONS = withShapes({
         ['Kelle vastusele sobib pealkiri „Rääkige omavahel”?', 'Mareku|Marek'],
         ['Miks võib Raino Mareku arvates armukade olla?', 'ta kardab Eppu kaotada'],
         ['Kelle nõu meeldib sulle kõige rohkem ja miks?', ''],
-      ]), { task: 'R09', voice: 'forum' }),
-      B.examListen('008_p_radio', 'Raadiolugu: leitud asjade büroo.', 'Kuula raadiolugu kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
+      ]), { task: 'R09', voice: 'forum' }), V5_CUT),
+      hide(B.examListen('008_p_radio', 'Raadiolugu: leitud asjade büroo.', 'Kuula raadiolugu kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
         'Saatejuht: Tere hommikust! Täna käisime linna leitud asjade büroos. Seal töötab Urve Tamm.',
         'Saatejuht: Urve, mida inimesed kõige sagedamini kaotavad?',
         'Urve: Kõige rohkem tuuakse meile vihmavarje. Sügisel on neid sadu! Teisel kohal on võtmed ja kolmandal telefonid.',
@@ -543,18 +860,34 @@ export const LESSONS = withShapes({
         ['Mida küsitakse telefoni omanikult?', 'mis pilt on ekraanil', 'mis on telefoni hind', 'kus telefon osteti'],
         ['Mida annavad omanikud leidjale sageli?', 'väikese tänu', 'uue telefoni', 'suure summa raha'],
         ['Mis on Urve nõuanne?', 'kirjutada asjadele oma nimi ja number', 'osta kõigile asjadele kallis kott', 'helistada kohe raadiosse ja politseisse'],
-      ]),
-      B.translation('008_p_svoj', 'Tõlgi mõte: свой.', 'Tõlgi eesti keelde. Mõtle, kas vaja on oma, minu või tema.', [
+      ]), V5_CUT),
+      hide(B.translation('008_p_svoj', 'Tõlgi mõte: свой.', 'Tõlgi eesti keelde. Mõtle, kas vaja on oma, minu või tema.', [
         'Я забыл свой зонт в поезде.', 'Он ищет свои очки.', 'Ты взял свои ключи?', 'Она доверяет своей подруге.',
         'Это её телефон, а не мой.', 'Мама нашла свою сумку.', 'Сумка, которую я потеряла, была красная.', 'Чей это шарф? Это шарф Оскара.',
-      ], 'half', 'g_vocab'),
-      tag(B.letter('008_p_reply', 'Sinu vastus foorumis.', 'Kirjuta Epule oma vastus: kas ta peab lahku minema, millist nõu annad ja miks?', 'Tere, Epp!', 'Jõudu sulle!', [50, 70]), { task: 'W08' }),
-      teach(tag(B.speaking('008_p_friend', 'Sa näed veidi kurb välja.', 'Sinu sõbral on raske nädal. Räägi järjest kolme paarilisega: märka, küsi ja kuula, ära anna kohe nõu.', ['Alusta nii: Sa näed veidi kurb välja. Kuidas sul päriselt läheb?', 'Mis sinu elus praegu toimub?', 'Kellega sa läksid tülli ja kas te olete ära leppinud?', 'Kes sind toetab? Keda sa usaldad?', 'Millega ma sind aidata saaksin?'], [60, 120], ['Mul on kahju, et…', 'Ma saan aru. Ja mis siis juhtus?', 'Ma olen abivalmis: ma võin…']), { fluency: true }),
-        'Üks-ühele: õpilane küsib kolm korda samad küsimused; õpetaja on iga kord teine sõber (tüli kolleegiga, raske nädal tööl, lahku läinud paar) ja vastab lühidalt. „Saaksin” on siin valmis viisakas väljend, tingivat kõneviisi õpitakse hiljem.'),
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(tag(B.letter('008_p_reply', 'Sinu vastus foorumis.', 'Kirjuta Epule oma vastus: kas ta peab lahku minema, millist nõu annad ja miks?', 'Tere, Epp!', 'Jõudu sulle!', [50, 70]), { task: 'W08' }), V5_CUT),
+      hide(teach(tag(B.speaking('008_p_friend', 'Sa näed veidi kurb välja.', 'Sinu sõbral on raske nädal. Räägi järjest kolme paarilisega: märka, küsi ja kuula, ära anna kohe nõu.', ['Alusta nii: Sa näed veidi kurb välja. Kuidas sul päriselt läheb?', 'Mis sinu elus praegu toimub?', 'Kellega sa läksid tülli ja kas te olete ära leppinud?', 'Kes sind toetab? Keda sa usaldad?', 'Millega ma sind aidata saaksin?'], [60, 120], ['Mul on kahju, et…', 'Ma saan aru. Ja mis siis juhtus?', 'Ma olen abivalmis: ma võin…']), { fluency: true }),
+        'Üks-ühele: õpilane küsib kolm korda samad küsimused; õpetaja on iga kord teine sõber (tüli kolleegiga, raske nädal tööl, lahku läinud paar) ja vastab lühidalt. „Saaksin” on siin valmis viisakas väljend, tingivat kõneviisi õpitakse hiljem.'), V5_CUT),
     ],
     transfer: [
-      B.text('008_t_sit', 'Viktori seljakott', 'Viktor unustas eile rongi oma seljakoti. Selles on tema prillid ja Helgi sünnipäevakingitus. Täna helistab ta rongifirma leitud asjade büroosse. Kõigepealt loe, mida Viktor Sofiale kirjutas.'),
-      B.insertion('008_t_story', 'Viktori sõnum.', 'Viktori sõnumist on laused välja kukkunud. Pane iga lause oma kohale; kaks jääb üle.', 'Sofia, mul on mure!', [
+      station(teach(tag(purpose(B.rolecards('008_t_lost', 'Kõne leitud asjade büroosse.', 'Sina helistad bussifirma leitud asjade büroosse, õpetaja on büroo töötaja. Vaata pilti „Kolm musta kotti”. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: sa unustasid eile õhtul bussi oma musta koti. Kotis on sinu rahakott ja üks raamat, koti küljes on võti ja punane kass.\nSinu eesmärk: saada teada, kas kott on leitud, ja leppida kokku, millal ja kuidas sa selle kätte saad.\nPiirang: tööpäeviti oled sa tööl kella kaheksast viieni.\nSiis uus olukord: sa unustasid oma telefoni taksosse. Helista taksofirmasse.',
+        'Büroo töötaja kaart on õpetajal: mis on leitud, millal büroo on avatud ja üks probleem. Küsi ja kuula.',
+        ['Ma kaotasin …', 'Kott, mille …', 'Kas ma saaksin …?'], []), 'Pärast kõnet tead, kas sinu asi on leitud ning millal ja kuidas sa selle kätte saad.'), { task: 'S04', harno: 'S2', main: true, level: 4 }),
+      'Üks-ühele, õpetaja kaart (büroo töötaja). Varjatud info: eile leiti bussidest kolm musta kotti (pilt): A — käekott, mille küljes on punane kass; B — kott, millest paistab vihmavari; C — seljakott, millel on valge täht. Õpilase kott on A, aga selle sees on ainult raamat: rahakotti kotis ei ole. Büroo on avatud E–R kell 10–18 ja laupäeval kell 10–14; kotti annab büroo ainult omanikule, kellel on kaasas dokument, või teisele inimesele volikirjaga. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Meil on kolm musta kotti. Milline on teie oma?” 2) „Rahakotti selles kotis ei ole.” 3) „Tööpäeviti oleme avatud kella kuueni.” Õnnestunud, kui õpilane kirjeldab kotti mis-lausetega (kott, mille küljes on …), reageerib rahakoti uudisele (küsib, mida teha), lahendab ajaprobleemi (laupäev või keegi teine volikirjaga) ja kordab lõpus kokkuleppe. Teine katse ilma fraasideta (lehel „uus olukord”): sina oled taksofirma dispetšer. Varjatud info: autos leiti kaks telefoni; aku on tühi, seepärast küsid „Mis pilt on teie telefoni ekraanil?” ja „Mis värvi on ümbris?”; juht saab telefoni tuua ainult täna õhtul kella üheksani. Õnnestunud, kui õpilane kirjeldab telefoni täpselt ja lepib kokku aja ja koha.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.choice('008_t_exit', 'Kontrolli end: kolm vormi.', 'Vali sõna, mis sobib lausesse.', [
+        ['Peeter otsib … prille.', 'oma', 'tema', 'temale'],
+        ['Kott, … ma kaotasin, oli must.', 'mille', 'mis', 'mida'],
+        ['Asi, … on laual, on minu telefon.', 'mis', 'mida', 'mille'],
+      ], 'full', 'g_vocab'), 'Kolm lauset näitavad, kas oma ja mis-sõnad on käes.'), ['Alus on Peeter → oma.', 'Ma kaotasin (lõpetatud) → mille.', 'Mis on laual? → mis.'])), {}),
+      purpose(B.selfcheck('008_t_self', ['Ma tean, millal öelda oma ja millal tema.', 'Ma kirjeldan asja: kott, mille ma kaotasin; müts, millel on täht.', 'Ma helistan büroosse, reageerin probleemile ja lepin kokku, kuidas asja kätte saan.', 'Ma kordan kõne lõpus kokkuleppe.'], 'Asi leitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('008_t_home', 'Kodus: räägi 45–60 sekundit.', 'Salvesta 45–60 sekundit: üks asi, mis on sulle väga kallis.', [
+        'Milline see asi on ja kust see pärit on?',
+        'Miks see on sulle kallis?',
+      ], [45, 60]), 'Õpetaja kuulab sinu loo enne järgmist tundi ja annab ühe nõu.')), { task: 'S15', fluency: true }),
+      homework('008_t_homework', ['1. Kirjuta oma kadunud asja kirjeldus (3–4 lauset) puhtalt üles.', '2. Räägi 45–60 sekundit ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('008_t_sit', 'Viktori seljakott', 'Viktor unustas eile rongi oma seljakoti. Selles on tema prillid ja Helgi sünnipäevakingitus. Täna helistab ta rongifirma leitud asjade büroosse. Kõigepealt loe, mida Viktor Sofiale kirjutas.'), V5_CUT),
+      hide(B.insertion('008_t_story', 'Viktori sõnum.', 'Viktori sõnumist on laused välja kukkunud. Pane iga lause oma kohale; kaks jääb üle.', 'Sofia, mul on mure!', [
         'Tere, Sofia! Kirjutan sulle, sest eile juhtus midagi halba. [[Sõitsin rongiga Aegviidust Tallinna.]] Rongis oli palju inimesi ja ma istusin akna all.',
         '',
         'Mul oli kaasas roheline seljakott, mille sain kunagi Helgilt. [[Koti sees olid minu prillid ja Helgi kingitus.]] Kingitus on väike puust karp, mille ma ise tegin. Tegin seda terve kuu oma töökojas, igal õhtul natuke.',
@@ -568,28 +901,93 @@ export const LESSONS = withShapes({
         'Täna helistan uuesti. Asi, mida ma kõige rohkem kardan, on see, et keegi võttis koti endale. [[Karbis on ju Helgi ja Maie vana foto, mida ei saa osta.]] Kui kott leitakse, viin rongisaatjale tänuks kommikarbi.',
         '',
         '[[Palun ära räägi sellest emale midagi!]] Ta ei tohi kingitusest teada. [[Ma helistan sulle kohe, kui kott on leitud.]] Sinu onu Viktor',
-      ], ['Ostsin poest uue punase vihmavarju.', 'Rongisaatja ütles, et kott on juba büroos.']),
-      teach(tag(B.phoneCards('008_t_call', 'Helista leitud asjade büroosse.', 'A helistab rongifirmasse ja kirjeldab kotti. B töötab büroos. Siis vahetage kaardid.', 'Viktor kaotas eile rongis rohelise seljakoti.', ['Helistaja (Viktor või sina ise)', ['Tervita ja ütle, mis juhtus ja millal.', 'Kirjelda kotti: värv, suurus, mis on sees.', 'Küsi, kas kott on leitud.', 'Küsi, millal ja kuhu saab tulla.', 'Küsi, mida peab kaasa võtma.']], ['Büroo töötaja', ['Büroo on Balti jaama teisel korrusel.', 'Avatud E–R kell 10–18.', 'Leitud on kaks rohelist kotti — küsi, mis on sees.', 'Kaasa tuleb võtta isikut tõendav dokument.', 'Kott tuleb kätte saada kolme kuu jooksul.']]), { main: true }),
-        'Üks-ühele: õpetaja on büroo töötaja ja küsib täpsustusi, kuni on kindel, kelle kott see on („Mis on karbi sees?”). Siis vahetage: õpetaja kaotas oma asja ja õpilane töötab büroos.'),
-      B.know('008_t_know', [
+      ], ['Ostsin poest uue punase vihmavarju.', 'Rongisaatja ütles, et kott on juba büroos.']), V5_CUT),
+      hide(teach(tag(B.phoneCards('008_t_call', 'Helista leitud asjade büroosse.', 'A helistab rongifirmasse ja kirjeldab kotti. B töötab büroos. Siis vahetage kaardid.', 'Viktor kaotas eile rongis rohelise seljakoti.', ['Helistaja (Viktor või sina ise)', ['Tervita ja ütle, mis juhtus ja millal.', 'Kirjelda kotti: värv, suurus, mis on sees.', 'Küsi, kas kott on leitud.', 'Küsi, millal ja kuhu saab tulla.', 'Küsi, mida peab kaasa võtma.']], ['Büroo töötaja', ['Büroo on Balti jaama teisel korrusel.', 'Avatud E–R kell 10–18.', 'Leitud on kaks rohelist kotti — küsi, mis on sees.', 'Kaasa tuleb võtta isikut tõendav dokument.', 'Kott tuleb kätte saada kolme kuu jooksul.']]), { main: true }),
+        'Üks-ühele: õpetaja on büroo töötaja ja küsib täpsustusi, kuni on kindel, kelle kott see on („Mis on karbi sees?”). Siis vahetage: õpetaja kaotas oma asja ja õpilane töötab büroos.'), V5_CUT),
+      hide(B.know('008_t_know', [
         'Mida teha, kui leiad kellegi asja? Võimaluse korral jäta asi sinna, kust selle leidsid: omanik võib tagasi tulla. Bussis või taksos anna leitud asi kohe juhile, poes või asutuses infoletti.',
         'Kui asi on üle 50 euro väärt ja sa ei tea omanikku, tuleb leiust teatada politseile. Kui omanikku aasta jooksul ei leita, võib asi jääda leidjale. Kui omanik leitakse, võib leidja temalt küsida leiutasu.',
-      ], 'Politsei- ja Piirivalveamet, „Leitud asjast teatamine”; asjaõigusseadus', 'Kas teadsid? Leitud asi'),
-      teach(tag(B.speaking('008_t_reward', 'Kas tasu on vajalik?', 'Rongisaatja leidis Viktori koti. Kas Viktor peaks talle tasu andma? Põhjenda oma arvamust.', ['Mida sina teed, kui leiad tänavalt rahakoti või kellegi koti?', 'Mis on hea tänukingitus?', 'Kas leidja peaks raha võtma? Miks?', 'Mida sinu kodumaal leitud asjadega tehakse?', 'Räägi lugu inimesest, kes tagastas leitud asja.'], [90, 150], ['Minu meelest…, sest…', 'Ma arvan, et…', 'Teisest küljest…']), { task: 'S11' }),
-        'Üks-ühele: õpetaja ütleb vastupidise arvamuse („Leidja peab alati raha saama”) ja õpilane põhjendab oma seisukohta vähemalt kahe põhjusega.'),
-      tag(B.letter('008_t_mail', 'Viisakas kiri rongifirmale.', 'Kirjuta sama asi rongifirmale viisakalt: teie-vormis, ilma naljata, kõik vajalik info.', 'Lugupeetud leitud asjade büroo!', 'Lugupidamisega', [70, 90]), { task: 'W12' }),
-      B.rubricSpeaking('008_t_rubric', 'Hindamine: telefonikõne (20 punkti).'),
-      B.selfcheck('008_t_self', ['Ma tean, millal öelda oma ja millal tema.', 'Ma kirjeldan asja: kott, mille ma kaotasin…', 'Ma helistan büroosse ja küsin vajaliku info.', 'Ma märkan, kui sõbral on raske, ja küsin: Kuidas sul päriselt läheb?', 'Ma kirjutan sõbrale ja ametlikult eri moodi.'], 'Kelle oma?'),
+      ], 'Politsei- ja Piirivalveamet, „Leitud asjast teatamine”; asjaõigusseadus', 'Kas teadsid? Leitud asi'), V5_CUT),
+      hide(teach(tag(B.speaking('008_t_reward', 'Kas tasu on vajalik?', 'Rongisaatja leidis Viktori koti. Kas Viktor peaks talle tasu andma? Põhjenda oma arvamust.', ['Mida sina teed, kui leiad tänavalt rahakoti või kellegi koti?', 'Mis on hea tänukingitus?', 'Kas leidja peaks raha võtma? Miks?', 'Mida sinu kodumaal leitud asjadega tehakse?', 'Räägi lugu inimesest, kes tagastas leitud asja.'], [90, 150], ['Minu meelest…, sest…', 'Ma arvan, et…', 'Teisest küljest…']), { task: 'S11' }),
+        'Üks-ühele: õpetaja ütleb vastupidise arvamuse („Leidja peab alati raha saama”) ja õpilane põhjendab oma seisukohta vähemalt kahe põhjusega.'), V5_CUT),
+      hide(tag(B.letter('008_t_mail', 'Viisakas kiri rongifirmale.', 'Kirjuta sama asi rongifirmale viisakalt: teie-vormis, ilma naljata, kõik vajalik info.', 'Lugupeetud leitud asjade büroo!', 'Lugupidamisega', [70, 90]), { task: 'W12' }), V5_CUT),
+      hide(B.rubricSpeaking('008_t_rubric', 'Hindamine: telefonikõne (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 009 project: a family party (ettepanek, sest / kuna)
   'a2b1-009': {
-    title: 'Üllatus Helgile',
-    canDo: 'Ma kirjutan sugulastele 80–100-sõnalise kirja Helgi üllatuspeost: kus ja millal, mida kaasa võtta ja miks see on saladus.',
+    title: 'Teeme peo!',
+    phases: grammar('Keel: ettepanek (Teeme …! Võiksime …) ja põhjus (sest …, kuna …); kokkulepe'),
+    format: 'project',
+    topic: 'culture',
+    canDo: 'Ma teen ettepaneku, põhjendan seda sest- või kuna-lausega, lepin pereliikmega peo plaani kokku ja kutsun häälsõnumiga päris inimese peole.',
+    teacherPage: {
+      goal: 'Ученик в паре планирует праздник: предлагает, обосновывает (sest / kuna), договаривается; дома приглашает голосовым сообщением настоящего человека.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → голосовое сообщение (2 раза) и вопросы → пункт 4: обсуждение и договорённость; приглашение — дома. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kuidas sinu peres sünnipäeva peetakse? Mis oli sinu kõige toredam pidu?» Сначала ответьте сами, потом ученик.',
+      plan: [
+        '0–8: пункт 1 — крючок: праздники в семье; вопрос из урока 8 без записей („Kirjelda üht oma asja mille-lausega.”)',
+        '8–25: пункт 2 — слова, «Mõtle kaasa» (где лучше праздновать и почему, 3–4 предложения), голосовое сообщение Каи (2 раза; ettepanek и sest / kuna в контексте), 7 вопросов (суть, детали, «почему»)',
+        '25–40: пункт 3 — заметить → правило → 8 предложений (sest / kuna) → 4–5 своих предложений',
+        '40–65: пункт 4 — семейный совет по картинке «Kolm võimalust» (пара, у каждого своё ограничение), договорённость; вторая попытка без фраз — новая ситуация (праздник для друга); в конце каждый говорит договорённость одной фразой',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает о празднике в своей стране, которого нет в Эстонии',
+        '72–90: запас',
+      ],
+      sources: 'Голосовое сообщение (пункт 2) и картинка «Kolm võimalust» — учебные, люди выдуманы, цены без чисел. Адресат приглашения — настоящий человек (друг, родственник или однокурсник), которого ученик выбирает сам.',
+      groups: 'Пункт 4 в паре: у A и B разные ограничения на карточках; потом новая ситуация без фраз. Один на один вы — B и сначала не соглашаетесь.',
+      errors: [
+        '«Kuna on külm, me sööme toas» → после придаточного с kuna глагол раньше подлежащего: «Kuna on külm, sööme (me) toas».',
+        '«Sest restoran on kallis.» отдельным предложением — sest стоит после главного предложения: «Ei taha restorani, sest see on kallis.»',
+        '«Ma teen ettepanek» вместо «Ma teen ettepaneku» (что? → полный объект в genitive).',
+        'Договорённость не сформулирована: в конце нужна фраза «Lepime kokku, et …».',
+      ],
+      notes: [
+        'Приглашение (голосовое сообщение) отправляется по-настоящему. На следующем уроке спросите, что ответил адресат: так текст становится общением.',
+        'Обратная связь, 2 цели: sest / kuna и порядок слов после kuna-предложения. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('009_d_review', [['Mis oli Viktori kotis, mille ta rongi unustas?', 'a2b1-008'], ['Kelle oma see telefon on? Vasta oma- või tema-vormiga.', 'a2b1-008'], ['Mida sinu pere nädalavahetusel koos teeb?', 'a2b1-004']]),
-      B.text('009_d_brief', 'Projekt: üllatuspidu', 'Helgi saab 14. novembril 60-aastaseks. Jaan, Sofia ja Viktor korraldavad Viktori talus üllatuspeo. Selles tunnis teete koos peo plaani ja kirjutate sugulastele kutsekirja — see on mooduli töö. Kõigepealt kuula Jaani häälsõnumit.'),
-      tag(B.listening('009_d_voice', 'Jaani häälsõnum.', 'Kuula Jaani sõnumit kaks korda. Kirjuta lünka number, kellaaeg või hind.', [
+      station(teach(tag(purpose(B.speaking('009_d_hook', 'Pidu sinu peres.', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kuidas sinu peres sünnipäeva peetakse: kodus, restoranis või maal?',
+        'Mis oli sinu kõige toredam pidu ja miks?',
+        'Kirjelda üht oma asja mille-lausega („Kott, mille ma …”). Ütle üks lause ilma märkmeteta.',
+      ], [45, 60]), 'Sinu pere peod on tänase tunni algus: lõpus planeerid peo ja kutsud päris inimese.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma pere peost (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Miks just seal?”). Ära paranda.'), 1, 8),
+      station(tag(B.vocab('009_d_vocab', 'Tunni sõnad.', ['ettepanek — предложение', 'ettepanekut tegema — предлагать', 'põhjus — причина', 'kokku leppima — договориться', 'kokkulepe — договорённость', 'kingitus — подарок', 'üllatus — сюрприз', 'külaline — гость', 'kutse — приглашение', 'lärm — шум']), { topic: ['kutse', 'lärm'] }), 2, 17),
+      tag(purpose(B.writing('009_d_think', 'Mõtle kaasa.', 'Enne kuulamist kirjuta 3–4 lauset: kus on sinu arvates kõige parem sünnipäeva pidada ja miks?', [3, 4], [], 0, 'g_read'), 'Kui kuulad sõnumit, tead juba oma arvamust ja võrdled.'), { task: 'W11' }),
+      B.know('009_d_know', 'Eestis peetakse eriti suurelt juubelit — ümmargust sünnipäeva, näiteks viiekümnendat või seitsmekümnendat. Siis tuleb kokku kogu suguvõsa, tihti ka sõbrad ja kolleegid. Paljudes peredes on juubel üllatuspidu.', 'KeeleSepa õppetekst'),
+      tag(purpose(why(B.examListen('009_d_msg', 'Kaja häälsõnum vennale.', 'Kuula kaks korda ja vali õige vastus.', 'choice', [
+        'Kaja: Tere, Andres! Siin Kaja. Ema saab järgmisel kuul seitsekümmend. Ma mõtlesin tema peo peale.',
+        'Kaja: Ma teen ettepaneku, et me ei tee pidu restoranis. Restoran on kallis ja ema ei armasta lärmi.',
+        'Kaja: Võiksime teha peo maal, vanaema majas, sest seal on suur aed ja saun.',
+        'Kaja: Kuna novembris on külm, sööme toas. Toidu teeme ise: mina teen supi, sina võiksid teha liha.',
+        'Kaja: Kingituseks teeme albumi, sest ema räägib kogu aeg vanadest piltidest. Iga sugulane saadab ühe pildi.',
+        'Kaja: Tartu sugulased tulevad bussiga, kuna neil ei ole autot.',
+        'Kaja: Lepime kokku nii: sina helistad sugulastele, mina kirjutan kutse. Ja pea meeles: see on üllatus!',
+        'Kaja: Helista mulle õhtul. Head päeva!',
+      ], [
+        ['Miks Kaja helistab?', 'et planeerida ema sünnipäevapidu', 'et kutsuda vend restorani', 'et küsida vanaema tervise kohta'],
+        ['Miks ei sobi Kaja arvates restoran?', 'See on kallis ja ema ei armasta lärmi.', 'Restoran on novembris kinni.', 'Restoran on liiga kaugel.'],
+        ['Kus võiks pidu olla?', 'maal vanaema majas', 'Tartus kohvikus', 'Andrese kodus'],
+        ['Miks süüakse toas?', 'Novembris on külm.', 'Aias ei ole lauda.', 'Ema ei taha õue minna.'],
+        ['Mida pakub Kaja Andresele teha?', 'liha', 'suppi', 'torti'],
+        ['Miks on album hea kingitus?', 'Ema räägib kogu aeg vanadest piltidest.', 'Album on odav.', 'Emal ei ole ühtegi pilti.'],
+        ['Kes kirjutab kutse?', 'Kaja', 'Andres', 'ema'],
+      ], 'g_read', 2), [
+        'Kogu sõnum: ema seitsmekümnes sünnipäev ja peo plaan.',
+        'Teine lõik: restoran on kallis, ema ei armasta lärmi.',
+        'Kolmas lõik: maal vanaema majas, sest seal on aed ja saun.',
+        'Neljas lõik: kuna novembris on külm, sööme toas.',
+        'Neljas lõik: „sina võiksid teha liha”.',
+        'Viies lõik: sest ema räägib kogu aeg vanadest piltidest.',
+        'Seitsmes lõik: mina kirjutan kutse.',
+      ]), 'Pärast kuulamist tead, kuidas Kaja teeb ettepanekuid ja põhjendab neid.'), { task: 'L02' }),
+      hide(B.review('009_d_review', [['Mis oli Viktori kotis, mille ta rongi unustas?', 'a2b1-008'], ['Kelle oma see telefon on? Vasta oma- või tema-vormiga.', 'a2b1-008'], ['Mida sinu pere nädalavahetusel koos teeb?', 'a2b1-004']]), V5_DRILL),
+      hide(B.text('009_d_brief', 'Projekt: üllatuspidu', 'Helgi saab 14. novembril 60-aastaseks. Jaan, Sofia ja Viktor korraldavad Viktori talus üllatuspeo. Selles tunnis teete koos peo plaani ja kirjutate sugulastele kutsekirja — see on mooduli töö. Kõigepealt kuula Jaani häälsõnumit.'), V5_CUT),
+      hide(tag(B.listening('009_d_voice', 'Jaani häälsõnum.', 'Kuula Jaani sõnumit kaks korda. Kirjuta lünka number, kellaaeg või hind.', [
         'Jaan: Tere, Sofia ja onu Viktor! Siin Jaan. Lühidalt meie peo asjadest.',
         'Jaan: Ema sünnipäev on laupäeval, neljateistkümnendal novembril. Pidu algab kell kaks päeval, Viktori talus.',
         'Jaan: Külalisi tuleb umbes kolmkümmend. Tartu sugulasi on kaksteist, nad tulevad kõik koos.',
@@ -611,9 +1009,8 @@ export const LESSONS = withShapes({
         'Kõrve Köök toob toidu kell [üks|13].',
         'Minibussi rent maksab [sada kakskümmend|120] eurot.',
         'Videokõne on reedel kell [seitse|7|19].',
-      ]), { task: 'L10' }),
-      B.vocab('009_d_vocab', 'Tunni sõnad.', ['ettepanek — предложение', 'eelistama — предпочитать', 'kokku leppima — договориться', 'kokkulepe — договорённость', 'kingitus — подарок', 'üllatus — сюрприз', 'saladus — тайна', 'traditsioon — традиция', 'pidu — праздник, вечеринка', 'põhjus — причина']),
-      B.adsmatch('009_d_ads', 'Kuulutused: kes aitab peol?', 'Loe kuulutusi. Kirjuta iga vajaduse juurde sobiva kuulutuse täht. Üks kuulutus võib sobida mitmele.', [
+      ]), { task: 'L10' }), V5_CUT),
+      hide(B.adsmatch('009_d_ads', 'Kuulutused: kes aitab peol?', 'Loe kuulutusi. Kirjuta iga vajaduse juurde sobiva kuulutuse täht. Üks kuulutus võib sobida mitmele.', [
         ['Kõrve Köök', 'Toome peotoidu koju või tallu kuni 50 inimesele. Kodune toit, ka taimetoit. Hind alates 12 eurost inimese kohta. Telli vähemalt nädal ette.'],
         ['Pagariäri Mesimumm', 'Küpsetame torte ja kooke igaks peoks. Tort valmib kolme päevaga. Toome tordi tasuta koju, kui elate Tallinnas või Tartus.'],
         ['Ansambel Vanad Sõbrad', 'Mängime vanu Eesti laule ja tantsumuusikat. Sobime sünnipäevadele ja pulmadesse. Kaks tundi muusikat maksab 250 eurot.'],
@@ -629,8 +1026,8 @@ export const LESSONS = withShapes({
         ['Maie tütar ei söö liha.', 'A'],
         ['Helgi tahab hiljem vaadata albumit peo piltidega.', 'E'],
         ['Kui talus ei saa pidu teha, on vaja teist kohta.', 'F'],
-      ], 'g_read'),
-      tag(B.reading('009_d_names', 'Sünnipäev, nimepäev ja mardipäev.', 'Loe artiklit. Vasta küsimustele lühidalt.', 'Kui kalendris on sinu nimi', [
+      ], 'g_read'), V5_CUT),
+      hide(tag(B.reading('009_d_names', 'Sünnipäev, nimepäev ja mardipäev.', 'Loe artiklit. Vasta küsimustele lühidalt.', 'Kui kalendris on sinu nimi', [
         'Sünnipäev on igal inimesel, aga Eestis võib pidada ka nimepäeva. Eesti kalendris on igal päeval mõned nimed. Statistikaameti nimepäevade kalendri järgi on näiteks 24. juunil, jaanipäeval, nimepäev Johannesel, Juhanil, Hansul ja Antsul. 10. novembril on nimepäev Mardil ja Martinil, 25. novembril Katrinil, Kadil ja Triinul.',
         '',
         'Mardipäev ja kadripäev on vanad rahvakalendri tähtpäevad. Mardilaupäeval, 9. novembril, ja kadrilaupäeval, 24. novembril, käivad lapsed ja ka täiskasvanud mardi- ja kadrisandiks. Sandid käivad perest peresse, koputavad uksele ja küsivad lauldes, kas neid lastakse tuppa. Toas nad laulavad, mängivad pilli ja soovivad perele õnne. Selle eest saavad nad maiustusi, süüa või natuke raha.',
@@ -647,28 +1044,54 @@ export const LESSONS = withShapes({
         ['Mida nad selle eest saavad?', 'maiustusi, süüa või raha|maiustusi'],
         ['Kuidas on kadrisandid riides?', 'heledates naisteriietes|heledates riietes'],
         ['Kas sinu kodumaal peetakse nimepäeva? Kumb on sinu jaoks tähtsam, sünnipäev või nimepäev?', ''],
-      ]), { task: 'R15', voice: 'article' }),
-      B.notice('009_d_notice', 'Märka: ettepanek ja põhjus', [
+      ]), { task: 'R15', voice: 'article' }), V5_CUT),
+      hide(B.notice('009_d_notice', 'Märka: ettepanek ja põhjus', [
         'Ettepanek: **Lähme** metsa! · **Teeme** pitsat! · **Võiksime** küpsetada. · **Ma teen ettepaneku** võtta minibuss.',
         'Põhjus: …, **sest** ema sõbrad ei taha autoga sõita. · **Kuna** vanaema tuleb, võiksime küpsetada.',
         '**sest** tuleb põhilause järel · **kuna** võib olla lause alguses: **Kuna** reis on kallis, otsime muud.',
         'Vastus: **Hea mõte!** · **Mulle sobib.** · **Pigem** …, sest… · **Ma ei ole nõus**, sest…',
         'Kokkulepe: **Lepime kokku**, et… · **Teeme nii:** hommikul…, õhtul…',
-      ], 'full'),
-      B.categorize('009_d_sort', 'Ettepanek, põhjus või kokkulepe?', 'Mida lause teeb? Pane laused kolme rühma.', [
+      ], 'full'), V5_CUT),
+      hide(B.categorize('009_d_sort', 'Ettepanek, põhjus või kokkulepe?', 'Mida lause teeb? Pane laused kolme rühma.', [
         ['ettepanek', ['Võiksime kutsuda ansambli.', 'Lähme reedel tordi järele!', 'Ma teen ettepaneku kinkida albumi.', 'Teeme peo talus!', 'Kas me võiksime fotograafi kutsuda?']],
         ['põhjus', ['…sest ema armastab vanu laule.', 'Kuna novembris on külm, oleme toas.', '…sest Tartu sugulased ei sõida autoga.', 'Kuna reis on kallis, otsime muud.', '…sest talus on palju ruumi.']],
         ['kokkulepe', ['Lepime kokku, et pidu algab kell kaks.', 'Teeme nii: Kadri teeb tordi.', 'Hea küll, võtame minibussi.', 'Kokkulepe: kingime albumi.', 'Siis on otsustatud: ansamblit ei kutsu.']],
-      ], 'full', 'g_vocab'),
-      B.examWriting('009_d_form', 'Küsimustik: sünnipäevad sinu peres.', 'Vasta küsimustele lühidalt. Küsimustele „Miks?” vasta sest- või kuna-lausega.', 'kusimustik', {
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.examWriting('009_d_form', 'Küsimustik: sünnipäevad sinu peres.', 'Vasta küsimustele lühidalt. Küsimustele „Miks?” vasta sest- või kuna-lausega.', 'kusimustik', {
         situation: 'Jaan kogub ideid ema peoks. Ta küsib sõpradelt, kuidas nende pered sünnipäevi peavad.',
         questions: ['Kus teie peres tavaliselt sünnipäeva peetakse?', 'Kes korraldab peo?', 'Mitu külalist tavaliselt tuleb?', 'Mis toitu laual on?', 'Mis on kõige parem kingitus? Miks?', 'Kas teil on mõni sünnipäeva traditsioon?', 'Kas sulle meeldivad üllatuspeod? Miks?', 'Mis oli sinu kõige toredam sünnipäev?', 'Mida sa Helgile kingiksid? Miks?', 'Kellega on sul peres kõige parem klapp? Miks?', 'Kes sinu peres küpsetab sünnipäevaks tordi?', 'Kas sa eelistad suurt pidu või väikest õhtusööki? Miks?'],
-      }),
-      teach(tag(B.speaking('009_d_rank', 'Mis kingitus?', 'Järjestage paarilisega viis kingituse ideed. Põhjendage, miks esimene on parim.', ['Reis Pariisi — kallis, aga Helgi unistus.', 'Album vanade fotodega — Sofia ja Maie aitavad.', 'Kontserdipiletid — Helgile meeldib muusika.', 'Uus jalgratas — Viktor saab seda hooldada.', 'Teatriõhtu kogu perega Tartus.', 'Milline idee on esimene ja miks? Milline viimane?', 'Mis on sinu meelest hea kingitus 60-aastasele inimesele?'], [90, 150], ['Ma teen ettepaneku…, sest…', 'Kuna Helgile meeldib…, võiksime…', 'Pigem…']), { task: 'S12' }),
-        'Üks-ühele: õpetaja ja õpilane järjestavad ideed koos; õpetaja on alguses teist meelt, nii et õpilane peab põhjendama ja kompromissi pakkuma.'),
+      }), V5_CUT),
+      hide(teach(tag(B.speaking('009_d_rank', 'Mis kingitus?', 'Järjestage paarilisega viis kingituse ideed. Põhjendage, miks esimene on parim.', ['Reis Pariisi — kallis, aga Helgi unistus.', 'Album vanade fotodega — Sofia ja Maie aitavad.', 'Kontserdipiletid — Helgile meeldib muusika.', 'Uus jalgratas — Viktor saab seda hooldada.', 'Teatriõhtu kogu perega Tartus.', 'Milline idee on esimene ja miks? Milline viimane?', 'Mis on sinu meelest hea kingitus 60-aastasele inimesele?'], [90, 150], ['Ma teen ettepaneku…, sest…', 'Kuna Helgile meeldib…, võiksime…', 'Pigem…']), { task: 'S12' }),
+        'Üks-ühele: õpetaja ja õpilane järjestavad ideed koos; õpetaja on alguses teist meelt, nii et õpilane peab põhjendama ja kompromissi pakkuma.'), V5_CUT),
     ],
     practice: [
-      B.wordorder('009_p_order', 'Tee ettepanek.', 'Pane sõnad õigesse järjekorda. Alusta lauset suure tähega.', [
+      station(B.notice('009_p_notice', 'Märka: ettepanek ja põhjus', [
+        'Ettepanek: **Teeme** peo maal! · **Võiksime** teha albumi. · **Ma teen ettepaneku**, et …',
+        'Põhjus: …, **sest** seal on suur aed. · **Kuna** on külm, **sööme** toas. (kuna-lause järel tegusõna kohe)',
+        'Vastus: **Hea mõte!** · **Mulle sobib.** · **Pigem** …, sest … · **Ma ei ole nõus**, sest …',
+        'Kokkulepe: **Lepime kokku**, et … · **Teeme nii:** sina …, mina …',
+      ], 'full'), 3, 15),
+      purpose(why(B.transformation('009_p_why', 'Põhjenda: sest või kuna.', 'Ühenda laused antud sõnaga. Kuna-lause võib olla ees.', [
+        ['Võtame bussi. Vanaema sõbrad ei taha autoga sõita.', 'sest', 'Võtame bussi, sest vanaema sõbrad ei taha autoga sõita.'],
+        ['Reis on kallis. Kingime albumi.', 'kuna', 'Kuna reis on kallis, kingime albumi.'],
+        ['Pidu on maal. Seal on palju ruumi.', 'sest', 'Pidu on maal, sest seal on palju ruumi.'],
+        ['Novembris on külm. Sööme toas.', 'kuna', 'Kuna novembris on külm, sööme toas.'],
+        ['Tädi teeb tordi. Ta küpsetab väga hästi.', 'sest', 'Tädi teeb tordi, sest ta küpsetab väga hästi.'],
+        ['Onu elab Pärnus. Ta sõidab bussiga.', 'kuna', 'Kuna onu elab Pärnus, sõidab ta bussiga.'],
+        ['Me helistame enne onule. Ta ei tea veel midagi.', 'sest', 'Me helistame enne onule, sest ta ei tea veel midagi.'],
+        ['Pidu on üllatus. Keegi ei räägi emale midagi.', 'kuna', 'Kuna pidu on üllatus, ei räägi keegi emale midagi.'],
+      ]), [
+        'sest pärast põhilauset.',
+        'kuna ees → kingime (tegusõna kohe).',
+        'sest pärast põhilauset.',
+        'kuna ees → sööme.',
+        'sest pärast põhilauset.',
+        'kuna ees → sõidab ta.',
+        'sest pärast põhilauset.',
+        'kuna ees → ei räägi keegi.',
+      ]), 'Kaheksa lauset näitavad, kuidas põhjus ettepanekuga ühendada.'),
+      tag(purpose(B.writing('009_p_sent', 'Kirjuta terved laused.', 'Kirjuta neli-viis lauset ühest peost, mida sa tahaksid teha: kaks ettepanekut (Teeme …! Võiksime …), kaks põhjust (sest, kuna) ja üks kokkulepe.', [4, 5]), 'Oma laused on pere nõupidamise jaoks valmis.'), { task: 'W03' }),
+      hide(B.wordorder('009_p_order', 'Tee ettepanek.', 'Pane sõnad õigesse järjekorda. Alusta lauset suure tähega.', [
         'Võiksime peo jaoks minibussi tellida.',
         'Kuna ema armastab laulda, kutsume ansambli.',
         'Lepime kokku, et Kadri teeb tordi.',
@@ -677,8 +1100,8 @@ export const LESSONS = withShapes({
         'Pigem jääksime talusse, sest seal on ruumi.',
         'Lähme reedel koos poodi kingitust ostma.',
         'Kas sa oleksid nõus fotograafi kutsuma?',
-      ], 'full'),
-      B.choice('009_p_best', 'Mis sobib kõige paremini?', 'Loe olukorda. Vali parim ettepanek või vastus.', [
+      ], 'full'), V5_DRILL),
+      hide(B.choice('009_p_best', 'Mis sobib kõige paremini?', 'Loe olukorda. Vali parim ettepanek või vastus.', [
         ['Sajab vihma ja lapsed igavlevad toas.', 'Mängime koos lauamängu!', 'Lähme randa päevitama!', 'Lähme metsa matkama!'],
         ['Tädi ja onu läksid tülli, aga mõlemad tulevad peole.', 'Paneme nad eri lauda, kuni nad ära lepivad.', 'Paneme nad kõrvuti ja räägime kõigile tülist.', 'Ütleme neile, et pidu jääb ära.'],
         ['Sõbranna on täna väga vaikne ja kurb.', 'Sa näed väsinud välja. Mis sinu elus toimub?', 'Miks sa nii naljakas oled?', 'Tule kohe tantsima, kõik on hästi!'],
@@ -687,8 +1110,8 @@ export const LESSONS = withShapes({
         ['Sofia pakub reisi Pariisi, aga raha on vähe.', 'Pigem kingime albumi, kuna see on odavam.', 'Hea küll, laename raha pangast.', 'Ostame kaks reisi korraga.'],
         ['Külalisi on 30, aga talus on 20 tooli.', 'Võiksime naabritelt toole laenata.', 'Kutsume vähem külalisi peole.', 'Kõik seisavad terve õhtu.'],
         ['Helgi ei tohi peost midagi teada.', 'Lepime kokku, et keegi ei ütle talle.', 'Saadame Helgile kohe kutse.', 'Räägime Helgile kõik ära.'],
-      ], 'full', 'g_use'),
-      tag(B.reading('009_p_viktor', 'Viktori kiri: vana lugu.', 'Viktor seletab Sofiale vana tüli. Märgi iga väite järele: õige, vale või ei selgu.', 'Miks nad tülli läksid', [
+      ], 'full', 'g_use'), V5_CUT),
+      hide(tag(B.reading('009_p_viktor', 'Viktori kiri: vana lugu.', 'Viktor seletab Sofiale vana tüli. Märgi iga väite järele: õige, vale või ei selgu.', 'Miks nad tülli läksid', [
         'Tere, Sofia! Sa küsisid, miks sinu ema ja Maie tülli läksid. Räägin sulle vana loo. Palun ära ütle seda emale!',
         '',
         '1989. aasta suvel oli meie külas suur pidu. Seal oli noor matemaatikaõpetaja, sinu isa. Maie armus temasse esimesest silmapilgust. Sinu isa kutsus ta kohtingule ja nad käisid kaks korda kinos. Siis nägi ta Helgit ja kõik muutus. Maie ja tema läksid lahku. Helgi ja sinu isa olid kohe kõrvuni armunud. Maie oli armukade, aga ta ei öelnud midagi.',
@@ -707,8 +1130,8 @@ export const LESSONS = withShapes({
         ['Maie saatis Helgile pärast tüli veel ühe kirja.', 'ei selgu'],
         ['Viktori meelest võib Maie tulek Helgile liiga suur üllatus olla.', 'õige'],
         ['Viktor ei usalda oma õde.', 'vale'],
-      ]), { task: 'R06' }),
-      tag(B.examListen('009_p_day', 'Peo kava.', 'Kuula Sofia ja Jaani juttu. Ühenda kellaaeg ja see, mis siis toimub.', 'match', [
+      ]), { task: 'R06' }), V5_CUT),
+      hide(tag(B.examListen('009_p_day', 'Peo kava.', 'Kuula Sofia ja Jaani juttu. Ühenda kellaaeg ja see, mis siis toimub.', 'match', [
         'Sofia: Jaan, teeme peo kava valmis. Kell üks toob Kõrve Köök toidu, eks?',
         'Jaan: Jah, kell üks. Pool tundi hiljem, kell pool kaks, tuleb minibuss Tartu sugulastega.',
         'Sofia: Ja kõik teised külalised tulevad kella kaheks.',
@@ -725,30 +1148,36 @@ export const LESSONS = withShapes({
       ], [
         ['kell 13.00', 'toit tuleb'], ['kell 13.30', 'Tartu sugulased tulevad'], ['kell 14.00', 'teised külalised tulevad'], ['kell 14.30', 'Helgi jõuab talusse'],
         ['kell 16.00', 'Maie laulab'], ['kell 17.00', 'Helgi lõikab torti'], ['kell 18.00', 'saun on soe'], ['kell 21.00', 'minibuss sõidab tagasi'],
-      ]), { task: 'L09' }),
-      B.transformation('009_p_why', 'Põhjenda: sest või kuna.', 'Ühenda laused antud sõnaga. Kuna-lause võib olla ees.', [
-        ['Võtame minibussi. Ema sõbrad ei taha autoga sõita.', 'sest', 'Võtame minibussi, sest ema sõbrad ei taha autoga sõita.'],
-        ['Reis on kallis. Kingime albumi.', 'kuna', 'Kuna reis on kallis, kingime albumi.'],
-        ['Pidu on talus. Seal on palju ruumi.', 'sest', 'Pidu on talus, sest seal on palju ruumi.'],
-        ['Novembris on külm. Sööme toas.', 'kuna', 'Kuna novembris on külm, sööme toas.'],
-        ['Kadri teeb tordi. Ta küpsetab väga hästi.', 'sest', 'Kadri teeb tordi, sest ta küpsetab väga hästi.'],
-        ['Maie elab Pärnus. Ta sõidab bussiga.', 'kuna', 'Kuna Maie elab Pärnus, sõidab ta bussiga.'],
-        ['Sofia helistab enne Maiele. Viktor kardab liiga suurt üllatust.', 'sest', 'Sofia helistab enne Maiele, sest Viktor kardab liiga suurt üllatust.'],
-        ['Helgi ei tohi midagi teada. Keegi ei räägi Miale peost.', 'kuna', 'Kuna Helgi ei tohi midagi teada, ei räägi keegi Miale peost.'],
-      ]),
-      B.crossword('009_p_cross', 'Ristsõna: peo sõnad.', 'Loe vihjet ja kirjuta peo sõna ristsõnasse.', [
+      ]), { task: 'L09' }), V5_CUT),
+      hide(B.crossword('009_p_cross', 'Ristsõna: peo sõnad.', 'Loe vihjet ja kirjuta peo sõna ristsõnasse.', [
         ['Seda saab sünnipäevalaps külalistelt.', 'kingitus'], ['Midagi, millest teised ei tea.', 'saladus'], ['Seda teed, kui pakud oma mõtet.', 'ettepanek'], ['Asi, mida pere teeb igal aastal samamoodi.', 'traditsioon'],
         ['Sellele küsimusele vastab „sest…”.', 'põhjus'], ['Kui kõik on ühe plaaniga nõus, on see…', 'kokkulepe'], ['Kui keegi ei tea peost ette, on pidu tema jaoks…', 'üllatus'], ['Suur pidu, kui kaks inimest abielluvad.', 'pulmad'],
-      ], 'half', 'g_vocab'),
-      teach(tag(B.rolecards('009_p_book', 'Helista Kõrve Köögile.', 'A tellib telefonis peole toitu, B töötab Kõrve Köögis. Siis tehke kõne uuesti uue paarilisega ja kiiremini.',
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.rolecards('009_p_book', 'Helista Kõrve Köögile.', 'A tellib telefonis peole toitu, B töötab Kõrve Köögis. Siis tehke kõne uuesti uue paarilisega ja kiiremini.',
         'Oled Jaan. Ütle, kes sa oled ja mis pidu on. Ütle kuupäev, kellaaeg ja koht. Küsi taimetoitu, hinda ja kuidas maksta. Lepi kokku, millal toit tuuakse.',
         'Töötad Kõrve Köögis. Toit maksab 12 eurot inimese kohta. Taimetoit on olemas. Toit tuuakse tund enne pidu. Maksta saab arvega pärast pidu. Küsi telefoninumbrit ja aadressi.',
         ['Tere, siin räägib…', 'Kas teil on ka taimetoitu?', 'Lepime kokku, et…'], ['Kõrve Köök, tere!', 'Mitmele inimesele?', 'Kas sobib, kui toome toidu kell…?']), { task: 'S04', fluency: true }),
-        'Üks-ühele: õpetaja on Kõrve Köögi töötaja; siis vahetage. Teisel korral teeb õpilane kõne ilma kaarti vaatamata ja õpetaja hoiab aega (3 minutit).'),
+        'Üks-ühele: õpetaja on Kõrve Köögi töötaja; siis vahetage. Teisel korral teeb õpilane kõne ilma kaarti vaatamata ja õpetaja hoiab aega (3 minutit).'), V5_CUT),
     ],
     transfer: [
-      B.text('009_t_sit', 'Pere nõupidamine', 'Reedel on pere videokõne. Kõik on lugenud Jaani plaani. Teil tuleb kokku leppida kingitus, muusika ja see, kuidas Helgi talusse tuleb. Pärast seda kirjutad sugulastele kutsekirja.'),
-      tag(B.reading('009_t_plan', 'Peo plaan ja eelarve.', 'Loe Jaani plaani. Vasta küsimustele: kasuta plaani numbreid ja põhjenda.', 'Helgi 60 — plaan', [
+      station(teach(tag(purpose(B.rolecards('009_t_meet', 'Pere nõupidamine: kuidas me peo teeme?', 'Te planeerite koos sünnipäeva ühele sugulasele. Vaata pilti „Kolm võimalust”. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: sinu tädi saab kuuskümmend. Sinu meelest on kõige parem pidu kodus, sest tädi armastab rahu.\nSinu eesmärk: teha kaks ettepanekut (koht ja kingitus), põhjendada neid ja leppida kokku.\nPiirang: sul on vähe raha.\nSiis uus olukord: pidu on sõbrale, kes armastab muusikat ja tantsu.',
+        'Olukord: sinu tädi saab kuuskümmend. Sinu meelest on maamaja parem, sest külalisi on palju.\nSinu eesmärk: teha kaks ettepanekut, põhjendada neid ja leppida kokku.\nPiirang: laupäeval oled sa tööl kella kolmeni.\nSiis uus olukord: pidu on sõbrale, kes armastab muusikat ja tantsu.',
+        ['Ma teen ettepaneku, et …', 'Võiksime …, sest …', 'Lepime kokku, et …'], []), 'Pärast nõupidamist on teil peo plaan: koht, aeg ja kingitus.'), { task: 'S03', harno: 'S1b', main: true, level: 4 }),
+      'Üks-ühele: sina oled B ja oled alguses teist meelt („Kodus on liiga vähe ruumi”); õpilane põhjendab sest- või kuna-lausega ja pakub kompromissi. Lõpus ütleb õpilane kokkuleppe („Lepime kokku, et …”). Teine katse ilma fraasideta: uus olukord kaardil (pidu sõbrale). Kodus salvestab õpilane kutse päris inimesele.'), 4, 25, { final: 'plan' }),
+      tag(exitCheck(why(purpose(B.choice('009_t_exit', 'Kontrolli end: kolm lauset.', 'Vali sõna, mis sobib lausesse.', [
+        ['…, sest seal on suur aed.', 'Teeme peo maal', 'Kuna teeme peo maal', 'Teeme peo maal, et'],
+        ['Kuna on külm, … toas.', 'sööme', 'me sööme', 'süüa'],
+        ['Ma teen …, et me kingime albumi.', 'ettepaneku', 'ettepanek', 'ettepanekut'],
+      ], 'full', 'g_vocab'), 'Kolm lauset näitavad, kas ettepanek ja põhjus on käes.'), ['sest-lause tuleb põhilause järel.', 'kuna-lause järel tegusõna kohe: sööme.', 'teen ettepaneku (mille?).'])), {}),
+      purpose(B.selfcheck('009_t_self', ['Ma teen ettepaneku: Teeme …! Võiksime …', 'Ma põhjendan sest- ja kuna-lausega.', 'Ma lepin teisega kokku ja ütlen kokkuleppe selgelt.', 'Ma kutsun päris inimese peole.'], 'Pidu planeeritud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(toAddressee(B.speaking('009_t_invite', 'Kodus: kutse päris inimesele.', 'Vali päris inimene: sõber, sugulane või kursusekaaslane. Salvesta talle 45–60-sekundiline häälsõnum ja kutsu ta peole (pidu võib olla päris või välja mõeldud). Saada sõnum talle päriselt ja too järgmisse tundi tema vastus.', [
+        'Mis pidu see on ja kelle jaoks? Millal ja kus?',
+        'Mida kaasa võtta? Mis on sinu palve (vasta …, ära räägi …)?',
+      ], [45, 60]), 'sinu valitud päris inimene (sõber, sugulane või kursusekaaslane)'), 'Sinu kutse läheb päris inimesele ja ta vastab sulle.')), { task: 'S15', fluency: true }),
+      homework('009_t_homework', ['1. Salvesta häälsõnum-kutse ja saada see päriselt oma valitud inimesele (ülesanne lehel).', '2. Too järgmisse tundi tema vastus.', `3. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('009_t_sit', 'Pere nõupidamine', 'Reedel on pere videokõne. Kõik on lugenud Jaani plaani. Teil tuleb kokku leppida kingitus, muusika ja see, kuidas Helgi talusse tuleb. Pärast seda kirjutad sugulastele kutsekirja.'), V5_CUT),
+      hide(tag(B.reading('009_t_plan', 'Peo plaan ja eelarve.', 'Loe Jaani plaani. Vasta küsimustele: kasuta plaani numbreid ja põhjenda.', 'Helgi 60 — plaan', [
         'Tere, Sofia ja onu! Siin on meie plaan. Panin kirja, mis on otsustatud ja mis on veel lahtine.',
         '',
         'Otsustatud: pidu on laupäeval, 14. novembril, Viktori talus. Külalised tulevad kell 14. Ema peaks talusse jõudma kell 14.30. Toit tuleb Kõrve Köögist: 30 inimest korda 12 eurot, kokku 360 eurot. Minibuss toob Tartu sugulased, see maksab 120 eurot. Tordi teeb Kadri.',
@@ -766,33 +1195,94 @@ export const LESSONS = withShapes({
         ['Mis kell peab Helgi talusse jõudma?', '14.30|pool kolm'],
         ['Miks on Maie tulek eriline üllatus?', 'nad läksid tülli ega ole aastaid suhelnud|Maie on Helgi kadunud nõbu'],
         ['Mida sina pakuksid kingituseks 320 euro eest? Miks?', ''],
-      ]), { task: 'R08', level: 3 }),
-      teach(tag(B.rolecards('009_t_meet', 'Pere nõupidamine (kaks korda).', 'A on Jaan, B on Sofia. Leppige kokku kingitus, muusika ja Helgi tulek.',
-        'Sa tahad kinkida reisi Pariisi, sest ema unistab sellest. Paku ka muusikat ja ideed, kuidas ema talusse tuua. Põhjenda. Teisel korral räägi uue paarilisega ja ainult 3 minutit.',
-        'Reis on sinu meelest liiga kallis: alles on ainult 320 eurot. Paku teist kingitust ja oma ideed muusika kohta. Põhjenda. Teisel korral räägi uue paarilisega ja ainult 3 minutit.',
-        ['Ma teen ettepaneku…, sest…', 'Kas sa oled nõus?', 'Hea küll, teeme nii…'], ['Pigem…, kuna…', 'Võiksime…', 'Lepime kokku, et…']), { task: 'S03', fluency: true }),
-      'Üks-ühele: õpetaja on Sofia ja on alguses reisi vastu; õpilane põhjendab ja pakub kompromissi. Teisel korral (3 minutit) korratakse sama arutelu kiiremini. Lõpus kirjutage kokkulepe üles.'),
-      tag(B.examWriting('009_t_letter', 'Kutsekiri sugulastele.', 'Kirjuta sugulastele kiri 80–100 sõnaga. Kirjuta kõigist viiest punktist.', 'kiri', {
+      ]), { task: 'R08', level: 3 }), V5_CUT),
+      hide(tag(B.examWriting('009_t_letter', 'Kutsekiri sugulastele.', 'Kirjuta sugulastele kiri 80–100 sõnaga. Kirjuta kõigist viiest punktist.', 'kiri', {
         situation: 'Pere leppis peo plaani kokku. Sina kirjutad kõigile sugulastele kutse.',
         points: ['kus ja millal pidu on', 'kuidas Tartu sugulased talusse saavad', 'mida kaasa võtta (või mitte)', 'miks pidu on saladus ja mida mitte teha', 'kellele ja millal vastata'],
         words: [80, 100], opening: 'Kallid sugulased!', closing: 'Ootame teid! Jaan, Sofia ja Viktor',
-      }), { main: true }),
-      teach(tag(B.speaking('009_t_rec', 'Kodus: meie pere nädalavahetus.', 'Räägi 1–2 minutit ja salvesta: mida teie pere tavaliselt koos teeb ja mida te sel nädalavahetusel plaanite.', ['Kes on sinu peres?', 'Mida te tavaliselt koos teete?', 'Kellega sa kõige paremini läbi saad ja miks?', 'Mida te sel nädalavahetusel plaanite?', 'Mis on sinu jaoks pere juures kõige tähtsam?'], [60, 120], ['Meie peres on…', 'Tavaliselt me…', 'Sel nädalavahetusel me…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib ühe lisaküsimuse.'),
-      tag(B.writing('009_t_final', 'Kiri puhtalt.', 'Kontrolli oma kirja lehe lõpus oleva juhendiga. Paranda vead ja kirjuta kiri puhtalt ümber.', [8, 10], ['sest', 'kuna', 'palun', 'lepime kokku'], 2), { task: 'W10' }),
-      B.rubricW2('009_t_rubric', 'Hindamine: kutsekiri (12 punkti).'),
-      B.selfcheck('009_t_self', ['Ma teen ettepaneku: Lähme…! Võiksime…', 'Ma põhjendan sest- ja kuna-lausega.', 'Ma lepin teistega kokku ja ütlen kokkuleppe selgelt.', 'Ma saan aru loost, kus inimesed armuvad, lahku lähevad ja tülli lähevad.', 'Ma kirjutan 80–100-sõnalise kutsekirja.'], 'Üllatus Helgile'),
+      }), { main: true }), V5_CUT),
+      hide(teach(tag(B.speaking('009_t_rec', 'Kodus: meie pere nädalavahetus.', 'Räägi 1–2 minutit ja salvesta: mida teie pere tavaliselt koos teeb ja mida te sel nädalavahetusel plaanite.', ['Kes on sinu peres?', 'Mida te tavaliselt koos teete?', 'Kellega sa kõige paremini läbi saad ja miks?', 'Mida te sel nädalavahetusel plaanite?', 'Mis on sinu jaoks pere juures kõige tähtsam?'], [60, 120], ['Meie peres on…', 'Tavaliselt me…', 'Sel nädalavahetusel me…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib ühe lisaküsimuse.'), V5_CUT),
+      hide(tag(B.writing('009_t_final', 'Kiri puhtalt.', 'Kontrolli oma kirja lehe lõpus oleva juhendiga. Paranda vead ja kirjuta kiri puhtalt ümber.', [8, 10], ['sest', 'kuna', 'palun', 'lepime kokku'], 2), { task: 'W10' }), V5_CUT),
+      hide(B.rubricW2('009_t_rubric', 'Hindamine: kutsekiri (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 010 control 2: one sheet, listening + speaking + writing
   'a2b1-010': {
-    title: 'Eksam 2 — pere ja suhted',
+    title: 'Kontroll 2: mina, pere ja suhted',
+    format: 'exam',
     assessment: true,
-    canDo: 'Ma sooritan mooduli eksami Harno A2 vormis: loen, kuulan, kirjutan ja räägin pere ja suhete teemal; eesmärk on vähemalt 80 % igas osas.',
+    canDo: 'Ma saan aru pere teemalistest teadetest ja vestlustest, räägin ilma abita inimesest, kes on mulle tähtis, lepin kokku ja kirjutan lühikese sõnumi.',
     discover: [
-      B.text('010_d_intro', 'Mooduli eksam', 'Selles tunnis teed mooduli 2 eksami Harno A2 vormis. Eksamil on neli osa: lugemine (50 min), kuulamine (umbes 30 min), kirjutamine (30 min) ja rääkimine (umbes 15 min). Eesmärk: vähemalt 80 % igas osas. Kõigepealt kordad mooduli sõnu ja vorme.'),
-      B.vocab('010_d_vocab', 'Mooduli võtmesõnad.', ['sugulane — родственник', 'nõbu — двоюродный брат / сестра', 'iseloom — характер', 'kannatlik — терпеливый', 'usaldama — доверять', 'armuma — влюбляться', 'tülli minema — поссориться', 'ära leppima — помириться', 'kaotama — терять', 'ettepanek — предложение', 'kokkulepe — договорённость', 'üllatus — сюрприз']),
-      B.choice('010_d_quiz', 'Mooduli viktoriin.', 'Mida sa moodulist mäletad? Vali õige vastus.', [
+      B.text('010_d_intro', 'Kontroll 2', `See on mooduli 2 kontroll Harno A2 eksami vormis: kuulamine 15 minutit, rääkimine 15 minutit ja kirjutamine 15 minutit, ilma sõnaraamatuta. Rääkimise esimene ülesanne on paralleelne tunni 6 külma stardiga: lõpus võrdled. ${THRESHOLDS}`),
+      half(B.examPart('010_p_lpart', 'L', { part: 'Kuulamine', minutes: 15, points: 14, tasks: 2, target: 60, note: `Iga salvestist kuulad kaks korda. ${THRESHOLDS}` })),
+      tag(half(why(locked(B.examListen('010_p_l2', 'Kuulamine 1. Raadiovestlus.', 'Kuula raadiovestlust kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', [
+        'Ülle: Tere, kuulajad! Täna räägime vanavanematest. Stuudios on Ants Mägi, kellel on viis lapselast.',
+        'Ants: Tere! Jah, viis lapselast ja üks lapselapselaps.',
+        'Ülle: Kui tihti te neid näete?',
+        'Ants: Kaks vanemat lapselast elavad Tartus, nendega kohtume iga pühapäev. Teised elavad Soomes. Nendega räägime videokõnes.',
+        'Ülle: Mida te koos teete?',
+        'Ants: Suvel käime kalal ja korjame marju. Talvel mängime malet. Noorim lapselaps Kaspar võidab mind juba!',
+        'Ülle: Kas vanavanemad peaksid lapselapsi hoidma?',
+        'Ants: Mina hoian hea meelega, aga mitte iga päev. Vanavanematel on ka oma elu. Ma laulan kooris ja käin ujumas.',
+        'Ülle: Mis on teie nõuanne noortele vanavanematele?',
+        'Ants: Kuulake lapselapsi. Nad räägivad teile asju, mida nad vanematele ei räägi.',
+      ], [
+        ['Antsul on viis lapselast.', true], ['Ants elab koos lapselastega Tartus.', false], ['Soomes elavate lapselastega räägib Ants videokõnes.', true],
+        ['Talvel käivad nad koos kalal.', false], ['Ants hoiab lapselapsi iga päev.', false], ['Ants laulab kooris.', true], ['Ants mängib malet ainult suvel.', false], ['Antsu meelest tuleb lapselapsi kuulata.', true],
+      ])), [
+        'Saate algus: „kellel on viis lapselast”.',
+        'Tartus elavad kaks lapselast; nendega kohtutakse pühapäeval.',
+        'Soomes elavatega räägitakse videokõnes.',
+        'Talvel mängitakse malet; kalal käiakse suvel.',
+        '„Mina hoian hea meelega, aga mitte iga päev.”',
+        '„Ma laulan kooris ja käin ujumas.”',
+        'Malet mängitakse talvel.',
+        '„Kuulake lapselapsi.”',
+      ])), { harno: 'L4', task: 'L05' }),
+      tag(why(locked(B.listening('010_p_l3', 'Kuulamine 2. Telefonisõnum.', 'Kuula sõnumit kaks korda. Kirjuta igasse lünka üks või kaks sõna.', [
+        'Kai: Tere, Liina! Siin Kai Pärnust. Ema palus mul helistada.',
+        'Kai: Meie suguvõsa kokkutulek on sel aastal juuli teisel laupäeval. Kohtume onu talus, algus on kell kaksteist.',
+        'Kai: Kõigepealt sööme koos lõunat. Pärast lõunat on lastele mängud ja täiskasvanutele jalutuskäik järve äärde. Õhtul teeme lõkke.',
+        'Kai: Iga pere toob ühe toidu. Meie toome kooki. Palun võta sina kaasa salatit.',
+        'Kai: Ööbida saab talus, aga voodeid on vähe. Seepärast võta kaasa magamiskott.',
+        'Kai: Palun anna mulle nädala lõpuks teada, mitu inimest teie perest tuleb. Kohtumiseni!',
+      ], [
+        'Suguvõsa kokkutulek on juulis, kuu teisel [laupäeval].', 'Kokkutulek algab kell [kaksteist|12].', 'Täiskasvanud jalutavad [järve] äärde.',
+        'Õhtul tehakse [lõke|lõket].', 'Liina peab kaasa võtma [salatit|salati].', 'Ööbimiseks on vaja [magamiskotti|magamiskott].',
+      ])), [
+        '„juuli teisel laupäeval”.',
+        '„algus on kell kaksteist”.',
+        '„jalutuskäik järve äärde”.',
+        '„Õhtul teeme lõkke.”',
+        '„Palun võta sina kaasa salatit.”',
+        '„võta kaasa magamiskott”.',
+      ]), { harno: 'L3a', task: 'L07' }),
+      half(B.examPart('010_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele või paaris. Ülesanne 1 on ilma abita; ülesanne 2 on kokkulepe.' })),
+      teach(tag(half(B.speaking('010_t_s1', 'Rääkimine 1. Inimene, kes on mulle tähtis.', 'Räägi 45–60 sekundit ilma abita ja ilma märkmeteta.', [
+        'Kes on inimene, kes on sulle tähtis? Kes ta sulle on, milline ta on ja miks ta on sulle tähtis?',
+      ], [45, 60])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 6 külm start): sama hindamine, uus teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: kelle-vorm, kes-laused) ja võrdle tunni 6 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.rolecards('010_t_s2', 'Rääkimine 2. Kokkulepe: suguvõsa kokkutulek.', 'Õpetaja (või paariline) on sinu nõbu. Planeerige koos suguvõsa kokkutulekut: koht, toit ja üks tegevus lastele. Tee ettepanekuid, põhjenda ja leppige kokku.',
+        'Sina tahad kokkutulekut linnas, sest paljudel ei ole autot. Paku ka toitu ja üht tegevust lastele.',
+        'Sina tahad kokkutulekut maal, sest seal on ruumi. Ütle üks takistus ja otsige koos lahendus.',
+        [], []), { harno: 'S2' }),
+      'Õpetaja on B ja ütleb ühe takistuse („Laupäeval sajab vihma”). Punktid 0–5: kaks ettepanekut põhjusega 0–2, reageerib takistusele 0–1, sõnastab kokkuleppe 0–1, vormid (sest / kuna, ettepaneku) 0–1.'),
+      half(B.examPart('010_t_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks lühike sõnum, 30–50 sõna, kõigist neljast punktist.' })),
+      tag(teach(half(B.examWriting('010_t_w2', 'Kirjutamine. Leitud telefon.', 'Kirjuta nõbule sõnum 30–50 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
+        situation: 'Pärast suguvõsa kokkutulekut leidsid talust oma nõbu Mardi telefoni.',
+        points: ['kus ja millal sa telefoni leidsid', 'milline telefon on', 'kus telefon praegu on', 'kuidas Mart selle tagasi saab'],
+        words: [30, 50], opening: 'Tere, Mart!',
+      })), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (mis-laused, oma, omastav, lihtminevik).'), { harno: 'W1b' }),
+      teach(half(B.table('010_t_result', 'Minu tulemus.', 'Arvuta iga osa protsent ja võrdle rääkimist tunni 6 külma stardiga. Lävendid: Harno 60 %, KeeleSepp 70 % / 80 %.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Kuulamine (14 punkti) |  |  | ',
+        'Rääkimine (10 punkti) |  |  | ',
+        'Kirjutamine (8 punkti) |  |  | ',
+        'Rääkimine ilma abita (tund 6 → tund 10) |  |  | ',
+      ])), 'Õpetajale: viimane rida on tunni 6 külma starti ja selle tunni rääkimise 1 võrdlus (kolm märget). Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (kuulamine → tund 9, rääkimine → tunnid 7–9, kirjutamine → tund 8).'),
+      hide(B.vocab('010_d_vocab', 'Mooduli võtmesõnad.', ['sugulane — родственник', 'nõbu — двоюродный брат / сестра', 'iseloom — характер', 'kannatlik — терпеливый', 'usaldama — доверять', 'armuma — влюбляться', 'tülli minema — поссориться', 'ära leppima — помириться', 'kaotama — терять', 'ettepanek — предложение', 'kokkulepe — договорённость', 'üllatus — сюрприз']), V5_CUT),
+      hide(B.choice('010_d_quiz', 'Mooduli viktoriin.', 'Mida sa moodulist mäletad? Vali õige vastus.', [
         ['Kes on Maie Helgile?', 'nõbu', 'õde', 'tädi'],
         ['Kelle talus veetsid Helgi ja Maie lapsena suved?', 'vanaema talus', 'Maie talus', 'naabri talus'],
         ['Kellesse armus Maie noorena esimesest silmapilgust?', 'Sofia isasse', 'Viktorisse', 'Toomasesse'],
@@ -801,8 +1291,8 @@ export const LESSONS = withShapes({
         ['Kus toimub Helgi üllatuspidu?', 'Viktori talus', 'Tartu kohvikus', 'Jaani kodus'],
         ['Mis sobib lausesse: Kott, … ma kaotasin, oli roheline.', 'mille', 'mis', 'kes'],
         ['Mis sobib lausesse: Hoidja on inimene, … lapsed usaldavad.', 'keda', 'kes', 'kellel'],
-      ], 'full', 'g_notice'),
-      B.reading('010_d_party', 'Helgi pidu.', 'Loe, kuidas pidu läks. Vasta küsimustele lühidalt.', 'Kõige ilusam sünnipäev', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.reading('010_d_party', 'Helgi pidu.', 'Loe, kuidas pidu läks. Vasta küsimustele lühidalt.', 'Kõige ilusam sünnipäev', [
         'Laupäeval kell pool kolm tuli Helgi Viktori tallu. Viktor oli talle öelnud, et vajab abi vana albumi parandamisega. Kui Helgi ukse avas, hüüdsid kolmkümmend inimest: „Palju õnne!”',
         '',
         'Helgi ei saanud alguses sõnagi öelda. Siis nägi ta nurgas naist, kellel oli käes kitarr. „Maie?” küsis ta vaikselt. Nõod kallistasid kaua. „Anna mulle andeks,” ütles Maie. Nii leppisid nad pärast pikki aastaid ära. Paljud külalised nutsid koos nendega. Mia ei saanud aru, miks täiskasvanud nutavad, kui pidu on nii lõbus.',
@@ -817,15 +1307,15 @@ export const LESSONS = withShapes({
         ['Mis oli Viktori tehtud karbis?', 'album vanade fotode ja kirjadega|album'],
         ['Milline pilt oli albumi esimesel lehel?', 'kaks tüdrukut õunapuu all'],
         ['Mis on pärast pidu teisiti?', 'Helgi ja Maie helistavad teineteisele iga nädal'],
-      ]),
-      B.categorize('010_d_sort', 'Mooduli sõnad teemade kaupa.', 'Pane sõnad õige teema alla.', [
+      ]), V5_CUT),
+      hide(B.categorize('010_d_sort', 'Mooduli sõnad teemade kaupa.', 'Pane sõnad õige teema alla.', [
         ['pere ja sugulased', ['onu', 'nõbu', 'lapselaps', 'vanavanemad']],
         ['välimus ja iseloom', ['habe', 'prillid', 'kannatlik', 'tagasihoidlik']],
         ['kaotatud ja leitud', ['omanik', 'leitud asjad', 'unustama', 'büroo']],
         ['pidu ja kokkulepe', ['ettepanek', 'kingitus', 'saladus', 'kokkulepe']],
         ['armastus ja sõprus', ['kohting', 'abielluma', 'armukade', 'klapp']],
-      ], 'full', 'g_notice'),
-      B.transformation('010_d_trans', 'Ühest lausest teine.', 'Kirjuta lause teisiti, kasuta antud sõna.', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.transformation('010_d_trans', 'Ühest lausest teine.', 'Kirjuta lause teisiti, kasuta antud sõna.', [
         ['Mul on õde. Tal on kaks last.', 'Need on …', 'Need on minu õe lapsed.'],
         ['Maie on naine. Tal on kitarr.', 'kellel', 'Maie on naine, kellel on kitarr.'],
         ['Viktor kaotas seljakoti. See oli roheline.', 'mille', 'Seljakott, mille Viktor kaotas, oli roheline.'],
@@ -834,8 +1324,8 @@ export const LESSONS = withShapes({
         ['Mul on hea sõber. Ma usaldan teda.', 'keda', 'Mul on hea sõber, keda ma usaldan.'],
         ['Pidu on talus. Talu on Viktori oma.', 'mis', 'Pidu on talus, mis on Viktori oma.'],
         ['Kingitus on kallis. Me ei saa seda osta.', 'kuna', 'Kuna kingitus on kallis, ei saa me seda osta.'],
-      ], 'full', 'g_notice'),
-      B.errorfix('010_d_fix', 'Leia viga.', 'Igas lauses on üks viga, mida eksamil sageli tehakse. Kirjuta lause õigesti.', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.errorfix('010_d_fix', 'Leia viga.', 'Igas lauses on üks viga, mida eksamil sageli tehakse. Kirjuta lause õigesti.', [
         ['See on minu õde laps.', 'See on minu õe laps.'],
         ['Ta on sinised silmad.', 'Tal on sinised silmad.'],
         ['Ma otsin minu telefoni.', 'Ma otsin oma telefoni.'],
@@ -844,9 +1334,9 @@ export const LESSONS = withShapes({
         ['Raamat, mis ma loen, on huvitav.', 'Raamat, mida ma loen, on huvitav.'],
         ['Ta hoolib mind väga.', 'Ta hoolib minust väga.'],
         ['Sofia helistas tema emale ja rääkis peost.', 'Sofia helistas oma emale ja rääkis peost.'],
-      ]),
-      B.writing('010_d_write', 'Minu inimene.', 'Kirjuta 6–8 lauset ühest lähedasest: kes ta sulle on, milline ta on, miks te hästi läbi saate.', [6, 8], ['kes', 'usaldan', 'oma', 'sest'], 2),
-      teach(B.examiner('010_d_warm', 'pere ja suhted', [
+      ]), V5_DRILL),
+      hide(B.writing('010_d_write', 'Minu inimene.', 'Kirjuta 6–8 lauset ühest lähedasest: kes ta sulle on, milline ta on, miks te hästi läbi saate.', [6, 8], ['kes', 'usaldan', 'oma', 'sest'], 2), V5_CUT),
+      hide(teach(B.examiner('010_d_warm', 'pere ja suhted', [
         'Kes on sinu peres ja kus nad elavad?',
         'Kui tihti te sugulastega kokku saate ja mida te siis koos teete?',
         'Milline inimene on sinu meelest hea sõber?',
@@ -855,19 +1345,19 @@ export const LESSONS = withShapes({
         'Mille poolest on pered Eestis ja sinu kodumaal erinevad?',
         'Miks on paljudel inimestel praegu vähem lapsi kui vanasti?',
       ]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Siis küsib õpilane õpetajalt kaks küsimust.'),
+        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Siis küsib õpilane õpetajalt kaks küsimust.'), V5_CUT),
     ],
     practice: [
-      B.examPart('010_p_rpart', 'R', { minutes: 50, points: 30, tasks: 5, note: 'Harno A2 lugemisosa: viis ülesannet. Lugege iga ülesande juhis enne teksti läbi.' }),
-      B.choice('010_p_r1', 'Lugemine 1. Mida öelda?', 'Lugege olukorda. Valige, mida selles olukorras öelda.', [
+      hide(B.examPart('010_p_rpart', 'R', { minutes: 50, points: 30, tasks: 5, note: 'Harno A2 lugemisosa: viis ülesannet. Lugege iga ülesande juhis enne teksti läbi.' }), V5_CUT),
+      hide(B.choice('010_p_r1', 'Lugemine 1. Mida öelda?', 'Lugege olukorda. Valige, mida selles olukorras öelda.', [
         ['Teie tädi saab 70-aastaseks. Mida te talle ütlete?', 'Palju õnne sünnipäevaks!', 'Head paranemist!', 'Jõudu tööle!'],
         ['Teie nõbu abiellub laupäeval. Mida te talle kirjutate?', 'Palju õnne ja armastust teile mõlemale!', 'Vabandust, et ma nii hilja kirjutan!', 'Head paranemist teile mõlemale!'],
         ['Naaber leidis teie koti ja tõi selle ära. Mida te ütlete?', 'Suur aitäh, et te selle tõite!', 'Pole midagi, aitan hea meelega.', 'Palun väga, tulge jälle!'],
         ['Sõber ütleb: „Mu vanaema on haiglas.” Mida te ütlete?', 'Kahju! Head paranemist talle!', 'Tore, palju õnne talle!', 'Head reisi talle!'],
         ['Teie sõbranna on täna vaikne ja kurb. Mida te ütlete?', 'Sa näed veidi kurb välja. Kuidas sul päriselt läheb?', 'Tere tulemast meie juurde!', 'Head isu ja jätku leivale!'],
         ['Teie nõbul sündis poeg. Mida te kirjutate?', 'Palju õnne, tervist pisikesele!', 'Head reisi, tervist pisikesele!', 'Kahju küll, et nii läks!'],
-      ]),
-      B.reading('010_p_r2', 'Lugemine 2. Kolm kuulutust.', 'Lugege kolme kuulutust. Kirjutage iga küsimuse järele kuulutuse täht (A, B või C).', 'Pere ja vaba aeg', [
+      ]), V5_CUT),
+      hide(B.reading('010_p_r2', 'Lugemine 2. Kolm kuulutust.', 'Lugege kolme kuulutust. Kirjutage iga küsimuse järele kuulutuse täht (A, B või C).', 'Pere ja vaba aeg', [
         'A. Pereklubi „Koos”. Ootame peresid, kus kasvavad väikesed lapsed. Igal laupäeval kell 11 on meil laulu- ja mänguhommik. Vanemad saavad samal ajal kohvi juua ja teiste vanematega rääkida. Osalemine on tasuta, aga palun registreerige end eelmisel päeval telefoni teel. Klubi asub kultuurimaja teisel korrusel.',
         '',
         'B. Vanavanemate kursus „Nutitelefon ja lapselapsed”. Õpime, kuidas teha videokõnet, saata pilte ja kirjutada sõnumeid. Kursus on kolmapäeviti kell 17 raamatukogus. Kursus maksab 20 eurot. Kaasa tuleb võtta oma telefon. Kursuse lõpus saadab iga osaleja oma lapselapsele video.',
@@ -876,8 +1366,8 @@ export const LESSONS = withShapes({
       ], [
         ['Kuhu minna, kui tahate pidada suure sünnipäeva?', 'C'], ['Kus saab vanaema õppida pilte saatma?', 'B'], ['Kuhu saab minna laupäeva hommikul koos väikese lapsega?', 'A'],
         ['Kus tuleb maksta 20 eurot?', 'B'], ['Kuhu tuleb helistada üks päev varem?', 'A'], ['Kus võib ise toitu kaasa tuua?', 'C'],
-      ]),
-      B.reading('010_p_r3', 'Lugemine 3. Sildid ja teated.', 'Lugege silte. Kirjutage iga olukorra järele sobiva sildi täht.', 'Linnas ja kaubanduskeskuses', [
+      ]), V5_CUT),
+      hide(B.reading('010_p_r3', 'Lugemine 3. Sildid ja teated.', 'Lugege silte. Kirjutage iga olukorra järele sobiva sildi täht.', 'Linnas ja kaubanduskeskuses', [
         'A. Leitud asjad: kui olete midagi kaotanud, küsige infoletist. Infolett asub esimesel korrusel peaukse kõrval ja on avatud iga päev.',
         '',
         'B. Pereujumine pühapäeviti kella 10–12. Alla seitsmeaastased lapsed ujuvad koos vanematega tasuta. Täiskasvanu pilet maksab viis eurot.',
@@ -895,8 +1385,8 @@ export const LESSONS = withShapes({
         ['Te kaotasite kaubanduskeskuses oma kindad. Kuhu lähete?', 'A'], ['Teie viieaastane poeg tahab ujuda. Mis silt sobib?', 'B'],
         ['Te otsite õhtust tööd lastega. Mis kuulutus sobib?', 'D'], ['Vanaema tahab lapselapsega muuseumisse minna. Mis teade sobib?', 'E'],
         ['Te tahate kogu perest pilti teha. Kuhu pöördute?', 'G'],
-      ]),
-      B.reading('010_p_r4text', 'Lugemine 4. Lugu ajalehest.', 'Lugege teksti. Siis vastake järgmise ülesande küsimustele.', 'Sada aastat ühes külas', [
+      ]), V5_CUT),
+      hide(B.reading('010_p_r4text', 'Lugemine 4. Lugu ajalehest.', 'Lugege teksti. Siis vastake järgmise ülesande küsimustele.', 'Sada aastat ühes külas', [
         'Saaremaal Kuressaare lähedal elab Hilda Kask. Eelmisel nädalal sai ta sajaaastaseks. Sünnipäevale tuli üle neljakümne sugulase: lapsed, lapselapsed ja isegi kolm lapselapselast.',
         '',
         'Hilda on elanud kogu elu samas külas. Noorena töötas ta külakoolis õpetajana. Tema mees suri kakskümmend aastat tagasi. Praegu elab Hilda koos tütre perega, aga süüa teeb ta ikka ise.',
@@ -904,15 +1394,15 @@ export const LESSONS = withShapes({
         '„Minu pikk elu on töö ja naeru tõttu,” ütleb Hilda. Iga hommik läheb ta aeda ja jalutab koeraga mere äärde. Õhtuti loeb ta ajalehte ja lahendab ristsõnu. Arsti juures käib ta ainult kord aastas.',
         '',
         'Kõige rohkem rõõmustas Hildat kingitus lapselastelt. Nad tegid filmi, kus kõik sugulased räägivad oma lemmikmälestusest temaga. Film kestab üks tund. Hilda on seda vaadanud juba viis korda. Järgmisel aastal tahab ta sõita mandrile, et külastada oma nooremat venda.',
-      ], []),
-      tag(B.choice('010_p_r4', 'Lugemine 4. Valige õige vastus.', 'Vastake teksti põhjal. Igal küsimusel on üks õige vastus.', [
+      ], []), V5_CUT),
+      hide(tag(B.choice('010_p_r4', 'Lugemine 4. Valige õige vastus.', 'Vastake teksti põhjal. Igal küsimusel on üks õige vastus.', [
         ['Kui vanaks sai Hilda Kask?', 'sajaaastaseks', 'kaheksakümneaastaseks', 'neljakümneaastaseks'],
         ['Mis tööd tegi Hilda noorena?', 'Ta oli õpetaja.', 'Ta oli arst.', 'Ta oli kokk.'],
         ['Kellega Hilda praegu elab?', 'tütre perega', 'üksi oma koeraga', 'oma mehega'],
         ['Mida Hilda teeb igal hommikul?', 'jalutab koeraga mere ääres', 'lahendab ristsõnu', 'loeb ajalehte'],
         ['Mis kingitus Hildale kõige rohkem meeldis?', 'film sugulaste mälestustega', 'raamat tema külast', 'reis mere äärde'],
-      ]), { harno: 'R2' }),
-      tag(B.cloze('010_p_r5', 'Lugemine 5. Kiri nõbule.', 'Lugege Sofia kirja. Valige igasse lünka sobiv sõna.', 'Kallis Kristi!', [
+      ]), { harno: 'R2' }), V5_CUT),
+      hide(tag(B.cloze('010_p_r5', 'Lugemine 5. Kiri nõbule.', 'Lugege Sofia kirja. Valige igasse lünka sobiv sõna.', 'Kallis Kristi!', [
         'Aitäh {*sinu|sina|sind} kirja eest! Ema räägib ikka veel peost. Kui hea, et nad Maiega ära leppisid! Ta helistab {*sinu|sina|sind} emale iga nädal.',
         '',
         'Mina olen nüüd väga hõivatud. Meie kontoris alustas uus kolleeg, {*kellel|kes|keda} on kaks väikest last. Ta on vaikne, aga väga {*abivalmis|abivalmid|abivalmist}.',
@@ -922,9 +1412,8 @@ export const LESSONS = withShapes({
         'Kas te tulete suvel Viktori tallu? Onu teeb ettepaneku, {*et|kas|kui} kõik sugulased tuleksid jaanipäeval kokku. Mulle meeldib see idee väga, {*sest|aga|või} siis näeme jälle kõiki!',
         '',
         'Kallistan, Sofia',
-      ]), { harno: 'R3a' }),
-      B.examPart('010_p_lpart', 'L', { minutes: 30, points: 25, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne kuulamist lugege küsimused läbi.' }),
-      tag(B.examListen('010_p_l1', 'Kuulamine 1. Lühikesed teated.', 'Kuulake seitset lühikest teksti. Valige igale küsimusele õige vastus.', 'choice', [
+      ]), { harno: 'R3a' }), V5_DRILL),
+      hide(tag(B.examListen('010_p_l1', 'Kuulamine 1. Lühikesed teated.', 'Kuulake seitset lühikest teksti. Valige igale küsimusele õige vastus.', 'choice', [
         'Esimene tekst. Tere, siin on lasteaed. Teie tütar unustas täna oma kindad. Need on rühma ukse juures riiulil.',
         'Teine tekst. Tähelepanu! Kaubanduskeskuse infolett on teisel korrusel, apteegi kõrval.',
         'Kolmas tekst. Hei, Mart! Vanaisa sünnipäev on pühapäeval, mitte laupäeval. Pidu algab kell neli.',
@@ -940,34 +1429,8 @@ export const LESSONS = withShapes({
         ['Mida küsib inimene poest?', 'kas kodus on mune', 'kas kodus on leiba', 'kas kodus on juustu'],
         ['Miks Sofia täna ei tule?', 'ta on haige', 'tal on palju tööd', 'ta on reisil'],
         ['Milline on homme õhtul ilm?', 'võib sadada vihma', 'on päikeseline', 'tuleb lund'],
-      ]), { harno: 'L1' }),
-      tag(B.examListen('010_p_l2', 'Kuulamine 2. Raadiovestlus.', 'Kuulake raadiovestlust. Märkige, kas väide on õige või vale.', 'truefalse', [
-        'Ülle: Tere, kuulajad! Täna räägime vanavanematest. Stuudios on Ants Mägi, kellel on viis lapselast.',
-        'Ants: Tere! Jah, viis lapselast ja üks lapselapselaps.',
-        'Ülle: Kui tihti te neid näete?',
-        'Ants: Kaks vanemat lapselast elavad Tartus, nendega kohtume iga pühapäev. Teised elavad Soomes. Nendega räägime videokõnes.',
-        'Ülle: Mida te koos teete?',
-        'Ants: Suvel käime kalal ja korjame marju. Talvel mängime malet. Noorim lapselaps Kaspar võidab mind juba!',
-        'Ülle: Kas vanavanemad peaksid lapselapsi hoidma?',
-        'Ants: Mina hoian hea meelega, aga mitte iga päev. Vanavanematel on ka oma elu. Ma laulan kooris ja käin ujumas.',
-        'Ülle: Mis on teie nõuanne noortele vanavanematele?',
-        'Ants: Kuulake lapselapsi. Nad räägivad teile asju, mida nad vanematele ei räägi.',
-      ], [
-        ['Antsul on viis lapselast.', true], ['Ants elab koos lapselastega Tartus.', false], ['Soomes elavate lapselastega räägib Ants videokõnes.', true],
-        ['Talvel käivad nad koos kalal.', false], ['Ants hoiab lapselapsi iga päev.', false], ['Antsu meelest tuleb lapselapsi kuulata.', true],
-      ]), { harno: 'L4' }),
-      tag(B.listening('010_p_l3', 'Kuulamine 3. Telefonisõnum.', 'Kuulake sõnumit. Kirjutage igasse lünka üks või kaks sõna.', [
-        'Kristi: Tere, Sofia! Siin Kristi Pärnust. Ema palus mul helistada.',
-        'Kristi: Meie suguvõsa kokkutulek on sel aastal juuli teisel laupäeval. Kohtume Viktori talus, algus on kell kaksteist.',
-        'Kristi: Kõigepealt sööme koos lõunat. Pärast lõunat on lastele mängud ja täiskasvanutele jalutuskäik järve äärde. Õhtul teeme lõkke.',
-        'Kristi: Iga pere toob ühe toidu. Meie toome kooki. Palun võta sina kaasa salatit.',
-        'Kristi: Ööbida saab talus, aga voodeid on vähe. Seepärast võta kaasa magamiskott.',
-        'Kristi: Palun anna mulle nädala lõpuks teada, mitu inimest teie perest tuleb. Kohtumiseni!',
-      ], [
-        'Suguvõsa kokkutulek on juulis, kuu teisel [laupäeval].', 'Kokkutulek algab kell [kaksteist|12].', 'Täiskasvanud jalutavad [järve] äärde.',
-        'Õhtul tehakse [lõke|lõket].', 'Sofia peab kaasa võtma [salatit|salati].', 'Ööbimiseks on vaja [magamiskotti|magamiskott].',
-      ]), { harno: 'L3a' }),
-      B.examListen('010_p_l4', 'Kuulamine 4. Kes mida teeb?', 'Kuulake vestlust. Ühendage iga inimene sellega, mida ta suvepeol teeb.', 'match', [
+      ]), { harno: 'L1' }), V5_CUT),
+      hide(B.examListen('010_p_l4', 'Kuulamine 4. Kes mida teeb?', 'Kuulake vestlust. Ühendage iga inimene sellega, mida ta suvepeol teeb.', 'match', [
         'Kadri: Jaan, kas sa kirjutasid üles, kes mida suvepeol teeb?',
         'Jaan: Jah. Onu Viktor teeb sauna soojaks. Ta tahab ka grillida, aga grilli teen mina.',
         'Kadri: Hea. Ja Sofia?',
@@ -980,36 +1443,23 @@ export const LESSONS = withShapes({
         'Jaan: Sina puhkad! Sa töötasid terve nädala öösiti.',
       ], [
         ['Viktor', 'teeb sauna soojaks'], ['Jaan', 'grillib'], ['Sofia', 'toob tordi'], ['Maie', 'laulab'], ['Kristi', 'mängib lastega'], ['Helgi', 'teeb pannkooke'],
-      ]),
-      B.rubric('010_p_points', 'Minu punktid.', 'Arvuta punktid. Eesmärk on vähemalt 80 % igas osas.', ['Lugemine 1–5: … / 30 (eesmärk 24)', 'Kuulamine 1–4: … / 25 (eesmärk 20)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']),
+      ]), V5_CUT),
+      hide(B.rubric('010_p_points', 'Minu punktid.', 'Arvuta punktid. Eesmärk on vähemalt 80 % igas osas.', ['Lugemine 1–5: … / 30 (eesmärk 24)', 'Kuulamine 1–4: … / 25 (eesmärk 20)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']), V5_CUT),
     ],
     transfer: [
-      B.examPart('010_t_wpart', 'W', { minutes: 30, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest.' }),
-      B.notice('010_t_card', 'Visiitkaart', ['**Eve Tamm** — lapsehoidja', '10 aastat kogemust, räägib eesti, vene ja inglise keelt', 'Töötab Tallinnas, Kristiines', 'Aeg: tööpäeviti 15–20, laupäeval kokkuleppel', 'Telefon: 5512 3456'], 'full', 'g_read'),
-      B.examWriting('010_t_w1', 'Kirjutamine 1. Soovitage hoidjat.', 'Teie sõber otsib lapsehoidjat. Kirjutage visiitkaardi põhjal: kes, kus, millal, kuidas ühendust võtta.', 'teade', {
+      hide(B.notice('010_t_card', 'Visiitkaart', ['**Eve Tamm** — lapsehoidja', '10 aastat kogemust, räägib eesti, vene ja inglise keelt', 'Töötab Tallinnas, Kristiines', 'Aeg: tööpäeviti 15–20, laupäeval kokkuleppel', 'Telefon: 5512 3456'], 'full', 'g_read'), V5_CUT),
+      hide(B.examWriting('010_t_w1', 'Kirjutamine 1. Soovitage hoidjat.', 'Teie sõber otsib lapsehoidjat. Kirjutage visiitkaardi põhjal: kes, kus, millal, kuidas ühendust võtta.', 'teade', {
         situation: 'Sõber Liina otsib lastele hoidjat. Teil on Eve Tamme visiitkaart.',
         points: ['kes on Eve Tamm', 'kus ta töötab', 'millal ta saab lapsi hoida', 'kuidas temaga ühendust võtta'],
         words: [25, 40], opening: 'Tere, Liina!',
-      }),
-      tag(B.examWriting('010_t_w2', 'Kirjutamine 2. Leitud telefon.', 'Kirjutage nõbule sõnum vähemalt 30 sõnaga. Kirjutage kõigist neljast punktist.', 'teade', {
-        situation: 'Pärast suguvõsa kokkutulekut leidsite talust oma nõbu Mardi telefoni.',
-        points: ['kus ja millal te telefoni leidsite', 'milline telefon on', 'kus telefon praegu on', 'kuidas Mart selle tagasi saab'],
-        words: [30, 50], opening: 'Tere, Mart!',
-      }), { harno: 'W1b' }),
-      B.rubricW1('010_t_rw1', ['kes on hoidja', 'kus ta töötab', 'millal ta saab', 'kuidas ühendust võtta'], 'Hindamine: kirjutamine 1 (8 punkti).'),
-      B.rubricW2('010_t_rw2', 'Hindamine: kirjutamine 2 (12 punkti).'),
-      B.examPart('010_t_spart', 'S', { minutes: 15, points: 20, tasks: 3, note: 'Rääkimine on paaris. Eksamineerija küsib, teie vastate.' }),
-      tag(B.speaking('010_t_s0', 'Rääkimine. Tutvumine.', 'Vastake eksamineerija küsimustele lühidalt, nagu eksami alguses.', ['Mis on teie nimi ja kus te elate?', 'Kellega te koos elate?', 'Mida te vabal ajal teete?'], [45, 60]), { harno: 'S0' }),
-      B.speaking('010_t_s1', 'Rääkimine 1. Kirjeldage pilti.', 'Valige telefonist üks perepilt. Kirjeldage seda umbes üks minut, siis vastake küsimustele.', ['Kes on pildil ja kes nad teile on?', 'Kus ja millal pilt on tehtud?', 'Mida inimesed teevad?', 'Milline on üks inimene pildil?'], [60, 90]),
-      teach(B.rolecards('010_t_s2', 'Rääkimine 2. Ideekaart „Pere ja vaba aeg”.', 'A küsib kaardi märksõnade järgi, B vastab. Siis vahetage kaardid.',
-        'Märksõnad: pere suurus · kus pere elab · õed ja vennad · ühine nädalavahetus · pere pidu. Küsi viis küsimust.',
-        'Vasta igale küsimusele 2–3 lausega. Ütle ka üks detail või põhjus (sest…).',
-        ['Kui suur on teie pere?', 'Mida te nädalavahetusel koos teete?'], ['Minu peres on…', 'Meil on hea klapp, sest…']),
-      'Üks-ühele: õpetaja küsib kaardi järgi (eksamineerija roll), siis küsib õpilane õpetajalt. Hinda hindamisjuhendiga.'),
-      B.rubricSpeaking('010_t_rs', 'Hindamine: rääkimine (20 punkti).'),
-      B.selfcheck('010_t_self', ['Ma saan aru pere ja suhete teemalistest tekstidest.', 'Ma kasutan kelle-vormi, oma/tema ning kes/mis-lauseid.', 'Ma räägin armastusest ja sõprusest: armusid, läksid tülli, leppisid ära, usaldan.', 'Ma kirjutan lühikese sõnumi kõigist punktidest.', 'Ma räägin oma perest ja vastan küsimustele.'], 'Moodul 2 tehtud'),
+      }), V5_CUT),
+      hide(B.rubricW1('010_t_rw1', ['kes on hoidja', 'kus ta töötab', 'millal ta saab', 'kuidas ühendust võtta'], 'Hindamine: kirjutamine 1 (8 punkti).'), V5_CUT),
+      hide(B.rubricW2('010_t_rw2', 'Hindamine: kirjutamine 2 (12 punkti).'), V5_CUT),
+      hide(tag(B.speaking('010_t_s0', 'Rääkimine. Tutvumine.', 'Vastake eksamineerija küsimustele lühidalt, nagu eksami alguses.', ['Mis on teie nimi ja kus te elate?', 'Kellega te koos elate?', 'Mida te vabal ajal teete?'], [45, 60]), { harno: 'S0' }), V5_CUT),
+      hide(B.rubricSpeaking('010_t_rs', 'Hindamine: rääkimine (20 punkti).'), V5_CUT),
+      hide(B.selfcheck('010_t_self', ['Ma saan aru pere ja suhete teemalistest tekstidest.', 'Ma kasutan kelle-vormi, oma/tema ning kes/mis-lauseid.', 'Ma räägin armastusest ja sõprusest: armusid, läksid tülli, leppisid ära, usaldan.', 'Ma kirjutan lühikese sõnumi kõigist punktidest.', 'Ma räägin oma perest ja vastan küsimustele.'], 'Moodul 2 tehtud'), V5_CUT),
     ],
   },
 }, {
-  'a2b1-006': 'LUGU R→W', 'a2b1-007': 'KUUL L→S', 'a2b1-008': 'AVAS R→S', 'a2b1-009': 'PROJ L→W', 'a2b1-010': 'EKS',
+  'a2b1-006': 'LUGU R→W', 'a2b1-007': 'RÄÄK R→S', 'a2b1-008': 'PROB R→S', 'a2b1-009': 'PROJ L→S', 'a2b1-010': 'EKS',
 });

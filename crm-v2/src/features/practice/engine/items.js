@@ -6,9 +6,11 @@
 //   form       Õige vorm — the right case / verb form in a sentence gap; options from the source, or typed
 //   connector  Sidesõna — the right linking word for a gap
 //   listen     Kuula ja ehita — a build item heard, not read (only where an Estonian voice exists; lesson.js)
+//   picture    Mis on pildil? — a word picture: pick the word of 4, or type it (pictures.js)
+//   hear       Kuula ja vali pilt — a word heard (stored file only): pick its picture of 4 (pictures.js)
 import { compareAnswer, compareOrder, normalizeAnswer } from './compare.js';
 
-export const ITEM_TYPES = ['build', 'transform', 'form', 'connector', 'listen'];
+export const ITEM_TYPES = ['build', 'transform', 'form', 'connector', 'listen', 'picture', 'hear'];
 
 export const TYPE_LABELS = {
   build: { et: 'Pane lause kokku', ru: 'Собери предложение', en: 'Build the sentence' },
@@ -16,6 +18,8 @@ export const TYPE_LABELS = {
   form: { et: 'Vali õige vorm', ru: 'Выбери правильную форму', en: 'Choose the right form' },
   connector: { et: 'Vali sidesõna', ru: 'Выбери союз', en: 'Choose the linking word' },
   listen: { et: 'Kuula ja pane kokku', ru: 'Послушай и собери', en: 'Listen and build' },
+  picture: { et: 'Mis on pildil?', ru: 'Что на картинке?', en: 'What is in the picture?' },
+  hear: { et: 'Kuula ja vali pilt', ru: 'Послушай и выбери картинку', en: 'Listen and pick the picture' },
 };
 
 const EDGE = /^[.,!?;:„”“"«»‚‘’'()[\]…–—-]+|[.,!?;:„”“"«»‚‘’'()[\]…–—-]+$/g;
@@ -45,6 +49,7 @@ export const sentenceOf = (s) => String(s || '').split('|').map((p) => p.trim())
 export function inputOf(item) {
   if (item.type === 'build' || item.type === 'listen') return 'tiles';
   if (item.type === 'transform') return item.input === 'tiles' && item.orders?.length ? 'tiles' : 'type';
+  if (item.type === 'picture' && item.input === 'type') return 'type';
   return item.options?.length ? 'options' : 'type';
 }
 

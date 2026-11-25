@@ -9,7 +9,7 @@ const stamp = (day, time = '18:30') => new Date(`${day}T${time}:00`).toISOString
 const doc = (title, canDo, count = 16) => ({ meta: { title, canDo }, blocks: [{ id: 'g', type: 'gaps', data: { sentences: Array(count).fill('Ma [loen] raamatut.').join('\n') } }] });
 const PHASE_TITLE = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
 
-export function demoTasks(today) {
+export function demoTasks(today, { repeats = false } = {}) {
   const studentId = 'demo-test';
   const sheets = [];
   const homework = [];
@@ -51,5 +51,10 @@ export function demoTasks(today) {
     { id: 'w4', studentId, word: 'nädal', translation: 'неделя', invitationId: 'inv-old', box: 1, reviews: 2, dueAt: stamp(shift(today, -2)), reviewedAt: stamp(shift(today, -9)), createdAt: stamp(shift(today, -32)) },
     { id: 'w5', studentId, word: 'esmaspäev', translation: 'понедельник', invitationId: 'inv-old', box: 1, reviews: 2, dueAt: stamp(shift(today, -2)), reviewedAt: stamp(shift(today, -9)), createdAt: stamp(shift(today, -32)) },
   ];
+  // `?scenario=repeats` (audit 2026-11-24, finding 05): one sheet given three times, none done yet
+  if (repeats) [6, 4, 2].forEach((daysAgo) => sheets.push({
+    id: `a2-07-practice-${daysAgo}`, studentId, studentName: 'Test Õpilane', lessonId: 'a2-07', lessonTitle: 'Tee küsimine ja juhatamine', title: 'Tee küsimine ja juhatamine · Harjuta', phase: 'practice', subject: 'Eesti keel',
+    source: 'learning_library', status: 'new', completedAt: '', answers: {}, assignedAt: stamp(shift(today, -daysAgo)), dueDate: '', worksheetDoc: doc('Tee küsimine ja juhatamine · Harjuta', 'Ma oskan teed küsida ja juhatada.'),
+  }));
   return { student: { id: studentId, name: 'Test Õpilane', subject: 'Eesti keel', level: 'A2', targetLevel: 'B1' }, sheets, homework, submissions, words };
 }
