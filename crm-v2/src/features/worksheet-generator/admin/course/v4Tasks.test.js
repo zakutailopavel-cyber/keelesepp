@@ -52,12 +52,20 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
       const first = stations(id)[0];
       const n = first.blocks.reduce((sum, b) => sum + words(material(b)), 0);
       expect(n, `${id} station 1: ${n} words`).toBeLessThanOrEqual(80);
-      expect(first.blocks.some((b) => RESPONSE.includes(b.type)), `${id} station 1 needs a speaking task, a vote or a game`).toBe(true);
+      // methodology v5 (§2.3): the module's cold task may be a 5-minute writing without help (B2 module 3 alternates the
+      // skill with module 2's spoken cold task), so in a v5 module a writing task is a learner response too
+      const response = isMethodV5(mod) ? [...RESPONSE, 'writing'] : RESPONSE;
+      expect(first.blocks.some((b) => response.includes(b.type)), `${id} station 1 needs a speaking task, a vote or a game`).toBe(true);
     }
   });
 
   it('long texts: no text over 150 words in the first 15 minutes', () => {
     for (const id of teaching) {
+      // methodology v5 (§3: hook 5 + input 20 min): the one long input starts after the 5-min hook; station 1 stays short
+      if (isMethodV5(mod)) {
+        stations(id)[0].blocks.filter((b) => TEXTS.includes(b.type)).forEach((b) => expect(textWords(b), `${id} ${b.id} in station 1`).toBeLessThanOrEqual(150));
+        continue;
+      }
       let start = 0;
       for (const s of stations(id)) {
         if (start < 15) s.blocks.filter((b) => TEXTS.includes(b.type)).forEach((b) => expect(textWords(b), `${id} ${b.id} starts at minute ${start}`).toBeLessThanOrEqual(150));
@@ -75,6 +83,11 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
 
   it('input: at least 3 different kinds across the module (audio, chart, text, cards, dialogue)', () => {
     const kinds = new Set(teaching.flatMap((id) => Object.values(sheets[id]).flatMap((d) => d.blocks)).map((b) => INPUT_KIND[b.type]).filter(Boolean));
+    // methodology v5 (§3, G4): one input a lesson, reading and listening alternate — both kinds in the module
+    if (isMethodV5(mod)) {
+      expect(kinds.has('audio') && kinds.has('text'), [...kinds].join(', ')).toBe(true);
+      return;
+    }
     expect(kinds.size, [...kinds].join(', ')).toBeGreaterThanOrEqual(3);
   });
 
@@ -112,6 +125,12 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
       const t = sheets[id].transfer.blocks;
       expect(t.filter((b) => b.data?.exit).length, `${id} exit check`).toBe(1);
       expect(t.some((b) => b.type === 'selfcheck' && /Ma oskan/.test(JSON.stringify(b.data))), `${id} self-check`).toBe(true);
+      // methodology v5 (§3): the home task is the letter of ~140 / ~180 words on the sheet (data.home) with its 1-min voice
+      // message; no extra homework card (Kasuta ≤ 5 blocks)
+      if (isMethodV5(mod) && !t.some((b) => b.data?.home && b.type === 'speaking')) {
+        expect(t.some((b) => b.data?.home && /häälsõnum/.test(String(b.data?.instruction || ''))), `${id} home writing with the voice message`).toBe(true);
+        continue;
+      }
       expect(t.some((b) => b.data?.home && b.type === 'speaking'), `${id} home voice message`).toBe(true);
       expect(t.some((b) => b.type === 'phrasebank' && /Kodutöö/.test(JSON.stringify(b.data?.sections || []))), `${id} homework card`).toBe(true);
     }
