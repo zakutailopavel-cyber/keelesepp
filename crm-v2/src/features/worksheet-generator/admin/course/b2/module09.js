@@ -1,35 +1,45 @@
-// B2 course (B1 → B2 roadmap), module 9 „Tervis ja eluviis” (b1b2-041…045), stage B1+/B2- (roadmap levelStage).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–7. Module goal (the learner): „Ma oskan oma tervise eest ise hoolt kanda: loen toidusilti,
-// küsin apteegis õiget nõu, leian aja liikumiseks ja puhkuseks ning teen endale realistliku muutuse plaani”; module
-// product „Minu 8 nädala muutus” (044 Kasuta, the S16 one-minute talk in 045). A themed module (MODULE.theme 'health',
-// §7.1 rule 7): every lesson is about health from the learner's own angle, each with its own sub-topic and its own place
-// in daily life — the shop, the pharmacy, the evening after work or school, the calendar. Not repeated from earlier
-// modules: the doctor's appointment (module 2), sick leave (module 6), children's screen time and the clock change and
-// sleep (module 5). No medical advice beyond the official recommendations; every fact has a source on the teacher page.
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 9).
-// One format a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   041 facts    „Mida sinu ostukorv sinust räägib?”               health · food label      final negotiate: the family shop (S03)
-//   042 infogap  „Kas apteeker teab paremini kui internet?”        health · pharmacy        final advise: an aunt's three worries (S05)
-//   043 debate   „Õhtul väsinud: trenn või diivan?”                health · movement, rest  final decide: debate + vote (S17)
-//   044 project  „Kaheksa nädalat: üks muutus, mis jääb püsima”    health · habit plan      final present: my 8-week change (S16)
-//   045 exam     Kontroll 9 in Harno B2 form + „Minu 8 nädala muutus” as the S1 one-minute talk.
-// Grammar line (roadmap module 9: soft advice with the conditional, causality, priorities, plan connectors) by discovery
-// and spiralled: cause and effect — tänu millele, mille tõttu, seetõttu, mistõttu, mõjuma millele (041; back in 044's
-// plan, 045); soft advice — võiksid, peaksid, tasuks, oleks parem, kui …, soovitaksin, kas sa ei tahaks (042, after
-// module 7's 033 „võiksid”; back in the 043 debate and 045); preference and compromise — pigem … kui …, selle asemel et
-// + da, mida …, seda … (043; back in 044 and 045); purpose and result — selleks et + da, et + conditional, muutuma /
-// saama + translative (044, the change of state of the old module; back in 045). Level step-up towards B2-: homework texts
-// 150–180 words (module 7: 120–150), the 044 plan as a coherent 160–180-word text (roadmap), nominal causes (une tõttu).
-// The one long text of the module is the topic opener (041 station 2, ≈ 400 words, after a 12-minute hook). The course's
-// cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js and the archetypes (LUGU, KUUL, AVAS, PROB, EKS). The v2 storyline
-// version (Jaan's school menu, Markus's stress, the sugar tax) is in git history before 2026-11-19.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B2 course (B1 → B2 roadmap), module 9 „Tervis ja eluviis” (b1b2-041…045), stage B2-.
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, strictModulesV5.json) on the v3 station engine with the
+// v4 task formats (docs/COURSE_DESIGN_STATIONS.md §7), built like modules 1–8 (b2/module01.js … module08.js): one real
+// communicative outcome a lesson, ONE input, ≤ 4 / 4 / 5 blocks a sheet and ≤ 14 a lesson, a 75-min core in 4 stations.
+// Health from the learner's own angle: what lands in his shopping basket and why, whom he asks when he is ill (the
+// pharmacist, the advice line, the internet), whether he trains or rests when he is tired, and one habit he changes in
+// eight weeks. No medical advice beyond „ask the pharmacist, call 1220, in danger 112”.
+//   Avasta  (4): station 1 one statement (041: the module's cold task in WRITING, 5 minutes, 5–7 sentences; module 8
+//                measured speech), station 2 the lesson's words, one explanatory scheme and the ONE input — reading
+//                about 450–480 words with 3 inference questions (041 the shopping basket, 043 training or rest) or
+//                listening about 3.5–4 min with 2 voices and 10 items (042 the pharmacist on the radio, 044 how a habit
+//                stays).
+//   Harjuta (4): station 3 the rule (the B1 form as a one-line review, then the B2 step), one form task of 8–10 items
+//                and one coherent text of 10 gaps, both without a word bank (a family blog, a message to an ill friend,
+//                a forum post, an eight-week plan), and one register task of 6–8 rows (message → canteen, family chat →
+//                health centre, spoken opinion → written argument, chat → proposal to the employer).
+//   Kasuta  (5): station 4 the plan, the product (a deal in the shop, advice to an aunt, a debate with keyword cards,
+//                a plan presented to a health partner — each with hidden information), the home writing of ~140 or ~180
+//                words with the 1-min voice message, the analytic Harno B2 rubric (a borderline sample in the teacher's
+//                note) and the exit „Ma oskan …” with three success criteria.
+//   041 facts   „Mida sinu ostukorv sinust räägib?”          reading „Miks ostukorvi satub see, mida me ei plaaninud?”   cause and effect with verbs and nouns
+//   042 infogap „Kas apteeker teab paremini kui internet?”   radio „Tervise tund”, 2 voices                             general and hindsight advice
+//   043 debate  „Õhtul väsinud: trenn või diivan?”            reading „Väsinud pärast tööd: trenn või diivan?”          weighing and conceding
+//   044 project „Kaheksa nädalat: üks muutus, mis jääb püsima” radio „Kuidas harjumus jääb püsima?”, 2 voices         purpose with negation, result, change
+//   045 exam    Module control: one sheet, 45 min, READING + WRITING (module 7 L + W, module 8 R + S). Why R + W: the
+//                module's cold task is written (module 8 measured speech), so its parallel task must be written too; the
+//                module product „Minu kaheksa nädala muutus” is a written plan; health information reaches the learner
+//                as text (labels, leaflets, articles). Listening was trained in 042 and 044 and controlled in module 7.
+// Module requirements (v5 §2): cold task 041_d_cold (5 minutes, 5–7 sentences, no phrases, no opening) ↔ parallel new
+// task 045_t_cold (same conditions, new statement); a speech without phrases in every other station 1 (042–044);
+// hidden-information cards 041_t_shop, 042_t_gap, 043_t_debate, 044_t_present („Varjatud info:”); debate cards with 2–3
+// keywords an argument (043_t_debate); link task 044_t_plan (a real health trail, pool or free training on Eesti
+// Terviserajad or the town's own sports page); one scheme a teaching lesson (041 flow, 042 flow, 043 compare, 044
+// formula); texts are adapted learning texts without exact statistics („KeeleSepp õppetekst”, owner 2026-11-25); no story
+// cast, no dictation, no „Kas teadsid?”. Module 7–8 had tänu / tõttu / mistõttu, module 7 (033) the soft „võiksid”,
+// module 2 and 8 the conditional and „pigem … kui”: each comes back here as the one-line review, the B2 step is new.
+// Kept: lesson ids, titles, the four lesson topics and formats, the archetypes (LUGU, KUUL, AVAS, PROB, EKS). Removed
+// blocks stay in the file as hide(block, why) (blocks.js) — the v4 lessons of 2026-11-19 are kept below as V4 and every
+// block not on a v5 sheet is taken from there with retire(): off every sheet, ids and learners' answers kept; their closed
+// drills still feed the Harjuta practice engine (practice/engine/extract.js) with their old explanations (OLD_WHY, the
+// v4 EXPLAIN map).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -40,20 +50,51 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every v4 lesson (hidden in v5: the home task is the writing on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 9. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
 const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the home voice message of v5 (§3): one line at the end of the home writing (a learner who cannot record says it in class)
+const VOICE_HOME = 'Salvesta ka 1-minutiline häälsõnum samal teemal.';
 
-// theme: a themed module may give every lesson its theme's topic, each with its own sub-topic (§7.3, v4Tasks.test.js)
+// why a block left the sheet (v5 §4)
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_DRILL = 'closed drill / exit gaps → Harjuta (v5 §4: drills off the lesson sheet)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home task is the writing on the sheet with its 1-min voice message (v5 §3)';
+const CUT_HOOK = 'v5: station 1 is one statement the learner answers at once (5 min); the hook text and the talk merged';
+const CUT_TALK = 'v5: a 2.5–3.5-min talk with phrases in station 1 (audit 2026-11-25: B2 talks 1 min); the cold task 041_d_cold takes its place';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) or a second input';
+const CUT_SHORT = 'a short voice message below B2 as the input (audit 2026-11-25): replaced by the lesson\'s one input';
+const CUT_OLDTASK = 'v4 task replaced by the v5 task of the same station (new id, other block type)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, reading + writing (v5 §5)';
+
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 1–8, 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (käänded, sõnajärg sidendi järel, kuigi-lause, tingiv kõneviis, olev ja saav kääne) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+// short: the one-line descriptors (the same four criteria), where the full ones would leave the self-check alone on a page
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = false) => {
+  const b = B.rubricW2(id, title);
+  return teach(purpose({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Analüütiline hindamisjuhend (Harno B2): neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Sama juhendiga kontrollid oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, 'Enne saatmist näed, mille eest hindaja punkte annab.'), sample);
+};
+// a home text is written at home: fewer lines on the sheet, so the sheet ends on a full page
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+
 export const MODULE = { id: 'b1b2-module-09', course: 'b2', title: 'Tervis ja eluviis', level: 'B2-', design: 'v3-stations', template: 'v4', theme: 'health' };
 
 // an exam part header carries the goal of its part: b2/lessonGoals.test.js asks every non-text block of a B2 sheet for one
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
-export const LESSONS = withShapes({
+// the v4 lessons of 2026-11-19 (B1+ „task-based”): the source of every block that is not on a v5 sheet
+const V4 = {
   'b1b2-041': {
     title: 'Mida sinu ostukorv sinust räägib?',
     phases: grammar('Keel: põhjus ja tagajärg — tänu millele, mille tõttu, seetõttu, mistõttu, mõjuma millele'),
@@ -726,14 +767,10 @@ export const LESSONS = withShapes({
       B.selfcheck('045_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, kokkuvõte 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Moodul 9 läbitud'),
     ],
   },
-}, {
-  'b1b2-041': 'LUGU R→W', 'b1b2-042': 'KUUL L→W', 'b1b2-043': 'AVAS R→S', 'b1b2-044': 'PROB L→S', 'b1b2-045': 'EKS',
-});
+};
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the explanations of the v4 blocks (the v4 EXPLAIN map), kept for the Harjuta practice engine
+const OLD_WHY = {
   // 041
   '041_d_read': [
     '2. lõik: „sõid … päevas keskmiselt 233 grammi köögivilju”.',
@@ -938,3 +975,809 @@ export const EXPLAIN = {
     'Õige: „Küsige, mitu korda te täna püsti tõusite.”',
   ],
 };
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id, reason) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module09: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reason);
+};
+
+export const LESSONS = withShapes({
+  'b1b2-041': {
+    title: 'Mida sinu ostukorv sinust räägib?',
+    phases: grammar('Kordamine: tänu, tõttu, mistõttu · B2: tuleneb millest, on tingitud millest, viib milleni, toob kaasa, …, mille tagajärjel …'),
+    format: 'facts',
+    topic: 'health',
+    subtopic: 'food',
+    canDo: 'Ma loen umbes 470-sõnalist artiklit sellest, miks ostukorvi satub see, mida me ei plaaninud, ja järeldan autori hoiaku, lepin pereliikmega poes kokku, mida osta, ka siis, kui ta ütleb midagi ootamatut, ning kirjutan sööklale umbes 140-sõnalise ettepaneku.',
+    teacherPage: {
+      goal: 'Холодная задача письменно; статья о незапланированных покупках (≈ 470 слов); причина и следствие B2; договорённость в магазине; дома письмо в столовую.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 8 трансформаций; разговор в магазине без третьего препятствия.',
+      hook: '«Väide: tervis on iga inimese enda vastutus.» Ученик 5 минут пишет 5–7 предложений без помощи. Это холодная задача модуля (письменно; модуль 8 мерил речь): не помогайте, не давайте фраз и начала, не исправляйте. Сохраните лист — в уроке 045 ученик пишет параллельную задачу в тех же условиях.',
+      plan: [
+        '0–5: станция 1 — холодная задача: 5 минут, 5–7 предложений без помощи; лист сохраните до 045',
+        '5–25: станция 2 — 10 слов (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин), картинка и схема «почему в корзине лишнее» по тексту (3 мин)',
+        '25–45: станция 3 — tänu / tõttu / mistõttu одной строкой, B2: tulenema, olema tingitud, viima, kaasa tooma, mille tagajärjel, muutuma + saav; 8 трансформаций, семейный блог с 10 пропусками без банка, регистр (6 строк): сообщение сестре → письмо в столовую',
+        '45–70: станция 4 — план (3 мин), разговор в магазине со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо в столовую 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «Надпись на упаковке» — „light”, „täisteraga”, „ilma lisatud suhkruta”, „parim enne” вчерашняя дата: что проверить на обороте и почему',
+      ],
+      sources: 'Статья «Miks ostukorvi satub see, mida me ei plaaninud?» — учебный текст KeeleSepp, без точной статистики. Общие факты: состав на упаковке — по убыванию массы, аллергены выделены, пищевая ценность на 100 г (регламент ЕС 1169/2011); «kõlblik kuni» — срок безопасности, «parim enne» — срок качества (agri.ee «Toidumärgistusest tarbijale»). Мюсли A и B в карточке — придуманные товары, их цены — для расчёта.',
+      groups: 'Холодная задача — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: один — покупатель, другой — член семьи с вашей карточкой; потом смена. В 1:1 член семьи — вы.',
+      errors: [
+        '«Ostud tulenevad harjumuses» → «… harjumusest» (tulenema millest — из чего).',
+        '«Väsimus on tingitud vähese une» → «… vähesest unest» (olema tingitud millest).',
+        '«Nälg viib ostud» → «Nälg viib ostudeni» (viima milleni).',
+        '«…, mille tagajärjel lapsed hakkasid …» — верно; можно и «mille tagajärjel hakkasid lapsed …». Нельзя без запятой и без mille: «…, tagajärjel lapsed …».',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по письму. Отметьте: позиция в первом предложении, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 045 ученик пишет параллельную задачу (045_t_cold), вы сравниваете.',
+        'tänu / tõttu / mistõttu (модули 7–8) — повтор одной строкой. Цель B2 — причина и следствие глаголом и существительным: tulenema millest, olema tingitud millest, viima milleni, kaasa tooma, …, mille tagajärjel …, и существительное на -mine (raiskamine, planeerimise puudumine). Это язык объяснения, а не только «потому что».',
+        'Не обсуждайте вес и диеты самого ученика; речь о покупках и привычках семьи. Медицинских советов не давать: «Küsi perearstilt või helista 1220» (урок 042). Обратная связь, 2–3 цели: управление глагола (millest, milleni); два числа с этикетки как аргумент; спокойная реакция на неожиданное.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.writing('041_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Tervis on iga inimese enda vastutus.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, üks põhjus ja näide oma elust ning mida ütleks keegi, kes arvab teisiti. Abifraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), 'See on sinu algus: mooduli lõpus kirjutad samadel tingimustel uuest väitest ja näed, kui palju oled viie tunniga edasi jõudnud.'), { task: 'W14', level: 3 }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, kirjalikult (moodul 8 mõõtis rääkimist, moodul 9 mõõdab kirjutamist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (seetõttu, samas …) ja 2–3 korduvat viga. Hoia leht alles: tunnis b1b2-045 kirjutab õppija paralleelse ülesande samades tingimustes (kontrolli kirjutamise 1. osa) ja te võrdlete. Üks-ühele: pärast kirjutamist küsi ainult „Miks?”.'), 1, 5),
+      station(tag(B.vocab('041_d_vocab', 'Tunni sõnad.', ['harjumus — привычка', 'tagajärg — последствие', 'tulenema (millest) — вытекать (из чего)', 'tingitud (millest) — обусловленный (чем)', 'koostis — состав', 'toitumine — питание', 'kiudained — клетчатка', 'raiskama — выбрасывать (еду)', 'kompromiss — компромисс', 'ettepanek — предложение']), { topic: ['koostis', 'toitumine', 'harjumus', 'kiudained'] }), 2, 20),
+      why(teach(tag(purpose(B.reading('041_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Miks ostukorvi satub see, mida me ei plaaninud?', [
+        'Enamik meist läheb poodi kindla plaaniga: leib, piim, natuke puuvilju. Kassas selgub aga, et korvis on ka küpsised, kampaaniajook ja valmissalat, mida keegi ei plaaninud. Toitumisnõustajate sõnul ei tulene see nõrgast tahtest. Põhjus on pigem selles, kuidas pood on üles ehitatud ja kuidas väsinud inimene otsustab.',
+        'Pood on paigutatud nii, et ostja kõnniks seal võimalikult kaua. Piim ja leib on tavaliselt poe kaugemas otsas, mistõttu tuleb mööduda paljudest riiulitest. Silmade kõrgusel on kõige kallimad tooted, kassa juures aga maiustused, mille järele laps kipub käe sirutama. Ka lõhn on juhuslik vaid näiliselt: värske saia lõhn tekitab nälga ja nälg viib ostudeni, mida täis kõhuga ei teeks. Ka korvi suurus mängib rolli: suurde kärusse mahub rohkem, mistõttu ostetakse sageli rohkem, kui vaja. Seepärast soovitavad nõustajad mitte minna poodi tühja kõhuga ja võtta kaasa nimekiri.',
+        'Suur osa valikutest on tingitud harjumusest. Kes on aastaid ostnud sama jogurtit, ei vaata enam selle silti. Pakendi esiküljel on sõnad „kerge”, „naturaalne” või „täisteraga”, kuid need ei pruugi tähendada seda, mida ostja arvab. Tõde on pakendi tagaküljel. Koostisosad on seal kahanevas järjekorras: mida eespool on suhkur, seda rohkem seda tootes on. Toitumisalane teave näitab, kui palju on sajas grammis suhkrut, soola ja kiudaineid. Nii saab võrrelda ka eri suurusega pakke. Kuupäevi on kaks: „kõlblik kuni” on ohutuse piir, „parim enne” aga lubadus kvaliteedi kohta. Ka kampaania „kolm kahe hinnaga” tundub soodne, kuid on kasulik ainult siis, kui kolmandat pakki tegelikult vaja on.',
+        'Paljud arvavad, et tervislik toit on alati kallim. See on osaliselt tõsi: valmistoit, mille pakendil on sõna „tervislik”, maksab sageli rohkem kui tavaline. Samas on kaerahelbed, kapsas, porgand, oad ja hooajalised marjad ühed odavamad toidud üldse. Kallimaks muutub toitumine pigem siis, kui ostetakse palju valmistoitu ja suur osa sellest läheb raisku. Raiskamise peamine põhjus on planeerimise puudumine: ostetakse rohkem, kui jõutakse ära süüa. Suurem pakk võib tulla odavam, kuid ainult siis, kui see tõesti ära süüakse.',
+        'Kõige raskem on aga muuta pere harjumusi. Kui üks pereliige otsustab üksi, et nüüdsest süüakse ainult täisteraleiba, tekib vastupanu, mille tagajärjel jääb uus leib kappi hallitama. Nõustajad soovitavad muuta ühte asja korraga ja kaasata pereliikmed otsusesse: lasta lapsel valida kahest hommikusöögist üks või panna maiustused nimekirja kindla päeva juurde. Lapsed, kes on ise aidanud nimekirja koostada, kipuvad poes vähem nurisema. Muutus, mis on ühiselt kokku lepitud, kipub püsima kauem kui käsk.',
+        'Ostukorv räägib seega meist rohkem, kui arvame: väsimusest, rahast, harjumustest ja sellest, kes peres otsustab. Hea uudis on see, et pood ei otsusta meie eest, kui me teame, kuidas see töötab. Järgmine kord, kui kassas tekib küsimus, kust see kõik tuli, võib vastus olla lihtne: tühjast kõhust ja vanast harjumusest.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Millest ei tulene nõustajate sõnul plaanimata ostud?', 'nõrgast tahtest; põhjus on poe ülesehituses ja väsinud inimese otsustes'],
+        ['Miks on piim ja leib tavaliselt poe kaugemas otsas?', 'et ostja kõnniks kaua ja mööduks paljudest riiulitest'],
+        ['Kust leiab ostja toote kohta tõe?', 'pakendi tagaküljelt: koostisest ja toitumisalasest teabest'],
+        ['Millal muutub toitumine autori sõnul pigem kallimaks?', 'kui ostetakse palju valmistoitu ja suur osa läheb raisku'],
+        ['Miks soovitavad nõustajad mitte minna poodi tühja kõhuga? Järelda.', 'nälg (ka saia lõhn) viib ostudeni, mida täis kõhuga ei teeks'],
+        ['Miks jääb uus täisteraleib „kappi hallitama”? Järelda.', 'pere ei olnud otsusega nõus; üksi tehtud otsus tekitab vastupanu ja leiba ei sööda'],
+        ['Milline on autori hoiak ostja suhtes viimases lõigus? Mida ta vihjab viimase lausega?', 'ostja ei ole poe ees abitu; kes teab, kuidas pood töötab, otsustab ise; plaanimata ostud tulevad näljast ja harjumusest'],
+      ]), 'Pärast lugemist tead, miks korvi satub liigset, ja oskad pereliikmega oma ettepanekut põhjendada.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade ja skeemiga. Enne lugemist küsi: mis oli sinu viimases ostukorvis, mida sa ei plaaninud? Pärast lugemist lisab õpilane skeemi igale noolele ühe näite tekstist. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst ilma statistikata; ära räägi kaalust ega dieedist.'), [
+        '1. lõik: „Toitumisnõustajate sõnul ei tulene see nõrgast tahtest.”',
+        '2. lõik: pood on paigutatud nii, „et ostja kõnniks seal võimalikult kaua”.',
+        '3. lõik: „Tõde on pakendi tagaküljel.”',
+        '4. lõik: „Kallimaks muutub toitumine pigem siis, kui ostetakse palju valmistoitu ja suur osa sellest läheb raisku.”',
+        'Järeldus 2. lõigust: „nälg viib ostudeni, mida täis kõhuga ei teeks”.',
+        'Järeldus 5. lõigust: kui üks otsustab üksi, „tekib vastupanu”; kokku lepitud muutus „kipub püsima kauem kui käsk”.',
+        'Järeldus 6. lõigust: „pood ei otsusta meie eest, kui me teame, kuidas see töötab”.',
+      ]),
+      purpose(B.diagram('041_d_scheme', 'flow', { title: 'Skeem: miks satub korvi see, mida me ei plaaninud?', instruction: 'Pärast lugemist kirjuta iga sammu juurde üks näide tekstist. Siis lisa viimasesse kasti üks muutus, mida sinu pere saaks teha.', nodes: 'Väsimus ja nälg: poodi pärast tööd, saia lõhn\nPoe paigutus: pikk tee, maiustused kassa juures\nHarjumus: sama toode, silti ei loeta\nTagajärg: plaanimata ostud, raisku läinud toit\nMuutus: nimekiri, silt tagaküljelt, pere otsustab koos' }, 'full', 'g_read'), 'Skeem aitab sul näha, kuidas põhjus viib tagajärjeni ja kus saab ahela katkestada.'),
+      retire('041_d_talk', CUT_TALK),
+      retire('041_d_open', CUT_STATS),
+      retire('041_d_read', CUT_STATS),
+    ],
+    practice: [
+      station(teach(B.notice('041_p_notice', 'Märka: millest see tuleneb ja milleni see viib?', [
+        'Artiklist: see ei **tulene** nõrgast tahtest · **tingitud** harjumusest · nälg **viib** ostudeni · vastupanu, **mille tagajärjel** … · **Kallimaks muutub** toitumine …',
+        'Kordamine (B1): **tänu** + -le (hea): tänu nimekirja**le** · omastav + **tõttu**: väsimuse **tõttu** · …, **mistõttu** + kõrvallause.',
+        'B2: **tulenema** millest (tuleneb **harjumusest**) · **olema tingitud** millest (**vähesest unest**) · **viima** milleni (viib **ostudeni**) · **kaasa tooma** mida · **muutuma** + saav (muutub **kallimaks**)',
+        'B2: …, **mille tagajärjel / mille tõttu** … (koma ees) · tegevus nimisõnaks: ei planeeri → **planeerimise puudumine**.',
+      ], 'full'), 'Kordamine ühe minutiga (tänu, tõttu, mistõttu). Siis B2 samm: põhjus ja tagajärg tegusõnaga (tulenema millest, viima milleni) ja nimisõnaga. Lase õpilasel leida artiklist neli sellist kohta ja öelda küsimus: millest? milleni? mille tagajärjel?'), 3, 20),
+      why(purpose(B.transformation('041_p_links', 'Põhjus ja tagajärg.', 'Seo kaks lauset üheks. Alusta antud sõnadega. Mõtle, mis küsimusele tegusõna vastab: millest? milleni? Panka ei ole.', [
+        ['Ma lähen poodi tühja kõhuga. Seepärast ostan liiga palju.', 'Liigsed ostud tulenevad …', 'Liigsed ostud tulenevad sellest, et lähen poodi tühja kõhuga.|Liigsed ostud tulenevad sellest, et ma lähen poodi tühja kõhuga.'],
+        ['Mu vend on tööl väsinud. Ta magab liiga vähe.', 'Venna väsimus on tingitud …', 'Venna väsimus on tingitud vähesest unest.|Venna väsimus on tingitud sellest, et ta magab liiga vähe.'],
+        ['Poes on värske saia lõhn. Inimesed muutuvad näljaseks ja ostavad rohkem.', 'Saia lõhn viib …', 'Saia lõhn viib suuremate ostudeni.|Saia lõhn viib selleni, et inimesed ostavad rohkem.'],
+        ['Ema keelas lastel magusa ära. Lapsed hakkasid magusat salaja ostma.', '…, mille tagajärjel …', 'Ema keelas lastel magusa ära, mille tagajärjel hakkasid lapsed magusat salaja ostma.|Ema keelas lastel magusa ära, mille tagajärjel lapsed hakkasid magusat salaja ostma.'],
+        ['Me ei planeeri nädala menüüd. Seetõttu läheb palju toitu raisku.', 'Raiskamise põhjus on …', 'Raiskamise põhjus on menüü planeerimise puudumine.|Raiskamise põhjus on nädala menüü planeerimise puudumine.|Raiskamise põhjus on see, et me ei planeeri nädala menüüd.'],
+        ['Vanaisa sööb palju soolast vorsti. Tal on kõrge vererõhk.', '…, mille tõttu …', 'Vanaisa sööb palju soolast vorsti, mille tõttu on tal kõrge vererõhk.|Vanaisa sööb palju soolast vorsti, mille tõttu tal on kõrge vererõhk.'],
+        ['Mul on uus töögraafik. Nüüd söön õhtust alles kell kümme.', 'Uus töögraafik tõi kaasa …', 'Uus töögraafik tõi kaasa hilised õhtusöögid.|Uus töögraafik tõi kaasa hilise õhtusöögi.'],
+        ['Valmistoit on kallis. Kui ostame seda palju, on meie toidukulu suurem.', 'Toidukulu muutub …', 'Toidukulu muutub suuremaks, kui ostame palju valmistoitu.|Toidukulu muutub suuremaks, kui me ostame palju valmistoitu.'],
+      ], 'full', 'g_notice'), 'Kui oskad põhjuse ja tagajärje ühte lausesse panna, on sinu ettepanek poes, kirjas ja eksamil veenev.'), [
+        'tulenema millest → sellest, et …',
+        'olema tingitud millest → vähesest unest (seestütlev).',
+        'viima milleni → ostudeni (rajav).',
+        'Tagajärg tervele mõttele → …, mille tagajärjel … (koma ees).',
+        'Tegevus nimisõnaks → planeerimise puudumine.',
+        'Halb põhjus kõrvallauses → …, mille tõttu …',
+        'kaasa tooma mida → hilised õhtusöögid.',
+        'muutuma + saav kääne → suuremaks.',
+      ]),
+      why(purpose(B.formtext('041_p_blog', 'Pereblogi: kuidas meie ostukorv muutus.', 'Ema kirjutab blogisse. Kirjuta lünka üks sõna või vorm (vihje sulgudes). Panka ei ole.', 'Kuidas meie pere ostukorv muutus', [
+        'Veel aasta eest ostsime kõike, mis silma hakkas. Suur osa meie kulutustest [tulenes] (tulenema; minevik) lihtsalt harjumusest: võtsime sama jogurti ja samad küpsised.',
+        '',
+        'Tütrel hakkas kõht valutama. Arst ütles, et see võib olla [tingitud] (tingima; kesksõna) liigsest suhkrust. Selgus, et „kerges” jogurtis oli suhkur koostises teisel [kohal] (koht; alalütlev).',
+        '',
+        '[Tänu] (hea põhjus) nimekirjale ostame nüüd vähem. Tühja kõhuga poodi me enam ei lähe, sest nälg [viib] (viima; olevik) alati liigsete ostudeni.',
+        '',
+        'Keelasime küpsised täiesti ära, [mille] (… tagajärjel) tagajärjel hakkas poeg neid koolis sõpradelt küsima. Siis leppisime kokku, et laupäev on magusapäev, [mistõttu] (tagajärg tervele mõttele) on kodus nüüd rahu.',
+        '',
+        'Toidu [raiskamise] (raiskama → nimisõna; omastav) tõttu kulutasime varem palju rohkem. Nüüd planeerime menüü ette ja kapsas ning kaerahelbed on meie kõige odavamad [toidud] (toit; mitmus).',
+        '',
+        'Väsimuse [tõttu] (halb põhjus) ostame vahel ikka valmistoitu, aga see on nüüd erand, mitte reegel.',
+      ]), 'Samamoodi kirjutad kodus sööklale: probleem, põhjus, tagajärg ja ettepanek.'), [
+        'tulenema millest; minevik → tulenes.',
+        'olema tingitud millest → tingitud.',
+        'teisel kohal (alalütlev).',
+        'Hea põhjus → tänu + -le: nimekirjale.',
+        'viima milleni → viib.',
+        '…, mille tagajärjel …',
+        'Tagajärg tervele mõttele → mistõttu.',
+        'raiskama → raiskamine → raiskamise tõttu.',
+        'Mitmus: toidud.',
+        'Halb põhjus → omastav + tõttu.',
+      ]),
+      why(purpose(tag(B.table('041_p_register', 'Sõnum õele või kiri sööklale?', 'Vasakul on sõnum õele, paremal sama mõte kirjas sööklale. Kirjuta lünka puuduv sõna.', 'Sõnum õele, Kiri sööklale', [
+        'Mul on sööklaga üks mure. | Pöördun teie poole ühe [murega]; see ei ole kaebus, vaid ettepanek.',
+        'Lapsed ütlevad, et supp on liiga soolane. | Lapsed on [kurtnud], et supp on liiga soolane.',
+        'Nad jätavad poole toidust taldrikule. | Selle [tõttu] jääb suur osa toidust taldrikule.',
+        'Kas te ei saaks rohkem köögivilju panna? | Kas oleks [võimalik] lisada menüüsse rohkem köögivilju?',
+        'Mu poeg ei tohi nisu süüa. | Minu pojal on [nisuallergia], mistõttu vajab ta teist leiba.',
+        'Vasta mulle, kui jõuad. | Ootan teie [vastust] kahe nädala jooksul.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sama mure kõlab kirjas, mida loeb võõras inimene.'), [
+        'Mul on mure → pöördun teie poole murega.',
+        'Ütlevad → on kurtnud (täisminevik).',
+        'Nad jätavad → selle tõttu jääb.',
+        'Kas ei saaks → kas oleks võimalik.',
+        'Ei tohi nisu → nisuallergia.',
+        'Vasta → ootan vastust.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('041_t_plan', 'Poes: plaan (3 minutit).', 'Oled pereliikmega (laps, abikaasa, vanem või korterinaaber) poes hommikusöögiriiuli juures. Müsli A: 375 g, 2,49 €, sajas grammis suhkrut 24 g ja kiudaineid 5 g, koostises nisu. Müsli B: 500 g, 3,19 €, sajas grammis suhkrut 10 g ja kiudaineid 9 g, nisuta. Kirjuta märksõnad. Edukriteeriumid: 1) põhjendad ettepanekut vähemalt kahe numbriga sildilt; 2) ütled põhjuse ja tagajärje B2 vormiga (tuleneb sellest, et …; …, mille tagajärjel …; viib milleni); 3) lepite kokku ühe lahenduse, mis sobib tervisele, rahakotile ja maitsele; kviitungilt näete hiljem, kas kokkulepe pidas.', ['Minu ettepanek ja kaks numbrit sildilt:', 'Mis on selle tagajärg pere hommikule:', 'Mida vastan, kui pereliige ütleb „see on kallis” või „see ei ole maitsev”:', 'Kompromiss:'], 1), 'Plaan aitab sul rääkida numbritega, mitte käskida.'), 4, 25, { final: 'negotiate' }),
+      teach(tag(purpose(B.rolecards('041_t_shop', 'Poes: leppige kokku (6–8 minutit).', 'Räägi pereliikmega hommikusöögiriiuli juures ja leppige kokku, mis korvi läheb. Põhjenda numbritega ja reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord: oled pereliikmega poes; kahe müsli numbrid on sinu plaanikaardil.\nSinu eesmärk: kokkulepe, mis sobib tervisele, rahakotile ja maitsele.\nPiirang: pere eelarve on väike; käsk ei tööta, kokkulepe töötab.',
+        'Pereliikme kaart on õpetajal: tema harjumus, tema vastuväited ja üks asjaolu, mida sa veel ei tea.',
+        ['Sajas grammis on …, mis tähendab, et …', 'See tuleneb sellest, et …'], ['Aga see on maitsev!', 'Kas see ei ole liiga kallis?']), 'Tulemus: teil on kokkulepe, mis sobib nii tervisele, rahakotile kui ka maitsele.'), { task: 'S03', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled pereliige (laps, abikaasa või korterinaaber). Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „B on kallim!” (kilo kohta on B odavam: A umbes 6,60 €, B umbes 6,40 €). 2) „B-s on ka suhkrut — kus on loogika?” (rosinate suhkur, mitte lisatud suhkur). Varjatud info (ütle pärast teist takistust): „Ah jaa, A on täna kampaanias — kolm pakki kahe hinnaga. Ja vanaema tuleb nädalaks meile, tal on nisuallergia.” Õpilane peab reageerima: kampaania teeb A odavamaks, kuid A-s on nisu, mistõttu vanaema seda süüa ei tohi; leidke kompromiss (näiteks B ja maasikad eraldi või A lastele ja B vanaemale). Õnnestunud, kui õpilane võrdleb vähemalt kahte numbrit, kasutab vähemalt kaks B2 põhjuse või tagajärje väljendit (tuleneb sellest, et …; …, mille tagajärjel …; viib milleni) ja te lepite kokku. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('041_t_mail', 'Kodus: kiri sööklale (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Sinu lapse kooli, sinu töökoha või kursuse söökla kogub ettepanekuid uue menüü jaoks. Kirjuta söökla juhatajale ametlik kiri.',
+        points: ['kes sa oled ja miks kirjutad', 'mis on praeguses menüüs probleem ja mis on selle tagajärg', 'üks konkreetne ettepanek ja miks see on realistlik', 'mida sa palud ja mis ajaks'],
+        words: [130, 150],
+      }), 'Söökla juhataja loeb sinu kirja ja saab sellest teha otsuse.'), 6)), { task: 'W13', main: true, harno: 'W1' }),
+      writingRubric('041_t_rubric', 'Hindamisjuhend: kiri sööklale (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Minu laps sööb teie sööklas. Toit on soolane ja lapsed ei söö. See tuleneb soolast. Palun pange vähem soola ja rohkem köögivilja. Magustoit on iga päev, see on halb. Aitäh!” Hinnang: ülesanne 2 (probleem ja ettepanek on olemas, kuid ei selgu, kes kirjutab, ja palve tähtaeg puudub), ülesehitus 2 (järjekord on selge, lõike ja sidendeid peaaegu ei ole), sõnavara 2 („toit” ja „soolane” korduvad; „Tere!” ja „Aitäh!” ei sobi ametlikku kirja; puuduvad menüü, tagajärg, ettepanek), grammatika 1 („See tuleneb soolast” ei ütle midagi; tagajärg puudub: …, mille tagajärjel jääb toit taldrikule; „rohkem köögivilja” → köögivilju). Kui õppija lisab tutvustuse, tagajärje ja palve tähtajaga ning parandab põhjuse väljendid, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('041_t_self', ['Ma loen artiklit ostuharjumustest ja järeldan autori hoiaku.', 'Ma ütlen põhjuse ja tagajärje B2 vormis: tuleneb millest, on tingitud millest, viib milleni, …, mille tagajärjel …', 'Ma lepin pereliikmega poes kokku ja reageerin ootamatule uudisele.'], 'Korv kokku lepitud', 'Ma oskan ostukorvi põhjendada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('041_t_voice', CUT_SHORT),
+      retire('041_t_labels', 'second input: the two labels are now on the plan card 041_t_plan and the role card 041_t_shop (v5: one input per lesson)'),
+      retire('041_t_more', CUT_EXTRA),
+      retire('041_t_exit', CUT_DRILL),
+      retire('041_t_chart', CUT_STATS),
+      retire('041_t_summary', CUT_OLDTASK),
+      retire('041_t_home', CUT_HOME),
+      retire('041_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-042': {
+    title: 'Kas apteeker teab paremini kui internet?',
+    phases: grammar('Kordamine: võiksid, tasuks · B2: tuleks, ei tohiks, soovitatakse + da; oleks pidanud + ma, oleks võinud + da'),
+    format: 'infogap',
+    topic: 'health',
+    subtopic: 'pharmacy',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest selle kohta, kelle poole tervisemurega pöörduda, ja järeldan apteekri hoiaku, annan tädile pehmet ja tagantjärele nõu ka siis, kui ta ütleb midagi ootamatut, ning kirjutan talle umbes 140-sõnalise kirja.',
+    teacherPage: {
+      goal: 'Радио «Tervise tund» (2 голоса): к кому обратиться; общий совет и совет задним числом; разговор с тётей со скрытой информацией; дома письмо тёте.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 8 трансформаций; разговор с тётей без третьего препятствия.',
+      hook: '«Väide: internetist leiab tervise kohta paremat nõu kui arsti juurest.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — где он сам ищет совет, когда болеет. Без фраз, не исправляйте. Отметьте, знает ли ученик про 1220 и аптекаря — ответ даст радио.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своём опыте, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «к кому обратиться» (2 мин), радио дважды (9 мин), 10 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — võiksid / tasuks / oleks parem одной строкой, B2: tuleks, ei tohiks, soovitatakse, oleks mõistlik + da и oleks pidanud / oleks võinud; 8 трансформаций, сообщение больному другу с 10 пропусками без банка, регистр (6 строк): семейный чат → письмо в центр семейных врачей',
+        '45–70: станция 4 — план (3 мин), картинка, разговор с тётей со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо тёте 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ролевая игра — звонок на 1220: описать, кто болен, что случилось, с каких пор и что уже сделано (вы — консультант)',
+      ],
+      sources: 'Радио «Tervise tund» — учебный текст KeeleSepp (ведущий Rein и аптекарь Merle вымышлены), упрощённо. Общие факты: антибиотики не лечат вирусные болезни и продаются по рецепту; perearsti nõuandetelefon 1220 отвечает круглосуточно (по-эстонски и по-русски), при угрозе жизни — 112; лекарство по рецепту другого человека можно выкупить со своим документом и личным кодом пациента, если рецепт открыт или есть доверенность (terviseportaal); прививку от гриппа делают и во многих аптеках, группам риска обычно бесплатно; старые лекарства — в аптеку или пункт опасных отходов. Медицинских советов не давать.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: один — племянник/племянница, другой — тётя с вашей карточкой; потом смена. В 1:1 тётя — вы.',
+      errors: [
+        '«Sa oleksid pidanud helistada» → «… helistama» (pidama + ma-форма).',
+        '«Ta oleks võinud küsima» → «… küsida» (võima + da-форма).',
+        '«Soovitatakse lugeb infolehte» → «Soovitatakse lugeda infolehte» (soovitatakse + da).',
+        '«Ma oleksin sinu asemel helistaksin» → «Ma oleksin sinu asemel helistanud» (oleksin + -nud).',
+      ],
+      notes: [
+        'Формат — информационный пробел: у ученика — то, что он узнал из радио, у вас (тётя) — её ситуация и то, что она уже сделала сама. Ученику без пожилых родственников: соседка, бывшая коллега, мама подруги.',
+        'võiksid / tasuks / oleks parem (модуль 7, урок 033) — повтор одной строкой. Цель B2 — два новых регистра совета: общий, без «ты» (tuleks, ei tohiks, soovitatakse, oleks mõistlik + da — так говорит специалист и пишут в инструкции), и совет задним числом (oleks pidanud + ma, oleks võinud + da, ma oleksin sinu asemel + -nud) — так, чтобы человек не обиделся.',
+        'Не давайте медицинских советов и не оценивайте лекарства: только «к кому обратиться». Обратная связь, 2–3 цели: pidama + ma / võima + da; мягкий тон задним числом без упрёка; конкретный следующий шаг (кто, что, когда).',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('042_d_talk', 'Väide: internetist leiab tervise kohta paremat nõu kui arsti juurest.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: kust sina otsid nõu, kui jääd haigeks, ja kas see on aidanud.', [
+        'Väide: „Internetist leiab tervise kohta paremat nõu kui arsti juurest.” Kas oled nõus? Miks?',
+        'Kelle käest sina küsid nõu, kui jääd haigeks? Kumb on sinu jaoks usaldusväärsem: internet või apteeker? Mida soovitaksid uustulnukale, kes ei tea, kelle poole Eestis haigena pöörduda?',
+      ], [60, 90]), 'Sinu enda kogemus näitab, mida sa juba tead ja mida raadiost veel kuuled.'), { task: 'S02', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe lausega. Ära anna ravinõu ega hinda ravimeid. Pane kirja, kas õppija teab apteekri nõuandest ja numbrist 1220 — vastuse annab raadio. Kui õppija ei ole Eestis haige olnud: „Kuhu sa pöörduksid, kui laps jääb öösel haigeks?”')), 1, 5),
+      station(tag(B.vocab('042_d_vocab', 'Tunni sõnad.', ['apteeker — фармацевт', 'retseptiravim — рецептурное лекарство', 'usaldusväärne — надёжный', 'infoleht — листок-вкладыш', 'nõuandetelefon — телефон консультации', 'vaktsineerima — делать прививку', 'solvuma — обижаться', 'palavik — жар', 'aeguma — истекать (о сроке)', 'pöörduma (kelle poole) — обращаться (к кому)']), { topic: ['retseptiravim', 'nõuandetelefon', 'pöörduma', 'infoleht'] }), 2, 20),
+      purpose(B.diagram('042_d_scheme', 'flow', { title: 'Skeem: kelle poole pöörduda?', instruction: 'Kuulates märgi iga sammu juurde, mida apteeker selle kohta ütleb.', nodes: 'Väike mure (nohu, kerge peavalu): puhka, loe infolehte, küsi apteekrilt\nEi lähe üle või ei tea, mida teha: perearsti nõuandetelefon 1220\nPalavik ei lange, hingamine läheb raskeks: perearst\nRaske hingata, teadvus kaob: kohe 112' }, 'full', 'g_notice'), 'Skeem näitab, kelle poole millise murega pöörduda.'),
+      why(teach(tag(purpose(B.examListen('042_d_radio', 'Kuulamine: raadiosaade „Tervise tund”.', 'Raadiosaates räägib saatejuht apteekriga sellest, kelle käest küsida nõu, kui tervis veidi streigib. Loe enne küsimused läbi. Kuula saadet kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Rein: Tere! Saates „Tervise tund” räägime täna sellest, kelle käest küsida nõu, kui tervis veidi streigib, aga arsti juurde minna veel ei taha. Stuudios on apteeker Merle. Merle, paljud otsivad vastust kõigepealt internetist. Kas see on halb?',
+        'Merle: Tere! Internet ei ole iseenesest halb. Häda on selles, et internet ei tea, kes te olete. Ta ei tea, milliseid ravimeid te juba võtate, kui vana te olete ega seda, kas te olete rase. Apteeker küsib just neid asju. Seepärast oleks mõistlik vaadata internetist üldist infot, aga otsus teha koos inimesega, kes teid näeb ja kuuleb.',
+        'Rein: Kuulaja kirjutab: „Mul on nohu ja kurk valutab. Naaber ütles, et ostku ma antibiootikumi, siis läheb kiiremini üle.” Mida te talle vastaksite?',
+        'Merle: Ma saan murest aru, aga see oleks vale samm. Nohu on enamasti viirus ja antibiootikum viirust ei ravi. Pealegi ei saa antibiootikumi osta ilma retseptita. Kõige parem, mida ta teha saaks, on puhata, juua palju ja oodata paar päeva. Kui palavik ei lange või hingamine läheb raskeks, tuleks pöörduda perearsti poole.',
+        'Rein: Aga kui perearsti juurde ei saa kohe aega?',
+        'Merle: Siis tasuks helistada perearsti nõuandetelefonile, number üks kaks kaks null. Seal vastatakse ööpäev läbi ja öeldakse, kas peab kohe arsti juurde minema või võib kodus olla. Kui aga inimesel on raske hingata või ta kaotab teadvuse, ei maksa mõelda. Helistage kohe hädaabinumbrile üks üks kaks.',
+        'Rein: Järgmine kuulaja küsib oma isa pärast, kes ei saa ise apteeki minna. Kas tütar võib isa retseptiravimi välja osta?',
+        'Merle: Võib küll. Tütar peaks võtma kaasa oma dokumendi ja teadma isa isikukoodi. Isa peab olema seda lubanud ja seda saab kontrollida terviseportaalis. Ma soovitaksin selle asja korda ajada enne, kui isa haigeks jääb. Siis ei ole hiljem kiiret.',
+        'Rein: Sügisel küsivad paljud gripi kohta. Kas vaktsineerida saab ka apteegis?',
+        'Merle: Paljudes apteekides saab. Aja saab broneerida internetist. Eakatele ja teistele riskirühmadele on vaktsiin tavaliselt tasuta. Kel on õhtuti vähe aega, sel tasuks aeg varakult broneerida, sest õhtused ajad lähevad kiiresti.',
+        'Rein: Kas apteekrilt võib nõu küsida ka siis, kui ma midagi ei osta?',
+        'Merle: Loomulikult, nõu on tasuta. Paljud tulevad lihtsalt küsima, kas kaks ravimit sobivad kokku või kas tabletti tuleks võtta enne või pärast sööki. Sellised küsimused on täiesti tavalised ja keegi ei pea neid häbenema.',
+        'Rein: Ja mida teha vanade ravimitega, mis kapis aeguvad?',
+        'Merle: Prügikasti ega kraanikaussi neid visata ei tohi. Viige need apteeki või ohtlike jäätmete kogumispunkti. Ja üks asi veel: enne uue ravimi võtmist lugege infolehte, ka siis, kui ravim on käsimüügis. Kui midagi jääb segaseks, küsige. Kõige sagedamini kuulen apteegis lauset: „Oleksin pidanud varem küsima.” Küsige siis kohe.',
+        'Rein: Merle, kas te ise vaatate kunagi internetist tervise kohta?',
+        'Merle: Muidugi! Aga ma vaatan, kes kirjutab. Kui samal lehel müüakse imerohtu, siis ma sinna ei jää. Ja kui keegi lubab, et üks tablett lahendab kõik, oleksin eriti ettevaatlik.',
+        'Rein: Aitäh, Merle!',
+      ], [
+        ['Mis on Merle sõnul interneti suurim puudus?', 'internet ei tea, kes te olete ja mida te juba võtate', 'internetis on kogu info vale', 'internetist ei leia ühtegi apteeki'],
+        ['Mida soovitab Merle teha internetist leitud infoga?', 'lugeda üldist infot, kuid otsustada koos spetsialistiga', 'usaldada seda täielikult', 'mitte seda kunagi lugeda'],
+        ['Miks ei aita antibiootikum nohu korral?', 'nohu on enamasti viirus, mida antibiootikum ei ravi', 'antibiootikum mõjub alles nädala pärast', 'nohu korral on see liiga tugev'],
+        ['Millal tuleks Merle sõnul pöörduda perearsti poole?', 'kui palavik ei lange või hingamine läheb raskeks', 'kohe esimesel päeval', 'ainult siis, kui naaber soovitab'],
+        ['Mida saab helistaja teada nõuandetelefonilt 1220?', 'kas peab kohe arsti juurde minema või võib kodus olla', 'kus on lähim apteek', 'kas antibiootikumi võib osta ilma retseptita'],
+        ['Mida peab tütar teadma ja kaasa võtma, et isa ravim välja osta?', 'oma dokumendi ja isa isikukoodi', 'isa ID-kaardi ja perearsti kirja', 'ainult paberil retsepti'],
+        ['Kellele on gripivaktsiin tavaliselt tasuta?', 'eakatele ja teistele riskirühmadele', 'kõigile, kes broneerivad õhtuse aja', 'ainult apteegi töötajatele'],
+        ['Mida tahab Merle öelda, kui soovitab ravimite asja korda ajada „enne, kui isa haigeks jääb”? Järelda.', 'haiguse ajal on asju raske ajada, seepärast tasub ette valmistuda', 'isa ei tohi kunagi ise apteeki minna', 'terviseportaal on haiguse ajal suletud'],
+        ['Mida võib järeldada sellest, et Merle lahkub lehelt, kus müüakse imerohtu?', 'müüja info ei ole erapooletu', 'internet on alati ohtlik', 'apteeker ei tohi internetti kasutada'],
+        ['Milline on Merle hoiak küsimuses „internet või apteeker”?', 'internetti võib kasutada, kuid otsus tuleb teha koos spetsialistiga', 'internetti ei tohi kunagi kasutada', 'apteekrit ei ole interneti kõrval vaja'],
+      ], 'g_listen'), 'Kuuled, kelle poole millise murega pöörduda; kohe annad sama nõu tädile.'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Enne kuulamist küsi: kelle poole sina pöörduksid nohuga, palavikuga, hingamisraskusega? Õpilane loeb küsimused ja joonib alla võtmesõnad. Pärast: õpilane ütleb skeemi iga sammu kohta apteekri nõuande. Küsimused 8–10 on järeldusküsimused (apteekri hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud; ära anna ravinõu.'), [
+        'Merle: „internet ei tea, kes te olete … milliseid ravimeid te juba võtate”.',
+        'Merle: „vaadata internetist üldist infot, aga otsus teha koos inimesega, kes teid näeb ja kuuleb”.',
+        'Merle: „Nohu on enamasti viirus ja antibiootikum viirust ei ravi.”',
+        'Merle: „Kui palavik ei lange või hingamine läheb raskeks, tuleks pöörduda perearsti poole.”',
+        'Merle: 1220 — „öeldakse, kas peab kohe arsti juurde minema või võib kodus olla”.',
+        'Merle: „võtma kaasa oma dokumendi ja teadma isa isikukoodi”.',
+        'Merle: „Eakatele ja teistele riskirühmadele on vaktsiin tavaliselt tasuta.”',
+        'Järeldus: „Siis ei ole hiljem kiiret.” — haiguse ajal on raske asju ajada.',
+        'Järeldus: kus müüakse imerohtu, seal on info müüja huvides.',
+        'Järeldus: internet „ei ole iseenesest halb”, kuid otsus tehakse koos inimesega, „kes teid näeb ja kuuleb”.',
+      ]),
+      retire('042_d_hook', CUT_HOOK),
+    ],
+    practice: [
+      station(teach(B.notice('042_p_notice', 'Märka: kuidas nõu anda nii, et keegi ei solvu?', [
+        'Saatest: **oleks mõistlik** vaadata · **tuleks** pöörduda perearsti poole · **tasuks** helistada · „**Oleksin pidanud** varem küsima.”',
+        'Kordamine (B1): pehme nõuanne — sa **võiksid** + da · sa **peaksid** + ma · **tasuks** + da · **oleks parem, kui** … (käsk „Mine!” → „Sa võiksid minna.”)',
+        'B2: üldine soovitus ilma „sina”-ta — **tuleks / ei tohiks** + da · **soovitatakse / ei soovitata** + da · **oleks mõistlik / tasub kaaluda** + da. Nii räägib spetsialist.',
+        'B2: tagantjärele nõuanne — **oleks pidanud** + ma (Sa oleksid pidanud kohe helista**ma**.) · **oleks võinud** + da (Ta oleks võinud apteekrilt küsi**da**.) · **Ma oleksin sinu asemel** + -nud (Ma oleksin sinu asemel 1220 helista**nud**.)',
+      ], 'full'), 'Kordamine ühe minutiga (võiksid, tasuks, oleks parem). Siis B2 samm: üldine soovitus (nii räägib apteeker) ja nõuanne tagantjärele (nii räägid sõbraga, kes on juba vea teinud). Lase õpilasel leida saatest kolm soovitust ja öelda, kas need on „sulle” või „kõigile”.'), 3, 20),
+      why(purpose(B.transformation('042_p_soft', 'Ütle teisiti.', 'Ütle iga mõte antud sõnadega: üldise soovitusena, pehmelt või tagantjärele. Panka ei ole.', [
+        ['Ära osta antibiootikumi ilma retseptita! (üldine soovitus)', 'ei tohiks', 'Antibiootikumi ei tohiks osta ilma retseptita.|Ilma retseptita ei tohiks antibiootikumi osta.'],
+        ['Sa ei küsinud apteekrilt. See oli viga. (tagantjärele)', 'oleksid pidanud', 'Sa oleksid pidanud apteekrilt küsima.'],
+        ['Isa ei lugenud infolehte, kuigi see oli võimalik. (tagantjärele)', 'oleks võinud', 'Isa oleks võinud infolehte lugeda.|Isa oleks võinud lugeda infolehte.'],
+        ['Loe infolehte enne ravimi võtmist! (infolehe soovitus, umbisikuline)', 'soovitatakse', 'Enne ravimi võtmist soovitatakse lugeda infolehte.|Enne ravimi võtmist soovitatakse infolehte lugeda.'],
+        ['Ma ei broneerinud vaktsineerimise aega varakult. Nüüd kahetsen.', 'oleksin pidanud', 'Ma oleksin pidanud vaktsineerimise aja varakult broneerima.|Oleksin pidanud vaktsineerimise aja varakult broneerima.'],
+        ['Kui ma oleksin sina, helistaksin kohe 112. (tagantjärele)', 'ma oleksin sinu asemel', 'Ma oleksin sinu asemel kohe 112 helistanud.|Ma oleksin sinu asemel helistanud kohe 112.'],
+        ['Ära otsi diagnoosi internetist! (spetsialisti soovitus)', 'ei soovitata', 'Diagnoosi ei soovitata otsida internetist.|Diagnoosi ei soovitata internetist otsida.|Internetist ei soovitata diagnoosi otsida.'],
+        ['Puhka paar päeva ja joo palju! (spetsialisti soovitus)', 'oleks mõistlik', 'Oleks mõistlik paar päeva puhata ja palju juua.'],
+      ], 'full', 'g_notice'), 'Õige vorm teeb nõuande selgeks ja jätab teisele valiku; tagantjärele nõuanne ei kõla etteheitena.'), [
+        'Üldine keeld → ei tohiks + da: osta.',
+        'Tagantjärele, sina → oleksid pidanud + ma: küsima.',
+        'Tagantjärele võimalus → oleks võinud + da: lugeda.',
+        'Infolehe soovitus → soovitatakse + da.',
+        'Kahetsus, mina → oleksin pidanud + ma: broneerima.',
+        'Ma oleksin sinu asemel + -nud: helistanud.',
+        'Üldine keeld → ei soovitata + da: otsida.',
+        'Üldine soovitus → oleks mõistlik + da: puhata, juua.',
+      ]),
+      why(purpose(B.formtext('042_p_message', 'Sõnum sõbrale pärast haigust.', 'Sõber oli nädal aega haige ja ostis naabri soovitusel tugeva rohu. Kirjuta talle saadetud sõnumi lünka üks sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Saa terveks!', [
+        'Kuulsin, et olid nädal aega haige. Ausalt öeldes oleksid sa [pidanud] (pidama; tagantjärele) kohe perearstile helistama, mitte nädal aega ootama.',
+        '',
+        'Kui arsti juurde ei saa aega, [tasuks] (tasuma; pehme nõuanne) helistada nõuandetelefonile 1220, seal vastatakse ööpäev läbi. Kui palavik ei [lange] (langema; eitus), tuleb arsti juurde minna.',
+        '',
+        'Sa kirjutasid, et ostsid naabri soovitusel tugeva rohu. Sa [oleksid] (olema; tagantjärele) võinud vähemalt apteekrilt küsida, kas see sobib sinu teiste ravimitega. Ilma retseptita [ei] (eitus) tohiks antibiootikume üldse võtta.',
+        '',
+        'Enne uue ravimi võtmist [soovitatakse] (soovitama; umbisikuline) lugeda infolehte. Kui midagi on segane, oleks [mõistlik] (mõistlik) küsida apteekrilt, mitte foorumist.',
+        '',
+        'Ma [oleksin] (olema; mina, tagantjärele) sinu asemel ka gripi vastu vaktsineerinud. Sügisel [võiksid] (võima; sina, pehme nõuanne) aja apteeki varakult broneerida. Ja vanad tabletid [tuleks] (tulema; üldine soovitus) viia apteeki, mitte prügikasti.',
+      ]), 'Samamoodi kirjutad kodus tädile: pehmelt, selgelt ja nii, et ta ei solvu.'), [
+        'Tagantjärele, sina → oleksid pidanud + ma.',
+        'Pehme nõuanne → tasuks.',
+        'Eitus olevikus → ei lange.',
+        'Tagantjärele → oleksid võinud.',
+        'Üldine keeld → ei tohiks.',
+        'Infolehe soovitus → soovitatakse.',
+        'oleks mõistlik + da.',
+        'Ma oleksin sinu asemel + -nud.',
+        'Pehme nõuanne, sina → võiksid.',
+        'Üldine soovitus → tuleks + da.',
+      ]),
+      why(purpose(tag(B.table('042_p_register', 'Pere vestlus või kiri perearstikeskusele?', 'Vasakul on sõnumid pere vestlusest. Paremas veerus on sama mõte e-kirjas perearstikeskusele. Kirjuta lünka puuduv sõna.', 'Pere vestluses, Kirjas perearstikeskusele', [
+        'Tere! Mul on üks küsimus. | [Lugupeetud] perearstikeskus! Pöördun teie poole küsimusega.',
+        'Isa köhib juba nädal. | Minu isa on [köhinud] juba nädal aega.',
+        'Palavik ei lähe alla. | Palavik ei ole [langenud].',
+        'Ta ei saa ise tulla, jalg valutab. | Ta ei saa jalavalu [tõttu] ise vastuvõtule tulla.',
+        'Kas ta peaks tulema või helistama? | Palun öelge, kas tal [tuleks] tulla vastuvõtule või piisab telefonist.',
+        'Kas ma võin ta rohud välja osta? | Kas ma [tohin] tema retseptiravimid välja osta?',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas pere mure kõlab kirjas, mida loeb võõras arst.'), [
+        'Tere → Lugupeetud …!',
+        'Köhib juba nädal → on köhinud (täisminevik).',
+        'Ei lähe alla → ei ole langenud.',
+        'Jalg valutab → jalavalu tõttu.',
+        'Peaks → tuleks.',
+        'Võin → tohin.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('042_t_plan', 'Nõuanne tädile: plaan (3 minutit).', 'Sinu tädi (või vanem naaber) helistab: tal on kolm muret — perearsti kirjutatud rohi on vaja apteegist välja osta, aga jalg valutab; ta tahaks gripi vastu vaktsineerida; kapis on vanad ravimid. Sinu teada: retseptiravimi võib teise eest välja osta oma dokumendi ja tema isikukoodiga, kui ta on seda lubanud; gripi vastu saab vaktsineerida ka paljudes apteekides; vanad ravimid viiakse apteeki. Kirjuta märksõnad. Nõuanne ei ole nõudmine: tädi otsustab ise. Edukriteeriumid: 1) annad kolm pehmet või üldist nõuannet (võiksite, tasuks, oleks mõistlik, tuleks); 2) ütled ühe tagantjärele nõuande nii, et tädi ei solvu (oleksite võinud …); 3) lepite kokku, kes mida teeb ja millal.', ['Mure 1 ja minu nõuanne:', 'Mure 2 ja minu nõuanne:', 'Mure 3 ja minu nõuanne:', 'Mida ütlen, kui tädi on midagi juba valesti teinud:'], 1), 'Plaan aitab sul anda nõu, mis on selge ja jätab tädile valiku.'), 4, 25, { final: 'advise' }),
+      teach(tag(purpose(B.rolecards('042_t_gap', 'Nõu tädile telefonis (6–8 minutit).', 'Helista tädile, saa teada, mis tal täpselt vaja on, ja anna igale murele pehme nõuanne. Ole viisakas ja kannatlik. Reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord: sinu tädi (või vanem naaber) on üksi kodus ja tal on kolm muret: rohi apteegist, gripisüst ja vanad ravimid.\nSinu eesmärk: igal murel on lahendus ja te olete kokku leppinud, kes mida teeb ja millal.\nPiirang: tädi ei taha, et teda õpetatakse; käsk ei tööta.',
+        'Tädi kaart on õpetajal: tema mured, tema harjumused ja üks asi, mida ta on juba ise teinud.',
+        ['Te võiksite …', 'Oleks mõistlik …'], ['Aga ma ei oska internetis …', 'Kas see on tasuta?']), 'Tulemus: tädi teab, mida teha, ja te olete kokku leppinud järgmised sammud.'), { task: 'S05', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled tädi (umbes 75-aastane). Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Ma ei oska internetis aega broneerida.” (õpilane pakub, et broneerib ise või helistab apteeki) 2) „Ma ei taha sind tülitada.” Varjatud info (ütle pärast teist takistust): „Ah jaa — naaber andis mulle oma tabletid, need aitasid tal kõrge palaviku vastu. Ma võtsin neid juba kaks päeva.” Õpilane peab reageerima rahulikult ja ilma etteheiteta: tagantjärele nõuanne (oleksite võinud enne apteekrilt küsida), kohe helistada 1220 või küsida apteekrilt, mitte jätkata võõraid tablette. Õnnestunud, kui õpilane annab igale murele nõuande (võiksite, tasuks, oleks mõistlik, tuleks), ütleb ühe tagantjärele nõuande pehmelt ja te lepite kokku, kes mida teeb ja millal. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('042_t_mail', 'Kodus: kiri tädile (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Pärast telefonikõnet palus tädi, et paneksid kõik kirja: ta tahab kirja külmkapi uksele panna.',
+        points: ['mida ta peab rohu väljaostmiseks tegema ja kes seda teeb', 'kuidas ja kus saab gripi vastu vaktsineerida', 'mida teha vanade ravimitega', 'kuhu helistada, kui tervis läheb halvemaks'],
+        words: [130, 150],
+      }), 'Tädi loeb kirja ja teab, mida ja millal teha.'), 6)), { task: 'W03', main: true, level: 3 }),
+      writingRubric('042_t_rubric', 'Hindamisjuhend: kiri tädile (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere, tädi! Sa pead minema apteeki ja ostma rohtu. Sa pead minema ka gripisüstile. Vanad rohud viska ära. Kui on halb, helista. Sa oleksid pidanud küsida. Kallistan!” Hinnang: ülesanne 2 (kolm muret on olemas, kuid ei selgu, kes rohu välja ostab ja kuhu helistada; vanade ravimite nõuanne on vale), ülesehitus 2 (järjekord on selge, lõike ja sidendeid ei ole), sõnavara 2 („pead minema” kordub; puuduvad retseptiravim, broneerima, nõuandetelefon), grammatika 1 (käsud „pead”, „viska” ei ole pehme nõuanne; „oleksid pidanud küsida” → küsima). Kui õppija annab pehmed nõuanded (võiksid, tasuks), nimetab 1220 ja apteegi ning parandab pidama + ma, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('042_t_self', ['Ma saan saatest aru, kelle poole millise murega pöörduda, ja järeldan apteekri hoiaku.', 'Ma annan üldist ja tagantjärele nõu: tuleks, ei tohiks, soovitatakse; oleks pidanud + ma, oleks võinud + da.', 'Ma annan tädile pehmet nõu ja reageerin ootamatule uudisele ilma etteheiteta.'], 'Nõu antud', 'Ma oskan nõu anda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('042_t_voice', CUT_SHORT),
+      retire('042_t_card', CUT_INPUT),
+      retire('042_t_notes', CUT_DRILL),
+      retire('042_t_more', CUT_EXTRA),
+      retire('042_t_exit', CUT_DRILL),
+      retire('042_t_letter', CUT_OLDTASK),
+      retire('042_t_home', CUT_HOME),
+      retire('042_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-043': {
+    title: 'Õhtul väsinud: trenn või diivan?',
+    phases: grammar('Kordamine: pigem … kui …, selle asemel et + da, mida …, seda … · B2: kaalumine ja möönmine — ühelt poolt … teiselt poolt …, mitte niivõrd … kuivõrd …, seda enam, et …, olenemata sellest, kas …, kuigi … siiski'),
+    format: 'debate',
+    topic: 'health',
+    subtopic: 'movement-rest',
+    canDo: 'Ma loen umbes 480-sõnalist artiklit sellest, kas väsinud inimene peaks trenni minema või puhkama, ja järeldan autori hoiaku, arutlen märksõnakaartidega ja vastan ka siis, kui partner toob uue asjaolu, ning kirjutan umbes 180-sõnalise arutluse.',
+    teacherPage: {
+      goal: 'Статья «тренировка или диван» (≈ 480 слов); взвешивание и уступка; дискуссия по карточкам с ключевыми словами; дома рассуждение 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 8 трансформаций; дискуссия — по одному аргументу с примером.',
+      hook: '«Väide: kes ütleb, et tal pole aega liikuda, ei taha tegelikult liikuda.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — что он делает вечером, когда устал. Без фраз, не исправляйте. Отметьте, умеет ли он взвешивать («с одной стороны …») — это тема станции 3.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своём вечере, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (8 мин), картинка и схема «что тебя утомило?» (2 мин)',
+        '25–45: станция 3 — pigem … kui / selle asemel et / mida …, seda … одной строкой, B2: ühelt poolt … teiselt poolt, mitte niivõrd … kuivõrd, seda enam, et, olenemata sellest, kas, kuigi … siiski; 8 трансформаций, пост на форуме с 10 пропусками без банка, регистр (6 строк): устное мнение → письменное рассуждение',
+        '45–70: станция 4 — план аргументов (3 мин), дискуссия по карточкам до 4 минут со скрытой информацией, разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: рассуждение 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «30 секунд»: вы называете ситуацию (ночная смена, первый день простуды, после перелёта, перед экзаменом) — ученик за 30 секунд советует, тренировка или отдых, и почему',
+      ],
+      sources: 'Статья «Väsinud pärast tööd: trenn või diivan?» — учебный текст KeeleSepp, без статистики. Общие представления: умственная усталость часто проходит от лёгкой активности, физическая — от отдыха; при начинающейся болезни интенсивная тренировка не рекомендуется; для здоровья важнее регулярность, чем интенсивность одного занятия (рекомендации ВОЗ о движении в неделю — без чисел на листе). Медицинских советов не давать.',
+      groups: 'Утверждение — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Дискуссия: две стороны (карточки A и B); в 1:1 вы берёте сторону, которую ученик не выбрал.',
+      errors: [
+        '«Ühelt poolt …, teiselt poolt aga …» — верно; «Ühest poolt» → «Ühelt poolt».',
+        '«mitte niivõrd pingutus kui regulaarsus» → «… pingutus, kuivõrd regulaarsus» (niivõrd … kuivõrd).',
+        '«Kuigi olen väsinud, aga lähen trenni» → «Kuigi olen väsinud, lähen siiski trenni» (после kuigi без aga).',
+        '«olenemata vanus» → «olenemata vanusest» / «sõltumata vanusest» (millest).',
+      ],
+      notes: [
+        'Формат — дискуссия с карточками: на карточке 2–3 ключевых слова на аргумент, аргумент ученик строит сам. Не оценивайте спортивность ученика; речь о выборе вечером. Ученику, который не занимается спортом: «прогулка или сериал», «лестница или лифт».',
+        'pigem … kui, selle asemel et, mida …, seda … (модуль 8 и B1) — повтор одной строкой. Цель B2 — взвешивание: две стороны (ühelt poolt … teiselt poolt), что важнее (mitte niivõrd … kuivõrd), ещё одна причина (seda enam, et), независимость от условия (olenemata sellest, kas), уступка (kuigi … siiski). Это язык рассуждения на экзамене B2.',
+        'Обратная связь, 2–3 цели: аргумент + пример; одна конструкция взвешивания; ответ на новый факт партнёра. Во время дискуссии не перебивать, 3 замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('043_d_talk', 'Väide: kes ütleb, et tal pole aega liikuda, ei taha tegelikult liikuda.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: mida sa teed õhtul, kui oled väsinud, ja kas see aitab.', [
+        'Väide: „Kes ütleb, et tal pole aega liikuda, ei taha tegelikult liikuda.” Kas oled nõus? Miks?',
+        'Mida sa teed õhtul, kui oled väsinud: liigud, puhkad või midagi muud?',
+        'Mis sind tavaliselt väsitab: töö, inimesed, ekraan või midagi muud? Kas oled kunagi trenni väsimuse pärast tühistanud?',
+      ], [60, 90]), 'Sinu enda õhtu on arutelu esimene näide; pärast artiklit näed, kas sinu valik pidas paika.'), { task: 'S14', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe lausega. Ära paranda ega hinda kellegi sportlikkust. Pane kirja, kas õppija kaalub mõlemat poolt („ühelt poolt …”) või ütleb ainult ühe — see tuleb jaamas 3 tagasi. Kui õppija ei liigu üldse: „Mida sa teed, kui pärast tööd on pea täis?”')), 1, 5),
+      station(tag(B.vocab('043_d_vocab', 'Tunni sõnad.', ['väsimus — усталость', 'taastuma — восстанавливаться', 'koormus — нагрузка', 'pingutama — прилагать усилия', 'regulaarne — регулярный', 'süütunne — чувство вины', 'laiskus — лень', 'venitama — делать растяжку', 'seisukoht — позиция', 'arvestama (millega) — учитывать (что)']), { topic: ['väsimus', 'taastuma', 'koormus'] }), 2, 20),
+      why(teach(tag(purpose(B.reading('043_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Väsinud pärast tööd: trenn või diivan?', [
+        'Kell on kuus õhtul, tööpäev on läbi ja spordikott seisab esikus. Peas käib vaidlus, mida tunneb peaaegu igaüks: kas minna trenni või heita diivanile? Ühelt poolt ütleb südametunnistus, et liikuda tuleb, teiselt poolt ütleb keha, et ta on väsinud. Kumba kuulata?',
+        'Spordiarstid alustavad tavaliselt küsimusega: mis sind väsitas? Väsimus ei ole üks ja sama. Kui terve päev möödus arvuti taga istudes, on väsinud pigem pea kui keha. Sellisel juhul mõjub kerge liikumine sageli paremini kui puhkus: pool tundi kõndimist või rahulik ujumine toob selge pea tagasi. Paljud on üllatunud, et pärast trenni on neil rohkem energiat kui enne, seda enam, et istuv inimene ei ole kehaliselt väsinud, vaid lihtsalt tüdinud. Ka lühike jalutuskäik pärast õhtusööki aitab paljudel paremini magada.',
+        'Teine lugu on siis, kui väsimus on kehas. Kes on terve päeva ehitusplatsil, laos või haiglas jalgadel olnud, sellele ei pruugi raske jõutrenn õhtul head teha. Ka halvasti magatud ööle, algavale haigusele või pikale stressiperioodile ei ole kurnav trenn vastus. Keha taastub puhates, mitte pingutades, ja kohaneb koormusega alles siis, kui saab vahepeal puhata. Sellisel juhul on soe dušš, rahulik venitamine ja varane uni sageli parem valik kui jõusaal. Seda unustavad eriti need, kes on harjunud iga päev treenima ja tunnevad süüd iga vahele jäänud korra pärast.',
+        'Kõige sagedamini ei ole valik aga „trenn või diivan”, vaid „midagi või mitte midagi”. Uurijad rõhutavad üha enam, et tervisele ei loe niivõrd see, kui palju me korraga pingutame, kuivõrd see, kui regulaarselt me liigume. Kümme minutit venitamist iga päev võib anda rohkem kui üks kurnav trenn nädalas, millest taastumiseks kulub mitu päeva. Olenemata sellest, kas inimene käib jõusaalis või mitte, tasub tal mõelda, kuidas igapäevaellu rohkem liikumist mahutada: trepp lifti asemel, jalgsi poodi, telefonikõne kõndides.',
+        'Ka puhkus ei ole alati puhkus. Diivanil telefoni sirvides ei puhka aju kuigi palju: uudised, sõnumid ja videod hoiavad seda pidevalt ärkvel. Paljud tunnevad end pärast kahte tundi sarja vaatamist väsinumana kui enne. Ka sotsiaalne väsimus on päris: pärast päeva täis koosolekuid vajab mõni inimene vaikust, mitte rahvarohket ühistreeningut. Päris puhkus võib olla väike elamus: jalutuskäik ilma kõrvaklappideta, raamat või lihtsalt varem magama minek.',
+        'Mida siis teha, kui kott seisab esikus? Mõned treenerid soovitavad kümne minuti reeglit: alusta ja otsusta kümne minuti pärast. Kui keha ärkab, jätka; kui väsimus kasvab, mine koju ilma süütundeta. Nii ei ole otsus enam „kõik või mitte midagi”. Kuigi reegel on lihtne, nõuab see siiski ausust: laiskust ja tõelist väsimust on kerge segamini ajada. Erinevuse tunneb ära see, kes küsib endalt, mitte ainult nutikellalt.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Millise küsimusega alustavad spordiarstid?', 'mis sind väsitas?'],
+        ['Millal mõjub kerge liikumine autori sõnul paremini kui puhkus?', 'kui väsinud on pigem pea, näiteks pärast päeva arvuti taga'],
+        ['Kellele ei pruugi raske õhtune trenn head teha?', 'neile, kes on terve päeva füüsiliselt töötanud, halvasti maganud, haigeks jäämas või pikalt stressis'],
+        ['Mis on uurijate sõnul tervisele olulisem kui see, kui palju korraga pingutada?', 'see, kui regulaarselt liigutakse'],
+        ['Miks ei ole telefoni sirvimine diivanil autori arvates päris puhkus? Järelda.', 'aju ei puhka, sest uudised, sõnumid ja videod hoiavad seda pidevalt ärkvel'],
+        ['Mida tahab autor öelda, kui kirjutab, et valik ei ole „trenn või diivan”, vaid „midagi või mitte midagi”? Järelda.', 'ei pea valima kahe äärmuse vahel; ka väike regulaarne liikumine on palju parem kui mitte midagi'],
+        ['Milline on autori hoiak nutikella suhtes? Mida ta vihjab viimase lausega?', 'numbrid ei asenda enesetunnet; oma väsimust tuleb ausalt ise hinnata'],
+      ]), 'Pärast lugemist on sul arutelu jaoks argumendid ja näited mõlemalt poolt.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade ja skeemiga. Enne lugemist küsi: mis sind täna väsitas — pea või keha? Pärast: õpilane lisab skeemi kummalegi poolele ühe oma näite. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst; ära anna treeningnõu ega hinda õpilase vormi.'), [
+        '2. lõik: „Spordiarstid alustavad tavaliselt küsimusega: mis sind väsitas?”',
+        '2. lõik: „Kui terve päev möödus arvuti taga istudes, on väsinud pigem pea kui keha.”',
+        '3. lõik: ehitusplatsil, laos või haiglas jalgadel olnud; halb uni, algav haigus, pikk stress.',
+        '4. lõik: „ei loe niivõrd see, kui palju me korraga pingutame, kuivõrd see, kui regulaarselt me liigume”.',
+        'Järeldus 5. lõigust: „uudised, sõnumid ja videod hoiavad seda pidevalt ärkvel”.',
+        'Järeldus 4. lõigust: „Kümme minutit venitamist iga päev võib anda rohkem kui üks kurnav trenn nädalas.”',
+        'Järeldus 6. lõigust: erinevuse „tunneb ära see, kes küsib endalt, mitte ainult nutikellalt”.',
+      ]),
+      purpose(B.diagram('043_d_scheme', 'compare', { title: 'Skeem: mis sind väsitas?', instruction: 'Pärast lugemist leia tekstist, mida autor kummalgi juhul soovitab, ja lisa kummalegi poolele üks oma näide.', left: 'Väsinud on pigem pea', right: 'Väsinud on pigem keha', leftItems: 'terve päev arvuti taga\npalju infot, tüdimus\nkerge liikumine annab energiat', rightItems: 'füüsiline töö, terve päev jalgadel\nhalb uni, algav haigus, pikk stress\nkeha taastub puhates' }, 'full', 'g_read'), 'Skeem aitab sul enne vaidlust küsida: mis mind tegelikult väsitas?'),
+      retire('043_d_hook', CUT_HOOK),
+      retire('043_d_facts', CUT_STATS),
+      retire('043_d_check', 'true / false check of the statistics text 043_d_facts (owner 2026-11-25: no exact numbers); the article 043_d_text with its inference questions takes its place'),
+    ],
+    practice: [
+      station(teach(B.notice('043_p_notice', 'Märka: kuidas kaaluda kahte poolt?', [
+        'Artiklist: **ühelt poolt** ütleb südametunnistus …, **teiselt poolt** ütleb keha … · väsinud on **pigem** pea **kui** keha · **seda enam, et** istuv inimene ei ole väsinud · ei loe **niivõrd** see, kui palju …, **kuivõrd** see, kui regulaarselt … · **olenemata sellest, kas** inimene käib jõusaalis … · **Kuigi** reegel on lihtne, nõuab see **siiski** ausust.',
+        'Kordamine (B1): **pigem** … **kui** … (samas vormis) · **selle asemel, et** + da · **mida** + keskvõrre …, **seda** + keskvõrre …',
+        'B2: kaalumine — **Ühelt poolt** …, **teiselt poolt** … · **mitte niivõrd** …, **kuivõrd** … (tähtsam on teine) · **mitte** …, **vaid** … · **Kuigi** …, … **siiski / ometi** … (kuigi-lause järel ei ole „aga”).',
+        'B2: veel üks põhjus ja tingimusest sõltumatus — …, **seda enam, et** … · **olenemata sellest, kas / kui palju** … · **olenemata / sõltumata** + seestütlev: olenemata vanu**sest**.',
+      ], 'full'), 'Kordamine ühe minutiga (pigem … kui, selle asemel et). Siis B2 samm: kuidas kaaluda kahte poolt ja öelda, mis on tähtsam. Lase õpilasel leida artiklist neli sellist lauset ja öelda iga kohta: kas see kaalub, lisab põhjuse või möönab?'), 3, 20),
+      why(purpose(B.transformation('043_p_weigh', 'Kaalu ja vali.', 'Tee kahest lausest üks. Kasuta antud sõnu. Panka ei ole.', [
+        ['Mul on vaja liikuda. Samas olen väga väsinud.', 'ühelt poolt … teiselt poolt', 'Ühelt poolt on mul vaja liikuda, teiselt poolt olen väga väsinud.|Ühelt poolt on mul vaja liikuda, teiselt poolt olen ma väga väsinud.'],
+        ['Tervisele on tähtis regulaarsus. Pingutuse suurus on vähem tähtis.', 'mitte niivõrd … kuivõrd', 'Tervisele on tähtis mitte niivõrd pingutuse suurus, kuivõrd regulaarsus.'],
+        ['Ma olen väsinud. Ma lähen ikkagi trenni.', 'kuigi … siiski', 'Kuigi olen väsinud, lähen siiski trenni.|Kuigi ma olen väsinud, lähen ma siiski trenni.|Kuigi olen väsinud, lähen ma siiski trenni.'],
+        ['Liikumine on kasulik. Vanus ei ole oluline.', 'sõltumata', 'Liikumine on kasulik sõltumata vanusest.|Sõltumata vanusest on liikumine kasulik.'],
+        ['Jalutuskäik on hea mõte. Lisaks paistab täna päike.', 'seda enam, et', 'Jalutuskäik on hea mõte, seda enam, et täna paistab päike.'],
+        ['Õhtul on mu pea väsinud. Mu keha ei ole väsinud.', 'pigem … kui', 'Õhtul on väsinud pigem mu pea kui keha.|Õhtul on mul väsinud pigem pea kui keha.'],
+        ['Ei ole vahet, kas sa käid jõusaalis. Trepist käimine on igal juhul kasulik.', 'olenemata sellest, kas', 'Olenemata sellest, kas sa käid jõusaalis, on trepist käimine kasulik.|Olenemata sellest, kas käid jõusaalis, on trepist käimine kasulik.'],
+        ['Ma ei ole laisk. Ma olen tõesti väsinud.', 'mitte … vaid', 'Ma ei ole laisk, vaid tõesti väsinud.|Ma ei ole mitte laisk, vaid tõesti väsinud.'],
+      ], 'full', 'g_notice'), 'Kaalutud lause näitab, et sa näed mõlemat poolt; nii on sinu arvamus arutelus veenvam.'), [
+        'Kaks poolt → ühelt poolt …, teiselt poolt …',
+        'Tähtsam on teine → mitte niivõrd …, kuivõrd …',
+        'Mööndus → kuigi …, … siiski (ilma „aga”-ta).',
+        'sõltumata millest → vanusest.',
+        'Veel üks põhjus → …, seda enam, et …',
+        'Eelistus samas vormis → pigem pea kui keha.',
+        'Tingimus ei muuda → olenemata sellest, kas …',
+        'Vastandus → mitte …, vaid …',
+      ]),
+      why(tag(purpose(B.formtext('043_p_post', 'Foorumipostitus: kuidas ma õppisin väsimust kuulama.', 'Kirjutaja jagab foorumis oma kogemust. Kirjuta lünka üks sobiv sõna. Sulgudes on vihje. Panka ei ole.', 'Trenn iga hinna eest? Enam mitte.', [
+        'Veel aasta eest käisin jõusaalis viis korda nädalas, [olenemata] (sõltumata) sellest, kas olin maganud kuus tundi või kolm. Iga vahele jäänud korra pärast tundsin süüd.',
+        '',
+        'Siis jäin haigeks. Arst ütles, et mu väsimus ei tulenenud [niivõrd] (mitte … kuivõrd) haigusest, [kuivõrd] (mitte niivõrd …, …) sellest, et keha ei saanud kunagi taastuda.',
+        '',
+        'Nüüd küsin endalt enne trenni: mis mind väsitas? Kui olen terve päeva arvuti taga istunud, on väsinud [pigem] (eelistus: … kui) pea kui keha. Siis lähen ikkagi välja, [seda] (lisapõhjus: … enam, et) enam, et värske õhk teeb tuju heaks.',
+        '',
+        '[Kuigi] (mööndus lause alguses) vahel on raske otsustada, kasutan kümne minuti reeglit. [Selle] (… asemel, et) asemel, et kohe loobuda, alustan ja otsustan kümne minuti pärast.',
+        '',
+        '[Ühelt] (… poolt) poolt tahan olla tugev, teiselt poolt tahan elada ilma süütundeta. Olen aru saanud, et [mida] (… rahulikum, seda …) rahulikum ma olen, seda paremini ma magan. Ma ei ole muutunud laisaks, [vaid] (vastandus: mitte …, …) targemaks.',
+      ]), 'Samamoodi kirjutad kodus arutluse: mõlemad pooled, oma valik ja näide.'), { task: 'R03', harno: 'R3' }), [
+        'Tingimus ei muuda → olenemata sellest, kas …',
+        'mitte niivõrd …',
+        '…, kuivõrd …',
+        'Eelistus → pigem … kui …',
+        'Lisapõhjus → seda enam, et …',
+        'Mööndus → kuigi …',
+        'Asendus → selle asemel, et …',
+        'Kaks poolt → ühelt poolt …',
+        'mida …, seda …',
+        'Vastandus → ei ole …, vaid …',
+      ]),
+      why(purpose(tag(B.table('043_p_register', 'Suuline arvamus või kirjalik arutlus?', 'Vasakul on see, mida keegi ütles sõpradega rääkides. Paremas veerus on sama mõte kirjalikus arutluses, ilma liiga kindla üldistuseta. Kirjuta lünka puuduv sõna.', 'Suuliselt, Arutluses', [
+        'Mina arvan, et trenn on alati hea. | Minu [arvates] on liikumine üldjuhul kasulik.',
+        'Aga mõnikord on see jama mõte. | [Samas] ei ole trenn alati parim lahendus.',
+        'No näiteks kui sa oled haige. | Seda [eriti] siis, kui inimene on haigeks jäämas.',
+        'Peaasi, et sa üldse midagi teed. | [Olulisem] on see, et inimene liiguks regulaarselt.',
+        'Nutikell ei tea kõike. | Nutikella [andmed] ei asenda enesetunnet.',
+        'Lõpuks ütlen: kuula oma keha! | [Kokkuvõttes] tasub oma keha ausalt kuulata.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas suuline arvamus muutub arutluseks, mida hinnatakse eksamil.'), [
+        'Mina arvan → minu arvates.',
+        'Aga → samas.',
+        'No näiteks → eriti siis, kui …',
+        'Peaasi → olulisem on see, et …',
+        'Ei tea kõike → andmed ei asenda.',
+        'Lõpuks → kokkuvõttes.',
+      ]),
+      retire('043_p_fix', 'error-correction post (v4) → the form task 043_p_weigh and the coherent text 043_p_post without a bank (v5 Harjuta)'),
+    ],
+    transfer: [
+      station(purpose(B.planning('043_t_plan', 'Arutelu: argumentide plaan (3 minutit).', 'Teema: kas pärast tööpäeva tasub igal juhul liikuda? Vali pool: poolt või vastu. Kirjuta märksõnad. Edukriteeriumid: 1) kaks argumenti, igaühel näide artiklist või oma elust; 2) vähemalt kaks kaalumise väljendit (ühelt poolt …, teiselt poolt …; mitte niivõrd …, kuivõrd …; seda enam, et …; olenemata sellest, kas …); 3) arvestad partneri argumendiga, vastad sellele ja jõuate lõpus ühise seisukohani või ütled selgelt, milles jäite eri meelt.', ['Minu pool ja esimene lause (30 sekundit):', 'Argument 1 ja näide:', 'Argument 2 ja näide:', 'Mida vastan, kui partner ütleb …:'], 1), 'Plaan aitab sul rääkida argumentidega, mitte ainult tundega.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.rolecards('043_t_debate', 'Arutelu märksõnakaartidega (kuni 4 minutit).', 'Öelge kõigepealt kumbki 30 sekundiga oma arvamus. Siis arutage kaartide ja oma näidetega. Reageeri, kui partner toob uue asjaolu. Lõpus jõudke ühise seisukohani või öelge, milles jäite eri meelt.',
+        'Kaart A (poolt): märksõnad, ehita neist ise argument ja too näide. 1) pea väsinud — liikumine; 2) regulaarsus — harjumus; 3) uni — sügavam.',
+        'Kaart B (vastu): märksõnad, ehita neist ise argument ja too näide. 1) keha väsinud — taastumine; 2) süütunne — stress; 3) puhkus — ilma ekraanita.',
+        ['Ühelt poolt …', 'Seda enam, et …'], ['Ma ei ole päris nõus, sest …', 'Kas võiksime kokku leppida, et …?']), 'Tulemus: selge seisukoht kahe argumendi ja näitega ning kokkulepe või ausalt nimetatud lahkarvamus.'), { task: 'S17', main: true, level: 4, harno: 'S2' }),
+      'Õpetaja võtab poole, mida õppija ei valinud. Kuula 30 sekundit vahele segamata, siis arutle. Varjatud info (ütle arutelu keskel). Kui õppija on poolt: „Mul on oma lugu: ma treenisin iga õhtu ka väsinuna, kuni põlv vigastada sai, ja kolm kuud ei saanud ma üldse liikuda.” Kui õppija on vastu: „Mul on oma lugu: arst ütles mulle, et mu seljavalu tuleneb just sellest, et ma pärast tööd ainult lamasin.” Õppija peab reageerima: küsima täpsustust, kaaluma uut asjaolu ja muutma oma seisukohta või pakkuma kompromissi (näiteks kerge liikumine iga päev, raske trenn ainult puhanuna). Õnnestunud, kui õppija toob kaks argumenti näitega, kasutab vähemalt kaks kaalumise väljendit, vastab partneri argumendile ja jõuate kokkuleppele või nimetab selgelt, mis jäi lahti. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('043_t_argue', 'Kodus: arutlus (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pealkirja ja algust ei anta. ${VOICE_HOME}`, 'vastus', {
+        situation: 'Kursuse ajaveebis on teema „Kas pärast tööpäeva tasub igal juhul liikuda?”. Kirjuta oma arutlus, mida loevad ka teised kursuslased.',
+        points: ['sinu seisukoht ja kui kindel sa oled', 'kaks argumenti, igaühel näide (artiklist või elust)', 'vastaspoole argument ja sinu vastus', 'järeldus: millal liikuda ja millal puhata'],
+        words: [170, 190],
+      }), 'Kursuslased loevad sinu arutlust ja kommenteerivad; see on ka B2-eksami arutluse harjutus.'), 6)), { task: 'W14', main: true, level: 4 }),
+      writingRubric('043_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Minu arvates peab alati liikuma. Trenn on tervisele hea. Kui ma olen väsinud, lähen ikka trenni. Kuigi olen väsinud, aga trenn aitab. Diivan on halb. Kokkuvõttes trenn on parem.” Hinnang: ülesanne 2 (seisukoht on olemas, kuid argumendil ei ole näidet ja vastaspoolt ei ole), ülesehitus 2 (lõike ei ole, sidendeid on vähe), sõnavara 2 („trenn” ja „väsinud” korduvad; puuduvad taastuma, koormus, regulaarne), grammatika 1 („Kuigi …, aga …” → kuigi …, … siiski; „Kokkuvõttes trenn on” → Kokkuvõttes on trenn; kaalumise väljendeid ei ole). Kui õppija lisab vastaspoole ja näited ning kasutab kaalumise väljendeid (ühelt poolt …, teiselt poolt …; mitte niivõrd …, kuivõrd …), saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('043_t_self', ['Ma loen artiklit väsimusest ja liikumisest ning järeldan autori hoiaku.', 'Ma kaalun kahte poolt: ühelt poolt …, teiselt poolt …; mitte niivõrd …, kuivõrd …; seda enam, et …', 'Ma kaitsen arutelus oma seisukohta ja reageerin uuele asjaolule.'], 'Arutelu peetud', 'Ma oskan kaaluda ja otsustada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('043_t_callers', CUT_INPUT),
+      retire('043_t_more', CUT_EXTRA),
+      retire('043_t_exit', CUT_DRILL),
+      retire('043_t_essay', CUT_OLDTASK),
+      retire('043_t_home', CUT_HOME),
+      retire('043_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-044': {
+    title: 'Kaheksa nädalat: üks muutus, mis jääb püsima',
+    phases: grammar('Kordamine: selleks, et; et + tingiv; muutuma + saav · B2: et mitte + da; nii …, et …; …, nii et …; üha + keskvõrre; jääma püsima'),
+    format: 'project',
+    topic: 'health',
+    subtopic: 'habit-plan',
+    canDo: 'Ma saan aru raadiosaatest harjumuse tekkimisest, esitlen oma kaheksa nädala plaani päris kohaga ja muudan seda takistuse korral ning kirjutan juhile umbes 180-sõnalise ettepaneku.',
+    teacherPage: {
+      goal: 'Радио о привычках (2 голоса); цель с отрицанием, результат, изменение; реальное место с сайта; план на 8 недель партнёру; дома предложение 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и утверждения 1–7; станция 3 — правило и 10 пропусков; презентация плана без третьего препятствия, сайт — дома.',
+      hook: '«Väide: uusaasta lubadused on aja raiskamine.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — о привычке, которую он пробовал изменить: что получилось и что нет. Без фраз, не исправляйте. Отметьте, говорит ли он о цели и результате (selleks, et …; muutus …ks) — это тема станции 3.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своей попытке, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), формула плана и картинка перед радио (3 мин), радио дважды (9 мин), 10 утверждений верно / неверно, из них 3 на вывод (6 мин)',
+        '25–45: станция 3 — selleks, et / et + tingiv / muutuma + saav одной строкой, B2: et mitte + da, nii …, et …, nii et, üha + keskvõrre, jääma püsima; 10 предложений, план на 8 недель с 10 пропусками без банка, регистр: сообщение коллеге → предложение работодателю',
+        '45–70: станция 4 — карточка плана с реальной возможностью с сайта (5 мин), презентация плана партнёру со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: предложение работодателю или школе 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «План Б»: вы называете препятствие (дождь, ночная смена, болит колено, гости на неделю) — ученик за 30 секунд меняет план и говорит, зачем (et mitte …)',
+      ],
+      sources: 'Радио «Kuidas harjumus jääb püsima?» — учебный текст KeeleSepp (ведущий Toomas и консультант Kaia вымышлены), без точных чисел. Общая основа: исследования формирования привычек (например, Lally и др., 2010, University College London) показывают, что время до автоматизма у людей очень разное и чаще больше трёх недель; помогают маленький старт, привязка к существующему действию, измеримая цель и план Б. Задание-связь: https://www.terviserajad.ee (Eesti Terviserajad — сеть оздоровительных троп) или спортивная страница своего города / волости (страницы при подготовке не открывались). Ученик сам берёт оттуда место, время и как добраться.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: каждый заполняет свою карточку; один представляет план, другой — партнёр по здоровью с вашей карточкой; потом смена. В 1:1 партнёр — вы.',
+      errors: [
+        '«et mitte unustama» → «et mitte unustada» (et mitte + da-форма).',
+        '«et ma ei unustan» → «et ma ei unustaks» (et … ei + условное наклонение).',
+        '«Kõndimine muutub harjumus» → «… harjumuseks» (muutuma milleks — saav).',
+        '«üha lihtne» → «üha lihtsamaks / üha lihtsam» (üha + keskvõrre).',
+      ],
+      notes: [
+        'Формат — мини-проект: в конце урока у ученика карточка «Minu 8 nädala muutus» (проблема, измеримая цель, первый маленький шаг, напоминание, поддержка, план Б, реальное место с сайта). Карточка остаётся у него: в 045 он пишет по ней текст. Ученику, который не хочет говорить о своём теле: выбрать сон, экран вечером или еду на работе.',
+        'Задание-связь: ученик открывает настоящий сайт (Eesti Terviserajad или спортивную страницу своего города) и берёт оттуда место, время и дорогу. Не копировать текст сайта — записать своими словами. Если в классе нет интернета, это делается дома до разговора.',
+        'selleks, et / et + tingiv / muutuma + saav (B1 и урок 041) — повтор одной строкой. Цель B2 — цель с отрицанием (et mitte + da), результат (nii …, et …; …, nii et …) и изменение во времени (üha / järjest + keskvõrre, jääma püsima, kujunema milleks). Обратная связь, 2–3 цели: et mitte + da; измеримая цель; реакция на препятствие партнёра.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('044_d_talk', 'Väide: uusaasta lubadused on aja raiskamine.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: üks harjumus, mida sa oled proovinud muuta, ja mis sellest välja tuli.', [
+        'Väide: „Uusaasta lubadused on aja raiskamine.” Kas oled nõus? Miks?',
+        'Millist harjumust oled proovinud muuta? Mis aitas ja mis segas?',
+        'Mis juhtus siis, kui jätsid mõne päeva vahele?',
+      ], [60, 90]), 'Sinu enda katse annab plaanile esimese näite: mis töötas ja mis mitte.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe looga. Ära paranda ega hinda kellegi harjumusi. Pane kirja, kas õppija ütleb eesmärgi ja tulemuse (selleks, et …; muutus …ks) — see tuleb jaamas 3 tagasi. Kui õppija ei ole midagi proovinud: „Mida sa tahaksid oma päevas muuta ja miks?”')), 1, 5),
+      station(tag(B.vocab('044_d_vocab', 'Tunni sõnad.', ['eesmärk — цель', 'mõõdetav — измеримый', 'meeldetuletus — напоминание', 'tagasilöök — откат (неудача)', 'püsima — сохраняться', 'motivatsioon — мотивация', 'toetaja — поддерживающий (человек)', 'kannatlik — терпеливый', 'loomulik — естественный', 'siduma (millega) — связывать (с чем)']), { topic: ['eesmärk', 'meeldetuletus', 'püsima'] }), 2, 20),
+      purpose(B.diagram('044_d_scheme', 'formula', { title: 'Skeem: plaan, mis jääb püsima.', instruction: 'Vaata valemit enne kuulamist. Kuulates kirjuta iga rea juurde üks nõustaja näide. Siis mõtle oma plaanile: mis on sinu esimene väike samm?', nodes: 'Mõõdetav eesmärk | Mida, kui sageli ja kui kaua? Mitte „tervem”, vaid „kõnnin viis päeva nädalas veerand tundi”\nVäike algus | Nii väikeselt, et see tundub naeruväärne\nMeeldetuletus | Seon uue tegevuse vanaga: pärast kohvi …\nToetaja ja plaan B | Keegi, kes toetab, mitte ei noomi; kui sajab: …; kaks päeva järjest vahele ei jäta' }, 'full', 'g_notice'), 'Valem aitab sul teha plaani, mis toimib ka siis, kui motivatsiooni ei ole.'),
+      why(teach(tag(purpose(B.examListen('044_d_show', 'Kuulamine: raadiosaade „Kuidas harjumus jääb püsima?”.', 'Saatejuht räägib tervisenõustajaga sellest, miks uued harjumused nii sageli kaovad ja mis aitab neil püsima jääda. Loe väited läbi, kuula kaks korda ja otsusta: õige või vale.', 'truefalse', [
+        'Toomas: Tere! Jaanuaris lubame endale, et hakkame jooksma, sööme vähem magusat ja läheme varem magama. Veebruariks on paljudest lubadustest alles vaid mälestus. Miks nii? Stuudios on tervisenõustaja Kaia. Kaia, mis läheb valesti?',
+        'Kaia: Tere! Kõige sagedasem viga on see, et alustatakse liiga suurelt. Inimene, kes pole aastaid jooksnud, otsustab joosta iga päev viis kilomeetrit. Esimesel nädalal on tal motivatsiooni küll, teisel nädalal valutavad jalad ja kolmandal on kõik läbi. Motivatsioon on nagu ilm: see muutub. Harjumus peab toimima ka siis, kui motivatsiooni ei ole.',
+        'Toomas: Kui kaua harjumuse tekkimine siis võtab? Räägitakse kolmest nädalast.',
+        'Kaia: See on müüt. Uurijad on näinud, et mõnel inimesel muutub uus tegevus loomulikuks paari nädalaga, teisel kulub selleks mitu kuud. Enamasti kulub rohkem aega, kui me arvame. Seepärast soovitan plaanida vähemalt kaks kuud, see tähendab kaheksa nädalat, ja mitte ehmuda, kui kolme nädala pärast on veel raske.',
+        'Toomas: Kuidas siis alustada?',
+        'Kaia: Nii väikeselt, et see tundub peaaegu naeruväärne. Mitte viis kilomeetrit, vaid kümme minutit kõndimist pärast lõunat. Ja seo uus tegevus millegagi, mida sa niikuinii teed. Näiteks: pärast hommikukohvi teen kaks minutit venitusi. Kohv on meeldetuletus. Paljud panevad jooksujalanõud õhtul ukse juurde, et mitte hommikul vabandusi otsida. Nii ei pea iga päev uuesti otsustama.',
+        'Toomas: Kas plaan peaks olema kirjas?',
+        'Kaia: Kindlasti. Ja eesmärk peab olema mõõdetav. „Ma tahan olla tervem” ei ole eesmärk, see on soov. „Kõnnin kaheksa nädalat viis päeva nädalas vähemalt veerand tundi” on eesmärk, mida saab kalendris ristiga märkida. Paljudele annab see rist rohkem rõõmu, kui nad ootasid.',
+        'Toomas: Mis siis, kui vahele jääb päev või mitu?',
+        'Kaia: Siis ei ole midagi juhtunud. Üks vahele jäänud päev harjumust ei hävita. Ohtlik on mõte „nüüd on niikuinii kõik rikutud”. Minu reegel on: ära jäta kahte päeva järjest vahele. Ja mõtle juba alguses välja plaan B. Kui sajab vihma, kõnnin kaubanduskeskuses või teen kodus trepiharjutusi.',
+        'Toomas: Kui palju aitab see, kui keegi teine kaasa tuleb?',
+        'Kaia: Palju. Kui oled kokku leppinud, et kolleeg ootab sind kell viis pargis, on raskem minemata jätta. Aga partner peaks olema toetaja, mitte kontrollija. Kui sõber hakkab sind iga päev noomima, muutub harjumus kohustuseks ja kaob kiiresti.',
+        'Toomas: Aga nutikell või telefoni äpp, kas need aitavad?',
+        'Kaia: Mõnele aitavad, teisele mitte. Kui numbrid annavad sulle rõõmu, kasuta neid. Kui need tekitavad süütunnet, pane äpp kõrvale ja märgi rist paberkalendrisse. Harjumus ei sünni ekraanil, vaid sinu päevas.',
+        'Toomas: Kas aitab ka see, kui ma kirjutan üles, miks ma seda teen?',
+        'Kaia: Aitab küll. Kirjuta üks lause: selleks, et lapsega pargis joosta, või et mitte iga hommik väsinuna ärgata. Kui tuleb raske päev, loe see lause läbi. Põhjus, mis on sinu enda oma, kannab kaugemale kui lubadus, mille andsid jaanuaris teistele.',
+        'Toomas: Ja viimane küsimus: millal on harjumus valmis?',
+        'Kaia: Siis, kui sa enam selle peale ei mõtle. Kui hommikul jalad ise lähevad venitama, nagu käsi läheb hambaharja järele. Selleni jõuab see, kes alustab väikeselt ja on enda vastu kannatlik.',
+        'Toomas: Aitäh, Kaia!',
+      ], [
+        ['Kaia sõnul alustavad paljud uut harjumust liiga suurelt.', true],
+        ['Kaia arvates püsib motivatsioon samasugusena, kui eesmärk on õige.', false],
+        ['Kaia kinnitab, et uus harjumus tekib tavaliselt kolme nädalaga.', false],
+        ['Kaia soovitab plaanida muutuse jaoks vähemalt kaheksa nädalat.', true],
+        ['Uue tegevuse võiks siduda millegagi, mida inimene niikuinii iga päev teeb.', true],
+        ['„Ma tahan olla tervem” on Kaia sõnul hea mõõdetav eesmärk.', false],
+        ['Kaia sõnul hävitab üks vahele jäänud päev harjumuse.', false],
+        ['Kaia arvates on pärast tagasilööki kõige ohtlikum mõte, et kõik on niikuinii rikutud.', true],
+        ['Kaia vihjab, et kontrolliv sõber võib harjumusele rohkem kahju kui kasu teha.', true],
+        ['Kaia sõnadest võib järeldada, et valmis harjumus ei nõua enam igapäevast otsustamist.', true],
+      ], 'g_listen'), 'Kuuled, mis aitab harjumusel püsima jääda; kohe teed selle järgi oma plaani.'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, 20 minutit koos sõnade, pildi ja valemiga (umbes 3,5 minutit, kaks korda). Enne kuulamist loeb õpilane väited ja joonib alla võtmesõnad; küsi: mitu päeva kulub sinu arvates, et uus tegevus muutuks harjumuseks? Pärast kuulamist täidab õpilane valemi nõustaja näidetega. Väited 8–10 on järeldusväited (nõustaja hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Õige: „Kõige sagedasem viga on see, et alustatakse liiga suurelt.”',
+        'Vale: „Motivatsioon on nagu ilm: see muutub.”',
+        'Vale: kolm nädalat „on müüt”.',
+        'Õige: „plaanida vähemalt kaks kuud, see tähendab kaheksa nädalat”.',
+        'Õige: „seo uus tegevus millegagi, mida sa niikuinii teed”.',
+        'Vale: „„Ma tahan olla tervem” ei ole eesmärk, see on soov.”',
+        'Vale: „Üks vahele jäänud päev harjumust ei hävita.”',
+        'Järeldus, õige: „Ohtlik on mõte „nüüd on niikuinii kõik rikutud”.”',
+        'Järeldus, õige: noomiv sõber — „muutub harjumus kohustuseks ja kaob kiiresti”.',
+        'Järeldus, õige: valmis harjumus on siis, „kui sa enam selle peale ei mõtle”.',
+      ]),
+      retire('044_d_hook', CUT_HOOK),
+      retire('044_d_radio', 'listening with gaps, 109 s (below the B2 listening length, audit 2026-11-25) → the 3.5-min radio show 044_d_show with true / false and inference items (new id, other block type)'),
+    ],
+    practice: [
+      station(teach(B.notice('044_p_notice', 'Märka: milleks, et mitte ja mis sellest välja tuleb?', [
+        'Saatest: jalanõud ukse juurde, **et mitte** hommikul vabandusi **otsida** · **nii** väikeselt, **et** see tundub naeruväärne · uus tegevus **muutub loomulikuks** · harjumus **muutub kohustuseks** · Nii ei pea iga päev uuesti otsustama.',
+        'Kordamine (B1): eesmärk — **selleks, et** + da (selleks, et olla tervem) · **et** + tingiv (et ma ei unusta**ks**) · muutus — **muutuma / saama** + saav kääne: muutub **harjumuseks**.',
+        'B2: eesmärk eitusega — **et mitte** + da: Panen telefoni teise tuppa, **et mitte** voodis uudiseid **sirvida**. · **selleks, et** … **ei** + tingiv: …, et ma ei peaks iga päev otsustama.',
+        'B2: tulemus ja muutus ajas — **nii** + omadussõna/määrsõna, **et** … (nii väikeselt, et …) · …, **nii et** + tulemus (Sadas vihma, nii et kõndisin kaubanduskeskuses.) · **üha / järjest** + keskvõrre (üha lihtsam, järjest kauem) · **jääma püsima** · **kujunema** milleks (kujunes harjumuseks).',
+      ], 'full'), 'Kordamine ühe minutiga (selleks, et; et + tingiv; muutub …ks). Siis B2 samm: eesmärk eitusega (et mitte + da) ja tulemus (nii …, et …; nii et …). Lase õpilasel leida saatest kolm sellist lauset ja öelda: kas see on eesmärk või tulemus?'), 3, 20),
+      why(purpose(B.gaps('044_p_plan', 'Eesmärk ja tulemus.', 'Kirjuta lünka üks sobiv sõna või sulgudes oleva sõna õige vorm. Panka ei ole.', [
+        'Panen jooksujalanõud õhtul ukse juurde, et [mitte] hommikul vabandusi otsida.',
+        'Kõnnin pärast lõunat kümme minutit, [selleks], et pea oleks pärastlõunal selgem.',
+        'Alustan nii väikeselt, [et] see tundub peaaegu naeruväärne.',
+        'Kahe kuu pärast on kõndimine muutunud [harjumuseks]. (harjumus)',
+        'Sadas vihma, [nii] et kõndisin kaubanduskeskuses.',
+        'Iga nädalaga läheb [üha] lihtsamaks. (sama mis „järjest”)',
+        'Panin telefoni teise tuppa, et ma õhtul ekraani ei [vaataks]. (vaatama)',
+        'Venitused on mu hommiku osa ja need on jäänud [püsima]. (püsima)',
+        'Sõber peaks olema toetaja, et harjumus ei muutuks [kohustuseks]. (kohustus)',
+        'Mul on plaan B, et vihm mu plaani ära ei [rikuks]. (rikkuma)',
+      ], '', 'full', 'g_notice'), 'Õige vorm teeb plaani selgeks: lugeja teab, milleks iga samm on ja mis sellest tuleb.'), [
+        'Eesmärk eitusega → et mitte + da.',
+        'Eesmärk → selleks, et …',
+        'Tulemus → nii …, et …',
+        'muutuma milleks → saav: harjumuseks.',
+        'Tulemus → …, nii et …',
+        'Muutus ajas → üha + keskvõrre.',
+        'et … ei + tingiv → vaataks.',
+        'jääma püsima.',
+        'muutuma milleks → kohustuseks.',
+        'et … ei + tingiv → rikuks.',
+      ]),
+      why(purpose(B.formtext('044_p_text', 'Minu kaheksa nädala plaan: õhtune ekraan.', 'Kursuslane kirjutab oma plaani. Kirjuta lünka üks sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Kaheksa nädalat ilma öise ekraanita', [
+        'Minu probleem on see, et vaatan õhtul telefoni kella üheni, [nii] (tulemus: … et) et hommikul olen väsinud.',
+        '',
+        'Minu eesmärk: kaheksa nädala jooksul panen telefoni kell kümme teise tuppa, [et] (eesmärk eitusega: … mitte) mitte voodis uudiseid sirvida.',
+        '',
+        'Alustan väikeselt: esimesel kahel nädalal panen telefoni ära ainult tööpäevadel. [Selleks] (… , et), et ma ei unustaks, helistab kell 21.50 meeldetuletus.',
+        '',
+        'Seon uue tegevuse vana harjumusega: pärast hammaste pesemist [loen] (lugema; mina) raamatut. Märgin iga õnnestunud õhtu kalendris ristiga, et näha, kuidas läheb.',
+        '',
+        'Kui jätan ühe õhtu vahele, ei ole midagi juhtunud, aga kahte õhtut järjest ma vahele ei [jäta] (jätma; eitus). Minu plaan B: kui meil on külalised, lülitan telefoni vähemalt [hääletuks] (hääletu; saav kääne).',
+        '',
+        'Mu abikaasa on minu [toetaja] (see, kes toetab), mitte kontrollija. Loodan, et kaheksa nädala pärast on varane magamaminek [muutunud] (muutuma; täisminevik) loomulikuks, uni [üha] (järjest) parem ja hommikud rõõmsamad. Siis on muutus jäänud [püsima] (püsima).',
+      ]), 'Samamoodi paned kokku oma plaani: eesmärk, väike samm, meeldetuletus, plaan B.'), [
+        'Tulemus → nii, et …',
+        'Eesmärk eitusega → et mitte + da.',
+        'Eesmärk → selleks, et …',
+        'Olevik, mina → loen.',
+        'Eitus olevikus → ei jäta.',
+        'Muutus → saav kääne: hääletuks.',
+        'toetama → toetaja.',
+        'Täisminevik → on muutunud.',
+        'Muutus ajas → üha + keskvõrre.',
+        'jääma püsima.',
+      ]),
+      why(purpose(tag(B.table('044_p_register', 'Sõnum kolleegile või ettepanek juhile?', 'Vasakul on sõnum kolleegile. Paremas veerus on sama mõte ametlikus ettepanekus juhile. Kirjuta lünka puuduv sõna.', 'Kolleegile, Ettepanekus juhile', [
+        'Kuule, kas firma võiks meie trenni eest maksta? | Sooviksin [küsida], kas ettevõte võiks maksta töötajatele liikumiskulude eest hüvitist.',
+        'Me istume terve päeva, selg on haige. | Istuv töö [põhjustab] paljudel seljavalu.',
+        'Võiks teha mingi liikumispausi. | Teen [ettepaneku] võtta kasutusele lühike liikumispaus.',
+        'See ei maksa ju palju. | Ettepanek ei too [kaasa] suuri kulusid.',
+        'Inimesed oleksid rõõmsamad ja vähem haiged. | Selle [tulemusel] võiks haiguspäevi jääda vähemaks.',
+        'Mina võin selle asja ajada. | Olen [valmis] liikumispausi korraldamisel aitama.',
+        'Mis sa arvad? | Palun andke [teada], mida te ettepanekust arvate.',
+        'Aitäh! | Tänan [tähelepanu] eest!',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas idee muutub ettepanekuks, mille üle juht saab otsustada.'), [
+        'Kas võiks → sooviksin küsida.',
+        'Selg on haige → põhjustab seljavalu.',
+        'Võiks teha → teen ettepaneku.',
+        'Ei maksa palju → ei too kaasa suuri kulusid.',
+        'Oleksid rõõmsamad → selle tulemusel.',
+        'Võin ajada → olen valmis.',
+        'Mis arvad → andke teada.',
+        'Aitäh → tänan tähelepanu eest.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('044_t_plan', 'Minu 8 nädala muutus: plaan ja päris koht (5 minutit).', 'Vali üks muutus: liikumine, uni, söök või õhtune ekraan. Leia kodu lähedalt päris võimalus (terviserada, ujula, tasuta treening): Eesti Terviserajad (https://www.terviserajad.ee) või oma linna spordileht. Kirjuta märksõnad. Edukriteeriumid: 1) mõõdetav eesmärk kaheksaks nädalaks; 2) igal sammul on eesmärk (selleks, et …; et mitte …); 3) meeldetuletus, toetaja ja plaan B.', ['Probleem ja mõõdetav eesmärk:', 'Päris koht või võimalus, mida külastan, ja leht, kust selle leidsin:', 'Esimene väike samm ja meeldetuletus (millega seon):', 'Toetaja ja plaan B:'], 1), 'Kaart jääb sulle: selle järgi kirjutad ka mooduli kontrollis.'), 4, 25, { final: 'present' }),
+      teach(tag(purpose(B.rolecards('044_t_present', 'Esitle oma plaani tervisepartnerile (6–8 minutit).', 'Esitle oma plaani tervisepartnerile (sõber, kolleeg või pereliige). Vasta tema küsimustele ja muuda plaani, kui ta toob takistuse.',
+        'Olukord: partner tahab sinuga koos alustada.\nSinu eesmärk: partner teab, mida, millal ja kus te teete, ja kuidas teineteist toetate.\nPiirang: plaan peab sobima ka talle.',
+        'Partneri kaart on õpetajal: tema küsimused ja üks takistus, mida sa veel ei tea.',
+        ['Minu eesmärk on …, et mitte …', 'Kui …, siis plaan B on …'], ['Aga kuidas sa tead, et …?', 'Mis siis, kui …?']), 'Tulemus: teie ühine kaheksa nädala plaan, mis sobib mõlemale ja on pingutust väärt.'), { task: 'S16', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled tervisepartner. Kuula plaani lõpuni, siis küsi kaks küsimust: „Kuidas sa tead kaheksa nädala pärast, et see õnnestus?” ja „Mis siis, kui sa nädala vahele jätad?” Varjatud info (ütle pärast teist küsimust): „Ah jaa — mul algavad järgmisest kuust õhtused vahetused, nii et kell viis ma kaasa tulla ei saa. Ja terviserajal ei ole talvel õhtuti valgust.” Õpilane peab plaani muutma: teine aeg (hommik, nädalavahetus), toetus sõnumiga, valgustatud koht või plaan B. Õnnestunud, kui õpilane nimetab mõõdetava eesmärgi ja päris koha, kasutab vähemalt kaks eesmärgi või tulemuse väljendit (et mitte …; selleks, et …; nii …, et …; üha + keskvõrre) ja muudab plaani nii, et see sobib mõlemale. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('044_t_mail', 'Kodus: ettepanek juhile (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Sinu töökoht, kool või kursus kogub ettepanekuid, kuidas inimesed saaksid päeva jooksul rohkem liikuda. Kirjuta juhile või direktorile ametlik ettepanek.',
+        points: ['mis on probleem ja mis on selle tagajärg', 'sinu ettepanek ja selle eesmärk', 'mida see maksab ja kes seda korraldab', 'kuidas kaheksa nädala pärast näha, kas see toimis'],
+        words: [170, 190],
+      }), 'Juht loeb sinu ettepanekut ja saab selle üle otsustada.'), 6)), { task: 'W13', main: true, level: 4 }),
+      writingRubric('044_t_rubric', 'Hindamisjuhend: ettepanek juhile (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Me istume palju ja see on halb. Ma tahan, et meil oleks liikumispaus. Paus on kümme minutit. Siis inimesed on rõõmsad. See ei maksa palju. Ma võin teha. Aitäh!” Hinnang: ülesanne 2 (probleem ja ettepanek on olemas, kuid tagajärg, korraldus ja tulemuse mõõtmine on puudu), ülesehitus 2 (lõike ei ole, sidendeid on vähe), sõnavara 2 („Tere!” ja „Aitäh!” ei sobi ametlikku kirja; puuduvad ettepanek, eesmärk, tagajärg, korraldama), grammatika 1 („Siis inimesed on” → Siis on inimesed; eesmärgi ja tulemuse väljendeid ei ole: selleks, et …; et mitte …; nii et …). Kui õppija lisab tagajärje, korralduse ja mõõtmise ning eesmärgi väljendid, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('044_t_self', ['Ma saan saatest aru, mis aitab harjumusel püsima jääda, ja järeldan nõustaja hoiaku.', 'Ma ütlen eesmärgi ja tulemuse: et mitte + da; selleks, et …; nii …, et …; üha + keskvõrre.', 'Ma esitlen oma plaani päris kohaga ja muudan seda, kui partner toob takistuse.'], 'Plaan valmis', 'Ma oskan muutust plaanida'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('044_t_samples', CUT_INPUT),
+      retire('044_t_more', CUT_EXTRA),
+      retire('044_t_exit', CUT_DRILL),
+      retire('044_t_text', CUT_OLDTASK),
+      retire('044_t_home', CUT_HOME),
+      retire('044_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-045': {
+    title: 'Kontroll 9 — tervis ja eluviis',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen eksami vormis umbes 520-sõnalist arvamusartiklit saunast ja lahendan selle ülesanded ning kirjutan kaks teksti: viie minutiga arvamuse samades tingimustes nagu mooduli alguses ja umbes 160-sõnalise teksti oma kaheksa nädala muutusest; Harno lävi on 60 %.',
+    // Methodology v5 (2026-11-25): one sheet, 45 minutes, two skills — READING + WRITING (module 5 L + W, 6 R + S, 7 L + W,
+    // 8 R + S). Writing because the module's cold task 041_d_cold was written (module 8 measured speech) and the module
+    // product „Minu kaheksa nädala muutus” (the card of 044_t_plan) is a written plan; reading because health information
+    // reaches the learner as text. The reading part keeps the v4 article „Saun ei ole ainult pesemine” without the study's
+    // numbers and the year (owner 2026-11-25: adapted texts, no exact statistics), now with 8 questions (3 inference) and
+    // the paragraph task. The writing part opens with the parallel new task of the cold task (same conditions: 5 minutes,
+    // 5–7 sentences, no phrases, no opening; a new statement), then the module product as a text with the analytic
+    // rubric. The old three sheets (29 blocks) stay hidden below.
+    discover: [
+      B.text('045_d_intro', 'Kontroll 9: lugemine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Lugemine (22 minutit): üks arvamusartikkel ja kaks ülesannet ilma sõnaraamatuta, 16 punkti. Kirjutamine (23 minutit): viie minutiga arvamus (6 punkti) ja tekst „Minu kaheksa nädala muutus” umbes 160 sõna (12 punkti) — kokku 18 punkti. Kokku 34 punkti. Harno: sooritatud alates 60 % (vähemalt 21 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (24 punkti), meie tunnistus alates 80 % (28 punkti) — see on sisemine lävi. Kirjutamises loeb ka see, kas tekst sobib lugejale ja kas mõtted on lõikudeks jagatud.'),
+      PART('045_d_rpart', 'R', { minutes: 22, points: 16, tasks: 2, note: 'Artikkel umbes 520 sõna: osa 1 valikvastused (8 punkti), osa 2 väide ja lõik (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      why(B.reading('045_d_read', 'Lugemine: arvamusartikkel.', 'Loe arvamusartiklit (umbes 9 minutit) ja mõtle soojendusküsimusele. Seejärel tee osad 1 ja 2. Sõnaraamatut ei kasutata.', 'Saun ei ole ainult pesemine', [
+        '(A) Kui küsida eestlaselt, mis teeb teda õnnelikuks, nimetab ta üsna kindlasti sauna. Paljudes peredes on saun iga laupäeva kindel osa: köetakse ahi, minnakse lavale, visatakse leili ja tullakse välja jahutama. Paljud mäletavad lapsepõlvest vanaema sauna, kus vihtlemine ja jutuajamine kestsid tunde. Võõrale võib see tunduda lihtsalt pesemisena. Minu arvates on saun aga midagi enamat: see on koht, kus keha ja pea saavad korraga puhata. Ometi räägime saunast harva tõsiselt, justkui oleks see liiga tavaline asi, et sellele mõelda.',
+        '(B) Saunakombed on Eestis vana ja elav traditsioon. Vana-Võromaa suitsusaunakombestik on kantud UNESCO vaimse kultuuripärandi esindusnimekirja. Suitsusaunas ei ole korstnat: suits jääb kütmise ajal ruumi ja lastakse enne saunaskäiku välja. Võromaal ei ole saun olnud ainult pesemiskoht. Seal on tehtud vihtu, suitsutatud liha ja hoolitsetud haigete eest. Kombestik elab edasi just seepärast, et pered kasutavad oma sauna ikka veel iga nädal.',
+        '(C) Viimastel aastatel on saunast hakanud rääkima ka teadlased. Soome uurijad jälgisid suurt hulka keskealisi mehi paljude aastate jooksul. Tulemuste järgi oli neil, kes käisid saunas mitu korda nädalas, südamehaigustesse suremise risk väiksem kui neil, kes käisid harvem. See on huvitav, kuid ei tõesta, et saun ise inimesi tervemaks teeb. Võib-olla on sagedased saunaskäijad lihtsalt rahulikuma eluga ja neil on rohkem vaba aega. Ka uuringu autorid kutsusid üles tegema lisauuringuid.',
+        '(D) Saunaga on seotud ka palju müüte. Sageli öeldakse, et saunas „higistad mürgid välja”. Higi koosneb aga peamiselt veest ja soolast; keha puhastavad maks ja neerud. Teine levinud müüt on, et saun ravib külmetust. Kui palavik on juba üleval, ei ole kuum leiliruum hea mõte, sest keha vajab puhkust. Kolmas ohtlik harjumus on õlu leiliruumis. Alkohol ja kuumus koos koormavad südant ning suurendavad uppumise ohtu, kui pärast sauna minnakse järve.',
+        '(E) Tänapäeva linnas on saun muutunud. Uutes kortermajades on sageli väike elektrisaun, mida köetakse vaid paarkümmend minutit. Teised külastavad rahvarohket avalikku sauna või spaad, kus saun on vaba aja osa nagu kino või kohvik. Mõned sõbrad on mulle tunnistanud, et nende korterisaun on aastaid olnud panipaik. Ma saan aru: kiire elu juures tundub poolteist tundi saunas luksus. Just seepärast on see aga vajalik. Mõni ehitab saunaskäigu ümber terve õhtu: jalutuskäik, saun ja lõpuks teetass. Teisele piisab kümnest minutist pärast trenni. Mõlemad on õiged, kui need annavad puhkust, mitte uut kohustust.',
+        '(F) Saunas ei vaadata telefoni ega kella. Seal räägitakse ja vaikitakse koos. Paljud ütlevad, et parimad pereotsused on tehtud saunalaval ja et pärast sauna tuleb uni kergemini. Kui rääkida stressist ja puhkusest, siis vähe on kohti, kus tänapäeva inimene on nii täielikult võrgust väljas. Saun on Eestis olnud ka koht, kus võõrad saavad sõpradeks. Mitu Eestisse kolinud uustulnukat on mulle öelnud, et alles esimene ühine saunaõhtu aitas neil kohaneda ja tegi nad kohalikega lähedasemaks. Ma ei tea paremat viisi, kuidas külalisele Eestit tutvustada: see elamus jätab kauemaks mulje kui ükski muuseum.',
+        '(G) Ma ei väida, et saun sobib kõigile. Kellel on südamehaigus või kõrge vererõhk, peaks enne kuuma leili arstiga nõu pidama. Ka lapsed ja eakad vajavad mahedamat sauna. Aga kui tervis lubab, võiks saunast saada mitte pühade erand, vaid tavaline nädala osa. Tervis ei ole ainult numbrid ja ravimid. See on ka laupäevaõhtune leil ja hea jutt.',
+        'Allikas: KeeleSepp õppetekst (autori arvamus).',
+      ].join('\n\n'), [['Soojenduseks (punkte ei anta): mida tahab autor öelda pealkirjaga „Saun ei ole ainult pesemine”? Mis on sinu jaoks parim puhkus pärast rasket nädalat?']]), [
+        '(A) lõik: saun on „midagi enamat: see on koht, kus keha ja pea saavad korraga puhata”.',
+      ]),
+      why(tag(B.choice('045_d_mc', 'Osa 1: vali õige vastus (8 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
+        ['Mida arvab autor lõigu A järgi saunast?', 'See on midagi enamat kui pesemine.', 'See on ainult pesemiskoht.', 'See on võõrastele liiga keeruline.', 'See on Eestist kadumas.'],
+        ['Mis hoiab lõigu B järgi suitsusaunakombestikku elus?', 'Pered kasutavad oma sauna ikka iga nädal.', 'Võromaale ehitatakse palju uusi saunu.', 'Turistid käivad seal sageli.', 'Kombestik on kirjas seaduses.'],
+        ['Kuidas suhtub autor Soome uuringusse?', 'Tulemus on huvitav, kuid ei tõesta, et saun ise teeb tervemaks.', 'Uuring tõestab, et saun ravib südant.', 'Uuring on vale ja see tuleks unustada.', 'Uuringus osalesid ainult sportlased.'],
+        ['Mida ütleb lõik D higistamise kohta?', 'Higi on peamiselt vesi ja sool, keha puhastavad maks ja neerud.', 'Higiga lähevad välja kõik mürgid.', 'Higistamine ravib külmetust.', 'Higistada tuleb vähemalt tund.'],
+        ['Kellele soovitab autor enne kuuma leili arstiga nõu pidada?', 'inimesele, kellel on südamehaigus või kõrge vererõhk', 'kõigile, kes käivad avalikus saunas', 'ainult lastele', 'inimesele, kes käib saunas iga nädal'],
+        ['Mida mõtleb autor lõigus E lausega „Just seepärast on see aga vajalik”? Järelda.', 'Mida kiirem on elu, seda rohkem on puhkust vaja.', 'Korterisaun on hea panipaik.', 'Spaa on parem kui kodusaun.', 'Saunas tuleb olla vähemalt poolteist tundi.'],
+        ['Miks peab autor sauna heaks viisiks külalisele Eestit tutvustada? Järelda.', 'Saunas ollakse koos ilma ekraanita ja see toob inimesed lähemale.', 'Saun on odavam kui muuseum.', 'Külalised ei taha muuseumidesse minna.', 'Saunas räägitakse ainult eesti keelt.'],
+        ['Millise mõttega nõustuks artikli autor kõige tõenäolisemalt?', 'Kui tervis lubab, võiks saun olla iga nädala osa.', 'Saun sobib kõigile ilma eranditeta.', 'Saunas võib rahulikult õlut juua.', 'Saun on ainult pühade jaoks.'],
+      ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }), [
+        '(A) lõik: „Minu arvates on saun aga midagi enamat.”',
+        '(B) lõik: „Kombestik elab edasi just seepärast, et pered kasutavad oma sauna ikka veel iga nädal.”',
+        '(C) lõik: „See on huvitav, kuid ei tõesta, et saun ise inimesi tervemaks teeb.”',
+        '(D) lõik: „Higi koosneb aga peamiselt veest ja soolast; keha puhastavad maks ja neerud.”',
+        '(G) lõik: „Kellel on südamehaigus või kõrge vererõhk, peaks enne kuuma leili arstiga nõu pidama.”',
+        'Järeldus (E) lõigust: „kiire elu juures tundub poolteist tundi saunas luksus. Just seepärast on see aga vajalik.”',
+        'Järeldus (F) lõigust: telefoni ei vaadata, „võõrad saavad sõpradeks”, „jätab kauemaks mulje kui ükski muuseum”.',
+        'Järeldus (G) lõigust: „kui tervis lubab, võiks saunast saada … tavaline nädala osa”.',
+      ]),
+      why(tag(B.table('045_d_para', 'Osa 2: väide ja lõik (8 punkti).', 'Leia iga väite 1–8 jaoks artikli lõik (A–G), kus see mõte on. Ühte lõiku sobib kaks väidet.', 'Väide, Lõik', [
+        '1. Saunas ollakse ilma telefonita. | [F]',
+        '2. Üks Eesti saunakomme on maailma vaimse pärandi nimekirjas. | [B]',
+        '3. Seos ei pruugi tähendada põhjust. | [C]',
+        '4. Alkohol ja leil on koos ohtlikud. | [D]',
+        '5. Osa korterisaunu ei kasutata saunana. | [E]',
+        '6. Haige inimene peaks enne arstiga rääkima. | [G]',
+        '7. Saunast räägitakse vähe, sest see tundub tavaline. | [A]',
+        '8. Palavikuga ei ole kuum leiliruum hea mõte. | [D]',
+      ], 'g_read'), { task: 'R14', harno: 'R2a' }), [
+        '(F): „Saunas ei vaadata telefoni ega kella.”',
+        '(B): suitsusaunakombestik „on kantud UNESCO vaimse kultuuripärandi esindusnimekirja”.',
+        '(C): „See on huvitav, kuid ei tõesta, et saun ise inimesi tervemaks teeb.”',
+        '(D): „Alkohol ja kuumus koos koormavad südant.”',
+        '(E): „nende korterisaun on aastaid olnud panipaik”.',
+        '(G): „peaks enne kuuma leili arstiga nõu pidama”.',
+        '(A): „justkui oleks see liiga tavaline asi, et sellele mõelda”.',
+        '(D): „Kui palavik on juba üleval, ei ole kuum leiliruum hea mõte.”',
+      ]),
+      PART('045_t_wpart', 'W', { minutes: 23, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): sisu ja ülesehitus 0–3, keel 0–3 — samad tingimused nagu mooduli külmas alguses. Kirjutamine 2 (umbes 18 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: lugemine … / 16 + kirjutamine … / 18 = … / 34.' }),
+      teach(tag(B.writing('045_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Tervislik eluviis on pigem raha kui tahtejõu küsimus.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, põhjus ja näide ning mida ütleks vastaspool. Fraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), { task: 'W14', harno: 'W2b' }),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-041 (5 minutit, 5–7 lauset, fraase ega algust ei ole), uus väide. Hinda 0–3 sisu ja ülesehituse eest (seisukoht esimeses lauses, põhjus näitega, vastuargument ja vastus sellele) ja 0–3 keele eest (põhjus ja tagajärg: tuleneb millest, viib milleni; kaalumine: ühelt poolt …, teiselt poolt …; sõnajärg sidendi järel). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
+      tag(B.examWriting('045_t_change', 'Kirjutamine 2: minu kaheksa nädala muutus (umbes 160 sõna, 12 punkti).', 'Kirjuta 150–170 sõna. Pealkirja ja algust ei anta.', 'vastus', {
+        situation: 'Kursuse ajaveebis kirjutab iga õppija oma muutuse plaanist; teised kursuslased loevad ja toetavad. Võid kasutada tunni 44 kaarti, kuid kirjuta uus tekst.',
+        points: ['mis on probleem ja mis on selle tagajärg sinu päevale', 'mõõdetav eesmärk ja esimesed sammud (milleks iga samm on)', 'mis võib takistada ja mida siis teed (plaan B)', 'kuidas sa kaheksa nädala pärast tead, et muutus jäi püsima'],
+        words: [150, 170],
+      }), { task: 'W14', harno: 'W2b' }),
+      writingRubric('045_t_wrubric', 'Hindamine: tekst (12 punkti).', 'Hinda teksti nelja kriteeriumi järgi (0–3). Sisupunktid: probleem ja tagajärg, mõõdetav eesmärk ja sammud, takistus ja plaan B, kuidas tulemust näha. Mooduli keel on grammatika ja ülesehituse kriteeriumi osa: põhjus ja tagajärg (tund 41), üldine ja tagantjärele nõuanne (42), kaalumine ja mööndus (43), eesmärk eitusega ja tulemus (44). Kontrolli tulemus = lugemine … / 16 + kirjutamine 1 … / 6 + kirjutamine 2 … / 12.', true),
+      retire('045_d_how', CUT_CONTROL),
+      retire('045_d_vocab', CUT_CONTROL),
+      retire('045_d_form', CUT_CONTROL),
+      retire('045_d_bank', CUT_CONTROL),
+      retire('045_d_reply', CUT_CONTROL),
+    ],
+    practice: [
+      retire('045_p_how', CUT_CONTROL),
+      retire('045_p_kpart', CUT_CONTROL),
+      retire('045_p_fix', CUT_CONTROL),
+      retire('045_p_trans', CUT_CONTROL),
+      retire('045_p_lpart', CUT_CONTROL),
+      retire('045_p_notes', CUT_CONTROL),
+      retire('045_p_listen', CUT_CONTROL),
+      retire('045_p_tf', CUT_CONTROL),
+      retire('045_p_self', CUT_CONTROL),
+    ],
+    transfer: [
+      retire('045_t_situation', CUT_CONTROL),
+      retire('045_t_product', 'the module product is the writing 045_t_change (the card of 044_t_plan; v5 §5: one sheet, reading + writing)'),
+      retire('045_t_letter', CUT_CONTROL),
+      retire('045_t_chart', CUT_STATS),
+      retire('045_t_summary', CUT_CONTROL),
+      retire('045_t_spart', CUT_CONTROL),
+      retire('045_t_present', CUT_CONTROL),
+      retire('045_t_debate', CUT_CONTROL),
+      retire('045_t_rubric', CUT_CONTROL),
+      retire('045_t_self', CUT_CONTROL),
+    ],
+  },
+}, {
+  'b1b2-041': 'LUGU R→S', 'b1b2-042': 'KUUL L→W', 'b1b2-043': 'AVAS R→W', 'b1b2-044': 'PROB L→S', 'b1b2-045': 'EKS',
+});
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
