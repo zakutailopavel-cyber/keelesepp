@@ -204,7 +204,36 @@ export function mergeTasks({ homework: given = [], assignments = [], submissions
     tasks.push(fromSubmission(item));
   });
   interactive.forEach((item) => tasks.push(fromInteractive(item)));
-  return tasks;
+  return foldRepeats(tasks);
+}
+
+/**
+ * The same lesson sheet given more than once and still open (audit 2026-11-24: „Tee küsimine ja juhatamine” three
+ * times on one student): one card per student + lesson + phase. The one to do leads — one already begun, then the
+ * newest — and carries the others in `earlier` („+N varasemat”). Display only: no assignment is changed or deleted.
+ * Done and reviewed copies stay as they are (each is real work).
+ */
+export function foldRepeats(tasks = []) {
+  const groups = new Map();
+  tasks.forEach((task) => {
+    if (task.kind !== 'sheet' || task.state !== TASK_STATE.TODO || !task.lessonId) return;
+    const key = `${task.studentId}|${task.lessonId}|${task.phase || phaseOf(task.sheet) || ''}|${task.sheet?.block || ''}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(task);
+  });
+  const folded = new Map();
+  groups.forEach((list) => {
+    if (list.length < 2) return;
+    const [lead, ...rest] = [...list].sort((a, b) => Number(b.started) - Number(a.started) || stamp(b.assignedAt) - stamp(a.assignedAt));
+    rest.forEach((task) => folded.set(task, lead));
+    folded.set(lead, { lead: true, earlier: rest });
+  });
+  if (!folded.size) return tasks;
+  return tasks.flatMap((task) => {
+    const mark = folded.get(task);
+    if (!mark) return [task];
+    return mark.lead ? [{ ...task, earlier: mark.earlier }] : [];
+  });
 }
 
 /**
