@@ -7,7 +7,12 @@
   "a2-004|*|V11-input"
  ],
  "a2-module-02": [
-  "*|*|V14-topic"
+  "*|*|V14-topic",
+  "*|*|V4-type-speaking",
+  "a2-006|*|V11-input",
+  "a2-007|*|V11-input",
+  "a2-008|*|V11-input",
+  "a2-009|*|V11-input"
  ],
  "a2-module-06": [
   "a2-026|transfer|V2"
