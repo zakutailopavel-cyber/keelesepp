@@ -35,7 +35,9 @@ const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boo
 const gapsIn = (v) => (String(typeof v === 'string' ? v : JSON.stringify(v || '')).match(/\[[^\]]*\]/g) || []).length;
 // every block type the course uses is a task except the content blocks (stationBlocks.js NOT_TASKS = engine `task: false`)
 const isTask = (b) => Boolean(b?.type) && !NOT_TASKS.has(b.type);
-const own = (doc) => (doc?.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review);
+// a „Mäletad?” tip (B.review) is no station block; `review` on a vocab block is the v6 list of old words (methodV6.js G18)
+const isReviewTip = (b) => b?.type === 'tip' && Boolean(b.data?.review);
+const own = (doc) => (doc?.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !isReviewTip(b));
 
 // ---------- the stations of a lesson ----------
 // lesson: { discover: [blocks], practice: [...], transfer: [...] } (module file) or { phase: doc } (built sheets)
@@ -45,7 +47,7 @@ export function stationsOf(lesson) {
   for (const phase of PHASES) {
     let cur = null;
     for (const b of blocksOfPhase(lesson?.[phase] || [])) {
-      if (b.hidden || b.data?.artFor || b.data?.artId || b.data?.review) continue;
+      if (b.hidden || b.data?.artFor || b.data?.artId || isReviewTip(b)) continue;
       if (b.data?.station) { cur = { ...b.data.station, phase, blocks: [] }; out.push(cur); }
       if (cur && cur.phase === phase) cur.blocks.push(b);
       else (out.orphans ||= []).push({ phase, id: b.id });
@@ -194,11 +196,15 @@ export function lessonStationProblems(lessonId, phases) {
       if (p.split(/\s+/).filter(Boolean).length < ST.purposeWords) add(phase, 'st-purpose', `${b.id}: eesmärgirida puudub või on liiga lühike (purpose(block, 'kes, kellele, mis tulemus'))`);
       const n = closedItems(b, v4);
       if (v4 && isExitCheck(b)) {
-        // v5 B2: the exit may be the self-check „Ma oskan …” with three success criteria (no scored items)
+        // v5 B2: the exit may be the self-check „Ma oskan …” with three success criteria (no scored items); methodology v6
+        // (docs/METHODOLOGY_V6.md §2 a, methodV6.js G14): the exit is a mini-performance — 30–60 s of speech or one line of
+        // writing — with no scored items
         const selfExit = v5b2 && b.type === 'selfcheck';
-        if (phase !== 'transfer' || (!selfExit && (n < EXIT_ITEMS[0] || n > EXIT_ITEMS[1]))) add(phase, 'st-exit', `${b.id}: väljumiskontroll on Kasuta lehel ja sellel on ${EXIT_ITEMS.join('–')} punkti (praegu ${n})`);
+        const performExit = v5 && ['speaking', 'writing'].includes(b.type);
+        if (phase !== 'transfer' || (!selfExit && !performExit && (n < EXIT_ITEMS[0] || n > EXIT_ITEMS[1]))) add(phase, 'st-exit', `${b.id}: väljumiskontroll on Kasuta lehel ja sellel on ${EXIT_ITEMS.join('–')} punkti (praegu ${n})`);
       } else if (n && b.type !== 'insertion' && (n < items[0] || n > items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${items.join('–')})`);
-      if (GROUP.test(taskText(b))) add(phase, 'st-group', `${b.id}: rühmatöö või „küsi mitmelt” — tund on üks-ühele, õpetaja on partner päris põhjusega`);
+      // v6 G25: the module's peer exchange (data.peerReply) happens after the lesson; it is not group work in the 1:1 lesson
+      if (!b.data?.peerReply && GROUP.test(taskText(b))) add(phase, 'st-group', `${b.id}: rühmatöö või „küsi mitmelt” — tund on üks-ühele, õpetaja on partner päris põhjusega`);
       if (scriptLines(b) > ST.scriptLines) add(phase, 'st-script', `${b.id}: õppija rollikaart on stsenaarium (${scriptLines(b)} rida „Ütle / Küsi / Selgita …”) — anna olukord, eesmärk ja piirangud; info ja takistused on õpetaja kaardil`);
       if (SPEAK.includes(b.type) && REPEAT.test(taskText(b))) add(phase, 'st-repeat', `${b.id}: sama monoloog uuesti („kaks korda”, „uuesti” …)`);
     }

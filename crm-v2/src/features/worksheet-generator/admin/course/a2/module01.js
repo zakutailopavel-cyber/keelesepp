@@ -50,7 +50,7 @@ export const LESSONS = withShapes({
     phases: checkSheet('Lähtepunkt', 'Ilma abita: rääkimine, kuulamine, lugemine, keel ja kirjutamine (umbes 30 min)'),
     canDo: 'Ma näitan ilma abita, mida ma juba oskan: räägin endast, küsin, kuulan, loen ja kirjutan õpetajale lühikese sõnumi.',
     discover: [
-      B.text('001_d_start', 'Lähtepunkt', 'See leht näitab, mida sa juba oskad. Töötad umbes 30 minutit ilma abita: ilma sõnaraamatu, näidiste ja märkmeteta. See ei ole hinne ja läbi kukkuda ei saa. Tunnis 5 teed sarnase kontrolli uute ülesannetega ja võrdled.'),
+      B.text('001_d_start', 'Lähtepunkt', 'Mida sa juba oskad? Sa töötad üksi, 30 minutit. Sõnaraamatut ei ole. See ei ole hinne. Tunnis 5 teed sarnase töö. Siis sa näed, mida sa õppisid.'),
       teach(B.table('001_d_profile', 'Minu lähtepunkt.', 'Need on lehe osad. Lõpus kirjutab õpetaja punktid.', 'Osa, Punktid, Mida harjutada?', [
         'Rääkimine: räägin endast (0–6) |  | ',
         'Rääkimine: küsin (0–4) |  | ',
@@ -69,12 +69,12 @@ export const LESSONS = withShapes({
       'Õpetaja vastab lühidalt ja ei ütle küsimusi ette. Märgi 0–4 punkti: üks punkt iga arusaadava küsimuse eest. Pane kirja, kas õpilane valis sina või teie — tund 2 algab sellest.')),
       half(why(B.choice('001_p_answer', 'Keel 1. Küsimus ja vastus.', 'Vali küsimusele sobiv vastus. (6 punkti)', [
         ['Kust te pärit olete?', 'Ma olen pärit Lätist.', 'Ma elan Lätis.', 'Ma olen 22.'], ['Kus Liene elab?', 'Mustamäel.', 'Mustamäelt.', 'Viis aastat.'],
-        ['Kui vana su poeg on?', 'Kaheksa aastat.', 'Kaheksandal mail.', 'Koolis.'], ['Mis keeli Olga räägib?', 'Vene ja inglise keelt.', 'Vene keeles.', 'Venemaalt.'],
+        ['Kui vana su poeg on?', 'Ta on kaheksa.', 'Kaheksandal mail.', 'Koolis.'], ['Mis keeli Olga räägib?', 'Vene ja inglise keelt.', 'Vene keeles.', 'Venemaalt.'],
         ['Miks Taras õpib eesti keelt?', 'Sest ta elab Eestis.', 'Eesti keelt.', 'Õhtuti.'], ['Mis teie nimi on?', 'Liene.', 'Lätist.', 'Üliõpilane.'],
       ], 'full', 'g_notice'), [
         'Kust? → päritolu: Lätist (-st). Tund 2.',
         'Kus? → koht: Mustamäel. Tund 2.',
-        'Kui vana? → vanus: kaheksa aastat. Tund 2.',
+        'Kui vana? → vanus: (Ta on) kaheksa. Ka „Kaheksa-aastane.” Tund 2.',
         'Mis keeli? → vene ja inglise keelt. Tund 2.',
         'Miks? → põhjus: sest … Tund 2.',
         'Mis teie nimi on? → nimi. Tund 2.',

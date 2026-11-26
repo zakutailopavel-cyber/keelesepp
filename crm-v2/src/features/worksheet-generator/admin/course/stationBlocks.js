@@ -1,7 +1,8 @@
 // Authoring helpers of lesson design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md), used by the module files. Pure and
 // node-importable (tools/listening-audio reads the module files with plain node): no block registry here — the gates and
 // the teacher page are in stations.js.
-//   station(block, n, minutes, { final, needs })  marks the first block of station n (its own input or card)
+//   station(block, n, minutes, { final, needs })  marks the first block of station n (its own input or card); the minutes
+//                                                  go to data.station (teacher page), not into the learner's heading
 //   purpose(block, text)                           the task's purpose line: who does this, for whom, with what result
 
 // the final task kinds rotate across a module (no two lessons with the same kind)
@@ -19,7 +20,9 @@ export function station(block, n, minutes, { final = '', needs = null } = {}) {
   if (needs && (!Number.isInteger(needs.from) || !String(needs.card || '').trim())) throw new Error(`${block.id}: sõltuvusel on vaja jaama numbrit (from) ja asenduskaarti (card)`);
   const field = TITLE_FIELD[block.type] || 'title';
   const title = String(block.data?.[field] || '').trim().replace(/[.]$/, '');
-  const data = { ...block.data, [field]: `Jaam ${n} · ${title} · ${minutes} min`, station: { n, title, minutes, ...(final ? { final } : {}), ...(needs ? { needs } : {}) } };
+  // the learner sees „Jaam N · title”; the station's minutes are the teacher's plan (teacher page), not the time of the
+  // first block — „Jaam 2 · Tunni sõnad · 17 min” on a 10-word list was read as 17 minutes for the words (audit 2026-11-25)
+  const data = { ...block.data, [field]: `Jaam ${n} · ${title}`, station: { n, title, minutes, ...(final ? { final } : {}), ...(needs ? { needs } : {}) } };
   // the fallback card is printed where the learner reads: in the card's text or in the task's instruction
   if (needs) {
     const key = block.type === 'text' ? 'text' : 'instruction';

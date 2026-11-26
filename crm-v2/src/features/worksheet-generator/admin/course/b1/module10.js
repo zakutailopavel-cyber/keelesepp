@@ -79,7 +79,7 @@ const newPage = (block) => ({ ...block, pageBreakBefore: true });
 // a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
 const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 046 infogap: the travel info line (kust? kus? kuhu?)
@@ -257,7 +257,7 @@ export const LESSONS = withShapes({
         'jõudma — kuhu? → -sse: Pärnusse.',
         'pilet kuhu? → lühike vorm: Haapsallu.',
       ]), 'Kaheksa lauset näitavad, kas kohavormid on sõiduinfos käes.'), { task: 'G08' }),
-      tag(purpose(rows(B.writing('046_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma tavalisest sõidust või ühest reisist: kust ja mis kell sa väljud, kus ümber istud või ootad, kuhu ja millal jõuad.', [8, 10]), 7), 'Oma laused on sinu telefonikõne materjal.'), { task: 'W01' }),
+      tag(purpose(rows(B.writing('046_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma tavalisest sõidust või ühest reisist: kust ja mis kell sa väljud, kus ümber istud või ootad, kuhu ja millal jõuad.', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma telefonikõnes.'), { task: 'W01' }),
       hide(tag(B.reading('046_p_signs', 'Teated jaamas ja rongis.', 'Loe jaama ja rongi teateid. Vasta lühidalt, mida reisija peab tegema või teadma.', 'Reisija, pane tähele!', [
         'A. Balti jaam. Piletikassa on avatud iga päev 6.30–21.00. Kui kassa on suletud, kasutage piletiautomaati ooteruumis. Automaat võtab ainult pangakaarti.',
         '',
@@ -569,9 +569,9 @@ export const LESSONS = withShapes({
         'kõige + -m → kõige mugavam.',
         'Kahest peatusest valik → kumb on parem.',
         'kõige + -m → kõige ilusam.',
-      ]), 'Need vormid on sinu arutelu tööriistad.'), { task: 'R05', harno: 'R4' }),
+      ]), 'Neid vorme on sul arutelus vaja.'), { task: 'R05', harno: 'R4' }),
       'Eksaminurk (Harno B1 lugemine 4, fraasid tekstis, ~8 min). Strateegia: 1) loe kõigepealt kogu tekst; 2) iga lünga juures küsi: kas siin on võrdlus (kui), kõige parem (kõige) või valik (eelistan, pigem)?; 3) kontrolli, et üle jäänud kaks fraasi on tõesti valed (eelistan … -ga, kõige … kui). Üks-ühele: esimese lünga lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise; pärast põhjendab õpilane kolme valikut.'),
-      tag(purpose(rows(B.writing('047_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: võrdle kahte reisiviisi, mida sa tunned — mis on odavam, kiirem, mugavam, mida eelistad ja miks.', [8, 10]), 3), 'Oma laused on sinu arutelu materjal.'), { task: 'W02' }),
+      tag(purpose(rows(B.writing('047_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: võrdle kahte reisiviisi, mida sa tunned — mis on odavam, kiirem, mugavam, mida eelistad ja miks.', [8, 10]), 3), 'Neid lauseid kasutad hiljem oma arutelus.'), { task: 'W02' }),
       hide(tag(B.listening('047_p_hotel', 'Anna helistab külalistemajja.', 'Kuula Anna kõnet külalistemajja kaks korda. Kirjuta lünka number, kellaaeg või hind.', [
         'Liene: Külalistemaja Lilla Uks, tere! Mina olen Liene.',
         'Anna: Tere! Ma helistan Tallinnast. Kas teil on järgmisel neljapäeval kaks ühest tuba vaba?',
@@ -854,7 +854,7 @@ export const LESSONS = withShapes({
         'Enne → olin + -nud: kaotanud.',
         'Eitus: polnud + -nud: broneerinud.',
       ]), 'Kaheksa lauset näitavad, kas enneminevik on käes.'), { task: 'G03' }),
-      tag(purpose(rows(B.writing('048_d_write', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset ühest reisist või päevast: mis juhtus ja mis oli enne juhtunud (Kui ma … jõudsin, oli … juba …; Ma olin … unustanud).', [8, 10]), 7), 'Oma laused on sinu reisiloo materjal.'), { task: 'W05' }),
+      tag(purpose(rows(B.writing('048_d_write', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset ühest reisist või päevast: mis juhtus ja mis oli enne juhtunud (Kui ma … jõudsin, oli … juba …; Ma olin … unustanud).', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma reisiloos.'), { task: 'W05' }),
       hide(B.cloze('048_p_mail', 'Sofia kiri emale.', 'Sofia kirjutab Helgile reisist. Vali igasse lünka vorm, mis sobib aja ja mõttega.', 'Kallis ema!', [
         'Me oleme Helsingist tagasi ja ma tahan sulle kõike rääkida, sest sellist reisi ei ole mul ammu olnud. Reis {*algas|alganud|algab} halvasti: kui me sadamasse jõudsime, {*oli|olid|olnud} laev juba lahkunud. Anna {*oli|olid|ole} unustanud takso tellida.',
         '',
@@ -1121,7 +1121,7 @@ export const LESSONS = withShapes({
         'Enne meie jõudmist → olid + -nud: lahkunud.',
         'Eitus: polnud + -nud: käinud.',
       ]), 'Kaheksa lauset näitavad, kas nõuande ja hoiatuse vormid on käes.'), { task: 'G02' }),
-      tag(purpose(rows(B.writing('049_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma linna kohta külalisele: mida tasub vaadata, kuhu soovitad minna, mida ära unustada ja üks hoiatus (eelmisel korral olin …).', [8, 10]), 7), 'Oma laused on sinu kirja materjal.'), { task: 'W11' }),
+      tag(purpose(rows(B.writing('049_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma linna kohta külalisele: mida tasub vaadata, kuhu soovitad minna, mida ära unustada ja üks hoiatus (eelmisel korral olin …).', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma kirjas.'), { task: 'W11' }),
       hide(B.choice('049_p_tense', 'Mis juhtus enne?', 'Loe lauseid Markuse loost ja Lena reisist. Vali vorm, mis näitab õigesti, mis juhtus enne.', [
         ['Kui buss Viljandisse jõudis, … Tartu buss juba läinud.', 'oli', 'olid', 'ole'],
         ['Eile … me Pärnust Viljandisse peaaegu kolm tundi.', 'sõitsime', 'sõitma', 'sõitnud'],

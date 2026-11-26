@@ -155,7 +155,7 @@ export function wordsInText(text, words) {
 }
 
 // ---------- placement ----------
-const isReview = (block) => Boolean(block?.data?.review);
+const isReview = (block) => block?.type === 'tip' && Boolean(block?.data?.review);
 const isArt = (block) => Boolean(block?.data?.artId || block?.data?.artFor);
 // a hint in front of a task belongs to that task: a strip goes before them, not between
 const LEAD_INS = new Set(['notice', 'tip', 'heading', 'phrasebank']);

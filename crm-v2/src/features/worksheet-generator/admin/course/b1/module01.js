@@ -14,7 +14,7 @@
 //   004 infogap „Uus tunniaeg” — learning: a language school's answering machine. Station 1 is the PARALLEL NEW TASK of
 //             001's cold task (same criteria, new content). Outcome: a phone call with a hidden-information card. Grammar:
 //             kus / kuhu / kust and the polite conditional. Link task at home: a real source (Integratsiooni Sihtasutus).
-//   005 EKS   Control 1 (one sheet): reading and writing in Harno A2 form, parallel to 001; thresholds named one way.
+//   005 EKS   Control 1 (one sheet): reading and writing in Harno B1 form at A2 level (the header names the B1 exam), parallel to 001; thresholds named one way.
 // The continuing story (Sofia, Anna, Markus …) is not used in this module. Drills (crossword, matching, sorting, word
 // order, „Mäletad?”) are off the sheets: the removed blocks stay in this file as hide(block, why) — ids and learners'
 // answers are kept, and the practice engine (practice/engine/extract.js) still builds Harjuta items from their form tasks.
@@ -51,7 +51,11 @@ const half = (block) => ({ ...block, width: 'half', span: 6 });
 // a real addressee (methodV5.js G13): the learner sends the text to a real person
 const toAddressee = (block, who) => ({ ...block, data: { ...block.data, realAddressee: who } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+// writing task 1 (W1, 8 points) with descriptors (audit 2026-11-25: 005_t_note had none): each content point 1 / 0, the
+// language 0–4 by level
+const W1_LANG = '4: vead ei sega, algus ja lõpp sobivad, pikkus on õige · 3: mõni viga, kõik on arusaadav · 2: vead segavad kohati või tekst on palju lühem · 1: palju vigu, raske aru saada · 0: sõnumist ei saa aru';
+const withW1Levels = (b) => ({ ...b, data: { ...b.data, instruction: 'Iga sisupunkt: 1 = on kirjas ja arusaadav, 0 = puudub. Keel ja vorm: 0–4 punkti.', criteria: b.data.criteria.map((c) => (c.name === 'Keel ja vorm' ? { ...c, hint: W1_LANG } : c)) } });
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 001 entry check: one sheet, cold task first
@@ -464,7 +468,7 @@ export const LESSONS = withShapes({
         'võtma → võtsin.',
         'Eitus: ei olnud.',
       ]), 'Haiglaõde Narvast kirjutab oma hommikust; sinu vormid teevad tema loo selgeks.'),
-      tag(purpose(B.writing('002_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma eilsest päevast neli-viis lauset: üks jaatav, üks eitav (ma ei …-nud), üks lause sõnaga „siis” ja üks sõnaga „õnneks” või „kahjuks”.', [4, 5]), 'Neli-viis oma lauset on sinu sõnumi materjal.'), { task: 'W05' }),
+      tag(purpose(B.writing('002_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma eilsest päevast neli-viis lauset: üks jaatav, üks eitav (ma ei …-nud), üks lause sõnaga „siis” ja üks sõnaga „õnneks” või „kahjuks”.', [4, 5]), 'Neid lauseid kasutad hiljem oma sõnumis.'), { task: 'W05' }),
       hide(B.choice('002_p_jaama', 'Jäi magama või jäi maha?', 'Loe lauset ja vali sobiv väljend.', [
         ['Äratus ei helisenud ja Anna …', 'jäi magama', 'jäi maha', 'jäi koju'], ['Buss sõitis minema ja Anna …', 'jäi bussist maha', 'jäi bussi magama', 'jäi bussiga hiljaks'],
         ['Koosolek algas kell üheksa, aga Anna tuli kell üheksa kümme. Ta …', 'jäi hiljaks', 'jäi magama', 'jäi haigeks'], ['Anna nägi, et arvuti oli kodus. Ta oli selle …', 'koju unustanud', 'koju jäänud magama', 'koju kiirustanud'],
@@ -682,7 +686,7 @@ export const LESSONS = withShapes({
         'Eitav käsk: ära proovi.',
         'on vaja + da-vorm: on vaja puhata.',
       ]), 'Pärnu mees jagab oma kogemust; õiged vormid teevad tema nõu selgeks ka sulle.'),
-      tag(purpose(B.writing('003_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma harjumustest neli-viis lauset: mida sa jood või sööd, mida sa ei tee, mida sa pead tegema ja mida sa tahad proovida.', [4, 5]), 'Neli-viis oma lauset on sinu nõuande materjal.'), { task: 'G08' }),
+      tag(purpose(B.writing('003_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma harjumustest neli-viis lauset: mida sa jood või sööd, mida sa ei tee, mida sa pead tegema ja mida sa tahad proovida.', [4, 5]), 'Neid lauseid kasutad hiljem oma nõuandes.'), { task: 'G08' }),
       hide(B.wordforms('003_p_words', 'Uued sõnad vanadest.', 'Moodusta sõna. Vihje ütleb, mis sõna on vaja.', [
         ['jooksma', 'tegevus: … on hea sport', 'jooksmine'], ['lugema', 'tegevus: … enne magamist', 'lugemine'], ['ujuma', 'tegevus: … on mu lemmiksport', 'ujumine'], ['magama', 'tegevus: … on tervisele tähtis', 'magamine'],
         ['tervis', 'omadussõna: … toit', 'tervislik'], ['päike', 'omadussõna: … ilm', 'päikeseline'], ['sport', 'omadussõna: … inimene', 'sportlik'], ['rõõm', 'omadussõna: … tuju', 'rõõmus'],
@@ -831,7 +835,7 @@ export const LESSONS = withShapes({
       'Paralleelne uus ülesanne (tunni 1 külm start): sama hindamine, uus teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid) ja võrdle tunni 1 märkmetega; ütle õpilasele üks asi, mis läks paremaks, ja üks, mida edasi harjutada.'), 1, 8),
       station(tag(B.vocab('004_d_vocab', 'Tunni sõnad.', ['tund — урок', 'kursus — курс', 'sobima — подходить', 'muutma — менять', 'vaba koht — свободное место', 'registreeruma — записаться', 'administraator — администратор', 'internetis — онлайн', 'nädal — неделя', 'kokku leppima — договориться']), { topic: ['registreeruma'] }), 2, 17),
       tag(purpose(B.writing('004_d_think', 'Mõtle kaasa.', 'Enne kuulamist kirjuta 4–5 lauset: millal sul on nädalas aega õppida ja millal mitte? Miks?', [4, 5], [], 0, 'g_read'), 'Kui kuulad teadet, tead juba, mis aeg sulle sobib.'), { task: 'W11' }),
-      B.know('004_d_know', 'Eesti keelt saab õppida ka kodus internetis. E-kursus „Keeleklikk” on algajale (kuni tasemeni A2), „Keeletee” tasemele B1 ja „Keelelend” tasemele B2. Neid saab teha oma ajal.', 'keeleklikk.ee (vaadatud 25.11.2026)'),
+      hide(B.know('004_d_know', 'Eesti keelt saab õppida ka kodus internetis. E-kursus „Keeleklikk” on algajale (kuni tasemeni A2), „Keeletee” tasemele B1 ja „Keelelend” tasemele B2. Neid saab teha oma ajal.', 'keeleklikk.ee (vaadatud 25.11.2026)'), '„Kas teadsid?” that no task uses (v5 §4; audit 2026-11-25): the e-courses are in the link task 004_t_home'),
       tag(purpose(why(B.examListen('004_d_info', 'Keelekooli infotelefon.', 'Kuula kaks korda ja vali õige vastus.', 'choice', [
         'Tere! Olete helistanud keelekooli infotelefonile. Kõik administraatorid on praegu hõivatud, seepärast kuulake palun meie uudiseid.',
         'Meie koolimaja läheb remonti. Seepärast toimuvad neljapäeva õhtukursused alates järgmisest nädalast teisipäeval. Tunnid ei ole enam koolimajas, vaid linna raamatukogus teisel korrusel. Tunniaeg jääb samaks: kell kuus kuni pool kaheksa.',
@@ -1054,9 +1058,9 @@ export const LESSONS = withShapes({
     assessment: true,
     canDo: 'Ma loen lühikesi igapäevaseid tekste ja silte, kirjutan sõnumi ja kirja ning võrdlen tulemust lähtepunktiga.',
     discover: [
-      B.text('005_d_intro', 'Kontroll 1', `See on mooduli 1 kontroll Harno A2 eksami vormis: lugemine 20 minutit ja kirjutamine 25 minutit, ilma sõnaraamatuta. Lõpus võrdled tulemust tunni 1 lähtepunktiga. ${THRESHOLDS}`, 'half'),
-      B.vocab('005_d_vocab', 'Kontrolli sõnad.', ['kontroll — проверка', 'osa — часть', 'eesmärk — цель', 'võrdlema — сравнивать', 'täitma — заполнять', 'parandama — исправлять', 'kordama — повторять', 'edasi — дальше'], '1', 'half'),
-      B.examPart('005_d_part', 'R', { part: 'Lugemine', minutes: 20, points: 16, tasks: 2, target: 60, note: THRESHOLDS }),
+      B.text('005_d_intro', 'Kontroll 1', `See on mooduli 1 kontroll: lugemine 20 minutit ja kirjutamine 25 minutit, ilma sõnaraamatuta. Ülesanded on Harno B1 eksami vormis, aga lühemad ja kursuse alguse tasemel (A2). Lõpus võrdled tulemust tunni 1 lähtepunktiga. ${THRESHOLDS}`, 'half'),
+      hide(B.vocab('005_d_vocab', 'Kontrolli sõnad.', ['kontroll — проверка', 'osa — часть', 'eesmärk — цель', 'võrdlema — сравнивать', 'täitma — заполнять', 'parandama — исправлять', 'kordama — повторять', 'edasi — дальше'], '1', 'half'), 'audit 2026-11-25: a word list on a control sheet; its place goes to the writing-1 rubric 005_t_r1note (control ≤ 10 blocks, v5 §5)'),
+      B.examPart('005_d_part', 'R', { part: 'Lugemine', minutes: 20, points: 14, tasks: 2, target: 60, note: THRESHOLDS }),
       why(B.choice('005_d_reply', 'Lugemine 1. Sobiv vastus.', 'Mida vastad? Vali iga repliigi juurde sobiv vastus.', [
         ['„Kas sa tuled homme trenni?”', 'Kahjuks ei saa, mul on kursus.', 'Palun, võta heaks!', 'Jah, eile oli väga külm.'],
         ['„Suur aitäh abi eest!”', 'Pole tänu väärt.', 'Head isu!', 'Tere tulemast!'],
@@ -1076,7 +1080,7 @@ export const LESSONS = withShapes({
         'Mida tegid? → lihtminevik: käisin.',
         'joosta ≠ juua: vastus räägib jooksmisest.',
       ]),
-      tag(why(B.reading('005_d_learn', 'Lugemine 2. Eesti keele maja.', 'Loe teksti. Vasta lühidalt: üks-kaks sõna või arv.', 'Kus saab eesti keelt õppida?', [
+      tag(why(B.reading('005_d_learn', 'Lugemine 2. Eesti keele maja.', 'Loe teksti. Vasta lühidalt, mõne sõnaga.', 'Kus saab eesti keelt õppida?', [
         'Kes tahab Eestis eesti keelt õppida, võib minna eesti keele majja. Selliseid maju on kaks: üks on Tallinnas ja teine Narvas.',
         '',
         'Eesti keele majas on kursused täiskasvanutele. Kursused on eri tasemetel ja need on tasuta. Kursusele võib tulla inimene, kes on vähemalt 18-aastane. Keelemajas saab ka nõu. Töötajad räägivad õppijaga aeglaselt ja selgelt. Õppija räägib nõustajaga. Koos leiavad nad kursuse, mis sobib just talle.',
@@ -1087,24 +1091,25 @@ export const LESSONS = withShapes({
         '',
         'Allikas: Integratsiooni Sihtasutuse info põhjal, lihtsustatud.',
       ], [
-        ['Kellele on tekst kirjutatud?', 'inimestele, kes tahavad eesti keelt õppida|eesti keele õppijatele|õppijatele|täiskasvanutele, kes tahavad eesti keelt õppida'],
+        ['Kellele on tekst kirjutatud?', 'õppijatele|eesti keele õppijatele|täiskasvanutele|inimestele, kes tahavad eesti keelt õppida'],
         ['Mitu eesti keele maja on Eestis ja kus?', 'kaks, Tallinnas ja Narvas|kaks|Tallinnas ja Narvas'],
-        ['Kellele on kursused tasuta?', 'Eestis elavatele täiskasvanutele|täiskasvanutele'],
+        ['Kui palju kursused maksavad?', 'tasuta|need on tasuta|ei maksa midagi|mitte midagi'],
         ['Kui vana peab õppija vähemalt olema?', '18|18-aastane|kaheksateist'],
         ['Mida saab keelemajas peale kursuste?', 'nõu|nõustamist|keelekohvik|filmiõhtud|muid tegevusi|nõu ja muid tegevusi'],
-        ['Miks tasub enne kursust keelemajas nõu küsida?', 'et leida sobiv kursus|et leida kursus, mis sobib|et leida sobiv õppimise viis'],
+        ['Mida leiavad õppija ja nõustaja koos?', 'sobiva kursuse|kursuse|sobiva kursuse õppijale|kursuse, mis sobib'],
       ]), [
         'Kogu tekst: kus ja kuidas saab eesti keelt õppida.',
         'Esimene lõik: kaks maja, Tallinnas ja Narvas.',
-        'Teine lõik: täiskasvanutele, tasuta.',
+        'Teine lõik: „need on tasuta”.',
         'Teine lõik: vähemalt 18-aastane.',
         'Teine lõik: nõu; kolmas lõik: keelekohvik ja filmiõhtud.',
-        'Teine lõik: nõustajaga leitakse sobiv kursus.',
+        'Teine lõik: „Koos leiavad nad kursuse, mis sobib just talle.”',
       ]), { task: 'R19' }),
       half(B.examPart('005_t_wpart', 'W', { part: 'Kirjutamine', minutes: 25, points: 20, tasks: 2, target: 60, note: `Ülesanne 1: sõnum (25–40 sõna). Ülesanne 2: kiri sõbrale (40–60 sõna). ${THRESHOLDS}` })),
       tag(half(B.examWriting('005_t_note', 'Kirjutamine 1. Sõnum kursuse administraatorile.', 'Kirjuta 25–40 sõna. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Sa ei saa järgmisel nädalal tundi tulla.', points: ['miks sa ei saa tulla', 'millal sa jälle tuled', 'üks viisakas palve (Kas te saaksite …?)', 'kuidas sinuga ühendust saada'], words: [25, 40],
       })), { harno: 'W1b' }),
+      half(withW1Levels(B.rubricW1('005_t_r1note', ['miks ei saa tulla', 'millal tuled jälle', 'viisakas palve', 'kuidas ühendust saada'], 'Hindamine: kirjutamine 1 (8 punkti).'))),
       tag(half(B.letter('005_t_mail', 'Kirjutamine 2. Kiri sõbrale teise linna.', 'Kirjuta 40–60 sõna: sinu nädal, uus harjumus, eesti keele õpe, ettepanek kohtumiseks.', '', '', [40, 60])), { harno: 'W2b' }),
       half(B.rubricW2('005_t_r2')),
       teach(half(B.table('005_t_result', 'Võrdle lähtepunktiga.', 'Kirjuta punktid ja protsent. Võrdle tunniga 1. Lävendid: Harno 60 %, KeeleSepp 70 % / 80 %.', 'Osa, Tund 1, Kontroll 1, Mis paranes?', [
