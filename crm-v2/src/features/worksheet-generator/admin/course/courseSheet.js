@@ -104,7 +104,8 @@ export function moduleNumber(mod) { return Number(String(mod.MODULE.id).split('-
 // the author put it; the gates (finalShape.js V1/V2) check that consecutive lessons do not repeat one rhythm.
 const RANK = { rubric: 4, examrubric: 4, selfcheck: 5 };
 export function lessonOrder(blocks = []) {
-  return blocks.map((b, i) => ({ b, i, r: RANK[b.type] || 1 })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b);
+  // a control may keep a rubric next to its task (data.keepPlace: the scoring sits under the text it scores)
+  return blocks.map((b, i) => ({ b, i, r: b.data?.keepPlace ? 1 : RANK[b.type] || 1 })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b);
 }
 
 // the mother-tongue course (9. / 12. klass) checks commas, capitals and letters: its gap, fix and rewrite tasks are
