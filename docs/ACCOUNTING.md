@@ -642,6 +642,26 @@ menu and `/cash/summary` = admin + finance; `/cash/receipts`, `/cash/handover`, 
   disabled account (balance kept).
 - **Accountant:** unchanged — reads Kassa (sees pending / rejected hand-overs with their status); no books entry.
 
+### „Sain sularaha” — cash the teacher records in „Minu kassa” (owner 2026-11-26)
+
+A teacher (any staff member) presses **„Sain sularaha”** on `/kassa/minu` when they got cash outside a lesson mark — e.g.
+a parent paid four lessons ahead. Dialog (`TeacherCashDialog`): **Kellelt** = a search of the teacher's own students
+(an admin: any active student) or „Muu maksja” with a required name; **Summa**; **Kuupäev** today − 30 days … today;
+**Mille eest** „Tunnid” (optional lesson count) or „Muu”; optional note. Server: `financeApi /cash/teacher-receipt`
+(`action: create | edit | void`, `functions/cash-core.js teacherReceiptEntry / teacherReceiptEditPatch /
+teacherReceiptChangeRefusal`) writes a cashLedger receipt `{ type: "receipt", source: "teacher", holderUid: <actor>,
+studentId | null, studentName, payerName, amountCents, receivedAt, purpose: "lessons" | "other", lessons, note, status:
+"open", requestId }` + `financialAudit` (`cash.teacher_receipt`, `cash.teacher_receipt_edited` with `previous` / `next`
+values, `cash.voided`). It shows under „Käes, üle andmata” as „Mari Tamm · 4 tundi · sularaha” + „lisasid ise” and is
+handed over like lesson cash. The teacher edits or cancels it only while none of it is in a hand-over (pending or
+confirmed); after that only an admin (Kassa → pencil, or the usual void). Cancel = `status: "void"` + `voidedAt`,
+`voidedBy`, `voidReason`; never deleted. **Owner decisions:** (1) it does not change the student's lesson balance or the
+next invoice — the lesson count is information only; (2) it is off the books exactly like lesson cash. The one list of
+off-books sources is `cash-core.js OFF_BOOKS_SOURCES = ["lesson", "teacher"]`: `/cash/allocate` refuses them, and
+`/cash/summary` + `/cash/mine` send `offBooks: true` on such entries, which the browser (`cashModel.isOffBooksCash`)
+uses to hide „Seo arvega” and the „Arvega sidumata” to-do. Kassa shows them with the badge „õpetaja märkis” and
+„Raamatupidamisest väljas”. The menu item „Minu kassa” is now shown to every teacher (it was hidden until the first cash).
+
 - **Student card (admin):** Arveldus → per subject tab „Maksab sularahas” → `studentRevenuePlans/<card>.cashSubjects`
   (`["*"]` on a card with one subject = all its lessons, else subject names; rules: list ≤ 9; only admins write plans).
 - **Teacher** (phone agenda in Kalender and „Märkimata tunnid”, `QuickMarkButtons`): for a „Maksab sularahas” card the

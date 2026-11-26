@@ -1,3 +1,15 @@
+## 2026-11-26 — Minu kassa: õpetaja märgib saadud sularaha (agent/teacher-cash-entry)
+
+- Main kontrollitud: e08f740 (2026-11-26). Haru `agent/teacher-cash-entry`, draft-PR „Minu kassa: teacher records cash received”.
+- Tehtud (omanik kinnitas maketi 2026-11-26): „Minu kassa” nupp „Sain sularaha” → dialoog (Kellelt: oma õpilane / admin: iga; „Muu maksja” + nimi; summa; kuupäev täna−30…täna; Tunnid (tundide arv valikuline) / Muu; märkus). Server `financeApi /cash/teacher-receipt` (create / edit / void): cashLedger `source: "teacher"`, idempotentne `requestId`, `financialAudit` (muutmisel vanad väärtused). Õpetaja muudab/tühistab ainult enne üleandmist (ootel või kinnitatud), siis ainult admin (Kassa pliiats või tühistus). Tühistus = `status: "void"`, kustutamist pole.
+- Raamatupidamisest väljas: üks nimekiri `functions/cash-core.js OFF_BOOKS_SOURCES = ["lesson","teacher"]`; `/cash/allocate` keeldub; `/cash/summary` ja `/cash/mine` saadavad `offBooks`; `cashModel.isOffBooksCash` peidab „Seo arvega” ja „Arvega sidumata” loenduri. Raamatupidaja vaated/ekspordid cashLedgerit ei loe (kontrollitud grep'iga). Tunnisaldot ega arvet see raha ei muuda.
+- Kassa (admin): märk „õpetaja märkis” + „Raamatupidamisest väljas”, pliiats → sama dialoog. MyCashPage ja CashPage said `page-content` (sisu ei puutu enam menüüd). Menüü „Minu kassa” nüüd igal õpetajal (varem alles pärast esimest sularaha).
+- Failid: functions/cash-core.js, functions/index.js, functions/cash-teacher.test.js; crm-v2 cash/{TeacherCashDialog.jsx, MyCashPage.jsx, MyCashParts.jsx, CashPage.jsx, cashModel.js, myCashModel.js, myCash.css, testid}, services/firebase/financeApi.js, components/layout/AppShell(.test).jsx, app/navigation.js; docs/ACCOUNTING.md.
+- Kontrollid: functions `npm test` 682/682; crm-v2 `npx eslint --quiet src` puhas; `npx vitest run` 640 faili, 5625 testi läbi (12 vahele jäetud). Visuaalne kontroll lokaalse võltsandmetega harnessiga (1280 ja 390 px), production'isse ei logitud.
+- Rules: muutust pole vaja (server kirjutab; õpetaja loeb cashLedgerit `holderUid` järgi). Deploy: **functions on vaja** (enne saiti — muidu uus nupp annab 404 ja tunnisularaha „Seo arvega” peitmine sõltub serveri `offBooks` lipust); rules ei.
+- Piirangud: emulaatori integratsioonitesti uuele endpointile ei lisatud; admin saab vanema kui 30 päeva kuupäeva määrata ainult Kassa tavalise „Sain sularaha” vormiga.
+- Järgmine ohutu samm: omanik vaatab PR-i üle → deploy functions → release sait.
+
 ## 2026-11-26 — B2 moodul 13 metoodika v5 + v6 järgi (agent/b2-m13-v6)
 
 - Main kontrollitud: 5d52f12 (2026-11-26, sisaldab #1345 B2 m12 v6). Haru `agent/b2-m13-v6` tehtud `origin/agent/b2-m12-v6` peale + merge origin/main; draft-PR „B2 module 13 to methodology v6”. Deploy'd ega production'i kirjutusi pole.

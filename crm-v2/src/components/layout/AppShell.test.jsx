@@ -75,8 +75,8 @@ describe('application shell', () => {
     expect(screen.getByText('Dialoog suletud')).toBeInTheDocument();
   });
 
-  // „Minu kassa” (owner 2026-11-11): hidden until the teacher ever had cash or has a hand-over to answer
-  it('shows „Minu kassa” only to a teacher with cash; the admin gets the waiting count on Kassa', async () => {
+  // „Minu kassa”: every teacher (2026-11-26: „Sain sularaha” lives there); the admin has Kassa with the waiting count
+  it('shows „Minu kassa” to every teacher; the admin gets the waiting count on Kassa', async () => {
     const shell = (roles, entries, pending = 0) => render(
       <AuthContext.Provider value={{ user: { uid: 'u1', displayName: 'X', roles }, signOut: vi.fn() }}>
         <MemoryRouter initialEntries={['/']}><Routes><Route path="*" element={<AppShell approvals={{}} messages={{}} unmarked={{}}
@@ -86,10 +86,6 @@ describe('application shell', () => {
       </AuthContext.Provider>,
     );
     let view = shell(['teacher'], []);
-    await Promise.resolve();
-    expect(screen.queryByRole('link', { name: /Minu kassa/ })).toBeNull();
-    view.unmount();
-    view = shell(['teacher'], [{ id: 'r1', type: 'receipt', holderUid: 'u1', amountCents: 2500, status: 'open' }]);
     expect(await screen.findByRole('link', { name: /Minu kassa/ })).toHaveAttribute('href', '/kassa/minu');
     view.unmount();
     view = shell(['teacher'], [], 1);
