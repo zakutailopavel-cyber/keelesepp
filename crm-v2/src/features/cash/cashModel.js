@@ -11,10 +11,14 @@ export const entryDate = (entry) => entry.receivedAt || entry.handedAt || String
 
 export const STATUS_LABEL = { open: 'Arveta', allocated: 'Arvega seotud', void: 'Tühistatud', active: '', pending: 'Ootab kinnitust', rejected: 'Ei saanud kätte' };
 
-// a receipt still waiting for its invoice: the admin's to-do in the cash box. Cash taken for a lesson („Makstud
-// sularahas”, `source: "lesson"`) is never linked to an invoice (owner 2026-11-10: it does not go to the accountant).
+// a receipt still waiting for its invoice: the admin's to-do in the cash box. Cash a teacher took — for a lesson
+// („Makstud sularahas”, `source: "lesson"`) or recorded in „Minu kassa” („Sain sularaha”, `source: "teacher"`, owner
+// 2026-11-26) — is never linked to an invoice: it does not go to the accountant. The list of such sources lives only on
+// the server (functions/cash-core.js OFF_BOOKS_SOURCES); /cash/summary and /cash/mine mark each entry `offBooks`.
+export const isOffBooksCash = (entry = {}) => entry.type === 'receipt' && entry.offBooks === true;
 export const isLessonCash = (entry = {}) => entry.type === 'receipt' && entry.source === 'lesson';
-export const openReceipts = (entries = []) => entries.filter((entry) => entry.type === 'receipt' && entry.status === 'open' && !isLessonCash(entry));
+export const isTeacherCash = (entry = {}) => entry.type === 'receipt' && entry.source === 'teacher';
+export const openReceipts = (entries = []) => entries.filter((entry) => entry.type === 'receipt' && entry.status === 'open' && !isOffBooksCash(entry));
 
 // „Õpetajate käes sularaha”: everyone but the admin who looks, with cash in hand, most first
 export const heldByOthers = (balances = [], uid = '') => balances.filter((row) => row.uid !== uid && row.cents > 0).sort((a, b) => b.cents - a.cents);

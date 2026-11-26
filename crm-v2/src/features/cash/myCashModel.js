@@ -39,9 +39,17 @@ export const HANDOVER_STATUS = {
 const shortDay = (iso) => (iso ? `${Number(String(iso).slice(8, 10))}.${Number(String(iso).slice(5, 7))}` : '');
 export const dayLabel = (iso) => (iso ? `${shortDay(iso)}.${String(iso).slice(0, 4)}` : '');
 
-// one line for an entry on hand: „Mari Tamm · tund 9.11 kell 16:00 · Eesti keel” or „Mari andis üle”
+// „4 tundi” / „1 tund”
+export const lessonsLabel = (count) => (Number(count) > 0 ? `${count} ${Number(count) === 1 ? 'tund' : 'tundi'}` : '');
+
+// one line for an entry on hand: „Mari Tamm · tund 9.11 kell 16:00 · Eesti keel”, „Mari andis üle”, or the teacher's
+// own „Sain sularaha” entry (owner 2026-11-26): „Mari Tamm · 4 tundi · sularaha” / „Kati (muu maksja) · sularaha”
 export function itemLine(item = {}) {
   if (item.type === 'handover') return `${item.fromName || 'Kolleeg'} andis üle`;
+  if (item.source === 'teacher') {
+    const who = item.studentName || (item.payerName ? `${item.payerName} (muu maksja)` : 'Maksja');
+    return [who, item.purpose === 'lessons' ? lessonsLabel(item.lessons) : '', 'sularaha'].filter(Boolean).join(' · ');
+  }
   const lesson = item.occurrenceDate ? `tund ${shortDay(item.occurrenceDate)}${item.lessonTime ? ` kell ${item.lessonTime}` : ''}` : '';
   return [item.studentName, lesson, item.subject].filter(Boolean).join(' · ');
 }
@@ -51,4 +59,22 @@ export function chosenCents(items = [], chosen = null, availableCents = 0) {
   if (!chosen) return Math.max(0, availableCents);
   const total = items.filter((item) => chosen.has(item.id)).reduce((sum, item) => sum + (Number(item.remainingCents) || 0), 0);
   return Math.max(0, Math.min(total, availableCents));
+}
+
+// „Sain sularaha” (owner 2026-11-26): the day range the dialog offers — today − 30 days … today (the server checks
+// the same, functions/cash-core.js teacherCashDayRange). `today` = YYYY-MM-DD (cashModel todayIso).
+export const TEACHER_CASH_BACK_DAYS = 30;
+export function teacherCashDayRange(today) {
+  const date = new Date(`${today}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() - TEACHER_CASH_BACK_DAYS);
+  return { min: date.toISOString().slice(0, 10), max: today };
+}
+
+// the students to offer for a search: name (or the parent's name) contains the typed text, at most `max`
+export function matchStudents(students = [], text = '', max = 8) {
+  const query = String(text || '').trim().toLocaleLowerCase('et');
+  const list = query
+    ? students.filter((student) => [student.name, student.parentName].some((value) => String(value || '').toLocaleLowerCase('et').includes(query)))
+    : students;
+  return list.slice(0, max);
 }

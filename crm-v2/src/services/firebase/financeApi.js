@@ -344,6 +344,16 @@ export const financeApi = {
     return post("/cash/handover/cancel", { entryId });
   },
   // Kassa → „Kassa vastuvõtjad” (admin): read, or save { uids }
+  // „Sain sularaha” (owner 2026-11-26): own cash from own student / another payer — off the books; create, edit, void
+  recordTeacherCash(values = {}) {
+    return post("/cash/teacher-receipt", { ...values, action: "create", requestId: values.requestId || financeRequestId("cash_teacher") });
+  },
+  editTeacherCash(entryId, values = {}) {
+    return post("/cash/teacher-receipt", { ...values, action: "edit", entryId });
+  },
+  voidTeacherCash(entryId, reason = "") {
+    return post("/cash/teacher-receipt", { action: "void", entryId, reason });
+  },
   cashReceiverSettings(save = null) {
     return post("/cash/settings", save ? { save } : {});
   },

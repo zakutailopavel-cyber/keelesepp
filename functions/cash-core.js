@@ -316,6 +316,152 @@ function lessonCashMarks(entries = [], { uid, isAdmin, balanceCents, remaining =
   return out;
 }
 
+// ---- Off the books (owner 2026-11-10 lesson cash; 2026-11-26 teacher-entered cash) ----
+// Cash a teacher took — for a marked lesson („Toimus · makstud sularahas”, `source: "lesson"`) or recorded by the
+// teacher in „Minu kassa” („Sain sularaha”, `source: "teacher"`) — never goes to the accountant: it is never linked to
+// an invoice (/cash/allocate refuses it), so it never becomes a payment, never reaches the books, the bank-books review
+// or the exports. This is the ONE list: the browser does not keep its own copy — /cash/summary and /cash/mine mark each
+// entry `offBooks: true|false` (crm-v2 cashModel.js isOffBooksCash reads that flag).
+const OFF_BOOKS_SOURCES = Object.freeze(["lesson", "teacher"]);
+
+/** Is this cash-box entry kept out of the accountant's books (never linked to an invoice)? */
+function isOffBooks(entry = {}) {
+  return Boolean(entry) && entry.type === "receipt" && OFF_BOOKS_SOURCES.includes(String(entry.source || ""));
+}
+
+/** The entry as the browser gets it: the stored fields + `offBooks`. */
+const withOffBooks = (entry = {}) => ({ ...entry, offBooks: isOffBooks(entry) });
+
+// ---- „Sain sularaha” in „Minu kassa” (owner 2026-11-26) ----
+// A teacher records cash they got outside a lesson mark (e.g. a parent paid four lessons ahead, or some other cash):
+// a receipt `source: "teacher"`, held by the teacher, handed over like lesson cash („Andsin raha üle” → „Sain kätte”).
+// Owner decisions 2026-11-26: (1) it does NOT change the student's lesson balance or the next invoice — `lessons` is
+// information only; (2) it is off the books (OFF_BOOKS_SOURCES). The teacher edits or cancels their own entry while
+// none of it is handed over (pending or confirmed); after that only an admin. Cancel = status "void", never deleted.
+const TEACHER_CASH_BACK_DAYS = 30;
+const TEACHER_CASH_PURPOSES = Object.freeze(["lessons", "other"]);
+const MAX_TEACHER_CASH_LESSONS = 200;
+
+/** today − n days as YYYY-MM-DD (n days back on the calendar, from the school's local today) */
+function daysBefore(day, days) {
+  const date = new Date(`${day}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+/** The allowed day range of a teacher's own cash entry: { min: today − 30, max: today }. */
+function teacherCashDayRange(nowIso) {
+  const max = appToday(nowIso);
+  return { min: daysBefore(max, TEACHER_CASH_BACK_DAYS), max };
+}
+
+function teacherCashDay(value, nowIso) {
+  const day = String(value || "");
+  const { min, max } = teacherCashDayRange(nowIso);
+  if (!day) return max;
+  if (!ISO_DAY.test(day) || Number.isNaN(Date.parse(`${day}T00:00:00Z`))) throw cashError("Kuupäev on vigane.");
+  if (day > max) throw cashError("Kuupäev ei saa olla tulevikus.");
+  if (day < min) throw cashError(`Kuupäev võib olla kuni ${TEACHER_CASH_BACK_DAYS} päeva tagasi. Vanema raha märgib admin Kassas.`);
+  return day;
+}
+
+function teacherCashPurpose(values = {}) {
+  const purpose = String(values.purpose || "lessons");
+  if (!TEACHER_CASH_PURPOSES.includes(purpose)) throw cashError("Vali, mille eest raha said.");
+  let lessons = null;
+  if (purpose === "lessons" && values.lessons !== undefined && values.lessons !== null && String(values.lessons).trim() !== "") {
+    lessons = Number(String(values.lessons).trim());
+    if (!Number.isInteger(lessons) || lessons < 1 || lessons > MAX_TEACHER_CASH_LESSONS) throw cashError("Tundide arv peab olema täisarv 1…200.");
+  }
+  return { purpose, lessons };
+}
+
+/** Who paid: a student card (the teacher's own; an admin: any) or „Muu maksja” (studentId null + a typed name). */
+function teacherCashPayer({ actor, isAdmin, studentId, student, payerName }) {
+  if (!studentId) {
+    const name = clean(payerName, 120);
+    if (!name) throw cashError("Kirjuta maksja nimi.");
+    return { studentId: null, studentName: "", payerName: name };
+  }
+  if (!student || student.active === false || student.mergedInto) throw cashError("Õpilase kaarti ei leitud.", 404);
+  // the same rule as receiptEntry: a teacher records cash only from their own students
+  if (!isAdmin && !studentTeacherUids(student).includes(actor.uid)) throw cashError("See ei ole sinu õpilane.", 403);
+  return { studentId: String(studentId), studentName: clean(student.name, 120), payerName: clean(payerName, 120) || clean(student.parentName || student.payerName || student.name, 120) };
+}
+
+/** A new „Sain sularaha” receipt. The holder is always the actor (everyone records only the cash they got). */
+function teacherReceiptEntry({ actor, isAdmin, values = {}, studentId = null, student = null, nowIso }) {
+  if (!actor?.uid) throw cashError("Sisselogimine puudub.", 401);
+  const payer = teacherCashPayer({ actor, isAdmin, studentId, student, payerName: values.payerName });
+  const { purpose, lessons } = teacherCashPurpose(values);
+  return {
+    type: "receipt",
+    source: "teacher",
+    holderUid: actor.uid,
+    holderName: clean(actor.name, 120),
+    amountCents: amountToCents(values.amount),
+    receivedAt: teacherCashDay(values.receivedAt, nowIso),
+    ...payer,
+    purpose,
+    lessons,
+    note: clean(values.note),
+    status: "open",
+    invoiceId: null,
+    paymentId: null,
+    createdAt: nowIso,
+    createdBy: { uid: actor.uid, name: clean(actor.name, 120) },
+  };
+}
+
+/**
+ * May `actor` edit or cancel a „Sain sularaha” entry? "" = yes, else the reason. The teacher: their own entry while
+ * none of it is in a hand-over (pending or confirmed: `remainingCents` = cashPosition(...).remaining[id]). An admin:
+ * any open entry that is not inside a hand-over waiting for „Sain kätte” (`inPendingHandover`, as /cash/void).
+ */
+function teacherReceiptChangeRefusal({ actor, isAdmin, entry, remainingCents, inPendingHandover = false }) {
+  if (!entry || entry.type !== "receipt" || entry.source !== "teacher") return "Kirjet ei leitud.";
+  if (entry.status === "void") return "Kirje on juba tühistatud.";
+  if (entry.status !== "open") return "Raha on juba arvega seotud.";
+  if (inPendingHandover) return "See raha on üleandmises, mis ootab kinnitust. Tühista enne see üleandmine.";
+  if (isAdmin) return "";
+  if (entry.createdBy?.uid !== actor.uid || entry.holderUid !== actor.uid) return "See ei ole sinu kirje.";
+  if (remainingCents === undefined || (Number(remainingCents) || 0) < centsOf(entry)) return "Raha on juba üle antud. Palu adminil kirje parandada.";
+  return "";
+}
+
+const TEACHER_CASH_FIELDS = ["studentId", "studentName", "payerName", "amountCents", "receivedAt", "purpose", "lessons", "note"];
+
+/**
+ * The edit of a „Sain sularaha” entry: → { patch, previous } with only the fields that change (previous = their old
+ * values, for the audit), or null when nothing changes. A day that is not changed is kept even if it is now older
+ * than 30 days; a new day must be in the range.
+ */
+function teacherReceiptEditPatch({ actor, isAdmin, entry, values = {}, studentId = undefined, student = null, nowIso }) {
+  const next = {};
+  // the payer is checked again only when it changes (a card whose teacher changed since keeps its old entry editable)
+  if (studentId !== undefined && (studentId || null) !== (entry.studentId || null)) {
+    Object.assign(next, teacherCashPayer({ actor, isAdmin, studentId, student, payerName: studentId ? "" : values.payerName }));
+  } else if (values.payerName !== undefined && !entry.studentId) {
+    Object.assign(next, teacherCashPayer({ actor, isAdmin, studentId: null, payerName: values.payerName }));
+  }
+  if (values.amount !== undefined) next.amountCents = amountToCents(values.amount);
+  if (values.receivedAt !== undefined && String(values.receivedAt) !== entry.receivedAt) next.receivedAt = teacherCashDay(values.receivedAt, nowIso);
+  if (values.purpose !== undefined || values.lessons !== undefined) Object.assign(next, teacherCashPurpose({ purpose: values.purpose ?? entry.purpose, lessons: values.lessons !== undefined ? values.lessons : entry.lessons }));
+  if (values.note !== undefined) next.note = clean(values.note);
+  const patch = {};
+  const previous = {};
+  for (const field of TEACHER_CASH_FIELDS) {
+    if (!(field in next)) continue;
+    const before = entry[field] === undefined ? null : entry[field];
+    if (next[field] === before) continue;
+    patch[field] = next[field];
+    previous[field] = before;
+  }
+  if (!Object.keys(patch).length) return null;
+  const by = { uid: actor.uid, name: clean(actor.name, 120) };
+  return { patch: { ...patch, editedAt: nowIso, editedBy: by, revision: (Number(entry.revision) || 1) + 1 }, previous };
+}
+
 // ---- „Minu kassa” — a person's own cash and hand-overs to a cash receiver (owner 2026-11-11) ----
 // The receivers („Kassa vastuvõtjad”) are a setting: cashSettings/receivers { uids: [...] }, written by an admin through
 // financeApi /cash/settings. No document yet = the defaults: the owner (Pavel Zakutailo) and Oleksiy Skoryk.
@@ -475,6 +621,13 @@ function myCashView(entries = [], uid = "") {
       id: entry.id, type: entry.type, source: entry.source || "", date: entryDay(entry), studentName: entry.studentName || "",
       occurrenceDate: entry.occurrenceDate || "", lessonTime: entry.lessonTime || "", subject: entry.subject || "",
       fromName: entry.type === "handover" ? entry.fromName || "" : "", amountCents: centsOf(entry), remainingCents: entry.remainingCents,
+      offBooks: isOffBooks(entry),
+      // „Sain sularaha” (owner 2026-11-26): what the teacher typed, and whether they may still change it
+      ...(entry.source === "teacher" ? {
+        studentId: entry.studentId || null, payerName: entry.payerName || "", purpose: entry.purpose || "", lessons: entry.lessons ?? null,
+        note: entry.note || "", receivedAt: entry.receivedAt || "", ownEntry: entry.createdBy?.uid === uid,
+        canEdit: !teacherReceiptChangeRefusal({ actor: { uid }, isAdmin: false, entry, remainingCents: entry.remainingCents }),
+      } : {}),
     })).reverse(),
     handovers: own.filter((entry) => entry.type === "handover" && entry.fromUid === uid).sort(newest).slice(0, 60).map(handoverView),
     incoming: own.filter((entry) => entry.type === "handover" && entry.toUid === uid && entry.status === "pending").sort(newest).map(handoverView),
@@ -483,6 +636,7 @@ function myCashView(entries = [], uid = "") {
 }
 
 module.exports = {
+  OFF_BOOKS_SOURCES, TEACHER_CASH_BACK_DAYS, isOffBooks, withOffBooks, teacherCashDayRange, teacherReceiptChangeRefusal, teacherReceiptEditPatch, teacherReceiptEntry,
   DEFAULT_CASH_RECEIVERS, cashPosition, cashReceivers, cleanReceiverUids, handoverAnswerPatch, handoverCancelRefusal, handoverCounts,
   handoverRequestEntry, myCashView,
   amountToCents, cashBalances, cashError, cashSubjectsOf, handoverEntry, invoicesCoveringLesson, lessonCashEntry, lessonCashFlag, lessonCashId,

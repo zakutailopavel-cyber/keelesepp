@@ -45,7 +45,7 @@ describe('lessonCash helpers', () => {
   });
 
   it('lesson cash is never an invoice to-do in Kassa; the admin sees who holds cash', () => {
-    const lessonReceipt = { type: 'receipt', source: 'lesson', status: 'open', occurrenceDate: '2026-11-09', lessonTime: '16:00', subject: 'Eesti keel' };
+    const lessonReceipt = { type: 'receipt', source: 'lesson', offBooks: true, status: 'open', occurrenceDate: '2026-11-09', lessonTime: '16:00', subject: 'Eesti keel' };
     expect(isLessonCash(lessonReceipt)).toBe(true);
     expect(openReceipts([lessonReceipt, { type: 'receipt', status: 'open' }])).toHaveLength(1);
     expect(lessonLine(lessonReceipt)).toBe('tund 9.11 kell 16:00 · Eesti keel');

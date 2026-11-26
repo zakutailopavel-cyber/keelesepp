@@ -39,6 +39,22 @@
   "a2-029|*|V11-input",
   "a2-029|*|V12-corner-minutes"
  ],
+ "a2-module-07": [
+  "a2-031|*|V12-corner-minutes",
+  "a2-032|*|V11-input",
+  "a2-032|*|V12-corner-minutes",
+  "a2-033|*|V11-input",
+  "a2-034|*|V11-input",
+  "a2-034|*|V12-corner-minutes"
+ ],
+ "a2-module-08": [
+  "a2-036|*|V12-corner-minutes",
+  "a2-037|*|V11-input",
+  "a2-037|*|V12-corner-minutes",
+  "a2-038|*|V11-input",
+  "a2-039|*|V11-input",
+  "a2-039|*|V12-corner-minutes"
+ ],
  "course": [
   "*|*|V6-gap-L1"
  ]

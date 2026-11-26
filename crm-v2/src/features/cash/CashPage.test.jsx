@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import CashPage from './CashPage.jsx';
-import { invoiceChoices, openReceipts } from './cashModel.js';
+import { invoiceChoices, isOffBooksCash, openReceipts } from './cashModel.js';
 
 const people = [{ uid: 'admin-1', name: 'Pavel' }, { uid: 'teacher-1', name: 'Oleksiy' }];
 const receipt = { id: 'r1', type: 'receipt', status: 'open', holderUid: 'teacher-1', holderName: 'Oleksiy', amountCents: 6000, receivedAt: '2026-10-15', studentId: 's1', studentName: 'Mia', payerName: 'Kati', createdAt: '2026-10-15T10:00:00Z' };
@@ -59,7 +59,7 @@ describe('CashPage', () => {
   });
 
   it('„Õpetajate käes sularaha”: lesson cash is not linked to an invoice; „Sain kätte” takes a teacher’s cash (owner 2026-11-10)', async () => {
-    const lessonReceipt = { ...receipt, id: 'lessoncash_1', source: 'lesson', occurrenceDate: '2026-11-09', lessonTime: '16:00', subject: 'Eesti keel', amountCents: 2500 };
+    const lessonReceipt = { ...receipt, id: 'lessoncash_1', source: 'lesson', offBooks: true, occurrenceDate: '2026-11-09', lessonTime: '16:00', subject: 'Eesti keel', amountCents: 2500 };
     const api = {
       cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [lessonReceipt], balances: [{ uid: 'teacher-1', name: 'Oleksiy', cents: 2500 }, { uid: 'admin-1', name: 'Pavel', cents: 1000 }], people }),
       recordCashHandover: vi.fn().mockResolvedValue({}),
@@ -80,7 +80,7 @@ describe('CashPage', () => {
   });
 
   it('cash marked after that month’s invoice was made: the invoice is not edited, the admin sees the flag', async () => {
-    const late = { ...receipt, id: 'lessoncash_2', source: 'lesson', occurrenceDate: '2026-11-03', amountCents: 2500, invoicedBefore: [{ id: 'monthly_2026-11_s1', num: 'KS-2026-120' }] };
+    const late = { ...receipt, id: 'lessoncash_2', source: 'lesson', offBooks: true, occurrenceDate: '2026-11-03', amountCents: 2500, invoicedBefore: [{ id: 'monthly_2026-11_s1', num: 'KS-2026-120' }] };
     const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [late], balances: [], people }) };
     renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [] }) } });
     expect(await screen.findByText('Makstud sularahas pärast arvet KS-2026-120')).toBeInTheDocument();
@@ -88,13 +88,38 @@ describe('CashPage', () => {
   });
 
   it('the admin corrects a lesson’s cash amount (owner 2026-11-11)', async () => {
-    const lessonReceipt = { ...receipt, id: 'lessoncash_3', source: 'lesson', occurrenceDate: '2026-11-09', amountCents: 2500 };
+    const lessonReceipt = { ...receipt, id: 'lessoncash_3', source: 'lesson', offBooks: true, occurrenceDate: '2026-11-09', amountCents: 2500 };
     const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [lessonReceipt], balances: [], people }), correctLessonCashAmount: vi.fn().mockResolvedValue({}) };
     const prompt = vi.spyOn(globalThis, 'prompt').mockReturnValue('20');
     renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [] }) } });
     fireEvent.click(await screen.findByRole('button', { name: 'Paranda summa' }));
     await waitFor(() => expect(api.correctLessonCashAmount).toHaveBeenCalledWith('lessoncash_3', '20.00', expect.any(String)));
     prompt.mockRestore();
+  });
+});
+
+describe('„Sain sularaha” in Kassa (owner 2026-11-26)', () => {
+  const teacherCash = { ...receipt, id: 'cash_teacher-1', source: 'teacher', offBooks: true, studentName: 'Mari Tamm', payerName: 'Kati Tamm', studentId: 's1', purpose: 'lessons', lessons: 4, amountCents: 10000, receivedAt: '2026-11-26', holderName: 'Anna' };
+
+  it('shows the badge „õpetaja märkis”, never „Seo arvega”, not an invoice to-do; the admin can correct it', async () => {
+    const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [teacherCash], balances: [], people }), editTeacherCash: vi.fn().mockResolvedValue({}) };
+    renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [{ id: 's1', name: 'Mari Tamm', active: true }] }) } });
+    expect(await screen.findByText('õpetaja märkis')).toBeInTheDocument();
+    expect(screen.getByText('Raamatupidamisest väljas')).toBeInTheDocument();
+    expect(screen.getByText(/4 tundi · käes: Anna/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Seo arvega/ })).toBeNull();
+    expect(screen.queryByText('Arvega sidumata')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Paranda kirjet' }));
+    const dialog = screen.getByRole('dialog', { name: 'Paranda sularaha kirjet' });
+    fireEvent.change(within(dialog).getByLabelText('Summa €'), { target: { value: '120' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(api.editTeacherCash).toHaveBeenCalledWith('cash_teacher-1', expect.objectContaining({ studentId: 's1', amount: '120.00', lessons: 4 })));
+  });
+
+  it('off-books is the server’s flag: a receipt without it stays an invoice to-do', () => {
+    expect(isOffBooksCash(teacherCash)).toBe(true);
+    expect(isOffBooksCash({ ...teacherCash, offBooks: false })).toBe(false);
+    expect(openReceipts([teacherCash, receipt]).map((entry) => entry.id)).toEqual(['r1']);
   });
 });
 

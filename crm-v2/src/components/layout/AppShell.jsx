@@ -16,7 +16,6 @@ import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx'
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import useSidebarRail from './useSidebarRail.js';
-import { useMyCashTotals } from '../../features/cash/useMyCashTotals.js';
 import './appShell.css';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
@@ -47,24 +46,23 @@ function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, cashPending = cashPendingService, cashBox, announcements, missingData }) {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, cashPending = cashPendingService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   // desktop: full menu or an icon rail that slides out on hover / focus (useSidebarRail.js); phones keep the off-canvas menu
   const sidebar = useSidebarRail();
   const railTitle = (label) => (sidebar.rail && !sidebar.peek ? label : undefined);
   const { user, signOut, preview } = useAuth();
   const previewNavigation = usePreviewNavigation();
-  // „Minu kassa” (owner 2026-11-11): a teacher sees it only once they ever had cash or have a hand-over to answer; an
-  // admin has Kassa (with their own cash in it)
+  // „Minu kassa”: every teacher sees it — since 2026-11-26 a teacher also records cash there („Sain sularaha”), so it
+  // can no longer wait for the first cash (owner 2026-11-11 showed it only after that); an admin has Kassa
   const teacherOnly = hasAnyRole(user.roles, ['teacher']) && !hasAnyRole(user.roles, ['admin']);
-  const myCash = useMyCashTotals(user.uid, { enabled: teacherOnly, ...(cashBox ? { service: cashBox } : {}) });
   const [cashToConfirm, setCashToConfirm] = useState(0);
   const staffAccount = hasAnyRole(user.roles, ['admin', 'teacher']);
   useEffect(() => {
     if (!staffAccount || !user.uid || !cashPending?.subscribePendingIncoming) return undefined;
     try { return cashPending.subscribePendingIncoming(user.uid, (items) => setCashToConfirm(items.length), () => setCashToConfirm(0)); } catch { return undefined; }
   }, [cashPending, staffAccount, user.uid]);
-  const flags = { myCash: teacherOnly && (Boolean(myCash?.ever) || cashToConfirm > 0) };
+  const flags = { myCash: teacherOnly };
   const visibleNavigation = useMemo(() => navigationFor(user.roles)
     .filter((item) => hasAnyRole(user.roles, item.roles) && (!item.onlyWith || flags[item.onlyWith])),
   // eslint-disable-next-line react-hooks/exhaustive-deps -- flags is rebuilt each render from the one boolean below
