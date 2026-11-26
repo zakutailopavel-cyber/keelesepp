@@ -91,6 +91,9 @@ export function depthProblems(doc) {
   // a dictation has its own norm below (ten dictated sentences would be ten minutes of dictating)
   // the exam parts of a check lesson have the exam's own sizes (6, 8, 9 points): the items norm does not apply there
   const examParts = doc?.meta?.assessment && doc?.meta?.phase === 'practice';
+  // … nor on any other sheet of a check lesson that carries Harno part headers (exampart): a full mock (B1 080) puts its
+  // listening part on sheet 1 after the writing, in Harno's order
+  const examSizes = examParts || (doc?.meta?.assessment && blocks.some((b) => b.type === 'exampart'));
   // design v2: several shorter, different operations instead of one long drill (docs/COURSE_DESIGN_COMMUNICATIVE.md §6)
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11): fewer, fuller tasks — the level's full item count again
   // v4 (docs/COURSE_DESIGN_COMMUNICATIVE.md §12) keeps v3's sizes and drops its fixed task list
@@ -105,7 +108,7 @@ export function depthProblems(doc) {
   const v5 = Boolean(doc?.meta?.methodV5);
   const minItems = stations ? STATION_ITEMS[0] : v5 ? V5_ITEMS : doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
   // a sentence-insertion text has the exam's 5–8 gaps
-  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && !((stations || v5) && isExitCheck(b)) && ITEMS[b.type](b.data || {}) < minItems);
+  const short = examSizes ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && !((stations || v5) && isExitCheck(b)) && ITEMS[b.type](b.data || {}) < minItems);
   if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${minItems} punkti (${level})`, blocks: short.map((b) => b.id) });
 
   // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare

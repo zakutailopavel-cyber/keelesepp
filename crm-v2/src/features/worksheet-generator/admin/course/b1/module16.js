@@ -1,65 +1,139 @@
-// B1 course (A2 → B1 roadmap), module 16 „Arvamus, võrdlemine ja põhjendamine” (a2b1-076…080), stage 4 „exam-ready”
-// (docs/COURSE_FINAL_SHAPE_B1.md §6.1). Final shape (how: docs/FINAL_SHAPE_AUTHORING.md). One storyline in January and
-// February 2028, after New Year's Eve at Viktor's farm (module 15): everybody argues about something. Kase kool wants a
-// phone-free school day from March and Oskar (10 in April) wants a smartphone; Tuul Logistika's head Liis asks the staff
-// how they want to work from March (two variants, Sofia proposes a third); Jaan's house Männi 8 has 9000 € for the
-// courtyard — a playground, parking places or a compromise — while the district's participatory budget and 30 km/h in the
-// city centre are discussed on the radio. The goal, said on the first sheet: at the end the learner helps the residents'
-// meeting reach a compromise (Harno B1 speaking: an agreement), records the summary and writes the decision for the house.
-//   076 RÄÄK L→S  „Minu arvates…” — the Mets family at dinner (Oskar wants a smartphone, by ear); opinion phrases by how sure
-//                 the speaker is, the verb second after „minu arvates” and a front kuna-clause (rule table, sort), a survey
-//                 of three, 4-3-2; phrase choice, the parents' forum (R12), word order, kuna-clauses (W09), a street poll by
-//                 ear (L01), topic questions; Kasuta: the class teacher's voicemail → notes (L07), Eksaminurk S1b = the class
-//                 parents agree on one position at the meeting (main), the learner's opinion recorded at home, the reply to
-//                 the class teacher (W08).
-//   077 LUGE R→W  „Kodus või kontoris?” — Eksaminurk R2 = the office newsletter on the survey; comparison (keskvõrre + kui,
-//                 kõige, sama … kui, võrreldes + -ga, erinevalt + -st; spiral of grammarPlan 'comparison'), rule table,
-//                 colleagues' voice messages (L09), two workplaces compared three times, 8-min writing; collocations,
-//                 the radio talk on e-Estonia (L03), two facts → one comparison, places to work (R1), Markus's errors,
-//                 info gap on variants A and B; Kasuta: three variants (profiles), ranked with the team (S12), home
-//                 comparison, the proposal to Liis (main, W04).
-//   078 KIRJ L→W  „Seepärast ja näiteks” — the district radio news on the participatory budget (numbers), the argument in
-//                 four parts (opinion → reason → example → conclusion; seepärast / seega with the verb second, kes- and
-//                 mis-clauses), sort, joining, the news retold twice, relayed to Helju twice; Eksaminurk L4 = the city
-//                 planner Siret on 30 km/h, kes or mis, listeners' comments as model texts (R09), linking words, Karl's
-//                 errors, Karl's post made polite (W12); Kasuta: Urmas's article (insertion), the call to the district
-//                 office (S04), the radio comment recorded at home, plan, the opinion piece written and edited (main, W10).
-//   079 PROB R→S  „Leiame kompromissi” — the problem first: Urmas's letter (true / false / not stated), a first try on the
-//                 stairs done twice (S10), then the language: the conditional for a polite opinion, partial agreement,
-//                 counter-questions; Kadri's message (forms), the house questionnaire (W01); Eksaminurk R3a = the invitation
-//                 to the meeting, sharp line ↔ polite answer, Urmas's voicemail → what to do (L06), conditional forms,
-//                 „вежливо” translated, „Mida sa teeksid?” (the module's one S14); Kasuta: the three proposals with costs
-//                 (application), the residents' meeting reaches a compromise (main, S03), the summary recorded at home, the
-//                 decision posted in the house chat (W02).
-//   080 PROOV     Mock 2 — the second full, timed Harno B1 mock (§6.1, §6.5 checkpoint „Mock 2”: R 25, L 23, W 15, S 15 →
-//                 below that a teacher review before module 17; target 80 %): R1, R2, R3b, R4 (33 p) · L1, L2, L3a, L4 (30 p)
-//                 · W1b, W2a (20 p) · S0, S1a, S1b, S2 (20 p); warm-up sheet with how the three arguments ended.
-// §6.2 row 16 (RÄÄK L→S · LUGE R→W · KIRJ L→W · PROB R→S) is used as written: the module has no new grammar item
-// (grammarPlan.js lists none for 076–079), so no swap is needed; it spirals opinion phrases with sest / kuna (cause,
-// a2b1-038 / 058), comparison (a2b1-052) and the conditional (a2b1-062). Cast (docs/COURSE_CAST.md): class teacher Kristel
-// Saar, director Aivar Mänd, Rasmus's father Tõnu, Urmas, Karl, Helju, Merike, Taavi, Ülle, city planner Siret, e-services
-// adviser Eneli and taxi driver Kalev come from earlier modules or the module-16 cast; the phone-free school day, Liis's
-// variants, the courtyard budget, the district's rules and amounts, the interview and all dates are fictional. Real:
-// Tallinn's districts run participatory budgets (kaasav eelarve); Estonia has had the ID card since 2002 and digital
-// signatures with it; Brussels (January 2021) and Paris (August 2021) set 30 km/h as the general city speed limit;
-// 24 February is Estonia's Independence Day. Earlier versions: archive/v3/b1/module16.js, archive/v1/b1/module16.js.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, topic „meedia” + „ühiskond”, „suhted”; the opinion / comparison /
-// argument axis stays): the topic opener 076_d_open (ERR and its channels incl. ETV+, the public broadcasting law, where
-// people get news and trust in ERR — Emor for Riigikantselei, March 2026) replaces the goal text 076_d_goal; „Kas
-// teadsid?” 076_p_know (phone rules in schools since 1.9.2025, the age of 13 for online services, WHO screen time),
-// 077_p_media (infographic: news sources, March 2026) with the comparison talk 077_p_mtalk, 078_p_know (news vs opinion,
-// pressinõukogu) with the opinion column 078_p_column, 079_p_know (how to recognise false information, Faktikontroll,
-// Propastop); examiner set 080_d_warm (media and opinions) with its own instruction; mock listening 080_p_l4 without the
-// invented survey shares. One 3-2-1 / 4-3-2 left (076_d_432); record-at-home twice (076_t_rec, 079_t_rec).
-// Sources: the PR of agent/av-b1-module-16.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 16 „Arvamus, võrdlemine ja põhjendamine” (a2b1-076…080), stage B1- (lessons
+// 061–080; 080 closes the stage). Written to methodology v6 (docs/METHODOLOGY_V6.md; strictModulesV6.json) on top of v5
+// „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md; strictModulesV5.json), the third B1 module after modules 14 and 15 and in
+// their pattern: one real outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a lesson, 4 stations whose
+// minutes differ in every lesson (G17). v6 in the content, not only in the fields:
+//   • the exit is a short performance in the main task's skill (G14): a 30-s voicemail to the radio (076), one comparison
+//     of the recommendation rewritten (077), the conclusion of the opinion piece rewritten (078), 30 s to the chairman on
+//     the compromise (079);
+//   • the form task makes the learner produce the rule box's bold forms, and no hint gives the answer away (G15): 076 a
+//     parent's forum post with clause parts (the two extra parts break the word order after „minu arvates” / a front
+//     kuna-clause), 077 a colleague's letter with a word bank whose extras are the typical errors „nagu” and „paremam”,
+//     078 a listener's comment with clause parts (extras: „seepärast paljud vanemad on”, „seega me peame”), 079 a
+//     meeting invitation with three-option gaps (arvaksin / arvasin / arvama);
+//   • ONE exam corner a lesson (final shape V12), chosen to give back what the one-sheet controls took from the course
+//     (finalShapeBaseline „course”): 076 R4, 077 R3b, 078 R4, 079 R3a — R3 and R4 reach 10 practices each again (the
+//     agreement S1b is the main task of 079 and the mock's S1b; it is not a corner);
+//   • the main tasks rotate and use types modules 14–15 did not use (G17): 076 interview (a radio street interview, the
+//     learner answers with opinion, certainty, reason and example), 077 report (a short written recommendation to the
+//     manager comparing two work arrangements from a data card), 078 essay (an opinion piece for the district paper in
+//     four parts: opinion → reason → example → conclusion; no counter-argument, which is Harno B2 — review 2026-11-25,
+//     078_t_text), 079 debate (the residents' meeting: two sides, hidden information, a compromise = Harno S1b); each
+//     main task has an „Abikaart” (support) and a „Lisaväljakutse” (stretch);
+//   • a 5-min pronunciation corner every lesson (G23): intonation of sure and unsure opinions (076), välted lina – linna –
+//     linna (077), shadowing an argument (078), õ / ä / ö / ü kõik – käik (079);
+//   • every vocabulary block brings back three words of lessons 061–076 that the lesson's input uses again (G18); every
+//     home task names „Harjuta → moodul 16”;
+//   • instructions ≤ 25 words with a purpose line of 6–8 plain words (G22);
+//   • the real network (G25): 076's home task is the media log „Minu eesti keele võrgustik” (ERR, https://www.err.ee),
+//     078's opinion piece goes to a classmate (peer reply), 079's home task is a real document (Rahvaalgatus,
+//     https://rahvaalgatus.ee).
+//   076 facts   „Minu arvates …: kas lapsel on nutitelefoni vaja?” — the module's COLD TASK first (2–3 min of speech
+//               without help: six examiner questions on the phone in our lives, Harno S1a form, scored with the four
+//               criteria of the mock's speaking); ONE input: a radio street poll (≈ 1.5 min, 8 gap sentences); opinion by
+//               certainty (olen kindel, et / arvan, et / mulle tundub, et / kahtlen, kas), the verb second after „minu
+//               arvates” and after a front kuna-clause; outcome: a radio street interview (A reporter, B parent,
+//               grandparent or teacher), exit = a 30-s voicemail to the radio.
+//   077 case    „Kodus või kontoris?” — ONE text: three employees compare a year of home and office work (≈ 230 words,
+//               8 short answers); comparison (keskvõrre + kui, kõige, sama … kui, võrreldes + -ga, erinevalt + -st);
+//               outcome: a written recommendation to the manager (70–90 words) from the data card of two variants.
+//   078 project „Seepärast ja näiteks: minu arvamuslugu” — ONE recording: listeners phone a radio show about 30 km/h in
+//               the centre (≈ 2 min, 8 true / false); the argument in four parts with sest / kuna, näiteks, seepärast /
+//               seega + the verb second, kes- / mis- / kelle-clauses; outcome: an opinion piece for the district paper
+//               (80–100 words) on one of five town topics, planned, written, its conclusion rewritten, sent to a
+//               classmate.
+//   079 debate  „Leiame kompromissi” — ONE text: a house chat about 8000 euros for the courtyard (≈ 200 words, true /
+//               false / not in the text); the conditional for a polite opinion (arvaksin, oleks, võiksime, maksaks),
+//               partial agreement and a condition; outcome: the residents' meeting with hidden information reaches one
+//               compromise (Harno S1b), exit = 30 s to the chairman.
+//   080 PROOV   Mock 2 — the full, timed Harno B1 mock that closes stage 061–080 (METHODOLOGY_B1_B2_V5.md §5: full mocks
+//               only at 060 / 080 / 089 / 090; COURSE_FINAL_SHAPE_B1.md §6.3–6.5: 080 = Mock 2 with the 75 % checkpoint).
+//               Since 060 became a one-sheet control (module 12), 080 is the course's first full rehearsal of the real
+//               exam, so it stays a full mock: three sheets of ≤ 10 blocks (review 2026-11-25) in Harno's order —
+//               writing 35 min (W1a questionnaire 8 p + W2a story 12 p) and listening 35 min (L1 7 + L2 6 + L3a 8 + L4 9
+//               = 30 p) · reading 50 min (R1 9 + R2 6 + R3b 10 + R4 8 = 33 p) · speaking 15 min (S0, S1a = the PARALLEL
+//               of 076's cold task, S1b, S2; 4 criteria × 5 = 20 p); 103 points, every recording locked to two plays,
+//               „ükski osa ei tohi olla 0 punkti”, Harno 60 % / KeeleSepp 70 % / 80 % and the checkpoint 75 % per part;
+//               about 20 % of the R + L items test modules 13–15 (marked „Varasemast” in the teacher notes).
+// No story characters: the people of the texts are made up and appear in one lesson only. No dictation. Texts are adapted
+// to the level, facts need not be real (owner 2026-11-25). The previous version (final shape + academic value round 1: one
+// storyline of January–February 2028 — Kase kool's phone-free day and Oskar's smartphone, Tuul Logistika's remote work,
+// the Männi 8 courtyard with Urmas, Karl and Helju …) is kept below as OLD: every block of it that is not on a sheet any
+// more is retired (hidden, id and learners' answers kept, practice/engine/extract.js still builds Harjuta items from its
+// form tasks); a block on a sheet with a reused id has the same type.
+// B1 grammar (METHODOLOGY_STANDARD §7, grammarPlan.js has no new item for 076–079): opinion phrases with sest / kuna (cause,
+// spiral of a2b1-038 / 058), comparison (a2b1-052), the argument's linkers with the verb second, the conditional for a
+// polite opinion (a2b1-062).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
-// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+// the examiner's set with its own instruction (kept for the OLD lessons)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-16', course: 'b1', title: 'Arvamus, võrdlemine ja põhjendamine', level: 'B1', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-16', course: 'b1', title: 'Arvamus, võrdlemine ja põhjendamine', level: 'B1', design: 'v3-stations', template: 'v4' };
 
-export const LESSONS = withShapes({
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the mock's three sheets: Harno's order (writing + listening, reading, speaking)
+const mockSheets = () => ({
+  discover: { label: '1 Kirjutamine ja kuulamine', slot: 1, subtitle: 'Proovieksam 2 · 35 + 35 minutit' },
+  practice: { label: '2 Lugemine', slot: 2, subtitle: 'Proovieksam 2 · 50 minutit' },
+  transfer: { label: '3 Rääkimine', slot: 3, subtitle: 'Proovieksam 2 · umbes 15 minutit' },
+});
+// one line for every block taken off the sheets by the rewrite
+const V6_CUT = 'v6 (2026-11-26): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V6_DRILL = 'v6 (2026-11-26): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+const V6_MOCK = 'v6 (2026-11-26): proovieksam ilma kordamislehe ja tegelasteta — kolm lehte ≤ 10 plokki (ülevaade 2026-11-25)';
+// a recording in a lesson: heard twice (G6); in the mock the play count is locked
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// a writing form of n ruled lines
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// v6 §2 i (G24): the main task's „Abikaart” (2–3 sentence starters) and „Lisaväljakutse” (one line); a speaking task shows
+// both in its tip box, so the learner sees them on the sheet (the fold-out card is UI work for later)
+const aid = (block, support, stretch, taskType) => {
+  const data = { ...block.data, support, stretch, taskType };
+  if (block.type === 'speaking') Object.assign(data, { tipTitle: 'Abikaart (kui vaja):', tipText: [...support, `Lisaväljakutse: ${stretch}`].join('\n') });
+  return { ...block, data };
+};
+// the same two lines printed at the end of a card's situation (a role card or a writing task card)
+const aidLines = (support, stretch) => `Abikaart (kui vaja): ${support.join(' · ')}\nLisaväljakutse: ${stretch}`;
+// v6 §2 l (G23): the 5-min pronunciation corner — `focus` välted | vokaalid | varjutamine | intonatsioon
+const pron = (block, focus) => ({ ...block, data: { ...block.data, pronunciation: focus } });
+// v6 §2 f (G18): three words of lessons 3–15 back that this lesson's input uses again
+const review = (block, words) => ({ ...block, data: { ...block.data, review: words } });
+// v6 §2 i (G24): the self-check rates the task's three success criteria 0–1–2 and quotes one own sentence as evidence
+const selfCheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, [...criteria.map((c) => `${c} (0 – 1 – 2)`), 'Minu lause tõendiks: …'], stamp, 'Ma oskan …');
+  return purpose({ ...b, data: { ...b.data, instruction: 'Hinda iga punkti: 0, 1 või 2. Kirjuta üks oma lause tõendiks.', criteria, evidence: true } }, 'Näed, mida oskad ja mida veel harjutada.');
+};
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+// v6 §2 k (G25): „Minu eesti keele võrgustik” — the learner's media log with a real source (title + https URL, G13)
+const networkLog = (block, source) => ({ ...block, data: { ...block.data, mediaLog: true, realAddressee: source } });
+// v6 §2 k (G13): a real document with light support — the link task opens a real page (title + https URL)
+const realSource = (block, source) => ({ ...block, data: { ...block.data, realAddressee: source } });
+// v6 §2 k (G25): one peer exchange a module — the product goes to a classmate, who answers against the success criteria
+const peer = (block) => ({ ...block, data: { ...block.data, peerReply: true } });
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the mock's speaking rubric: Harno's four criteria × 0–5, the descriptors at B1 (no „pausideta”, G12) — the same four
+// criteria score 076's cold task, so the cold task and the mock's S1a compare one to one
+const SPEAKING_B1 = [
+  { name: 'Ülesanne ja suhtlus: arvamus põhjuse ja näitega; kokkulepe on tehtud; kõne eesmärk on täidetud', max: 5 },
+  { name: 'Sidusus: sest, kuna, näiteks, seepärast; pausid ei sega kuulajat', max: 5 },
+  { name: 'Sõnavara: arvamuse, võrdluse ja olukorra sõnad sobivad', max: 5 },
+  { name: 'Grammatika ja hääldus: tegusõna teisel kohal, võrdlus, tingiv kõneviis; vead ei sega mõistmist', max: 5 },
+];
+
+// ======================================================================== the previous version (final shape + academic value round 1)
+// Kept for its ids: the blocks that are not on the v6 sheets are retired from here (lesson() below).
+const OLD = {
   'a2b1-076': {
     title: 'Minu arvates…: telefon lapsele?',
     canDo: 'Ma räägin oma arvamusest laste telefonide ja ekraaniaja kohta, põhjendan seda ja lepin lastevanemate koosolekul kokku klassi ühise seisukoha.',
@@ -1107,6 +1181,888 @@ export const LESSONS = withShapes({
       B.selfcheck('080_t_self', ['Ma tegin kõik neli eksamiosa ajapiiranguga.', 'Ma tean oma punkte igas osas ja võrdlen neid 75 % läve ja 80 % eesmärgiga.', 'Ma tean, millise osa vaatan enne moodulit 17 õpetajaga läbi.', 'Ma kasutan eksamil mooduli keelt: arvamus ja põhjus, võrdlus, järeldus ja viisakas tingiv.'], 'Proovieksam 2 tehtud'),
     ],
   },
+};
+
+
+// The blocks of OLD that are off the sheets are retired (hidden) in their old phase: their ids and the learners' answers
+// stay. A new block that reuses an old id keeps the old block's type.
+const PHASES = ['discover', 'practice', 'transfer'];
+const DRILLS = new Set(['categorize', 'match', 'manymatch', 'wordorder', 'crossword', 'transformation', 'errorfix', 'translation', 'wordforms', 'choice', 'formtext', 'cloze', 'gaps']);
+const reasonFor = (lessonId, b) => (OLD[lessonId].assessment ? V6_MOCK : DRILLS.has(b.type) || b.data?.review ? V6_DRILL : V6_CUT);
+function lesson(lessonId, spec) {
+  const old = OLD[lessonId];
+  if (!old) throw new Error(`moodul 16: vana tund ${lessonId} puudub`);
+  const oldById = Object.fromEntries(PHASES.flatMap((p) => old[p] || []).map((b) => [b.id, b]));
+  const used = new Set(PHASES.flatMap((p) => (spec[p] || []).map((b) => b.id)));
+  PHASES.flatMap((p) => spec[p] || []).forEach((b) => {
+    if (oldById[b.id] && oldById[b.id].type !== b.type) throw new Error(`moodul 16: ${b.id} on vanas tunnis ${oldById[b.id].type}, uues ${b.type}`);
+  });
+  const out = { ...spec };
+  PHASES.forEach((p) => {
+    const retired = (old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, reasonFor(lessonId, b)));
+    if ((spec[p] || []).length || retired.length) out[p] = [...(spec[p] || []), ...retired];
+  });
+  return out;
+}
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 076 facts: opinions on children and smartphones
+  'a2b1-076': lesson('a2b1-076', {
+    title: 'Minu arvates …: kas lapsel on nutitelefoni vaja?',
+    phases: grammar('Keel: Minu arvates on … · Ma olen kindel, et … · Mulle tundub, et … · Ma kahtlen, kas … · Kuna …, on …'),
+    format: 'facts',
+    topic: 'family',
+    canDo: 'Ma räägin oma arvamusest laste nutitelefonide kohta, näitan, kui kindel ma olen, põhjendan seda (sest, kuna) ja vastan raadio tänavaküsitlusele.',
+    teacherPage: {
+      goal: 'Ученик высказывает мнение о детях и смартфонах, показывает степень уверенности (olen kindel / arvan / tundub / kahtlen), обосновывает (sest, kuna) и отвечает на уличный опрос радио.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодная задача: 2 минуты речи без помощи) → уличный опрос радио (2 раза, 8 вопросов с тремя вариантами), в паре «кто что думает и почему» → пункт 4: интервью для радио, A — репортёр, B — родитель, бабушка/дедушка или учитель; выход — 30 секунд для радио. Пункт 3 (правило, Eksaminurk R4, Hääldusnurk) — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 16: ученик 2–3 минуты без помощи отвечает на 6 вопросов о телефоне в нашей жизни (форма Harno S1a). Не помогайте и не исправляйте. Оцените по 4 критериям устной части пробного экзамена 080 (по 0–5) и сохраните: в 080 (rääkimine 1) — параллельная задача того же вида и длины.',
+      plan: [
+        '0–10: пункт 1 — холодная задача: 2–3 минуты речи без помощи (6 вопросов), учитель только слушает и записывает',
+        '10–26: пункт 2 — слова (2 мин, три старых слова: keelama, segama, tegelikult), стратегия «прочитай предложения и угадай пропуск», опрос 2 раза (≈ 2 мин), 8 вопросов с тремя вариантами; в паре 5 строк «кто что думает и почему»',
+        '26–46: пункт 3 — заметить → правило (уверенность мнения; глагол сразу после minu arvates и после kuna-предложения в начале; L1) → Eksaminurk R4: пост в форуме родителей, 8 частей из банка (две лишние — с неправильным порядком слов) → Hääldusnurk: интонация уверенного и неуверенного мнения 5 мин → 8 минут своих мнений',
+        '46–70: пункт 4 — интервью для радио: A — репортёр, B — выбранная роль, потом смена; учитель-репортёр задаёт встречный вопрос; выход — 30 секунд для радио',
+        '70–75: самооценка 0–1–2, домашнее задание (медиа-дневник «Minu eesti keele võrgustik»: один материал ERR, Harjuta → moodul 16)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик меняет мнение на противоположное и защищает его 1 минуту — «а теперь вы бабушка»',
+        '75–90: запас',
+      ],
+      sources: 'Уличный опрос (пункт 2), пост родителя (R4) и карточки интервью — учебные, люди выдуманы; проверять не нужно (владелец 2026-11-25). Домашнее задание — настоящий сайт ERR (https://www.err.ee), материал ученик выбирает сам.',
+      groups: 'Пункт 2 в паре: A пишет строки 1–3, B — 4–6, потом читают друг другу. Пункт 4 в паре: A — репортёр, B отвечает, потом смена. Один на один: вы — репортёр, который задаёт встречный вопрос («Aga kui …?»).',
+      errors: [
+        '«Minu arvates see on hea» вместо «Minu arvates on see hea» (глагол на втором месте).',
+        '«Kuna telefon segab und, see jääb kööki» вместо «Kuna telefon segab und, jääb see kööki» (после kuna-предложения глагол сразу).',
+        '«Ma kahtlen, et …» вместо «Ma kahtlen, kas …» (по-русски «сомневаюсь, что» — по-эстонски kas).',
+        '«Mulle tundub, et» и «Ma olen kindel, et» без запятой перед et — в письме нужна запятая.',
+      ],
+      notes: [
+        'Холодная задача и 080 rääkimine 1 — пара «до / после»: та же форма (6 вопросов экзаменатора, два из них о мнении), 2–3 минуты, без помощи, те же 4 критерия по 0–5. Сохраните баллы в карточке ученика.',
+        'Abikaart и Lisaväljakutse — последние строки карточки B. Обратная связь, 1 цель: глагол на втором месте после minu arvates / kuna-предложения.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('076_d_cold', 'Külm start: telefon ja meie elu', 'Vasta 2–3 minutit ilma abita ja ilma märkmeteta. Õpetaja küsib, sina räägid.', [
+        'Kui palju aega sa päevas telefonis veedad?',
+        'Milleks sa telefoni kõige rohkem kasutad ja miks?',
+        'Mis vanuses said sina oma esimese telefoni?',
+        'Mis juhtub, kui sa unustad telefoni koju?',
+        'Mis sa arvad: kas telefon teeb meie elu lihtsamaks või raskemaks? Miks?',
+        'Kas sinu peres on telefoni kohta mingeid reegleid? Milliseid?',
+      ], [120, 180]), 'Proovieksamil 80 võrdled seda uue vastusega.'), { task: 'S02', level: 4 }),
+      'Külm ülesanne (mooduli 16 algus, ilma toeta, Harno B1 rääkimise 1a vorm: eksamineerija küsimused). Ära aita, ära paranda, ära anna sõnu. Pärast tundi hinda sama nelja kriteeriumiga nagu proovieksami 80 rääkimises (ülesande täitmine, sidusus, sõnavara, grammatika ja hääldus; igaüks 0–5) ja kirjuta õpilase kaardile kolm märget: 1) mitu lauset ja kas on põhjus (sest …, kuna …); 2) kas ta ütleb arvamuse (minu arvates …, ma arvan, et …) ja kas tegusõna on teisel kohal; 3) kas on näide oma elust. Proovieksamis 80 (rääkimine 1) on paralleelne uus ülesanne: sama vorm, pikkus ja hindamine — võrdle.'), 1, 10),
+      station(review(tag(B.vocab('076_d_vocab', 'Tunni sõnad.', ['nutitelefon — смартфон', 'ekraan — экран', 'reegel — правило (pere reeglid)', 'kindel — уверенный (olen kindel)', 'tunduma — казаться (mulle tundub)', 'kahtlema — сомневаться (kahtlen kas …)', 'vajalik — нужный', 'vanus — возраст', 'piisav — достаточный', 'ühendust pidama — держать связь', 'omavahel — между собой', 'targalt — разумно'], '2'), { topic: ['nutitelefon', 'nuputelefon', 'ekraaniaeg'] }), ['keelama', 'segama', 'tegelikult']), 2, 16),
+      teach(tag(purpose(B.table('076_d_rule', 'Paaris: kes mida arvab?', 'Pärast teist kuulamist kirjutage igasse ritta terve lause: mida inimene arvab ja miks.', 'Kes?, Mida ta arvab ja miks? (terve lause)', [
+        'Tiina | ',
+        'Rein | ',
+        'Kati | ',
+        'Andres | ',
+        'vanaisa Mart | ',
+        'õpetaja Helen | ',
+      ], 'g_read'), 'Need laused aitavad sul hiljem intervjuus vastata.'), { task: 'L10' }),
+      'Paarid kirjutavad pärast teist kuulamist 6 minutit: A read 1–3, B read 4–6, siis loevad teineteisele. Kontrolli, et lauses on arvamus ja põhjus (Tiina arvates on …, sest …) ning et tegusõna on teisel kohal. Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Kas ta on kindel või kahtleb?”.'),
+      tag(purpose(why(ownText(twice(B.examListen('076_p_poll', 'Tänavaküsitlus: kas lapsel on nutitelefoni vaja?', 'Loe enne küsimused ja arva vastus. Kuula kaks korda ja vali õige vastus.', 'choice', [
+        'Reporter: Tere hommikust! Täna küsime tänaval: mis vanuses peaks laps saama oma nutitelefoni? Paljud koolid tahavad telefonid tundides keelata ja vanemad vaidlevad selle üle kodus. Kuulame, mida arvavad lapsevanemad, vanavanemad ja üks õpetaja.',
+        'Tiina: Minu arvates on kümneaastane laps veel liiga noor. Telefon segab õppimist ja und. Minu tütar saab nutitelefoni alles kolmeteistkümneselt.',
+        'Rein: Ma olen kindel, et telefon on lapsele vajalik. Kuna mu poeg käib üksi trenni, tahan teada, kus ta on. Tegelikult kasutab ta telefoni ainult helistamiseks.',
+        'Kati: Mulle tundub, et küsimus ei ole vanuses, vaid reeglites. Meie peres on telefon õhtul kella üheksast köögis. Kõik pereliikmed, ka vanemad. Nii on lapsel lihtsam reeglist kinni pidada, sest ta näeb, et ka ema ja isa teevad sama. Õhtul mängime selle asemel lauamänge või loeme koos.',
+        'Andres: Ma kahtlen, kas keelamine aitab. Kui lapsel telefoni ei ole, vaatab ta sõbra oma. Parem on õpetada, kuidas telefoni targalt kasutada. Näiteks võiks kool rääkida lastega sellest, mida internetis teha ei tohi.',
+        'Mart: Mina olen vanaisa. Minu lapselapsed elavad Tartus ja me räägime iga pühapäev videokõnes. Minu jaoks on see nutitelefoni suurim pluss. Aga ma olen kindel, et laps peab ka õues mängima ja raamatut lugema, mitte ainult ekraani vaatama.',
+        'Helen: Mina olen õpetaja. Kuna meie koolis on telefonid tunnis kapis, räägivad lapsed vahetunnis jälle omavahel. Ma arvan, et see on hea muutus.',
+        'Reporter: Arvamusi on palju. Aga üks asi on selge: reeglid peavad olema kõigile samad, nii lastele kui ka täiskasvanutele. Aitäh kõigile!',
+      ], [
+        ['Mis vanuses saab Tiina tütar ema sõnul oma esimese nutitelefoni?', 'kolmeteistkümneselt', 'kümneselt', 'kaheteistkümneselt'],
+        ['Miks tahab Rein, et tema pojal oleks juba praegu oma telefon?', 'poeg käib üksi trenni', 'poeg mängib palju mänge', 'kõigil sõpradel on telefon'],
+        ['Milleks kasutab Reinu poeg oma telefoni isa sõnul tegelikult?', 'ainult helistamiseks', 'mängimiseks', 'videote vaatamiseks'],
+        ['Mis on Kati arvates laste ja telefonide puhul kõige tähtsam?', 'ühised reeglid kogu perele', 'lapse vanus', 'telefoni hind'],
+        ['Mida teeb Kati pere õhtul, kui telefonid on köögis?', 'mängib lauamänge või loeb', 'vaatab koos telerit', 'käib õues jalutamas'],
+        ['Mida arvab Andres sellest, kui lapsel on telefon keelatud?', 'ta kahtleb, kas see aitab', 'ta on kindel, et see aitab', 'tal ei ole arvamust'],
+        ['Mis on vanaisa Marti jaoks nutitelefoni juures kõige suurem pluss?', 'videokõned lastelastega', 'mängud lastelastega', 'uudised ja ilmateade'],
+        ['Mis muutus õpetaja Heleni koolis, kui telefonid pandi tunni ajaks kappi?', 'lapsed räägivad vahetunnis omavahel', 'lapsed õpivad kauem', 'lapsed käivad rohkem õues'],
+      ]))), [
+        'Tiina: „Minu tütar saab nutitelefoni alles kolmeteistkümneselt.”',
+        'Rein: „Kuna mu poeg käib üksi trenni, tahan teada, kus ta on.”',
+        'Rein: „Tegelikult kasutab ta telefoni ainult helistamiseks.”',
+        'Kati: „küsimus ei ole vanuses, vaid reeglites … Kõik pereliikmed, ka vanemad.”',
+        'Kati: „Õhtul mängime selle asemel lauamänge või loeme koos.”',
+        'Andres: „Ma kahtlen, kas keelamine aitab.”',
+        'Mart: „me räägime iga pühapäev videokõnes … see on nutitelefoni suurim pluss”.',
+        'Helen: „räägivad lapsed vahetunnis jälle omavahel”.',
+      ]), 'Kuuled, mida inimesed lastest ja telefonidest arvavad.'), { task: 'L06', voice: 'interview' }),
+    ],
+    practice: [
+      station(B.notice('076_d_notice', 'Märka: kui kindel sa oled?', [
+        'Küsitlusest: **Minu arvates on** kümneaastane laps liiga noor. · **Kuna** mu poeg käib üksi trenni, **tahan** teada, kus ta on.',
+        'Kindel: **Ma olen kindel, et** … · Arvan: **Ma arvan, et** … / **Minu arvates** … · Ei ole päris kindel: **Mulle tundub, et** … · Kahtlen: **Ma kahtlen, kas** …',
+        'Pärast „minu arvates” tuleb tegusõna kohe: Minu arvates **on** telefon vajalik. (mitte: Minu arvates telefon on …)',
+        'Kuna-lause on ees → pealause tegusõna kohe: Kuna telefon segab und, **jääb** see õhtul kööki. · Lause lõpus: …, **sest** telefon segab und.',
+        'Vene keeles „по-моему, телефон нужен” — eesti keeles tegusõna enne alust: Minu arvates on telefon vajalik.',
+      ], 'full'), 3, 20),
+      teach(tag(purpose(why(B.gaps('076_p_post', 'Eksaminurk: lapsevanema postitus (Harno B1 lugemine 4)', 'Loe postitust. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
+        'Tere, head lapsevanemad! [Minu arvates on kümme aastat] nutitelefoni jaoks liiga vara.',
+        '[Kuna laps vaatab ekraani niigi palju], ei taha ma talle veel oma telefoni osta.',
+        'Ma tean, et paljud ei ole minuga nõus, [sest telefoniga on lihtsam ühendust pidada].',
+        '[Ma olen kindel, et] nuputelefon on selleks täiesti piisav.',
+        '[Mulle tundub, et] lapsed vajavad rohkem aega vanematega, mitte uut ekraani.',
+        'Samas [ma kahtlen, kas] keelamine üksi aitab.',
+        'Kui kõik sõbrad mängivad telefonis, [jääb laps muidu üksi].',
+        'Seepärast [tahan teha ettepaneku]: lepime klassis kokku ühised reeglid. Mida teie arvate? Tiina, 4. b klassi ema',
+      ], ['Minu arvates on kümme aastat', 'Kuna laps vaatab ekraani niigi palju', 'sest telefoniga on lihtsam ühendust pidada', 'Ma olen kindel, et', 'Mulle tundub, et', 'ma kahtlen, kas', 'jääb laps muidu üksi', 'tahan teha ettepaneku', 'Minu arvates kümme aastat on', 'laps jääb muidu üksi'], 'full', 'g_notice'), [
+        'Arvamus algab: minu arvates + tegusõna kohe (on).',
+        'Põhjus on lause alguses: kuna + lause, siis pealause tegusõna (ei taha).',
+        'Põhjus lause lõpus: sest + lause.',
+        'Väga kindel arvamus: ma olen kindel, et …',
+        'Pole päris kindel: mulle tundub, et …',
+        'Kahtlus + küsimus: ma kahtlen, kas … (mitte: et).',
+        'Kui-lause on ees → tegusõna kohe: jääb laps (mitte: laps jääb).',
+        'Seepärast → tegusõna kohe: tahan teha ettepaneku.',
+      ]), 'Need laused aitavad sul arvamust põhjendada.'), { harno: 'R4', task: 'R05' }),
+      'Eksaminurk (Harno B1 lugemine 4, ≈ 10 min). Õpilane loeb kogu postituse enne läbi, siis valib. Kaks üleliigset osa on vale sõnajärjega — küsi, miks need ei sobi. Üks-ühele: õpilane loeb valitud lause ette ja ütleb, kas Tiina on kindel või kahtleb. Iga õige vastus 1 p.'),
+      teach(pron(B.tip('076_p_pron', 'Hääldusnurk: kindel või kahtlev? (5 min)', [
+        'Kuula õpetajat. Kas inimene on kindel või kahtleb? Ütle järele samamoodi.',
+        'Ma olen kindel, et telefon on vajalik. (hääl langeb lõpus selgelt)',
+        'Mulle tundub, et … see on natuke liiga vara. (väike paus, hääl ei lange lõpuni)',
+        'Ma kahtlen, kas keelamine aitab. (rõhk sõnal „kahtlen”)',
+        'Ütle koos õpetajaga: „Minu arvates on kümme aastat liiga vara, sest telefon segab und.”',
+      ], 'full'), 'intonatsioon'),
+      'Hääldusnurk (≈ 5 min), intonatsioon. Kindel arvamus: hääl langeb lõpus selgelt, rõhk sõnal „kindel”. Ebakindel: väike paus pärast „mulle tundub, et”, hääl ei lange lõpuni. Loe iga lause kahel viisil (kindlalt ja kahtlevalt), õpilane ütleb, kumb see oli, ja kordab. Viimane rida: ütle koos (varjutamine), siis üksi. Märgi üks sõna, mille rõhk oli vale.'),
+      teach(tag(purpose(rows(B.writing('076_p_sent', 'Minu kolm arvamust.', 'Kirjuta 8 minutit järjest, ära peatu: kolm arvamust lastest ja ekraanidest. Iga arvamuse juurde põhjus: sest … või kuna …', [6, 9]), 29), 'Neid lauseid kasutad kohe oma raadiointervjuus.'), { task: 'G07', fluency: true }),
+      'Kirjutamine tunnis (≈ 8 min). Kontrolli kahte asja: tegusõna teisel kohal pärast „minu arvates” ja ees olevat kuna-lauset; iga arvamusega on erinev kindlus (olen kindel, arvan, tundub, kahtlen). Üks-ühele: õpilane ütleb lause enne suuliselt, siis kirjutab.'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(B.rolecards('076_t_interview', 'Raadiointervjuu: mis sa arvad?', 'Vaata pilti. A on reporter, B vastab oma rollis. Siis vahetage rollid.',
+        'Sa oled raadiosaate „Pere ja kool” reporter. Eesmärk: kolm head vastust küsimusele pildil. Kui vastus on lühike, palu põhjust või näidet. Lõpus täna.',
+        `Sa oled lapsevanem, vanavanem või õpetaja — vali ise. Su laps või lapselaps tahab nutitelefoni. Ütle, mida sa arvad ja kui kindel oled.\n${aidLines(['Minu arvates on …, sest …', 'Ma kahtlen, kas …', 'Näiteks meie peres …'], 'ütle ka, mis muudaks sinu arvamust.')}`,
+        ['Vabandage, kas teil on üks minut raadio jaoks?', 'Miks te nii arvate?', 'Kas saate tuua näite?', 'Aga kui …?'],
+        ['Minu arvates on …, sest …', 'Ma olen kindel, et … / Mulle tundub, et …', 'Näiteks meie peres …']), ['Minu arvates on …, sest …', 'Ma kahtlen, kas …', 'Näiteks meie peres …'], 'ütle ka, mis muudaks sinu arvamust.', 'interview'), 'Sinu arvamust kuulavad homme raadio kuulajad.'), { task: 'S09', main: true, level: 4 }),
+      'Raadiointervjuu (≈ 15 min, mõlemad rollid). Paaris: A on reporter, B valib rolli (lapsevanem, vanavanem, õpetaja); siis vahetavad ja B valib teise rolli. Üks-ühele: sina oled reporter ja esitad igale vastusele ühe vastuküsimuse: 1) „Aga kui laps peab üksi trenni minema?”; 2) „Aga kui kõigil sõpradel on telefon?”; 3) „Kas teie arvates peaks kool telefonid ära keelama?”. Edukriteeriumid (sama mis enesekontrollis): 1) arvamus koos kindlusega (olen kindel, et / mulle tundub, et / kahtlen, kas); 2) põhjus (sest / kuna) ja näide oma elust; 3) tegusõna teisel kohal pärast „minu arvates” ja ees olevat kuna-lauset. Abikaart ja lisaväljakutse on B kaardi lõpus; märgi, kas õpilane kasutas abikaarti.'), 4, 24, { final: 'explain' }),
+      teach(exitCheck(tag(purpose(B.speaking('076_t_exit', 'Väljumine: 30 sekundit raadiole', 'Ütle raadio jaoks 30 sekundiga: sinu arvamus, kui kindel oled ja üks põhjus.', ['Mis vanuses võiks laps saada nutitelefoni?', 'Miks sa nii arvad?'], [20, 40]), 'Näitad, et oskad arvamust lühidalt põhjendada.'), { task: 'S15', level: 3 })),
+      'Väljumine (v6, 30 s, ilma kaardita). Õnnestunud, kui on arvamus koos kindlusega, üks põhjus (sest / kuna) ja tegusõna on teisel kohal.'),
+      selfCheck('076_t_self', ['Ma ütlen arvamuse ja näitan, kui kindel ma olen.', 'Ma põhjendan sõnadega sest ja kuna ning toon näite.', 'Pärast „minu arvates” ja kuna-lauset panen tegusõna kohe.'], 'Arvamus kuuldud'),
+      teach(tag(homeTask(purpose(networkLog(B.speaking('076_t_home', 'Minu eesti keele võrgustik', 'Vali üks ERR-i uudis või arvamuslugu: https://www.err.ee. Salvesta 1 minut: mis lugu, üks uus sõna, sinu arvamus.', [
+        'Mis lugu see on ja millest see räägib?',
+        'Üks uus sõna loost: mida see tähendab?',
+        'Mida sina sellest arvad ja kui kindel sa oled?',
+      ], [45, 75]), 'ERR (päris uudised ja arvamuslood)'), 'Leiad eesti keeles loo, mida jälgida.')), { task: 'S15' }),
+      'Meediapäevik „Minu eesti keele võrgustik” (v6 §2 k) ja mooduli seosülesanne. Õpilane avab lehe ise; kui ta ei leia, soovita rubriiki „Arvamus” või uudist lastest ja koolist. Järgmise tunni alguses ütleb ta ühe uue sõna ja oma arvamuse kindlusega.'),
+      homeTask(B.phrasebank('076_t_homework', [['Kodutöö', ['1. Salvesta 1 minut ERR-i loost (ülesanne üleval).', '2. Kirjuta oma kolm arvamust puhtalt: arvamus, põhjus, näide.', '3. Harjuta → moodul 16: minu arvates + tegusõna, kuna-lause (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 077 case: home or office — a comparison, a recommendation
+  'a2b1-077': lesson('a2b1-077', {
+    title: 'Kodus või kontoris?',
+    phases: grammar('Keel: vaiksem kui · kõige parem · sama oluline kui · võrreldes kontoriga · erinevalt minust'),
+    format: 'case',
+    topic: 'work',
+    canDo: 'Ma loen töötajate kogemusi kodu- ja kontoritöö kohta, võrdlen kahte võimalust (keskvõrre + kui, kõige, sama … kui, võrreldes, erinevalt) ja kirjutan juhile lühikese soovituse.',
+    teacherPage: {
+      goal: 'Ученик читает опыт сотрудников о работе дома и в офисе, сравнивает два варианта (keskvõrre + kui, kõige, sama … kui, võrreldes, erinevalt) и пишет руководителю короткую рекомендацию.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → текст «Aasta hiljem: kodus, kontoris või mõlemas?» (≈ 230 слов), 6 вопросов (Harno R2) → пункт 4: рекомендация руководителю 70–90 слов по карточке двух вариантов (картинка); выход — одно исправленное сравнение. Пункт 3 (правило, письмо с банком слов, Hääldusnurk) — дома в «Harjuta».',
+      hook: '«Mida sa raadiole laste telefonidest ütlesid?» (урок 76) и без записей «Mis sind töö juures või kodus kõige rohkem segab?» (урок 64: segama, keskenduma). Сначала отвечаете вы.',
+      plan: [
+        '0–6: пункт 1 — два вопроса повторения (урок 76 и урок 64) и вопрос мнения «дома или в офисе?»',
+        '6–28: пункт 2 — слова (три старых: keskenduma, vaikus, kõrvaklapid), стратегия «сначала вопросы, потом текст», текст ≈ 230 слов, Eksaminurk R2: 6 вопросов с тремя вариантами, в паре 5 строк «дома или в офисе: сравнение»',
+        '28–48: пункт 3 — заметить → правило (keskvõrre + kui, kõige, sama … kui, võrreldes + -ga, erinevalt + -st; L1: лучше, чем = parem kui) → письмо коллеги, 8 слов из банка (лишние — «nagu» и «paremam») → Hääldusnurk: välted lina – linna – linna 5 мин → 8 минут своих сравнений',
+        '48–70: пункт 4 — рекомендация руководителю 70–90 слов по карточке (15 мин), учитель подчёркивает одно сравнение; выход — исправленное сравнение',
+        '70–75: самооценка 0–1–2, домашнее задание (рекомендация начисто; запись 1 мин для руководителя; Harjuta → moodul 16)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик сравнивает два места работы или учёбы из своей жизни устно, 1 минута, три формы сравнения',
+        '75–90: запас',
+      ],
+      sources: 'Текст о трёх сотрудниках, письмо коллеги (R3) и карточка двух вариантов на картинке — учебные, фирма и люди выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 2 в паре: A пишет строки 1–3, B — 4–5. Пункт 4: каждый пишет сам; партнёр (или вы) — «руководитель», читает и подчёркивает одно сравнение, которое неясно. Один на один: вы — руководитель.',
+      errors: [
+        '«parem nagu kontoris» вместо «parem kui kontoris» (по-русски «чем» — по-эстонски kui).',
+        '«paremam», «kõige hea» вместо «parem», «kõige parem».',
+        '«võrreldes kontoris» вместо «võrreldes kontoriga» (võrreldes + -ga).',
+        '«erinevalt minu» вместо «erinevalt minust» (erinevalt + -st).',
+      ],
+      notes: [
+        'Рекомендация — продукт урока: сравнить варианты A и B минимум по трём пунктам карточки, три разные формы сравнения, в конце одна рекомендация с причиной. Без начала и без готовых фраз (свободное письмо модуля).',
+        'Abikaart и Lisaväljakutse — последние строки карточки задания. Обратная связь, 1 цель: kui после keskvõrre.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('077_d_warm', 'Mida sa mäletad?', 'Vasta kahele küsimusele paaris, märkmeid vaatamata. Siis küsi sina.', [
+        'Mida sa raadiole laste telefonidest ütlesid? Kui kindel sa olid?',
+        'Mis sind töö juures või kodus kõige rohkem segab, kui pead keskenduma?',
+        'Mis sa arvad: kas kodus on lihtsam töötada kui kontoris? Miks?',
+      ], [120, 180]), 'Kordad eelmiste tundide sõnu lehte vaatamata.'), { task: 'S01', fluency: true }),
+      'Kordamine kahest kaugusest (tund 76 ja tund 64), ilma lehte vaatamata. Üks-ühele: vasta kõigepealt ise (2–3 lauset), siis õpilane; ära paranda, märgi üks vorm (minu arvates on, segab, keskenduda).'), 1, 6),
+      station(review(tag(B.vocab('077_d_vocab', 'Tunni sõnad.', ['kaugtöö — удалённая работа', 'kontor — офис', 'võrdlema — сравнивать', 'võrreldes — по сравнению (võrreldes kontoriga)', 'erinevalt — в отличие (erinevalt minust)', 'eelis — преимущество', 'puudus — недостаток', 'tulemus — результат', 'kokkulepe — договорённость', 'silmast silma — лицом к лицу', 'aruanne — отчёт', 'soovitama — советовать'], '2'), { topic: ['kaugtöö', 'programmeerija', 'projektijuht', 'raamatupidaja', 'aruanne'] }), ['keskenduma', 'vaikus', 'kõrvaklapid']), 2, 22),
+      teach(tag(purpose(B.table('077_d_rule', 'Paaris: kodus või kontoris?', 'Pärast lugemist kirjutage igasse ritta üks võrdlus tekstist: kumb on parem ja kelle jaoks.', 'Mis?, Kodus või kontoris? (terve lause)', [
+        'sõit tööle | ',
+        'vaikus | ',
+        'kolleegid ja abi | ',
+        'koosolekud | ',
+        'lauad kontoris | ',
+      ], 'g_read'), 'Need laused aitavad sul juhile soovitust kirjutada.'), { task: 'R15' }),
+      'Paarid kirjutavad pärast lugemist 6 minutit: A read 1–3, B read 4–5, siis loevad teineteisele. Kontrolli, et igas lauses on võrdlus (kodus on vaiksem kui …, kõige parem on …). Esialgu võib vorm olla vale; reegel tuleb Harjuta lehel. Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Kelle jaoks?”.'),
+      teach(ownText(B.text('077_d_text', 'Aasta hiljem: kodus, kontoris või mõlemas?', [
+        'Eelmisel aastal lubas üks Tartu IT-firma oma töötajatel ise valida, kas nad töötavad kodus, kontoris või mõlemas kohas. Aasta hiljem küsisime kolmelt töötajalt, mis on parem.',
+        '',
+        '**Piret, raamatupidaja.** Mina töötan peaaegu alati kodus. Sõit kontorisse võtab bussiga tund aega, nii et kodus on mu päev kaks tundi pikem. Kodus on ka vaiksem kui kontoris ja ma saan paremini keskenduda. Ainus miinus: mõnikord tunnen end üksi. Seepärast käin kord nädalas kontoris kolleegidega lõunal.',
+        '',
+        '**Toomas, programmeerija.** Proovisin kolm kuud kodus töötada, aga see ei sobinud mulle. Meie korter on väike ja lapsed on pärast kooli kodus, nii et kontoris on palju rahulikum. Kõrvaklapid aitavad, aga kõige parem on kontori vaikne tuba. Võrreldes kodutööga on kontoris ka lihtsam kolleegidelt kiiresti abi küsida.',
+        '',
+        '**Olga, projektijuht.** Mina valisin mõlemad: kolm päeva kontoris, kaks kodus. Erinevalt Piretist ja Toomasest ei ole minu jaoks koht kõige tähtsam. Tähtsam on, et kokkulepped oleksid selged. Koosolekud teen kontoris, sest silmast silma rääkimine on sama oluline kui hea plaan. Kodused päevad jätan aruannete jaoks, sest siis on vaikus ja keegi ei sega.',
+        '',
+        'Firma juht ütleb, et töö tulemused ei ole halvemad kui varem. Küll aga on kontoris vaja vähem laudu: kolmekümne töötaja jaoks piisab nüüd kahekümnest. Juhi arvates ei ole üht õiget vastust: igaüks peab leidma oma viisi.',
+      ].join('\n'))),
+      'Lugemine (≈ 15 min, ≈ 230 sõna). Strateegia: kõigepealt loe valikküsimused ja joonista tekstis alla nimed (Piret, Toomas, Olga); siis otsi vastus õigest lõigust. Õiges vastuses on sama mõte teiste sõnadega. Üks-ühele: pärast küsi „Kelle valik on sinu arvates kõige parem? Miks?”.'),
+      tag(purpose(why(B.choice('077_d_choice', 'Eksaminurk: valikvastused (Harno B1 lugemine 2)', 'Vali teksti põhjal igale küsimusele üks vastus kolmest.', [
+        ['Mida lubas Tartu IT-firma eelmisel aastal kõigil oma töötajatel teha?', 'ise valida, kus nad töötavad', 'töötada ainult kodus', 'töötada neli päeva nädalas'],
+        ['Miks on raamatupidaja Pireti tööpäev kodus kaks tundi pikem?', 'tal ei kulu aega bussisõidule', 'ta alustab tööd varem', 'ta teeb kodus rohkem tööd'],
+        ['Miks käib Piret ikkagi kord nädalas kolleegidega kontoris?', 'kodus tunneb ta end mõnikord üksi', 'kodus ei ole internetti', 'juht nõuab seda'],
+        ['Miks ei sobinud programmeerija Toomasele kolm kuud kodus töötamist?', 'kodus on vähe ruumi ja lapsed on kodus', 'tal ei ole kodus arvutit', 'ta elab kontori lähedal'],
+        ['Mis on projektijuht Olga jaoks tähtsam kui töökoht ise?', 'et kokkulepped oleksid selged', 'et töökoht oleks kodu lähedal', 'et kontoris oleks vaikne'],
+        ['Mida ütleb firma juht selle aasta tulemuste ja laudade kohta?', 'tulemused ei ole halvemad ja laudu on vaja vähem', 'kõik peavad tagasi kontorisse tulema', 'kodus töötajad teevad rohkem vigu'],
+      ], 'full', 'g_read'), [
+        'Esimene lõik: „lubas … ise valida, kas nad töötavad kodus, kontoris või mõlemas kohas”.',
+        'Piret: „Sõit kontorisse võtab bussiga tund aega, nii et kodus on mu päev kaks tundi pikem.”',
+        'Piret: „mõnikord tunnen end üksi. Seepärast käin kord nädalas kontoris”.',
+        'Toomas: „Meie korter on väike ja lapsed on pärast kooli kodus”.',
+        'Olga: „Tähtsam on, et kokkulepped oleksid selged.”',
+        'Viimane lõik: „töö tulemused ei ole halvemad kui varem … piisab nüüd kahekümnest”.',
+      ]), 'Leiad tekstist võrdlused oma soovituse jaoks.'), { harno: 'R2', task: 'R13' }),
+    ],
+    practice: [
+      station(B.notice('077_d_notice', 'Märka: kuidas me võrdleme?', [
+        'Tekstist: Kodus on **vaiksem** **kui** kontoris. · **Kõige** parem on kontori vaikne tuba. · Rääkimine on **sama** oluline kui hea plaan.',
+        'Keskvõrre + kui: vaikne → vaiksem kui · hea → **parem** kui · lühike → **lühem** kui · rahulik → **rahulikum** kui',
+        'Ülivõrre: kõige + keskvõrre — kõige parem, kõige rahulikum · Võrdne: sama + omadussõna + kui',
+        '**Võrreldes** + -ga: võrreldes kodutööga · **Erinevalt** + -st: erinevalt Piretist',
+        'Vene keeles „лучше, чем” — eesti keeles parem kui (mitte „nagu”); mitte „paremam”: hea → parem.',
+      ], 'full'), 3, 20),
+      teach(tag(purpose(why(B.gaps('077_p_letter', 'Kolleegi kiri: võrdlused', 'Loe kirja. Kirjuta igasse lünka üks sõna pangast; kaks sõna jääb üle.', [
+        'Tere, Marta! Meie firma kolis uude kontorisse ja sõit tööle on nüüd palju [lühem].',
+        'Uus kontor on suurem [kui] vana, seal on isegi kaks kööki.',
+        '[Võrreldes] vana kontoriga on siin ka rohkem valgust.',
+        'Kohv on siin palju [parem] ja see on tasuta.',
+        'Avatud ruumis ei ole kahjuks [sama] rahulik kui vanas kabinetis.',
+        '[Erinevalt] minust ei meeldi kolleeg Peetrile avatud ruum üldse.',
+        'Tema arvates on kodus [vaiksem] ja seal saab keskenduda.',
+        'Kõik ütlevad, et meie uus kohvik on [kõige] mugavam koht majas. Tule külla! Kristiina',
+      ], ['lühem', 'kui', 'Võrreldes', 'parem', 'sama', 'Erinevalt', 'vaiksem', 'kõige', 'nagu', 'paremam'], 'full', 'g_notice'), [
+        'sõit on nüüd palju … → keskvõrre: lühike → lühem.',
+        'suurem … vana → keskvõrde järel kui (mitte nagu).',
+        '… vana kontoriga → võrreldes + -ga.',
+        'palju … → hea → parem (mitte paremam).',
+        '… rahulik kui → võrdne: sama + omadussõna + kui.',
+        '… minust → erinevalt + -st.',
+        'on kodus … → vaikne → vaiksem.',
+        '… mugavam koht majas → ülivõrre: kõige + keskvõrre.',
+      ]), 'Need sõnad aitavad sul kohe võrrelda.'), { task: 'R04' }),
+      'Vormiülesanne (≈ 8 min, sõnapangaga lünktekst nagu Harno B1 lugemine 3). Kaks üleliigset sõna on tüüpvead (nagu, paremam) — küsi, miks need ei sobi. Iga õige vastus 1 p.'),
+      teach(pron(B.tip('077_p_pron', 'Hääldusnurk: välted (5 min)', [
+        'Kuula kolme sõna, ütle, mitmendat kuulsid, ja korda. Pikkus muudab tähendust:',
+        'lina – linna – linna (valge lina · linna keskel · lähen linna)',
+        'tuli – tulli – tuuli (tuli põleb · lähen tulli · palju tuuli)',
+        'kooli – kooli (kooli maja · lähen kooli: teine on pikem)',
+        'Ütle koos õpetajaga: „Kodus on vaiksem kui kontoris, aga linnas on kõige parem kohv.”',
+      ], 'full'), 'välted'),
+      'Hääldusnurk (≈ 5 min), välted. Loe iga rida aeglaselt: lina (простыня) – linna (города, I–II välde) – linna (в город, III välde); tuli (огонь) – tulli (на таможню) – tuuli (ветров). Õpilane ütleb, kumba sõna kuulis (1, 2 või 3), ja kordab. Viimane rida: varjutamine — loe lause, õpilane ütleb samal ajal, siis üksi. Märgi üks sõna, kus pikkus oli vale.'),
+      teach(tag(purpose(rows(B.writing('077_p_sent', 'Minu kaks kohta.', 'Kirjuta 8 minutit järjest: võrdle kahte kohta, kus sa töötad või õpid. Igas lauses on üks võrdlus.', [6, 9]), 28), 'Neid lauseid kasutad kohe soovituses juhile.'), { task: 'G05', fluency: true }),
+      'Kirjutamine tunnis (≈ 8 min). Kontrolli kolme vormi: keskvõrre + kui (vaiksem kui), kõige + keskvõrre, võrreldes + -ga. Üks-ühele: õpilane loeb kaks lauset ette, sina küsid „Ja mis on kõige …?”.'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(rows(B.examWriting('077_t_report', 'Soovitus juhile: kumb variant?', 'Vaata pilti: kaks varianti. Kirjuta juhile 70–90 sõna: võrdle neid ja soovita üht. Põhjenda.', 'vastus', {
+        situation: `Sinu töökohas tahetakse märtsist teha uus kord. Juht küsib igalt töötajalt lühikest kirjalikku soovitust: variant A või variant B?\n${aidLines(['Võrreldes variandiga A on variant B …', 'Erinevalt …-st …', 'Minu arvates on kõige parem …, sest …'], 'kirjuta ka, kellele sinu soovitus ei sobi ja mida siis teha.')}`,
+        words: [70, 90],
+      }), 9), ['Võrreldes variandiga A on variant B …', 'Erinevalt …-st …', 'Minu arvates on kõige parem …, sest …'], 'kirjuta ka, kellele sinu soovitus ei sobi ja mida siis teha.', 'report'), 'Sinu soovitus aitab juhil õigesti otsustada.'), { task: 'W08', main: true, level: 4 }),
+      'Soovitus juhile (≈ 15 min kirjutamist tunnis). Õpilane ei kopeeri kaarti, vaid võrdleb: vähemalt kolm rida kaardilt (sõit, koosolekud, lauad, hind, küsitlus) ja lõpus üks soovitus põhjusega. Edukriteeriumid (sama mis enesekontrollis): 1) vähemalt kolm võrdlust kaardi andmetega; 2) kolm eri vormi (keskvõrre + kui, kõige, sama … kui, võrreldes, erinevalt); 3) selge soovitus ja põhjus. Abikaart ja lisaväljakutse on ülesande kaardi lõpus; märgi, kas õpilane kasutas abikaarti. Pärast kirjutamist joonib juht (paariline või sina) alla ÜHE võrdluse, mis on ebaselge või vale — see on väljumise ülesanne.'), 4, 22, { final: 'advise' }),
+      teach(exitCheck(tag(purpose(rows(B.writing('077_t_exit', 'Väljumine: üks selgem võrdlus', 'Juht joonis su soovituses ühe võrdluse alla. Kirjuta see selgemalt: kaks asja, üks võrdlusvorm.', [1, 2]), 4), 'Näitad, et oskad oma võrdlust parandada.'), { task: 'G06', level: 3 })),
+      'Väljumine (v6, ≈ 3 min): üks rida tootest, ümber kirjutatud tagasiside järgi. Õnnestunud, kui parandatud lauses on kaks asja ja üks õige võrdlusvorm (vaiksem kui, kõige parem, sama … kui, võrreldes …-ga).'),
+      selfCheck('077_t_self', ['Ma leian tekstist, mida teised töötajad võrdlevad.', 'Ma võrdlen kolmel viisil: keskvõrre + kui, kõige, võrreldes / erinevalt.', 'Minu soovituses on selge valik ja põhjus.'], 'Soovitus tehtud'),
+      teach(tag(homeTask(purpose(B.speaking('077_t_home', 'Kodus: soovitus suuliselt', 'Salvesta 1 minut juhile: kumb variant on parem, kaks võrdlust ja sinu soovitus.', [
+        'Kumba varianti sa soovitad?',
+        'Mis on selle eelis võrreldes teisega?',
+        'Kellele see ei sobi ja mida siis teha?',
+      ], [45, 75]), 'Ütled oma soovituse nüüd ka suuliselt.')), { task: 'S15' }),
+      'Kodune salvestus (1 min): sama soovitus suuliselt, ilma paberita. Järgmise tunni alguses kuulab õpetaja salvestuse ja märgib ühe kui / nagu või -ga / -st vea.'),
+      homeTask(B.phrasebank('077_t_homework', [['Kodutöö', ['1. Kirjuta soovitus juhile märkuste järgi puhtalt (70–90 sõna).', '2. Salvesta oma soovitus suuliselt (ülesanne üleval).', '3. Harjuta → moodul 16: keskvõrre, kõige, võrreldes, erinevalt (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 078 project: the opinion piece in four parts
+  'a2b1-078': lesson('a2b1-078', {
+    title: 'Seepärast ja näiteks: minu arvamuslugu',
+    phases: grammar('Keel: Minu arvates … · sest / kuna … · Näiteks juhtus … · Seepärast on … · Seega peame … · inimesed, kes …'),
+    format: 'project',
+    topic: 'town',
+    canDo: 'Ma saan aru kuulajate arvamustest linna kiiruse kohta ja kirjutan linnaosa lehele lühikese arvamusloo: arvamus, põhjus, näide ja järeldus.',
+    teacherPage: {
+      goal: 'Ученик понимает мнения слушателей о скорости в городе и пишет для газеты района короткое мнение из четырёх частей: мнение, причина, пример, вывод (seepärast / seega + глагол).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → радио «Kuulajad helistavad: 30 km/h kesklinnas?» (2 раза, 8 вопросов с тремя вариантами), в паре «мнение — причина — пример» → пункт 4: мнение для газеты района 80–100 слов по теме с картинки; выход — переписанный вывод. Пункт 3 (правило, Eksaminurk R4, Hääldusnurk, план) — дома в «Harjuta».',
+      hook: '«Mida sa juhile soovitasid ja miks?» (урок 77) и без записей «Kuidas sa kontrollid, kas uudis on tõsi?» (урок 63: kuulujutt, uskuma, kinnitama). Сначала отвечаете вы.',
+      plan: [
+        '0–7: пункт 1 — два вопроса повторения (урок 77 и урок 63) и вопрос мнения о своём городе',
+        '7–25: пункт 2 — слова (три старых: uskuma, järeldus, eelarve), стратегия «прочитай утверждения и угадай», радио 2 раза (≈ 2 мин), 8 вопросов с тремя вариантами; в паре 3 строки «мнение — причина — пример»',
+        '25–47: пункт 3 — заметить → правило (4 части аргумента; глагол сразу после seepärast, seega, näiteks; kes / mis / kelle; L1: поэтому мы должны = seepärast peame me) → Eksaminurk R4: комментарий слушателя, 8 частей из банка (две лишние — с неправильным порядком) → Hääldusnurk: повторить аргумент вместе 5 мин → план своего мнения',
+        '47–70: пункт 4 — мнение 80–100 слов по плану (15 мин), учитель подчёркивает вывод; выход — вывод переписан',
+        '70–75: самооценка 0–1–2, домашнее задание (мнение начисто однокурснику: две звезды и одно пожелание; голосовое 1 мин; Harjuta → moodul 16)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик читает своё мнение вслух как комментарий на радио, учитель-ведущий задаёт один вопрос',
+        '75–90: запас',
+      ],
+      sources: 'Радиопередача (пункт 2), комментарий слушателя (R4) и темы на картинке — учебные, люди выдуманы; проверять не нужно (владелец 2026-11-25). Мнение «за и против» с контраргументом — задание Harno B2; здесь только своё мнение с причиной, примером и выводом.',
+      groups: 'Пункт 2 в паре: A пишет строку 1, B — строку 2, строку 3 вместе. Пункт 4: каждый пишет сам; партнёр (или вы) — редактор газеты, подчёркивает вывод, если в нём нет seepärast / seega или глагол не на месте. Один на один: вы — редактор.',
+      errors: [
+        '«Seepärast me peame» вместо «Seepärast peame me» (после seepärast / seega глагол сразу).',
+        '«Näiteks eelmisel nädalal üks auto sõitis» вместо «Näiteks sõitis eelmisel nädalal üks auto» (после näiteks в начале — глагол на втором месте).',
+        '«inimesed, kes sõidab» вместо «inimesed, kes sõidavad» (kes-предложение согласуется с главным словом).',
+        '«naaber, kes laps» вместо «naaber, kelle laps» (чей = kelle).',
+      ],
+      notes: [
+        'Мнение — продукт урока: четыре части (мнение, причина, пример, вывод), минимум два разных связующих слова и одно kes- / mis-предложение. Без контраргумента (B1).',
+        'Abikaart — четыре карточки на картинке над заданием; Lisaväljakutse — скажите сильному ученику устно (в данных задания). Обратная связь, 1 цель: глагол сразу после seepärast / seega.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('078_d_warm', 'Mida sa mäletad?', 'Räägi paarilisele igast küsimusest paar lauset. Ära vaata vihikusse.', [
+        'Mida sa juhile soovitasid: kodus või kontoris? Miks?',
+        'Kuidas sa kontrollid, kas üks uudis on tõsi?',
+        'Mis sind sinu linnas või tänaval kõige rohkem häirib?',
+      ], [120, 180]), 'Kordad sõnu ja vorme mälu järgi.'), { task: 'S02', fluency: true }),
+      'Kordamine kahest kaugusest (tund 77 ja tund 63), ilma lehte vaatamata. Üks-ühele: vasta kõigepealt ise (2–3 lauset), siis õpilane; ära paranda, märgi üks vorm (võrreldes …-ga, ma ei usu, seepärast).'), 1, 7),
+      station(review(tag(B.vocab('078_d_vocab', 'Tunni sõnad.', ['põhjus — причина', 'põhjendama — обосновывать', 'näiteks — например', 'seepärast — поэтому', 'seega — значит, следовательно', 'liiklus — движение (транспорт)', 'kiirus — скорость', 'jalakäija — пешеход', 'ohutu — безопасный', 'õnnetus — авария', 'ummik — пробка', 'harjuma — привыкать'], '2'), { topic: ['kiiruspiirang', 'jalakäija', 'ummik', 'pidurdama'] }), ['uskuma', 'järeldus', 'eelarve']), 2, 18),
+      teach(tag(purpose(B.table('078_d_args', 'Paaris: arvamus, põhjus, näide', 'Pärast teist kuulamist kirjutage iga helistaja kohta: arvamus, põhjus ja näide või järeldus.', 'Kes?, Arvamus, Põhjus, Näide või järeldus', [
+        'Tõnis, kes elab kesklinnas lastega pere kõrval |  |  | ',
+        'Maie, kes sõidab iga päev autoga tööle |  |  | ',
+        'Kalle, kes on osaliselt nõus mõlemaga |  |  | ',
+        'Liina, kes sõidab iga päev rattaga tööle |  |  | ',
+      ], 'g_read'), 'Nii näed, millest koosneb hea argument.'), { task: 'G02' }),
+      'Paarid kirjutavad pärast teist kuulamist 6 minutit märksõnadega. Kontrolli, et iga rida on neljaosaline mõte (Tõnis: õige otsus — lapsed käivad koolis — õnnetus eelmisel talvel — väiksem kiirus on tähtis). Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Kas sa oled temaga nõus?”.'),
+      tag(purpose(why(ownText(twice(B.examListen('078_d_radio', 'Raadio: kuulajad helistavad', 'Loe enne küsimused ja arva vastus. Kuula kaks korda ja vali õige vastus.', 'choice', [
+        'Saatejuht: Tere õhtust! Alates märtsist on kesklinnas kiirus 30 kilomeetrit tunnis. Linnavalitsuse sõnul on eesmärk vähem õnnetusi ja vaiksem kesklinn. Küsime teilt: kas see oli hea otsus? Esimene helistaja on Tõnis.',
+        'Tõnis: Tere! Minu arvates on see õige otsus, sest meie tänaval käivad lapsed koolis. Näiteks juhtus eelmisel talvel meie maja ees õnnetus: poiss, kes sõitis rattaga, kukkus auto ette. Seepärast on väiksem kiirus mulle väga tähtis.',
+        'Saatejuht: Aitäh! Teine helistaja on Maie.',
+        'Maie: Mul on raske uskuda, et see midagi muudab. Ma sõidan iga päev autoga tööle ja kesklinnas on nagunii ummikud. Kuna autod seisavad, ei sõida keegi kiiremini kui kakskümmend. Seega on uus märk lihtsalt raha raiskamine. Linna eelarvest võiks need eurod panna hoopis bussidele.',
+        'Saatejuht: Ja kolmas helistaja, Kalle.',
+        'Kalle: Mina olen osaliselt nõus mõlemaga. Jalakäijatel on nüüd ohutum, see on selge, ja ka lastega peredel on kesklinnas rahulikum jalutada. Aga juhid peavad uue kiirusega harjuma. Näiteks mu naaber, kelle auto on vana, ütleb, et 30-ga on raske sõita. Minu järeldus on, et kõigepealt peaks linn rääkima inimestega, kes seal elavad ja sõidavad.',
+        'Saatejuht: Ja viimane helistaja, Liina.',
+        'Liina: Mina sõidan iga päev rattaga tööle. Minu arvates on kesklinnas nüüd palju turvalisem. Näiteks varem kartsin suurel tänaval sõita, sest autod möödusid väga lähedalt. Nüüd sõidan rahulikult ja jõuan tööle sama kiiresti kui varem. Seega toetan mina seda otsust.',
+        'Saatejuht: Aitäh kõigile! Arutelu jätkub meie kodulehel.',
+      ], [
+        ['Mis on linnavalitsuse sõnul uue kiiruse kõige tähtsam eesmärk kesklinnas?', 'vähem õnnetusi ja vaiksem kesklinn', 'kiirem liiklus kesklinnas', 'rohkem parkimiskohti'],
+        ['Miks peab esimene helistaja Tõnis väiksemat kiirust õigeks otsuseks?', 'tema tänaval käivad lapsed koolis', 'ta ei sõida ise autoga', 'tema maja ees on ummikud'],
+        ['Mis juhtus Tõnise sõnul eelmisel talvel tema maja ees?', 'rattaga poiss kukkus auto ette', 'auto sõitis vastu maja', 'buss jäi lume tõttu seisma'],
+        ['Kuidas sõidab teine helistaja Maie iga päev oma tööle?', 'autoga', 'bussiga', 'rattaga'],
+        ['Miks ei muuda uus liiklusmärk Maie arvates kesklinnas midagi?', 'kesklinnas on niigi ummikud', 'keegi ei näe uut märki', 'kesklinnas ei ole autosid'],
+        ['Mida peaks linn Maie arvates uute märkide raha eest tegema?', 'panema selle bussidele', 'ehitama uusi teid', 'tegema uue pargi'],
+        ['Mida räägib kolmas helistaja Kalle oma naabri ja tema auto kohta?', 'naabri vana autoga on 30-ga raske sõita', 'naaber sõidab ainult rattaga', 'naaber toetab uut kiirust'],
+        ['Mis on rattaga sõitva Liina jaoks pärast muutust teisiti?', 'rattaga on kesklinnas turvalisem sõita', 'ta jõuab tööle palju hiljem', 'ta sõidab nüüd bussiga'],
+      ]))), [
+        'Saatejuht: „eesmärk on vähem õnnetusi ja vaiksem kesklinn”.',
+        'Tõnis: „sest meie tänaval käivad lapsed koolis”.',
+        'Tõnis: „poiss, kes sõitis rattaga, kukkus auto ette”.',
+        'Maie: „Ma sõidan iga päev autoga tööle”.',
+        'Maie: „kesklinnas on nagunii ummikud”.',
+        'Maie: „võiks need eurod panna hoopis bussidele”.',
+        'Kalle: „mu naaber, kelle auto on vana, ütleb, et 30-ga on raske sõita”.',
+        'Liina: „Minu arvates on kesklinnas nüüd palju turvalisem.”',
+      ]), 'Kuuled, kuidas inimesed oma arvamust põhjendavad.'), { task: 'L02', voice: 'interview' }),
+    ],
+    practice: [
+      station(B.notice('078_d_notice', 'Märka: hea argument', [
+        'Raadiost: **Minu arvates** on see õige otsus, **sest** lapsed käivad koolis. **Näiteks** **juhtus** eelmisel talvel … **Seepärast** **on** väiksem kiirus tähtis.',
+        'Neli osa: arvamus (minu arvates) → põhjus (sest, **kuna**) → näide (näiteks) → järeldus (seepärast, **seega**)',
+        'Pärast seepärast, seega ja näiteks (lause alguses) tuleb tegusõna kohe: Seepärast on … · Seega **peame** … · Näiteks juhtus …',
+        'Kes-lause täpsustab: inimesed, **kes** seal elavad · otsus, **mis** muudab linna · naaber, **kelle** auto on vana',
+        'Vene keeles „поэтому мы должны” — eesti keeles: Seepärast peame me … (mitte: Seepärast me peame …)',
+      ], 'full'), 3, 22),
+      tag(purpose(why(B.gaps('078_p_comment', 'Eksaminurk: kuulaja kommentaar (Harno B1 lugemine 4)', 'Loe kommentaari. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
+        'Olen elanud kesklinnas kümme aastat ja [minu arvates on 30 km/h] õige otsus.',
+        'Kiirus on siin väga oluline, [sest lapsed käivad siin koolis].',
+        '[Näiteks juhtus eelmisel talvel] meie maja ees õnnetus.',
+        'Üks poiss, [kes sõitis rattaga], kukkus auto ette.',
+        'Õnneks jäi ta terveks, aga [seepärast on] paljud vanemad nüüd mures.',
+        'Autojuhid ütlevad, et nad jõuavad hiljem, [kuna tänavatel on ummikud].',
+        'Aga linn, [mis on rahulikum], on parem kõigile, ka autojuhtidele.',
+        '[Seega peame me] uue kiirusega lihtsalt harjuma. Tõnis, Kesklinn',
+      ], ['minu arvates on 30 km/h', 'sest lapsed käivad siin koolis', 'Näiteks juhtus eelmisel talvel', 'kes sõitis rattaga', 'seepärast on', 'kuna tänavatel on ummikud', 'mis on rahulikum', 'Seega peame me', 'seepärast paljud vanemad on', 'Seega me peame'], 'full', 'g_notice'), [
+        'Arvamus: minu arvates + tegusõna kohe (on).',
+        'Põhjus pärast koma: sest + lause.',
+        'Näide lause alguses: näiteks + tegusõna kohe (juhtus).',
+        'Kes-lause täpsustab, milline poiss (kes sõitis).',
+        'Järeldus: seepärast + tegusõna kohe (on), mitte „seepärast paljud vanemad on”.',
+        'Põhjus pärast koma: kuna + lause.',
+        'Mis-lause täpsustab, milline linn.',
+        'Järeldus lause alguses: seega + tegusõna kohe (peame me), mitte „seega me peame”.',
+      ]), 'Need laused aitavad sul argumenti üles ehitada.'), { harno: 'R4', task: 'R16' }),
+      teach(pron(B.tip('078_p_pron', 'Hääldusnurk: ütle koos (5 min)', [
+        'Kuula lauset ja ütle seda koos õpetajaga, siis üksi. Märgi sõna, mis oli raske:',
+        '„Minu arvates on see õige otsus, sest lapsed käivad siin koolis.”',
+        '„Näiteks juhtus eelmisel talvel meie maja ees õnnetus.”',
+        '„Seepärast on väiksem kiirus mulle väga tähtis.”',
+        '„Seega peame me uue kiirusega lihtsalt harjuma.”',
+      ], 'full'), 'varjutamine'),
+      'Hääldusnurk (≈ 5 min), varjutamine: loe lause loomulikus tempos, õpilane ütleb samal ajal; siis üksi. Jälgi rõhku esimesel silbil (seepärast, näiteks, eelmisel) ja pikki häälikuid (otsus, õnnetus, väiksem). Pärast „seepärast” ja „seega” ei tee õpilane pausi enne tegusõna. Rasked sõnad lähevad kodutöösse.'),
+      teach(tag(purpose(B.planning('078_p_plan', 'Minu arvamusloo plaan.', 'Vali pildilt üks teema. Kirjuta igasse ritta märksõnad: neli osa ja üks kes-lause.', [
+        'Teema ja minu arvamus (minu arvates …)',
+        'Põhjus (sest …, kuna …)',
+        'Näide minu elust või linnast (näiteks …)',
+        'Järeldus (seepärast …, seega …)',
+        'Üks kes- või mis-lause (inimesed, kes …)',
+      ], 8), 'Plaani järgi kirjutad kohe oma arvamusloo.'), { task: 'W11' }),
+      'Plaan on märksõnad, mitte tekst (≈ 5 min). Kontrolli, et igas reas on midagi ja näide on päris (oma tänav, oma linn), mitte üldine.'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(rows(B.examWriting('078_t_opinion', 'Arvamuslugu: minu linn, minu arvamus', 'Linnaosa leht kogub elanike arvamusi. Vali teema pildilt ja kirjuta 80–100 sõna: arvamus, põhjus, näide, järeldus.', 'vastus', {
+                words: [80, 100],
+      }), 6), ['Minu arvates …, sest …', 'Näiteks juhtus …', 'Seepärast …'], 'lisa üks lause sellest, mida sa linnalt palud.', 'essay'), 'Sinu arvamust loevad päris linnaosa elanikud.'), { task: 'W10', main: true, level: 4 }),
+      'Arvamuslugu (≈ 15 min kirjutamist tunnis, plaani järgi). Edukriteeriumid (sama mis enesekontrollis): 1) neli osa: arvamus, põhjus, näide, järeldus; 2) vähemalt kaks eri sidesõna (sest / kuna, näiteks, seepärast / seega) ja tegusõna kohe pärast seepärast / seega; 3) üks kes- või mis-lause. Vastuargumenti ei nõua (Harno B2 ülesanne). Abikaart on pildi neli kaarti (Minu arvates …, sest … / Näiteks juhtus … / Seepärast …); lisaväljakutse (üks lause sellest, mida linnalt palud) ütle suuliselt tugevale õpilasele; märgi, kas õpilane kasutas abikaarti. Pärast kirjutamist joonib toimetaja (paariline või sina) alla järelduse — see on väljumise ülesanne.'), 4, 23, { final: 'present' }),
+      teach(exitCheck(tag(purpose(rows(B.writing('078_t_exit', 'Väljumine: parem järeldus', 'Toimetaja joonis alla sinu järelduse. Kirjuta see selgemalt: seepärast või seega ja tegusõna kohe.', [1, 2]), 7), 'Näitad, et su lugu lõpeb selge järeldusega.'), { task: 'G06', level: 3 })),
+      'Väljumine (v6, ≈ 3 min): üks rida tootest, ümber kirjutatud toimetaja märkuse järgi. Õnnestunud, kui järeldus algab sõnaga seepärast või seega, tegusõna on kohe järgmine ja järeldus tuleb arvamusest ja näitest.'),
+      selfCheck('078_t_self', ['Minu loos on neli osa: arvamus, põhjus, näide, järeldus.', 'Pärast seepärast ja seega panen tegusõna kohe.', 'Ma täpsustan kes- või mis-lausega.'], 'Arvamus kirjas'),
+      teach(tag(homeTask(purpose(peer(rows(B.writing('078_t_home', 'Minu arvamuslugu kaaslasele', 'Saada lugu ja häälsõnum (1 min) kaaslasele. Vasta tema loole: kaks tähte, üks soov. Harjuta → moodul 16.', [3, 5]), 9)), 'Sinu lugu loeb nüüd päris lugeja.')), { task: 'W02' }),
+      'Kaaslase vastus (v6 §2 k): lugu läheb teisele sama taseme õppijale (mõlema nõusolekul; õpetaja vahendab), kes vastab „kaks tähte ja üks soov” edukriteeriumide järgi (neli osa, sidesõnad ja tegusõna, kes-lause). Õpilane vastab omakorda tema loole. Kui paarilist ei ole, vastab õpetaja — siis ütle, et järgmisel korral on lugeja päris inimene. Harjuta: tunni sõnad ja seepärast / seega + tegusõna, üks parandatud viga → „Minu vead”.'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 079 debate: the residents' meeting reaches a compromise
+  'a2b1-079': lesson('a2b1-079', {
+    title: 'Leiame kompromissi',
+    phases: grammar('Keel: Ma arvaksin … · Oleks parem, kui … · Kas me võiksime …? · Olen osaliselt nõus, aga … · Minu tingimus on …'),
+    format: 'debate',
+    topic: 'neighbours',
+    canDo: 'Ma loen naabrite ettepanekuid, ütlen oma arvamuse viisakalt (ma arvaksin, oleks parem, me võiksime), nõustun osaliselt ja lepin koosolekul kokku kompromissi.',
+    teacherPage: {
+      goal: 'Ученик читает предложения соседей, вежливо высказывает мнение условным наклонением (arvaksin, oleks parem, võiksime), соглашается частично и договаривается о компромиссе на собрании.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → чат дома «Mida teha hoovi rahaga?» (≈ 200 слов), 8 утверждений: верно / неверно / нет в тексте → пункт 4: собрание жильцов по плану двора (картинка), две стороны, у учителя скрытая информация, один компромисс (как Harno S1b); выход — 30 секунд председателю. Пункт 3 (правило, приглашение с вариантами, Hääldusnurk) — дома в «Harjuta».',
+      hook: '«Millest sa oma arvamusloos kirjutasid?» (урок 78) и без записей «Millal sa viimati kompromissi tegid?» (урок 64: kompromiss, kokkulepe). Сначала отвечаете вы.',
+      plan: [
+        '0–6: пункт 1 — два вопроса повторения (урок 78 и урок 64) и вопрос мнения «кто проигрывает при компромиссе?»',
+        '6–26: пункт 2 — слова (три старых: kompromiss, tingimus, ebamugav), стратегия «сначала имена и суммы», чат ≈ 200 слов, 8 утверждений (верно / неверно / нет в тексте); в паре 3 строки «кто чего хочет и почему»',
+        '26–46: пункт 3 — заметить → правило (условное наклонение для вежливости: arvaksin, oleks, võiksime, maksaks; osaliselt nõus, selles on tõtt, minu tingimus; L1: я бы сказал = ma ütleksin) → приглашение на собрание (как Harno R3), 8 пропусков с тремя вариантами → Hääldusnurk õ / ä / ö / ü 5 мин → 8 минут вежливых предложений',
+        '46–70: пункт 4 — собрание по плану двора: две стороны, скрытая информация у учителя, один компромисс с условием каждой стороны; выход — 30 секунд председателю',
+        '70–75: самооценка 0–1–2, домашнее задание (настоящая страница Rahvaalgatus, запись 1 мин, Harjuta → moodul 16)',
+        'Kui aega jääb (10 мин, только в плане учителя): «Mida sa teeksid, kui …?» — три ситуации с соседями, ученик отвечает условным наклонением',
+        '75–90: запас',
+      ],
+      sources: 'Чат дома, приглашение на собрание (R3) и план двора на картинке — учебные, дом и люди выдуманы; проверять не нужно (владелец 2026-11-25). Домашнее задание — настоящий сайт Rahvaalgatus (https://rahvaalgatus.ee): инициативу ученик выбирает сам.',
+      groups: 'Пункт 4 в паре: A и B — соседи с разными желаниями, учитель вмешивается со скрытой информацией. Один на один: вы — сосед, который хочет другого (см. заметку у карточки).',
+      errors: [
+        '«Ma arvan, et oleks parem» — нормально, но «Ma oleksin arvan» неверно: tingiv — одно слово с -ks- (arvaksin).',
+        '«Kas me võime …?» звучит резко на собрании — вежливее «Kas me võiksime …?».',
+        '«Olen osaline nõus» вместо «Olen osaliselt nõus».',
+        '«Selles on tõde» вместо «Selles on tõtt» (часть правды — osastav).',
+      ],
+      notes: [
+        'Компромисс — продукт урока: одно общее решение в рамках 8000 евро, условие каждой стороны в решении, минимум три вежливые формы с -ks- и одно «olen osaliselt nõus, aga …». Harno B1 rääkimine 1b: задание выполнено, только если договорились.',
+        'Abikaart и Lisaväljakutse — последние строки карточки A. Обратная связь, 1 цель: -ks- в tingiv (arvaksin, võiksime).',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('079_d_warm', 'Mida sa mäletad?', 'Räägi paarilisele igast küsimusest 2–3 lauset, vihikut vaatamata. Siis kuula teda.', [
+        'Millest sa oma arvamusloos kirjutasid? Mis oli sinu järeldus?',
+        'Millal sa viimati kellegagi kompromissi tegid? Mis juhtus?',
+        'Mis sa arvad: kas kompromissis kaotavad mõlemad või võidavad mõlemad?',
+      ], [120, 180]), 'Tuletad meelde eelmiste tundide sõnu ja vorme.'), { task: 'S11' }),
+      'Kordamine kahest kaugusest (tund 78 ja tund 64), ilma lehte vaatamata. Üks-ühele: vasta kõigepealt ise (2–3 lauset), siis õpilane; ära paranda, märgi üks vorm (seepärast on, seega peame, leppisime kokku).'), 1, 6),
+      station(review(tag(B.vocab('079_d_vocab', 'Tunni sõnad.', ['ühistu — товарищество (жильцов)', 'esimees — председатель', 'hoov — двор', 'mänguväljak — детская площадка', 'parkimiskoht — парковочное место', 'jalgratas — велосипед', 'pink — скамейка', 'ohtlik — опасный', 'osaliselt — частично', 'selles on tõtt — в этом есть правда', 'kulutama — тратить', 'hääletama — голосовать'], '2'), { topic: ['ühistu', 'hoov', 'mänguväljak', 'parkimiskoht', 'rattakuur', 'korteriomanik'] }), ['kompromiss', 'tingimus', 'ebamugav']), 2, 20),
+      tag(purpose(why(ownText(B.reading('079_d_mail', 'Maja jutugrupp.', 'Loe jutugruppi. Kirjuta iga lause juurde: õige, vale või ei ole tekstis.', 'Pargi 5: mida teha hoovi rahaga?', [
+        '**Esimees Tiit:** Head naabrid, ühistul on sel aastal meie hoovi jaoks 8000 eurot. Ettepanekuid on kolm: uus mänguväljak, parkimiskohad või rattakuur. Koosolek on neljapäeval kell 18 ühistu ruumis, aga palun kirjutage oma arvamus juba enne siia.',
+        '',
+        '**Merle (2. korrus):** Minu arvates on meie hoovis kõige tähtsam uus mänguväljak. Majas on 14 last ja vana kiik on juba nii ohtlik, et ma ei lase oma lapsi sinna. Uus mänguväljak maksaks umbes 6000 eurot.',
+        '',
+        '**Aare (5. korrus):** Ma saan sinust aru, aga meie majas ei ole autodel üldse kohta. Õhtul pargin auto teise tänavasse ja see on väga ebamugav, eriti talvel. Neli uut parkimiskohta maksaksid kokku 7000 eurot.',
+        '',
+        '**Valve (1. korrus):** Oleks parem, kui me ei kulutaks kogu raha ühe asja peale. Kas me võiksime teha väiksema mänguväljaku ja rattakuuri? See maksaks kokku 7500 eurot ja jääks raha ka pingi jaoks.',
+        '',
+        '**Juta (3. korrus):** Mina olen pensionär ja istuksin hea meelega hoovis pingil, aga praegu ei ole meil ühtegi pinki. Kas me ei võiks osta vähemalt kaks pinki? See ei maksaks palju.',
+        '',
+        '**Aare:** Olen osaliselt nõus, aga minu tingimus on, et vähemalt kaks parkimiskohta tuleb ka.',
+        '',
+        '**Merle:** Selles on tõtt, aga kas autod ei sõidaks siis iga päev laste kõrvalt mööda? See oleks minu arvates ohtlik.',
+        '',
+        '**Esimees Tiit:** Aitäh kõigile, ma arvaksin, et kompromiss on siin täiesti võimalik. Arutame seda neljapäeval koosolekul edasi ja siis hääletame.',
+      ], [
+        ['Ühistul on sel aastal hoovi jaoks 8000 eurot.', 'õige'],
+        ['Majas elab neliteist last.', 'õige'],
+        ['Uus mänguväljak maksaks rohkem kui neli parkimiskohta.', 'vale'],
+        ['Aare pargib õhtuti oma auto teise tänavasse.', 'õige'],
+        ['Valve tahab kogu raha rattakuuri peale kulutada.', 'vale'],
+        ['Valve plaanis jääb raha üle ka pingi jaoks.', 'õige'],
+        ['Aare on Valve ettepanekuga täiesti nõus.', 'vale'],
+        ['Koosolekul saavad hääletada ainult korteriomanikud.', 'ei ole tekstis'],
+      ])), [
+        'Tiit: „Ühistul on sel aastal hoovi jaoks 8000 eurot.”',
+        'Merle: „Majas on 14 last”.',
+        'Mänguväljak 6000 eurot, neli parkimiskohta 7000 eurot — mänguväljak on odavam.',
+        'Aare: „Õhtul pargin auto teise tänavasse”.',
+        'Valve: „Oleks parem, kui me ei kulutaks kogu raha ühe asja peale.”',
+        'Valve: „jääks raha ka pingi jaoks”.',
+        'Aare: „Olen osaliselt nõus” — mitte täiesti.',
+        'Tiit ütleb ainult „siis hääletame”; kes hääletab, seda tekstis ei ole.',
+      ]), 'Loed, mida naabrid hoovi kohta arvavad.'), { task: 'R06', voice: 'article' }),
+      teach(tag(purpose(B.table('079_d_sides', 'Paaris: kes mida tahab?', 'Kirjutage iga naabri kohta: mida ta tahab, miks ja mis on tema tingimus.', 'Kes?, Mida ta tahab?, Miks?, Tingimus', [
+        'Merle, kes elab teisel korrusel ja kellel on lapsed |  |  | ',
+        'Aare, kes tuleb töölt hilja ja pargib auto kaugele |  |  | ',
+        'Valve, kes ei taha kogu raha ühele asjale kulutada |  |  | ',
+        'Juta, kes on pensionär ja tahaks hoovis istuda |  |  | ',
+      ], 'g_read'), 'Nii tead koosolekul, mida keegi tahab.'), { task: 'R11' }),
+      'Paarid kirjutavad pärast lugemist 5 minutit märksõnadega. Kontrolli, et Aare tingimus (kaks parkimiskohta) ja Merle mure (autod laste kõrval) on kirjas — neid vajab koosolek. Üks-ühele: õpilane kirjutab, sina küsid „Kellega sa oled kõige rohkem nõus?”.'),
+    ],
+    practice: [
+      station(B.notice('079_d_notice', 'Märka: viisakas arvamus ja kompromiss', [
+        'Jutugrupist: **Oleks** parem, kui me ei kulutaks … · Kas me **võiksime** teha …? · Ma **arvaksin**, et kompromiss on võimalik.',
+        'Tingiv kõneviis (-ks-) teeb arvamuse viisakaks: ma arvan → ma arvaksin · me võime → me võiksime · see on → see oleks · see maksab → see **maksaks**',
+        'Osaliselt nõus: Olen **osaliselt** nõus, aga … · Selles on **tõtt**, aga … · Minu **tingimus** on, et …',
+        'Vastuküsimus: Aga mis **saaks** siis, kui …?',
+        'Vene keeles „я бы сказал” — eesti keeles ilma eraldi sõnata: ma ütleksin (-ks- on tegusõnas).',
+      ], 'full'), 3, 20),
+      teach(tag(purpose(why(B.cloze('079_p_invite', 'Kutse koosolekule: viisakad vormid', 'Loe kutset. Vali igasse lünka kolmest sõnast see, mis sobib.', 'Kutse elanike koosolekule', [
+        'Head Pargi 5 elanikud!',
+        '',
+        'Neljapäeval kell 18 arutame ühistu ruumis, mida hoovi rahaga teha. Jutugrupis oli palju arvamusi ja see on hea. Enne koosolekut {*oleks|oli|olla} hea, kui iga pere loeks kõik kolm ettepanekut läbi.',
+        '',
+        'Mina {*arvaksin|arvasin|arvama}, et me ei pea valima ainult üht asja. Kas me {*võiksime|võisime|võima} leida lahenduse, mis sobib nii lastele kui ka autoomanikele? Näiteks väiksem mänguväljak {*maksaks|maksis|maksma} umbes 4000 eurot ja kaks parkimiskohta 3500 eurot.',
+        '',
+        'Kui keegi ei ole ettepanekuga nõus, palun öelge see viisakalt: „Olen {*osaliselt|osaline|osa} nõus, aga …”. Ka teise inimese arvamuses on sageli {*tõtt|tõde|tõene}.',
+        '',
+        'Aga mis {*saaks|sai|saama} siis, kui me kokkuleppele ei jõua? Siis lükkub otsus maisse. Minu ainus {*tingimus|tingimusel|tingimust} on, et kõik saavad sõna. Tiit, ühistu esimees',
+      ]), [
+        'Enne koosolekut … hea → viisakas soovitus: oleks (tingiv).',
+        'Mina …, et → viisakas arvamus: arvaksin.',
+        'Kas me … leida? → viisakas küsimus: võiksime.',
+        'umbes 4000 eurot → see pole veel kindel: maksaks.',
+        '… nõus → osaliselt (määrsõna), mitte osaline.',
+        'on sageli … → osa tõest: tõtt (osastav).',
+        'mis … siis, kui …? → vastuküsimus: saaks.',
+        'Minu ainus … on → nimetav: tingimus.',
+      ]), 'Need vormid aitavad sul koosolekul viisakas olla.'), { task: 'R03' }),
+      'Vormiülesanne (≈ 10 min, valikvastustega lünktekst nagu Harno B1 lugemine 3). Õpilane loeb kogu kutse enne läbi, siis valib. Iga õige vastus 1 p. Kontrolli selgitusega: miks tingiv (-ks-) on siin viisakam kui kindel kõneviis.'),
+      teach(pron(B.tip('079_p_pron', 'Hääldusnurk: õ, ä, ö, ü (5 min)', [
+        'Kuula paari, ütle, kumba kuulsid, ja korda mõlemat. Üks täht muudab sõna:',
+        'kõik – käik · mõõk – müük · sõit – süit',
+        'Sõnad tunnist: võiksime, nõus, tõtt, ühistu, öelge, mänguväljak',
+        'Ütle koos õpetajaga: „Olen osaliselt nõus, aga kas me võiksime leida kompromissi?”',
+      ], 'full'), 'vokaalid'),
+      'Hääldusnurk (≈ 5 min). Loe paar, õpilane ütleb, kumba sõna kuulis (1 või 2), siis kordab mõlemat; tähendused: kõik (все) – käik (ход, шаг), mõõk (меч) – müük (продажа), sõit (поездка) – süit (сюита). Rida 3: tunni sõnad, jälgi õ ja ü. Viimane rida: varjutamine. Märgi üks täht, mis jäi valeks; see läheb kodutöösse.'),
+      teach(tag(purpose(rows(B.writing('079_p_sent', 'Minu viisakad laused.', 'Kirjuta 8 minutit järjest: sinu arvamus hoovi kohta viisakalt. Igas lauses -ks-: ma arvaksin, oleks, võiksime …', [6, 9]), 30), 'Neid lauseid kasutad kohe oma koosolekul.'), { task: 'G05', fluency: true }),
+      'Kirjutamine tunnis (≈ 8 min). Kontrolli: tingiv on üks sõna (arvaksin, võiksime, oleks), ei ole „oleksin arvan”; vähemalt üks lause „Olen osaliselt nõus, aga …”. Üks-ühele: õpilane loeb kaks lauset, sina vastad teravalt („Ei, see on vale mõte!”) ja õpilane vastab viisakalt.'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(B.rolecards('079_t_debate', 'Koosolek: leiame kompromissi', 'Vaata hoovi plaani. A ja B tahavad eri asju. Arutage viisakalt ja leppige kokku üks otsus.',
+        `Sa elad Pargi 5 majas. Vali: sa tahad mänguväljakut (sul on väike laps) või parkimiskohti (sa tuled töölt hilja). Eesmärk: üks ühine otsus, mis mahub 8000 euro sisse.\n${aidLines(['Ma arvaksin, et …', 'Olen osaliselt nõus, aga …', 'Kas me võiksime …?'], 'paku ka plaan, kui raha jääb puudu.')}`,
+        'Sa oled naaber, kes tahab teist asja. Sa oled kompromissiga nõus ainult siis, kui sinu tingimus on otsuses sees.',
+        ['Ma arvaksin, et …', 'Olen osaliselt nõus, aga …', 'Kas me võiksime …?'],
+        ['Selles on tõtt, aga …', 'Minu tingimus on, et …', 'Aga mis saaks siis, kui …?']), ['Ma arvaksin, et …', 'Olen osaliselt nõus, aga …', 'Kas me võiksime …?'], 'paku ka plaan, kui raha jääb puudu.', 'debate'), 'Sinu otsus läheb maja koosoleku protokolli.'), { harno: 'S1b', task: 'S03', main: true, level: 4 }),
+      'Eksaminurk ja põhiülesanne: koosolek (Harno B1 rääkimise 1b osa, ≈ 15 min). Paaris: A valib poole, B on teisel poolel; nad peavad jõudma ÜHE otsuseni, kus on mõlema tingimus. Varjatud info: ainult õpetaja kaardil, ütle siis, kui paar on peaaegu otsustanud: 1) linn annab mänguväljakule 2000 eurot toetust, kui taotlus on esitatud mai lõpuks; 2) kaks parkimiskohta saab teha ainult liivakasti asemele; 3) rattakuuri võib panna maja taha prügikastide kõrvale. Takistused: kui paar valib ainult parkimiskohad, ütle 1); kui plaan maksab üle 8000 euro, küsi „Kust see raha tuleb?”. Edukriteeriumid (sama mis enesekontrollis): 1) mõlemad ütlevad arvamuse ja põhjuse viisakalt (vähemalt kolm -ks- vormi); 2) vähemalt üks „olen osaliselt nõus, aga …” ja üks vastuküsimus; 3) üks ühine otsus, mis mahub eelarvesse ja arvestab varjatud infoga. Abikaart ja lisaväljakutse on A kaardi lõpus; märgi, kas õpilane kasutas abikaarti. Üks-ühele: sina oled naaber, kes tahab teist asja.'), 4, 24, { final: 'negotiate' }),
+      teach(exitCheck(tag(purpose(B.speaking('079_t_exit', 'Väljumine: 30 sekundit esimehele', 'Ütle esimehele 30 sekundiga: mis on teie kompromiss, miks ja mis on iga poole tingimus.', ['Mis on teie otsus?', 'Mis on kummagi poole tingimus?'], [20, 40]), 'Näitad, et oskad kokkulepet lühidalt kokku võtta.'), { task: 'S16', level: 3 })),
+      'Väljumine (v6, 30 s, ilma kaardita). Õnnestunud, kui otsus on selge (mis ja kui palju maksab), mõlema poole tingimus on nimetatud ja vähemalt üks viisakas -ks- vorm (oleks, võiksime).'),
+      selfCheck('079_t_self', ['Ma saan aru, mida naabrid tahavad ja miks.', 'Ma ütlen arvamuse viisakalt: arvaksin, oleks, võiksime.', 'Me jõudsime ühe kompromissini, kus on mõlema tingimus.'], 'Kompromiss leitud'),
+      teach(tag(homeTask(purpose(realSource(B.speaking('079_t_home', 'Päris leht: Rahvaalgatus', 'Ava https://rahvaalgatus.ee ja vali üks algatus. Salvesta 1 minut: mida tahetakse, miks ja kas oled nõus.', [
+        'Mis algatus see on ja mida tahetakse?',
+        'Miks inimesed seda tahavad?',
+        'Kas sina oled nõus? Ütle viisakalt: ma arvaksin …, olen osaliselt nõus …',
+      ], [45, 75]), 'Rahvaalgatus (päris leht)'), 'Loed päris inimeste ettepanekut eesti keeles.')), { task: 'S15' }),
+      'Seosülesanne, päris dokument kerge toega (v6 §2 k). Rahvaalgatus.ee on päris keskkond, kus inimesed teevad ettepanekuid ja koguvad allkirju. Õpilane avab lehe ise ja valib lühikese algatuse; ära anna vastuseid ette. Salvestuses ütleb ta oma arvamuse viisakalt (Ma arvaksin …, Olen osaliselt nõus …). Järgmise tunni alguses räägib ta 30 sekundiga, mida leidis.'),
+      homeTask(B.phrasebank('079_t_homework', [['Kodutöö', ['1. Salvesta 1 minut päris algatusest (ülesanne üleval).', '2. Kirjuta teie maja kompromiss 4–5 lausega: otsus, hind, kummagi poole tingimus.', '3. Harjuta → moodul 16: tingiv kõneviis, olen osaliselt nõus (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 080 Mock 2: the full timed Harno B1 exam, three sheets
+  'a2b1-080': lesson('a2b1-080', {
+    title: 'Proovieksam 2: Harno B1',
+    phases: mockSheets(),
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma sooritan täispika proovieksami Harno B1 vormis ajapiiranguga: kirjutan, kuulan, loen ja räägin; vahekontrolli lävi on 75 % ja eesmärk 80 % igas osas.',
+    discover: [
+      B.examPart('080_t_wpart', 'W', { part: 'Kirjutamine', minutes: 35, points: 20, tasks: 2, note: 'Täisvorm ja ajapiirang. Kirjutage ilma sõnaraamatuta: esimene ülesanne 8, teine 12 punkti. Lävendid ja kogu eksami punktid on rääkimise lehel.' }),
+      teach(tag(B.examWriting('080_t_w1', 'Kirjutamine 1. Küsimustik.', 'Linnaosa küsib elanikelt, mida muuta. Vastake küsimustikule; kus küsitakse miks, põhjendage.', 'kusimustik', {
+        situation: 'Teie linnaosa valitsus teeb uut arengukava ja palub elanikel küsimustiku täita.',
+        questions: [
+          'Kui kaua te selles linnaosas elanud olete?',
+          'Mis teile oma linnaosas kõige rohkem meeldib? Miks?',
+          'Kuidas te tavaliselt tööle või kooli liigute?',
+          'Kas teie arvates on linnaosas piisavalt rohelust? Miks?',
+          'Mida peaks linnaosa lastele rohkem pakkuma?',
+          'Kas te toetaksite autovaba pühapäeva kord kuus? Miks?',
+          'Millisest teenusest tunnete linnaosas kõige rohkem puudust?',
+          'Kas te osaleksite kevadisel talgupäeval? Miks?',
+          'Kust te tahaksite linnaosa uudiseid saada?',
+          'Mida te muudaksite esimesena, kui saaksite ise otsustada? Miks?',
+        ],
+        words: [60, 100],
+      }), { harno: 'W1a', task: 'W01' }),
+        'Kirjutamine 1 (Harno W1a, küsimustik, ≈ 12 min). Hinda juhendi järgi: iga vastus on olemas ja arusaadav (sisu 4 p: kõik vastused, põhjendused miks-küsimustes, terved laused, sobiv pikkus), keel ja vorm 0–4. Varasemast: küsimus 1 (täisminevik „elanud olete”, moodul 14) ja küsimus 10 (tingiv kõneviis, moodul 15–16).'),
+      B.rubricW1('080_t_rw1', ['vastus igale küsimusele', 'põhjendus miks-küsimustes', 'terved ja selged laused', 'sobiv pikkus']),
+      teach(tag(B.examWriting('080_t_w2', 'Kirjutamine 2. Jutt.', 'Kirjutage jutt umbes 100 sõnaga. Pealkiri on antud. Käsitlege kõiki nelja punkti.', 'jutt', {
+        situation: 'Pealkiri: „Vaidlus, mis lõppes hästi”. Jutustage lugu oma elust või mõelge lugu välja.',
+        points: ['kes omavahel vaidlesid ja mille üle nad vaidlesid', 'mida kumbki vaidluses arvas ja miks ta nii arvas', 'mis aitas teil lõpuks vaidlust rahulikult lõpetada', 'kuidas lugu lõppes ja mida te sellest vaidlusest õppisite'],
+        words: [90, 110],
+      }), { harno: 'W2a', task: 'W05' }),
+        'Kirjutamine 2 (Harno W2a, jutt etteantud pealkirjaga, ≈ 23 min). Hinda nelja kriteeriumiga (igaüks 0–3): sisu (kõik neli punkti), ülesehitus ja sidusus (kõigepealt, siis, lõpuks; sest, seepärast), sõnavara, õigekeel. Piiripealne näide (8/12): kõik punktid on olemas, aga lühidalt (2), lood on järjestatud, kuid sidesõnu vähe (2), sõnavara kordub (2), minevikuvormides on vigu, mis ei sega (2).'),
+      B.rubricW2('080_t_rw2'),
+      B.examPart('080_p_lpart', 'L', { part: 'Kuulamine', minutes: 35, points: 30, tasks: 4, note: 'Neli ülesannet, 30 punkti. Iga tekst kõlab kaks korda; enne kuulamist lugege küsimused läbi. Vahekontrolli lävi on 23 punkti (75 %), eesmärk vähemalt 24 punkti (80 %). Ükski osa ei tohi olla 0 punkti.' }),
+      teach(tag(why(ownText(locked(B.examListen('080_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake seitset lühikest teksti. Iga tekst kõlab kaks korda. Märkige iga teksti juurde õige vastus.', 'choice', [
+        'Esimene tekst. Head lugejad! Kahekümne kolmandal veebruaril, vabariigi aastapäeva eel, on raamatukogu avatud ainult kella neljani. Kahekümne neljandal veebruaril on raamatukogu suletud. Kahekümne viiendal oleme jälle avatud tavalisel ajal, kella kümnest kuueni.',
+        'Teine tekst. Tere, siin keelekool Kompass. Teie kevadine kursus hakkab toimuma teisipäeviti, mitte esmaspäeviti, nagu enne kirjutasime. Esimene tund on kolmeteistkümnendal jaanuaril kell kuus. Kui see aeg teile ei sobi, helistage meile tagasi.',
+        'Kolmas tekst. Ilmateade vabariigi aastapäevaks. Kahekümne neljandal veebruaril on kogu Eestis päikeseline ja kuiv ilm. Hommikul on külma kuni kaksteist kraadi, päeval umbes kaheksa kraadi. Tuul on nõrk, nii et paraadi vaatama minejad võivad rahulikult õue minna.',
+        'Neljas tekst. Linnatranspordi teade. Vabariigi aastapäeval sõidavad linnabussid ja trammid puhkepäeva sõiduplaani järgi. Kesklinnas on hommikul kella üheksast üheteistkümneni mitu tänavat suletud. Palun planeerige oma sõit varem.',
+        'Viies tekst. Mööblipood Kodukontor teatab: suur talvine allahindlus lõpeb pühapäeval. Kõik toolid on veel kakskümmend protsenti soodsamad ja töölauad viisteist protsenti. Kauba toome koju tasuta.',
+        'Kuues tekst. Head kolmanda klassi vanemad! Siin klassijuhataja. Teatrikülastus ei toimu teisipäeval, vaid neljapäeval. Buss väljub kooli eest kell üheksa ja tuleb tagasi umbes kell üks. Lapsed võtku kaasa väike eine.',
+        'Seitsmes tekst. Head kolleegid! Uus tööaja kord hakkab kehtima esimesest märtsist. Kes soovib mõnel päeval kodus töötada, märkigu oma kodused päevad kalendrisse hiljemalt reedeks. Teisipäeval ja neljapäeval oleme kõik kontoris.',
+      ], [
+        ['Mis päeval on linna raamatukogu vabariigi aastapäeva ajal suletud?', 'kahekümne neljandal veebruaril', 'kahekümne kolmandal veebruaril', 'kahekümne viiendal veebruaril'],
+        ['Mis nädalapäeval hakkab keelekooli kevadine kursus toimuma?', 'teisipäeviti', 'esmaspäeviti', 'kolmapäeviti'],
+        ['Milline ilm on ilmateate järgi vabariigi aastapäeval kogu Eestis?', 'päikeseline ja külm', 'pilves ja vihmane', 'tuuline ja lumine'],
+        ['Mida peaksid sõitjad vabariigi aastapäeval tegema?', 'oma sõitu varem planeerima', 'ostma uue sõidupileti', 'sõitma ainult trammiga'],
+        ['Kui palju odavamad on mööblipoes talvise allahindluse ajal töölauad?', 'viisteist protsenti', 'kakskümmend protsenti', 'kümme protsenti'],
+        ['Mis päeval lähevad kolmanda klassi lapsed koos klassijuhatajaga teatrisse?', 'neljapäeval', 'teisipäeval', 'reedel'],
+        ['Mis ajaks peavad töötajad oma kodused päevad kalendrisse märkima?', 'reedeks', 'esimeseks märtsiks', 'teisipäevaks'],
+      ]))), [
+        'Esimene tekst: „Kahekümne neljandal veebruaril on raamatukogu suletud.”',
+        'Teine tekst: „hakkab toimuma teisipäeviti, mitte esmaspäeviti”.',
+        'Kolmas tekst: päikeseline, „külma kuni kaksteist kraadi”.',
+        'Neljas tekst: „Palun planeerige oma sõit varem.”',
+        'Viies tekst: „töölauad viisteist protsenti”.',
+        'Kuues tekst: „ei toimu teisipäeval, vaid neljapäeval”.',
+        'Seitsmes tekst: „hiljemalt reedeks” (tähtaeg -ks).',
+      ]), { harno: 'L1', task: 'L01' }),
+        'Kuulamine 1 (7 p, ≈ 7 min, Harno L1). Varasemast (moodul 15): tekst 2 (hakkab toimuma — tulevik hakkama + ma) ja tekst 7 (hiljemalt reedeks — tähtaeg; märkigu — möönev kõneviis). Iga õige vastus 1 p.'),
+      teach(tag(why(ownText(locked(B.examListen('080_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu ühe kuulaja kogemusest. Valige igale küsimusele kolmest vastusest üks.', 'choice', [
+        'Diktor: Head kuulajad! Saates „Minu lugu” räägime täna sellest, kas ilma nutitelefonita on võimalik elada. Meile kirjutas Pärnust kuulaja Heino, kes on nelikümmend kaks aastat vana ja töötab raamatupidajana.',
+        'Diktor: Eelmise aasta novembris märkas Heino, et ta võtab telefoni kätte üle saja korra päevas. Õhtul ei mäletanud ta, mida ta telefonis tegi, aga ta oli väga väsinud. Tema kümneaastane tütar ütles talle ühel õhtul: „Isa, sa vaatad rohkem telefoni kui mind.” See lause jäi talle meelde.',
+        'Diktor: Heino otsustas proovida üht kuud ilma nutitelefonita. Ta pani nutitelefoni sahtlisse ja ostis kahekümne euroga vana nuputelefoni, millega sai ainult helistada ja sõnumeid saata. Pangaasjad ja töökirjad tegi ta arvutis.',
+        'Diktor: Esimene nädal oli Heino sõnul kõige raskem. Ta otsis telefoni taskust isegi siis, kui seda seal ei olnud. Bussis ei teadnud ta, mida teha, ja vaatas lihtsalt aknast välja. Mõne päeva pärast hakkas ta bussis raamatut lugema. Teise nädala lõpuks oli ta läbi lugenud kaks raamatut, mis olid aastaid riiulil oodanud.',
+        'Diktor: Kõige suurem muutus oli uni. Varem vaatas Heino enne magamaminekut tund aega videoid. Nüüd luges ta raamatut ja jäi kiiremini magama. Hommikul oli ta palju puhanum ja tööl tegi ta vähem vigu.',
+        'Diktor: Probleeme oli ka. Heino ei leidnud linnas üht kohvikut üles, sest kaarti tal telefonis ei olnud. Ta pidi küsima teed möödujalt, mida ta polnud aastaid teinud. Tema sõnul oli see tegelikult tore vestlus. Mööduja oli vanem proua, kes viis ta kohvikuni ja rääkis teel, kuidas see tänav viiskümmend aastat tagasi välja nägi. Ka tööl märkasid kolleegid muutust: Heino oli koosolekutel tähelepanelikum ega vaadanud enam laua all telefoni.',
+        'Diktor: Pärast kuud võttis Heino nutitelefoni sahtlist välja, aga tema reeglid on nüüd teised. Telefon ei tule magamistuppa ja õhtusöögi ajal on see teises toas. Heino soovitab kõigile vähemalt üht nädalat ilma nutitelefonita. Tema sõnul ei ole kaotada midagi, aga võita võib palju aega.',
+      ], [
+        ['Mida märkas Heino eelmise aasta novembris?', 'ta võtab telefoni kätte üle saja korra päevas', 'tema telefon oli vana ja aeglane', 'tema tütrel oli liiga palju ekraaniaega'],
+        ['Mis pani Heino oma harjumuse üle mõtlema?', 'tütre lause', 'arsti nõuanne', 'ülemuse kiri'],
+        ['Mida tegi Heino oma nutitelefoniga?', 'pani selle kuuks ajaks sahtlisse', 'müüs selle kahekümne euroga maha', 'andis selle tütrele'],
+        ['Mis oli Heino jaoks esimesel nädalal kõige raskem?', 'ta otsis telefoni harjumusest taskust', 'tal ei olnud võimalik helistada', 'ta ei saanud tööl kirju saata'],
+        ['Mis muutus Heino elus kõige rohkem?', 'ta magas paremini', 'ta hakkas rohkem sportima', 'ta sai tööl kõrgemat palka'],
+        ['Mida soovitab Heino kuulajatele?', 'proovida vähemalt nädalat ilma nutitelefonita', 'osta kõigile lastele nuputelefon', 'mitte kunagi telefoni osta'],
+      ]))), [
+        'Teine lõik: „ta võtab telefoni kätte üle saja korra päevas”.',
+        'Teine lõik: tütre lause „Isa, sa vaatad rohkem telefoni kui mind” jäi meelde.',
+        'Kolmas lõik: „Ta pani nutitelefoni sahtlisse” (kuuks ajaks).',
+        'Neljas lõik: „Ta otsis telefoni taskust isegi siis, kui seda seal ei olnud.”',
+        'Viies lõik: „Kõige suurem muutus oli uni.”',
+        'Viimane lõik: „soovitab kõigile vähemalt üht nädalat ilma nutitelefonita”.',
+      ]), { harno: 'L2', task: 'L02' }),
+        'Kuulamine 2 (6 p, ≈ 7 min, Harno L2, monoloog ≈ 2,5 min). Varasemast: küsimus 4 (enneminevik „mis olid aastaid riiulil oodanud” ja minevik, moodul 14). Iga õige vastus 1 p.'),
+      teach(tag(why(ownText(locked(B.listening('080_p_l3', 'Kuulamine 3. Telefonikõne.', 'Kuulake, kuidas ühistu esimees räägib telefonis mänguväljakufirma töötajaga. Vastake igale küsimusele ühe-kahe sõnaga.', [
+        'Ott: Mänguväljakud „Hüppa”, Ott kuulab.',
+        'Rein: Tere, Ott! Siin Rein, Lille 7 korteriühistu esimees. Te käisite esmaspäeval meie hoovi mõõtmas.',
+        'Ott: Tere, Rein! Jah, mäletan küll. Teil oli see vana punane kiik, mis tuleb kindlasti ära viia, sest see ei ole enam ohutu.',
+        'Rein: Just. Koosolekul otsustati, et teeme väiksema mänguväljaku. Meie eelarve on neli tuhat kaheksasada eurot. Kas see on võimalik?',
+        'Ott: On küll. Selle raha eest saate liumäe, ühe kiige ja uue liivakasti. Pehme kate on hinna sees. Kui tahate kahte kiike, maksab see kuussada eurot rohkem.',
+        'Rein: Ei, üks kiik piisab. Raha on vaja ka rattakuuri ja pinkide jaoks. Millal te saaksite alustada?',
+        'Ott: Kevad on meil väga kiire. Kõige varem saame alustada alates mai teisest nädalast. Töö kestab umbes kolm nädalat.',
+        'Rein: Siis on mänguväljak hiljemalt jaanipäevaks valmis. Väga hea. Aga mul on üks palve. Meie majas elab mees, kes töötab öösiti ja magab päeval kella kolmeni. Kas te saaksite kõige lärmakama töö teha pärastlõunal?',
+        'Ott: Saame küll. Hommikul teeme vaiksemat tööd, näiteks mõõdame ja paneme detaile kokku. Kõige lärmakam on pinnase kaevamine. Selle teeme kahel päeval kella kolmest kuueni.',
+        'Rein: Suurepärane! Kas peame lepingu jaoks teie kontorisse tulema?',
+        'Ott: Ei pea. Saadan lepingu e-postiga ja te saate selle digitaalselt allkirjastada. Ettemaks on kolmkümmend protsenti, ülejäänud raha maksate pärast tööde lõppu.',
+        'Rein: Ja kas mänguväljakul on ka garantii?',
+        'Ott: Jah, viis aastat. Lisaks tuleme igal kevadel tasuta kontrollima, kas kõik on ohutu.',
+        'Rein: Veel üks küsimus. Mis saab vanast liivakastist ja kiigest? Kas peame need ise ära viima?',
+        'Ott: Ei pea. Vana kiige ja liivakasti viime ära meie ja see on hinna sees. Vana liiva võite aga endale jätta, kui naabrid tahavad seda peenarde jaoks kasutada.',
+        'Rein: See on hea mõte. Meie naaber Maie tahab hoovi lilli istutada. Ja kas lapsed võivad ehituse ajal hoovis olla?',
+        'Ott: Kahjuks mitte. Ehitusplats tuleb ümbritseda aiaga ja kolm nädalat on see osa hoovist suletud. Aga autod saavad hoovi sisse ja välja sõita nagu tavaliselt.',
+        'Rein: Aitäh, Ott! Ootan lepingut. Head päeva!',
+      ], [
+        'Mis värvi oli hoovi vana kiik? [punane|punast]',
+        'Kui suur on ühistu eelarve väiksema mänguväljaku jaoks? [4800 eurot|neli tuhat kaheksasada]',
+        'Kui palju rohkem maksaks teine kiik? [600 eurot|kuussada eurot|kuussada]',
+        'Mis kuul saab firma kõige varem töödega alustada? [mais|mai teisel nädalal]',
+        'Kui kaua kestab mänguväljaku ehitamine? [kolm nädalat|umbes kolm nädalat]',
+        'Mis kellast teeb firma kõige lärmakamat tööd? [kella kolmest|kolmest|15-st]',
+        'Kuidas saab esimees lepingu allkirjastada? [digitaalselt|e-postiga]',
+        'Kui pikk on mänguväljaku garantii? [viis aastat|5 aastat]',
+      ]))), [
+        'Ott: „Teil oli see vana punane kiik”.',
+        'Rein: „Meie eelarve on neli tuhat kaheksasada eurot.”',
+        'Ott: „Kui tahate kahte kiike, maksab see kuussada eurot rohkem.”',
+        'Ott: „Kõige varem saame alustada alates mai teisest nädalast.”',
+        'Ott: „Töö kestab umbes kolm nädalat.”',
+        'Ott: „Selle teeme kahel päeval kella kolmest kuueni.”',
+        'Ott: „te saate selle digitaalselt allkirjastada”.',
+        'Ott: „Jah, viis aastat.”',
+      ]), { harno: 'L3a', task: 'L03' }),
+        'Kuulamine 3 (8 p, ≈ 9 min, Harno L3a, dialoog ≈ 3 min; vastus 1–2 sõnaga, vorm ei loe, kui sisu on õige). Varasemast (moodul 15): küsimus 4 (alates mai teisest nädalast) ja küsimus 6 (kella kolmest — aeg). Iga õige vastus 1 p.'),
+      teach(tag(why(ownText(locked(B.examListen('080_p_l4', 'Kuulamine 4. Intervjuu.', 'Kuulake intervjuud õpetajaga. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
+        'Kertu: Tere, head kuulajad! Saates „Päevateema” räägime täna telefonivabast koolipäevast. Stuudios on Tartu kooli õpetaja Reelika Mägi, kelle koolis on telefonid kapis juba kaks aastat. Tere, Reelika!',
+        'Reelika: Tere, Kertu! Jah, meie alustasime kahe aasta eest ja siis tundus see paljudele väga julge sammuna.',
+        'Kertu: Kes olid alguses kõige rohkem vastu?',
+        'Reelika: Üllataval kombel mitte lapsed, vaid vanemad. Nad kartsid, et laps ei saa hädaolukorras koju helistada. Seepärast avasime kooli kantseleis telefoni, kuhu vanemad võivad igal ajal helistada.',
+        'Kertu: Ja kuidas lapsed reageerisid?',
+        'Reelika: Esimesel nädalal oli vahetundides väga vaikne, sest lapsed ei teadnud, mida teha. Teisel nädalal tõid nad kodust lauamängud ja palli. Nüüd on vahetunnid kõige lärmakam aeg koolis, aga see on hea lärm.',
+        'Kertu: Kas õppimine on ka paranenud?',
+        'Reelika: Hinded on veidi paremad, kuid ma ei julge öelda, et ainult telefonide pärast. Kindlasti on aga tunnis vähem segavaid helisid ja lapsed suudavad kauem keskenduda.',
+        'Kertu: Kuidas õpetajad uue korraga harjusid?',
+        'Reelika: Ka meile oli see muutus. Varem kasutasid mõned õpetajad tunnis laste telefone väga palju. Nüüd planeerime tunnid ette ja kasutame rohkem kooli arvuteid. Õpetajate toas jätame ka oma telefonid kõrvale, sest lapsed näevad kõike.',
+        'Kertu: Kas telefoni ei ole koolis üldse vaja?',
+        'Reelika: On küll. Kui me teeme tunnis näiteks fotojahti või otsime midagi sõnaraamatust, võtavad lapsed telefonid kapist. Telefon on tööriist, mitte mänguasi.',
+        'Kertu: Mida soovitaksite koolidele, kes alles plaanivad seda?',
+        'Reelika: Kõigepealt rääkige vanematega ja kuulake nende muresid. Teiseks andke lastele vahetunniks midagi teha. Ja kolmandaks: proovige vähemalt pool aastat, sest esimesed nädalad on alati kõige raskemad.',
+        'Kertu: Kas teie kool jätkab?',
+        'Reelika: Jätkame. Eelmisel kevadel küsisime kõigi arvamust. Peaaegu kõik vanemad toetasid telefonivaba päeva ja üllataval kombel ka paljud lapsed.',
+        'Kertu: Aitäh, Reelika!',
+      ], [
+        ['Reelika koolis on telefonid kapis olnud kaks aastat.', true],
+        ['Alguses olid plaanile kõige rohkem vastu lapsed.', false],
+        ['Vanemad võivad helistada kooli kantseleisse igal ajal.', true],
+        ['Esimesel nädalal olid vahetunnid väga lärmakad.', false],
+        ['Teisel nädalal tõid lapsed kodust mänge ja palli.', true],
+        ['Reelika on kindel, et hinded paranesid ainult telefonide pärast.', false],
+        ['Tunnis võivad lapsed telefoni õppimiseks kapist võtta.', true],
+        ['Reelika soovitab proovida uut korda vähemalt kuu aega.', false],
+        ['Ka paljud lapsed toetavad telefonivaba päeva.', true],
+      ]))), [
+        'Algus: „kelle koolis on telefonid kapis juba kaks aastat”.',
+        'Reelika: „mitte lapsed, vaid vanemad”.',
+        'Reelika: „avasime kooli kantseleis telefoni, kuhu vanemad võivad igal ajal helistada”.',
+        'Reelika: „Esimesel nädalal oli vahetundides väga vaikne”.',
+        'Reelika: „Teisel nädalal tõid nad kodust lauamängud ja palli.”',
+        'Reelika: „ma ei julge öelda, et ainult telefonide pärast”.',
+        'Reelika: „võtavad lapsed telefonid kapist”.',
+        'Reelika: „proovige vähemalt pool aastat” — mitte kuu.',
+        'Reelika: „üllataval kombel ka paljud lapsed”.',
+      ]), { harno: 'L4', task: 'L05' }),
+        'Kuulamine 4 (9 p, ≈ 9 min, Harno L4, intervjuu ≈ 3 min). Varasemast: väide 1 (täisminevik „on olnud kaks aastat”, moodul 14). Iga õige vastus 1 p. Kuulamine kokku 30 p; kui kuulamine on 0 punkti, ei ole proovieksam sooritatud.'),
+    ],
+    practice: [
+      B.examPart('080_p_rpart', 'R', { part: 'Lugemine', minutes: 50, points: 33, tasks: 4, note: 'Neli ülesannet, 33 punkti, 50 minutit: iga ülesande jaoks umbes 12 minutit, jäta lõpus aega kontrolliks. Vahekontrolli lävi on 25 punkti (75 %), eesmärk vähemalt 27 punkti (80 %). Ükski osa ei tohi olla 0 punkti.' }),
+      teach(tag(why(B.adsmatch('080_p_r1', 'Lugemine 1. Teenused kodule ja hoovile.', 'Lugege üheksat olukorda ja kuut kuulutust. Kirjutage iga olukorra juurde sobiva kuulutuse täht; sama kuulutus võib sobida mitmele olukorrale.', [
+        ['Mänguväljakud „Hüppa”', 'Ehitame mänguväljakuid kortermajade hoovidesse ja lasteaedadesse. Tasuta konsultatsioon: tuleme kohale, mõõdame hoovi ja teeme kolm erineva hinnaga pakkumist. Kontrollime ka vanade kiikede ohutust.'],
+        ['Rattamaja', 'Rattakuurid ja -hoidlad kuuele kuni kahekümnele rattale. Paigaldame ühe päevaga ja anname viieaastase garantii. Korteriühistutele kevadel kümme protsenti soodsamalt.'],
+        ['Raamatukogu arvutiabi', 'Igal teisipäeval kella kümnest kaheni aitab raamatukogu töötaja tasuta kasutada ID-kaarti, internetipanka ja e-teenuseid. Võtke kaasa oma ID-kaart ja paroolid.'],
+        ['Õhtune lastehoid „Päike”', 'Hoiame kolme- kuni kümneaastaseid lapsi tööpäeviti kella viiest üheksani. Sobib vanematele, kellel on õhtuti koosolekud või kursused. Broneeri koht vähemalt päev ette.'],
+        ['Aiakujundus Roheline Nurk', 'Teeme kortermajade hoovidele plaane: lillepeenrad, pingid, põõsad ja teed. Esimene plaan joonistatakse koos elanikega ühe õhtu jooksul. Hind sõltub hoovi suurusest.'],
+        ['Kodukontori rent', 'Rendime töölaudu ja mugavaid toole kuu kaupa. Kui kodus töötamine ei sobi, võtame mööbli tasuta tagasi. Toome ja viime ise ära.'],
+      ], [
+        ['Ühistu esimees tahab teada, kas hoovi vana kiik on lastele ohutu.', 'A'],
+        ['Majas on palju rattaid ja neil ei ole kuiva kohta.', 'B'],
+        ['Eakas naaber tahab õppida, kuidas ID-kaardiga internetis asju ajada.', 'C'],
+        ['Isa kavatseb jaanuarist käia õhtusel kursusel, aga kuueaastane poeg jääks siis üksi koju.', 'D'],
+        ['Naabrid tahavad hoovi lilli ja pinke, aga ei tea, kuidas alustada.', 'E'],
+        ['Töötaja tahab proovida kodus töötamist, aga ei taha kohe uut lauda osta.', 'F'],
+        ['Korteriühistu tahab kevadel osta odavamalt kuuri kaheteistkümnele rattale.', 'B'],
+        ['Lasteaed otsib firmat, kes ehitaks hoovi uue liumäe ja kiiged.', 'A'],
+        ['Pensionär tahab, et keegi aitaks tal tasuta e-teenustega hakkama saada.', 'C'],
+      ]), [
+        'A: „Kontrollime ka vanade kiikede ohutust.”',
+        'B: rattakuurid ja -hoidlad.',
+        'C: aitab kasutada ID-kaarti ja e-teenuseid.',
+        'D: lastehoid õhtuti, „vanematele, kellel on õhtuti … kursused”.',
+        'E: „Teeme … hoovidele plaane: lillepeenrad, pingid”.',
+        'F: „Rendime töölaudu … kuu kaupa.”',
+        'B: „Korteriühistutele kevadel kümme protsenti soodsamalt”, kuni kahekümnele rattale.',
+        'A: ehitame mänguväljakuid „lasteaedadesse”.',
+        'C: abi on tasuta, igal teisipäeval.',
+      ]), { harno: 'R1', task: 'R01' }),
+        'Lugemine 1 (9 p, ≈ 12 min, Harno R1). Varasemast: olukord 4 (kavatseb käia — tulevik kavatsema + da, moodul 15). Iga õige vastus 1 p.'),
+      B.reading('080_p_r2text', 'Lugemine 2. Artikkel.', 'Lugege ajakirja artiklit raamatukogude uuest elust. Vastake pärast artiklit valikküsimustele.', 'Raamatukogu kui linna elutuba', [
+        'Kui mõni aasta tagasi arvati, et internet teeb raamatukogud tarbetuks, siis meie linnas juhtus vastupidi. Linna raamatukogus käib praegu rohkem inimesi kui kümme aastat tagasi, kuigi raamatuid laenutatakse veidi vähem.',
+        '',
+        'Raamatukogu direktori sõnul on muutunud see, miks inimesed tulevad. Varem tuldi raamatu järele ja mindi kohe koju. Nüüd veedetakse raamatukogus terve päev. Hommikuti tulevad kaugtöötajad, kes otsivad vaikset kohta ja tasuta internetti. Paljud ütlevad, et lugemissaalis on rahulikum kui kodus ja odavam kui kohvikus.',
+        '',
+        'Päeval on raamatukogus eakad. Igal teisipäeval aitavad töötajad neil kasutada ID-kaarti ja e-teenuseid. Direktori arvates on see praegu üks kõige tähtsamaid teenuseid, sest ilma e-teenusteta on vanemal inimesel Eestis raske hakkama saada.',
+        '',
+        'Õhtuti on maja täis noori ja peresid. Laenutada saab lauamänge, tööriistu ja isegi õmblusmasinat. Kord kuus toimub keelekohvik, kus eesti keelt õppivad inimesed räägivad emakeelena kõnelejatega. Laupäeviti on lastenurgas ettelugemine ja vanemad saavad samal ajal rahulikult ajalehti lugeda.',
+        '',
+        'Kõik ei ole muutustega rahul. Mõned vanemad lugejad kurdavad, et raamatukogus on liiga lärmakas. Seepärast on igal korrusel nüüd vaikne tuba, kus rääkida ei tohi. Direktor tunnistab, et kõigile meeldida on raske. Tema sõnul on raamatukogu siiski koht, kus kõik on oodatud ja keegi ei pea midagi ostma. Ta loodab, et tulevikus on igas linnaosas oma väike raamatukogu, kuhu saab jalgsi minna.',
+      ], []),
+      teach(tag(why(B.choice('080_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele kolmest vastusest üks õige.', [
+        ['Mis juhtus linna raamatukoguga pärast interneti tulekut?', 'seal käib praegu rohkem inimesi', 'see jäi peaaegu tühjaks', 'sellest sai kõigepealt internetikohvik'],
+        ['Mis on direktori sõnul raamatukogus muutunud?', 'inimesed veedavad seal rohkem aega', 'inimesed laenutavad rohkem raamatuid', 'raamatukogu on avatud ainult hommikul'],
+        ['Miks tulevad kaugtöötajad hommikuti raamatukokku?', 'seal on vaikne ja internet on tasuta', 'seal on kõige parem kohv', 'neil ei ole kodus arvutit'],
+        ['Miks peab direktor eakate abistamist väga tähtsaks?', 'ilma e-teenusteta on neil raske hakkama saada', 'eakad laenutavad kõige rohkem raamatuid', 'see teenus toob raamatukogule raha'],
+        ['Mida saab raamatukogust peale raamatute laenutada?', 'lauamänge ja tööriistu', 'jalgrattaid ja suuski', 'arvuteid ja telefone'],
+        ['Mida tehti, kui mõned lugejad kurtsid lärmi üle?', 'igale korrusele tehti vaikne tuba', 'keelekohvik lõpetati ära', 'lastel keelati raamatukokku tulla'],
+      ]), [
+        'Esimene lõik: „Linna raamatukogus käib praegu rohkem inimesi kui kümme aastat tagasi”.',
+        'Teine lõik: „Nüüd veedetakse raamatukogus terve päev.”',
+        'Teine lõik: „otsivad vaikset kohta ja tasuta internetti”.',
+        'Kolmas lõik: „ilma e-teenusteta on vanemal inimesel … raske hakkama saada”.',
+        'Neljas lõik: „Laenutada saab lauamänge, tööriistu”.',
+        'Viimane lõik: „igal korrusel on nüüd vaikne tuba”.',
+      ]), { harno: 'R2', task: 'R02' }),
+        'Lugemine 2 (6 p, ≈ 12 min, Harno R2, artikkel ≈ 260 sõna). Iga õige vastus 1 p. Võrdlus (rahulikum kui, odavam kui) on mooduli 16 vorm.'),
+      teach(tag(why(B.cloze('080_p_r3a', 'Lugemine 3. Kiri sõbrale.', 'Lugege kirja sõbrannale. Valige igasse lünka kolmest sõnast üks, mis sobib.', 'Kallis Lena!', [
+        'Aitäh sinu pika {*kirja|kiri|kirjas} eest, sain selle eile õhtul kätte. Meie tööl oli terve kuu suur arutelu selle üle, kuidas me märtsist töötame. Juht valis lõpuks kolmanda variandi, mis oli teistest kahest palju {*paindlikum|paindlik|paindlikult}.',
+        '',
+        'Nüüd oleme teisipäeval ja neljapäeval kõik koos ning muul ajal võib igaüks {*kodus|koju|kodust} töötada. Minu jaoks on kontor sama tähtis {*kui|nagu|kuni} keelekursus, sest kuulen seal palju eesti keelt. Märtsist {*hakkan|hakata|hakkasin} ma käima ka õhtusel kursusel, kaks korda nädalas. Ma ei ole {*kunagi|alati|veel} varem nii palju eesti keelt rääkinud kui sel talvel.',
+        '',
+        'Meie majas vaieldi hoovi pärast nii kõvasti, et esimees pidi kõigile {*viisakalt|viisakas|viisaka} kirjutama. Koosolekul valiti kompromiss, {*kuigi|sest|nii et} mõni naaber oli alguses täiesti vastu. Nüüd tuleb hoovi väiksem mänguväljak ja kaks pinki, {*seepärast|kuigi|sest} on kõik enam-vähem rahul.',
+        '',
+        'Kirjuta mulle, kui sul on aega, ja {*võiksime|võisime|võima} suvel jälle koos Setomaale sõita! Sinu Natalja',
+      ]), [
+        'aitäh + omastav … eest: kirja eest.',
+        'palju + keskvõrre: paindlikum (teistest kahest).',
+        'kus töötada? → kodus.',
+        'sama + omadussõna + kui (mitte nagu).',
+        'Märtsist … käima: hakkama + ma-vorm, tulevik olevikuga — hakkan.',
+        'ei ole … varem: kunagi (täisminevik + kunagi).',
+        'kuidas kirjutama? → määrsõna viisakalt.',
+        'vastand: valiti, kuigi mõni oli vastu.',
+        'tagajärg: seepärast + tegusõna kohe (on).',
+        'viisakas ettepanek: võiksime (tingiv).',
+      ]), { harno: 'R3a', task: 'R03' }),
+        'Lugemine 3 (10 p, ≈ 12 min, Harno R3a, valikvastustega lünktekst, ≈ 150 sõna). Varasemast: lünk 5 (hakkan käima, moodul 15) ja lünk 6 (ei ole kunagi rääkinud, moodul 14). Iga õige vastus 1 p.'),
+      teach(tag(why(B.gaps('080_p_r4', 'Lugemine 4. Kooli teade.', 'Kooli teatest on välja jäetud kaheksa lauseosa. Kirjutage iga lünga kohale sobiv osa pangast; kaks osa jääb üle.', [
+        'Head lapsevanemad! Alates 1. märtsist on meie koolis 1.–6. klassis telefonivaba koolipäev, [nagu enamik vanemaid koosolekul toetas].',
+        'Hommikul pannakse telefonid klassi kappi, [mille võti on õpetaja käes].',
+        'Lapsed saavad telefonid tagasi pärast viimast tundi, [kõige hiljem kell 14.30].',
+        'Kui peate lapsega kiiresti rääkima, [helistage palun kooli kantseleisse].',
+        'Tunnis võib õpetaja telefoni kasutamise lubada, [kui seda on vaja õppimiseks].',
+        'Vahetundides mängivad lapsed õues või võimlas, [kus on nüüd uued lauamängud].',
+        'Juunis küsime nii lastelt kui ka vanematelt, [kas uus kord jääb alles].',
+        'Kui teil on küsimusi, [kirjutage klassijuhatajale või direktorile].',
+      ], ['nagu enamik vanemaid koosolekul toetas', 'mille võti on õpetaja käes', 'nii et telefonid on terve päeva lastel taskus', 'kõige hiljem kell 14.30', 'helistage palun kooli kantseleisse', 'kui seda on vaja õppimiseks', 'kuigi ükski vanem ei olnud nõus', 'kus on nüüd uued lauamängud', 'kas uus kord jääb alles', 'kirjutage klassijuhatajale või direktorile'], 'full', 'g_read'), [
+        'telefonivaba päev, nagu vanemad toetasid (mitte „kuigi ükski vanem ei olnud nõus”).',
+        'kapp, mille võti … — kõrvallause täpsustab kappi.',
+        'pärast viimast tundi → aeg: kõige hiljem kell 14.30.',
+        'Kui peate rääkima, → mida teha: helistage kantseleisse.',
+        'võib lubada → mis tingimusel: kui seda on vaja.',
+        'õues või võimlas, kus … — koht.',
+        'küsime …, kas … — kaudne küsimus.',
+        'Kui teil on küsimusi, → kellele kirjutada.',
+      ]), { harno: 'R4', task: 'R05' }),
+        'Lugemine 4 (8 p, ≈ 12 min, Harno R4, lauseosade pank, kaks üleliigset). Varasemast (moodul 15): lünk 3 (kõige hiljem — tähtaeg) ja lünk 5 (kui-lause tingimus). Iga õige vastus 1 p. Lugemine kokku 33 p; kui lugemine on 0 punkti, ei ole proovieksam sooritatud.'),
+      teach(tag(B.speaking('080_p_talk', 'Pärast lugemisosa: raamatukogu ja linn.', 'Vestle õpetajaga raamatukogust. Igas vastuses on sinu arvamus, üks põhjus ja näide.', [
+        'Kas raamatukogu peaks sinu arvates olema vaikne koht või kohtumiste koht? Miks?',
+        'Mida sina oma linna raamatukogus teed või tahaksid teha?',
+        'Kumb on sinu jaoks parem töökoht: raamatukogu, kohvik või kodu? Miks?',
+      ], [90, 150]), { task: 'S11' }),
+        'Üks-ühele, pärast lugemisosa ja punktide lugemist (≈ 5 min). See ei ole eksami osa ja seda ei hinnata punktidega: õpilane kasutab mooduli keelt (minu arvates, võrreldes, seepärast) artikli teemal.'),
+      B.rubric('080_p_rcheck', 'Pärast lugemist ja kuulamist: mis töötas?', 'Mõtle lugemise ja kuulamise peale. Märgi, mida sa tegid, ja kirjuta üks asi, mida proovieksamil 3 teisiti teed.', ['Lugesin enne teksti või salvestust küsimused ja leidsin võtmesõnad.', 'Otsisin sama mõtet teiste sõnadega, mitte samu sõnu.', 'Jälgisin aega: lugemises iga ülesande jaoks umbes 12 minutit.', 'Kuulamises märkisin vastuse esimesel korral ja kontrollisin teisel.']),
+    ],
+    transfer: [
+      B.examPart('080_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 20, tasks: 3, note: `Rääkimine on kahekesi (või õpetajaga): sissejuhatus, esimene ülesanne (teemaküsimused ja kokkulepe) ning teine ülesanne (telefonikõne); neli kriteeriumi × 0–5 = 20 punkti. Proovieksam kokku: kirjutamine 20, kuulamine 30, lugemine 33, rääkimine 20 = 103 punkti. ${THRESHOLDS} Teine Harno tingimus: ükski osa ei tohi olla 0 punkti. Vahekontrolli lävi on 75 % igas osas: kirjutamine 15, kuulamine 23, lugemine 25, rääkimine 15 punkti.` }),
+      teach(tag(B.speaking('080_t_s0', 'Rääkimine. Sissejuhatus.', 'Eksamineerija küsib teilt kolm lühikest küsimust. Vastake igaühele kahe-kolme lausega.', ['Palun öelge oma nimi ja mida te teete.', 'Kui kaua te olete eesti keelt õppinud?', 'Mis teile teie praeguse kodu juures kõige rohkem meeldib?'], [60, 90]), { harno: 'S0', task: 'S01' }),
+        'Sissejuhatus (≈ 1 min) ei ole eraldi hinnatud: see on soojendus. Ära paranda.'),
+      teach(tag(B.speaking('080_t_s1', 'Rääkimine 1. Teemaküsimused: linn ja liiklus.', 'Vastake 2–3 minutit ilma abita ja ilma märkmeteta. Eksamineerija küsib, teie räägite.', [
+        'Kuidas sa tavaliselt tööle või kooli sõidad?',
+        'Mis sulle selle juures meeldib ja miks?',
+        'Millal sa viimati kuskile hiljaks jäid ja miks?',
+        'Mis juhtub, kui sinu bussi või rongi ei tule?',
+        'Mis sa arvad: kas linn peaks olema rohkem autodele või jalakäijatele? Miks?',
+        'Kas sinu linnas on liikluse kohta mingeid uusi reegleid? Milliseid?',
+      ], [120, 180]), { harno: 'S1a', task: 'S02', level: 4 }),
+        'PARALLEELNE ülesanne tunni 76 külmale ülesandele („Telefon ja meie elu”): sama vorm (kuus eksamineerija küsimust samas järjekorras — harjumus, põhjus, kogemus, probleem, arvamus põhjendusega, reeglid), sama pikkus (2–3 min), ilma abita, sama hindamine (neli kriteeriumi). Teema on teine, aga sama raske (B1 igapäevateema). Ära aita ega paranda. Märgi samad kolm asja (mitu lauset ja põhjus; arvamus ja tegusõna teisel kohal; näide oma elust) ja võrdle tunni 76 märkmetega.'),
+      teach(tag(B.ideaCard('080_t_s1b', 'Rääkimine 1. Kokkulepe.', 'Arutage ja leppige kokku, mille peale teie maja talgupäeva raha kulutab. Lõpuks peab olema üks ühine otsus.', 'Teie maja ühistul on kevadiseks talgupäevaks 500 eurot. Talgutele tuleb umbes kakskümmend naabrit, nii lapsed kui ka eakad.', ['lilled ja mullad peenardele', 'uus pink maja ette', 'grillipidu pärast tööd', 'värv aia ja kiige jaoks', 'kompostikast', 'mängud ja auhinnad lastele'], 'mille te valite, kuidas raha jagate ja miks'), { harno: 'S1b', task: 'S03' }),
+        'Kokkulepe nagu Harno B1 rääkimise 1b osas (≈ 4 min). Üks-ühele: õpetaja on teine eksaminand, kes tahab alguses kogu raha eest suurt grillipidu; õpilane põhjendab, arvutab ja jõuab kokkuleppele. Ülesanne on täidetud ainult siis, kui lõpus on selge ühine otsus (mis, kui palju raha, miks).'),
+      teach(tag(B.phoneCards('080_t_s2', 'Rääkimine 2. Telefonikõne.', 'A helistab raamatukokku ja küsib ruumi kohta, B on raamatukogu töötaja. Seejärel vahetage kaardid.', 'Te tahate oma naabritele või kursusekaaslastele korraldada raamatukogus kord kuus eesti keele vestlusõhtu.', ['Helistaja', [
+        'Tervitage ja öelge, miks helistate.', 'Küsige, kas raamatukogus on ruum umbes viieteistkümnele inimesele.', 'Küsige, mis päevadel ja mis kellani ruumi saab kasutada.', 'Küsige, kas ruumi eest tuleb maksta.', 'Küsige, kas ruumis tohib kohvi juua ja küpsiseid süüa.',
+      ]], ['Raamatukogu töötaja', [
+        'Küsige helistaja nime ja e-posti aadressi.', 'Teise korruse seminariruumi mahub kakskümmend inimest.', 'Ruumi saab kasutada esmaspäevast neljapäevani kella kaheksani õhtul.', 'Mittetulunduslikele rühmadele on ruum tasuta.', 'Kohvi võib juua, aga süüa tohib ainult kohvikus.',
+      ]]), { harno: 'S2', task: 'S04' }),
+        'Telefonikõne (Harno B1 rääkimise 2. osa, ≈ 5 min). Üks-ühele: õpetaja on raamatukogu töötaja (eksamineerija roll), siis vahetage. Hinda: kas kõik kaardi küsimused said küsitud ja vastatud ning kas kõne oli viisakas.'),
+      teach({ ...B.rubricSpeaking('080_t_rs'), data: { ...B.rubricSpeaking('080_t_rs').data, title: 'Hindamine: rääkimine (20 punkti, kõik ülesanded kokku).', instruction: 'Neli kriteeriumi, igaüks 0–5 punkti.', criteria: SPEAKING_B1 } },
+        `Hinda pärast kõiki ülesandeid koos (Harno B1 rääkimise neli kriteeriumi, B1 kirjeldustega; sama juhend hindas tunni 76 külma ülesannet). Piiripealne näide (12/20): vastab kõigile küsimustele, põhjendused on lühikesed (3), mõtted on seotud sõnadega sest ja aga (3), sõnavara kordub (3), tegusõna on pärast „minu arvates” vahel vales kohas (3). Kokkulepe ilma ühise otsuseta = ülesande täitmine kuni 2. Proovieksam kokku 103 punkti (kirjutamine 20, kuulamine 30, lugemine 33, rääkimine 20). ${THRESHOLDS} Harno tingimus: kui mõni osa on 0 punkti, ei ole eksam sooritatud. Vahekontroll (kursuse plaan): alla 75 % osas → õpetaja vaatab selle osa enne moodulit 17 õpilasega läbi. Kirjuta õpilase kaardile rääkimise 1 ja tunni 76 külma ülesande võrdlus (kolm märget).`),
+      B.rubric('080_t_points', 'Minu punktid: neli osa.', 'Kirjuta iga osa punktid. Võrdle neid 75 % läve ja 80 % eesmärgiga. Ükski osa ei tohi olla 0 punkti.', ['Kirjutamine: … / 20 (lävi 15, eesmärk 16)', 'Kuulamine: … / 30 (lävi 23, eesmärk 24)', 'Lugemine: … / 33 (lävi 25, eesmärk 27)', 'Rääkimine: … / 20 (lävi 15, eesmärk 16)', 'Kokku: … / 103 (Harno 60 % = 62, KeeleSepp 70 % = 73, 80 % = 83)', 'Osa, mille vaatan enne moodulit 17 õpetajaga läbi: …']),
+      B.selfcheck('080_t_self', ['Ma tegin kõik neli eksamiosa ajapiiranguga.', 'Ma tean oma punkte igas osas ja võrdlen neid 75 % läve ja 80 % eesmärgiga.', 'Ma tean, millise osa vaatan enne moodulit 17 õpetajaga läbi.', 'Ma võrdlen oma rääkimist tunni 76 külma ülesandega.'], 'Proovieksam 2 tehtud', 'Ma oskan …'),
+    ],
+  }),
 }, {
   'a2b1-076': 'RÄÄK L→S', 'a2b1-077': 'LUGE R→W', 'a2b1-078': 'KIRJ L→W', 'a2b1-079': 'PROB R→S', 'a2b1-080': 'PROOV',
 });

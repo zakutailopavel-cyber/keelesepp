@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Check, HandCoins, X } from 'lucide-react';
+import { ArrowRightLeft, Check, HandCoins, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import { Badge, Button, Card, Input, Modal } from '../../components/ui/index.js';
 import { financeRequestId } from '../../services/firebase/financeApi.js';
@@ -9,8 +9,9 @@ import { chosenCents, dayLabel, itemLine } from './myCashModel.js';
 // the amount on hand with „Andsin raha üle”, the hand-overs that wait for this person's „Sain kätte”, and the dialog.
 // `box` = financeApi.cashMine() (functions/cash-core.js myCashView + receivers).
 
-/** „Sinu käes 50 €” + „Andsin raha üle” (disabled with nothing to give). */
-export function MyCashSummary({ box, onHandOver, title = 'Sinu käes' }) {
+/** „Sinu käes 50 €” + „Sain sularaha” (when `onReceive` is given, owner 2026-11-26) + „Andsin raha üle” (disabled
+ * with nothing to give). */
+export function MyCashSummary({ box, onHandOver, onReceive = null, title = 'Sinu käes' }) {
   const canGive = box.availableCents > 0 && (box.receivers || []).length > 0;
   return (
     <Card className="my-cash-summary" as="section" aria-label="Minu käes olev sularaha">
@@ -19,9 +20,12 @@ export function MyCashSummary({ box, onHandOver, title = 'Sinu käes' }) {
         <strong>{euro(box.onHandCents)}</strong>
         {box.pendingOutCents > 0 ? <small>sellest {euro(box.pendingOutCents)} ootab kinnitust</small> : null}
       </div>
-      <Button onClick={onHandOver} disabled={!canGive} title={canGive ? undefined : box.availableCents > 0 ? 'Kassa vastuvõtjaid pole määratud' : 'Üle anda pole midagi'}>
-        <ArrowRightLeft size={16} aria-hidden="true" /> Andsin raha üle
-      </Button>
+      <div className="my-cash-summary__actions">
+        {onReceive ? <Button variant="secondary" onClick={onReceive}><Plus size={16} aria-hidden="true" /> Sain sularaha</Button> : null}
+        <Button onClick={onHandOver} disabled={!canGive} title={canGive ? undefined : box.availableCents > 0 ? 'Kassa vastuvõtjaid pole määratud' : 'Üle anda pole midagi'}>
+          <ArrowRightLeft size={16} aria-hidden="true" /> Andsin raha üle
+        </Button>
+      </div>
     </Card>
   );
 }
