@@ -3,7 +3,9 @@
     "a2-module-05",
     "a2-module-06"
   ],
-  "b1": [],
+  "b1": [
+    "a2b1-module-14"
+  ],
   "b2": [
     "b1b2-module-11",
     "b1b2-module-12"

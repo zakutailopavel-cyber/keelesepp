@@ -2259,6 +2259,11 @@
     "seconds": 111.9,
     "hash": "93f5a40da48300f1a2b5ff9409062ee43f55671b"
   },
+  "a2b1-067:067_d_pod": {
+    "src": "/audio/a2b1-067/067_d_pod.mp3",
+    "seconds": 129.4,
+    "hash": "315bec128b54969996af0e6bd7b4730e08299009"
+  },
   "a2b1-067:067_p_books": {
     "src": "/audio/a2b1-067/067_p_books.mp3",
     "seconds": 90.1,
@@ -2283,6 +2288,11 @@
     "src": "/audio/a2b1-068/068_p_viktor.mp3",
     "seconds": 121.7,
     "hash": "4f81da9679524cddb6961923fb04236948e1b273"
+  },
+  "a2b1-069:069_d_tale": {
+    "src": "/audio/a2b1-069/069_d_tale.mp3",
+    "seconds": 125.4,
+    "hash": "c8a16649323c742a7252691d104984a318549134"
   },
   "a2b1-069:069_p_parents": {
     "src": "/audio/a2b1-069/069_p_parents.mp3",
