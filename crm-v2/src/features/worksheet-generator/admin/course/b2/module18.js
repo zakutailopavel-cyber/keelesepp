@@ -21,7 +21,7 @@
 // closed drills still feed the Harjuta practice engine (practice/engine/extract.js reads the module files).
 // Moved: 086_p_radio, → Avasta; 086_d_notice, 087_d_notice, 087_d_table, 088_d_notice, 088_d_table → Harjuta. The v4 file
 // of 2026-11-03 is in git history (before this commit); the v3 file is in archive/v3/b2/module18.js.
-import { B, hide, tag, teach, withShapes } from '../blocks.js';
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'b1b2-module-18', course: 'b2', title: 'B2 rääkimine ja lõpphindamine', level: 'B2', design: 'v2', template: 'v4' };
 
@@ -358,7 +358,7 @@ export const LESSONS = withShapes({
         'Te annate meile kaks kuud üürivaba aega. | Kas te [annaksite] meile kaks kuud üürivaba aega?',
         'Me jagame kulud pooleks. | Mis oleks, kui me [jagaksime] kulud pooleks?',
         'Tarnija toob leiva igal hommikul kell seitse. | Kas tarnija [tooks] leiva igal hommikul kell seitse?',
-        'Ma saan hiljem rohkem maksta. | Hiljem [saaksin] ma maksta rohkem.',
+        'Ma saan hiljem rohkem maksta. | Hiljem [saaksin] ma rohkem maksta.',
         'Te mõtlete pakkumise üle. | Kas te [mõtleksite] pakkumise üle veel kord?',
       ], 'g_notice'),
       B.formtext('087_p_form', 'Pane sõnad õigesse vormi.', 'Loe kohviku omaniku kirja tarnijale. Kirjuta sulgudes olev sõna lünka sellises vormis, nagu tekst nõuab. Panka ei ole.', 'Kokkulepe tarnijaga', [
@@ -372,16 +372,25 @@ export const LESSONS = withShapes({
         '',
         'Esimese kuu järel [vaataksime] (vaatama, meie) koos üle, kas see kord sobib [mõlemale] (mõlemad). Ootan sinu kinnitust reedeni ja loodan meie pikale koostööle.',
       ], 'g_notice'),
-      B.transformation('087_p_polite', 'Järsust viisakaks.', 'Kirjuta lause läbirääkimise keeles. Märksõna ütleb, millist sammu kasutada.', [
-        ['Teil ei ole selles küsimuses üldse õigus.', 'erimeelsus', 'Mõistan teie seisukohta, kuid näen seda veidi teisiti.'],
-        ['See hind on täiesti naeruväärne.', 'täpsustamine', 'Mis peaks muutuma, et see hind teile sobiks?|Mis teid selle hinna juures kõige rohkem häirib?'],
-        ['Teeme kõik täpselt nii, nagu mina tahan.', 'kompromiss (mis oleks, kui)', 'Mis oleks, kui teeksime osa minu ja osa teie moodi ning vaataksime tulemust kuu aja pärast?'],
-        ['Ma ei muuda oma plaani mitte mingil juhul.', 'muutusele reageerimine', 'See muudab olukorda. Sel juhul oleksin valmis plaani muutma.'],
-        ['Sa ei kuula mind üldse, kui ma räägin!', 'kuulamine', 'Kui ma õigesti aru sain, on sinu jaoks selles küsimuses kõige olulisem aeg.'],
-        ['Ma ei maksa selle eest rohkem mitte ühtegi senti.', 'erimeelsus ja kompromiss', 'Mõistan, et kulud on suured, kuid kas sobiks, kui jagaksime need pooleks?'],
-        ['Tooge kaup kohe homme hommikul ära.', 'viisakas palve (kas te saaksite)', 'Kas te saaksite kauba homme hommikul enne kella kaheksat tuua?'],
-        ['Leping peab olema viieaastane, muidu ei sobi.', 'ettepanek (mis oleks, kui)', 'Mis oleks, kui sõlmiksime lepingu kohe viieks aastaks?'],
-      ], 'full', 'g_vocab'),
+      teach(why(B.transformation('087_p_polite', 'Järsust viisakaks.', 'Kirjuta lause läbirääkimise keeles. Märksõna ütleb, millist sammu kasutada. Õigeid vastuseid on mitu; õpetaja kontrollib.', [
+        ['Teil ei ole selles küsimuses üldse õigus.', 'erimeelsus', 'Näiteks: Mõistan teie seisukohta, kuid näen seda veidi teisiti. (või: Saan aru, aga minu arvates …)'],
+        ['See hind on täiesti naeruväärne.', 'täpsustamine', 'Näiteks: Mis peaks muutuma, et see hind teile sobiks? (või: Mis teid selle hinna juures kõige rohkem häirib? / Kuidas te selle hinna arvutasite? …)'],
+        ['Teeme kõik täpselt nii, nagu mina tahan.', 'kompromiss (mis oleks, kui)', 'Näiteks: Mis oleks, kui teeksime osa minu ja osa teie moodi ning vaataksime tulemust kuu aja pärast? (või: Mis oleks, kui prooviksime kõigepealt …)'],
+        ['Ma ei muuda oma plaani mitte mingil juhul.', 'muutusele reageerimine', 'Näiteks: See muudab olukorda. Sel juhul oleksin valmis plaani muutma. (või: Kui nii, siis …)'],
+        ['Sa ei kuula mind üldse, kui ma räägin!', 'kuulamine', 'Näiteks: Kui ma õigesti aru sain, on sinu jaoks kõige olulisem aeg. (või: Kas ma sain õigesti aru, et sa tahad …?)'],
+        ['Ma ei maksa selle eest rohkem mitte ühtegi senti.', 'erimeelsus ja kompromiss', 'Näiteks: Mõistan, et kulud on suured, kuid kas sobiks, kui jagaksime need pooleks? (või: Saan aru, aga mis oleks, kui …?)'],
+        ['Tooge kaup kohe homme hommikul ära.', 'viisakas palve (kas te saaksite)', 'Näiteks: Kas te saaksite kauba homme hommikul enne kella kaheksat tuua? (või: Kas te saaksite kauba homme … tuua?)'],
+        ['Leping peab olema viieaastane, muidu ei sobi.', 'ettepanek (mis oleks, kui)', 'Näiteks: Mis oleks, kui sõlmiksime lepingu kohe viieks aastaks? (või: Mis oleks, kui leping oleks …?)'],
+      ], 'full', 'g_vocab'), [
+        'Õige, kui lause ütleb erimeelsust viisakalt: mõistmine (Mõistan / Saan aru) + kuid / aga + oma seisukoht. Ilma „Teil ei ole õigus”.',
+        'Õige, kui on üks küsimus, mis uurib, mis hinnas häirib või mis peaks muutuma. Hinnangut („naeruväärne”) ei ole.',
+        'Õige, kui on „Mis oleks, kui …” ja tingiv kõneviis (teeksime, prooviksime) ning mõlema poole osa.',
+        'Õige, kui lause näitab, et uus info muudab olukorda, ja pakub muutust tingivas kõneviisis (oleksin valmis, võiksin).',
+        'Õige, kui õpilane kordab teise inimese mõtte oma sõnadega (Kui ma õigesti aru sain … / Kas ma sain õigesti aru, et …).',
+        'Õige, kui on nii mõistmine kui ka kompromissi ettepanek (kas sobiks, kui … / mis oleks, kui …).',
+        'Õige, kui käsk on muutunud küsimuseks „Kas te saaksite …” ja tegusõna on da-tegevusnimes (tuua).',
+        'Õige, kui nõudmine on muutunud ettepanekuks „Mis oleks, kui …” + tingiv kõneviis (sõlmiksime, oleks).',
+      ]), 'Vabad vastused: õpetaja kontrollib iga rida võtme kriteeriumi järgi, mitte ühe näidislause järgi. Kui lause täidab sammu, aga sõnad on teised, on see õige.'),
       hide(B.match('087_p_steps', 'Mis samm see on?', 'Ühenda lause ja läbirääkimise samm. Sama samm võib olla mitme lause juures.', [
         ['Kui ma õigesti aru sain, on teile tähtis pikk leping.', 'kuulamine'],
         ['Teie jaoks on siis kõige olulisem kindlus.', 'kuulamine'],

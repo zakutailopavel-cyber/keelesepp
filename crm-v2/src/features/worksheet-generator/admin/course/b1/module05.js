@@ -61,7 +61,7 @@ const half = (block) => ({ ...block, width: 'half', span: 6 });
 const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
 const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 021 case: a week at work (lihtminevik -si- / -s-)
@@ -243,7 +243,7 @@ export const LESSONS = withShapes({
         'ei + -nud → ei saatnud.',
         'ei + -nud, tüves t → d: ootama → ei oodanud.',
       ]), 'Kaheksa lauset näitavad, kuidas lihtminevik isiku ja eituse järgi muutub.'),
-      tag(purpose(B.writing('021_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma eelmisest nädalast 5–7 lauset: mida sa tegid ja mida ei teinud (ja miks).', [5, 7]), 'Oma laused on sinu sõnumi materjal.'), { task: 'W10' }),
+      tag(purpose(B.writing('021_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma eelmisest nädalast 5–7 lauset: mida sa tegid ja mida ei teinud (ja miks).', [5, 7]), 'Neid lauseid kasutad hiljem oma sõnumis.'), { task: 'W10' }),
       hide(B.formtext('021_p_draft', 'Markuse lugu võistlusele.', 'Markus kirjutas loo mustandi. Kirjuta sulgudes olev tegusõna minevikus.', 'Külm telefon', [
         'Eelmisel esmaspäeval [ärkasin] (ärkama) kell kuus. Ma [keetsin] (keetma) kohvi ja võtsin külmkapist piima. Olin väga unine.',
         '',

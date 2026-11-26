@@ -714,8 +714,8 @@ export const LESSONS = withShapes({
     ],
     practice: [
       half(tag(B.gaps('019_p_gaps', 'Mis on kus?', 'Kirjuta sulgudes olev sõna sobivas vormis (mille? kus?).', [
-        'Bussipeatus on [maja] ees. (maja)', 'Kohvik on [pargi] kõrval. (park)', 'Apteek on [poe] vastas. (pood)', 'Parkla on [kooli] taga. (kool)',
-        'Meie maja [asub] Pae tänaval. (asuma)', 'Mänguväljak on [kodu] lähedal. (kodu)', 'Pood on [jaama] vastas. (jaam)', 'Kas [majas] on lift? (maja)',
+        'Bussipeatus on [kaupluse] ees. (kauplus)', 'Kohvik on [pargi] kõrval. (park)', 'Apteek on [poe] vastas. (pood)', 'Parkla on [kooli] taga. (kool)',
+        'Meie maja [asub] Pae tänaval. (asuma)', 'Mänguväljak on [järve] lähedal. (järv)', 'Pood on [jaama] vastas. (jaam)', 'Kas [majas] on lift? (maja)',
       ], '', 'half'), { task: 'G08' })),
       half(tag(B.dictation('019_p_dict', 'Etteütlus. Minu tänav.', 'Õpetaja loeb viis lauset tänavast, iga lauset kaks korda. Kirjuta need üles.', ['Minu kodu asub kesklinna lähedal.', 'Maja kõrval on väike pood.', 'Pargi vastas on kool.', 'Bussipeatus on maja ees.', 'Minu korter on teisel korrusel.'], 5), { task: 'L08' })),
       teach(why(B.errorfix('019_p_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [

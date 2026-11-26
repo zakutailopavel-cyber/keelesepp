@@ -71,7 +71,7 @@ const half = (block) => ({ ...block, width: 'half', span: 6 });
 // a recording in a lesson: heard twice (G6)
 const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 016 project: a Saturday plan (kellaajad, kestus)
@@ -512,7 +512,7 @@ export const LESSONS = withShapes({
         'tohib + da-vorm → minna.',
       ]), 'Kaheksa lauset näitavad, millal tuleb ma-vorm ja millal da-vorm.'), { task: 'G08' }),
       B.know('017_p_know', 'Eestis on töö- ja puhkeaja reeglid kirjas töölepingu seaduses. Kui tööpäev on pikk, peab töötaja saama pausi, et süüa ja puhata. Kui töötaja jääb haigeks, peab ta sellest kohe tööandjale teatama.', 'töölepingu seadus (Riigi Teataja); KeeleSepa õppetekst'),
-      tag(purpose(B.writing('017_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma tööst, kursusest või kodust neli-viis reeglit: mida sa pead tegema, mida võid teha, mida ei pea tegema ja mida ei tohi teha.', [4, 5]), 'Oma reeglid on sinu sõnumi materjal.'), { task: 'W11' }),
+      tag(purpose(B.writing('017_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma tööst, kursusest või kodust neli-viis reeglit: mida sa pead tegema, mida võid teha, mida ei pea tegema ja mida ei tohi teha.', [4, 5]), 'Neid reegleid kasutad hiljem oma sõnumis.'), { task: 'W11' }),
       hide(B.examListen('017_p_radio', 'Raadio: telefonid koolis.', 'Kuula raadiointervjuud kooli uuest reeglist. Kas väide on õige või vale?', 'truefalse', [
         'Ülle: Tere, kuulajad! Alates jaanuarist on Kase koolis tundides telefon keelatud. Stuudios on kooli direktor Aivar Mänd. Tere!',
         'Aivar: Tere, Ülle!',
@@ -804,7 +804,7 @@ export const LESSONS = withShapes({
         'eituses osastav: lepingut.',
         'kokku leppima: osake lause lõpus, enne küsimärki.',
       ]), 'Kaheksa lauset näitavad, kuhu osake lauses läheb.'), { task: 'G03' }),
-      tag(purpose(B.writing('018_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma nädalast neli-viis lauset ühendverbidega: mida sa pead ära tegema, mida lükkad edasi, mis jääb ära ja mida oled juba läbi lugenud või ära maksnud.', [4, 5]), 'Oma laused on sinu märkme materjal.'), { task: 'W09' }),
+      tag(purpose(B.writing('018_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma nädalast neli-viis lauset ühendverbidega: mida sa pead ära tegema, mida lükkad edasi, mis jääb ära ja mida oled juba läbi lugenud või ära maksnud.', [4, 5]), 'Neid lauseid kasutad hiljem oma märkmes.'), { task: 'W09' }),
       hide(B.wordorder('018_p_order', 'Kus on osake? Õige järjekord.', 'Pane sõnad õigesse järjekorda. Mõtle, kuhu läheb ära, läbi, edasi või valmis.', [
         'Sofia loeb Anna nimekirja hoolikalt läbi.',
         'Kas sa maksid internetiarve juba ära?',

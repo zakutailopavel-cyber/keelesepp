@@ -87,7 +87,7 @@ const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
 // a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
 const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 036 infogap: a call to the activities leader (verb + case)
@@ -269,7 +269,7 @@ export const LESSONS = withShapes({
         'osalema milles? kursus → kursusel (-l, nagu tööl, koosolekul).',
         'pärast + omastav: poeg → poja pärast.',
       ]), 'Kaheksa lauset näitavad, kas tegusõna ja kääne käivad sul koos.'), { task: 'G02' }),
-      tag(purpose(B.writing('036_p_sent', 'Kirjuta terved laused.', 'Vasta huvikooli küsimustikule 5–7 terve lausega (enda, lapse või pereliikme kohta): Millest ta huvitub? Milles ta osaleb? Millega oli raske harjuda? Milleks ta praegu valmistub ja miks?', [5, 7]), 'Oma laused on sinu kõne materjal.'), { task: 'W01' }),
+      tag(purpose(B.writing('036_p_sent', 'Kirjuta terved laused.', 'Vasta huvikooli küsimustikule 5–7 terve lausega (enda, lapse või pereliikme kohta): Millest ta huvitub? Milles ta osaleb? Millega oli raske harjuda? Milleks ta praegu valmistub ja miks?', [5, 7]), 'Neid lauseid kasutad hiljem oma kõnes.'), { task: 'W01' }),
       hide(tag(B.wordforms('036_p_again', 'Proovi uuesti.', 'Nüüd tead reeglit. Kirjuta sõna vormis, mida lauses olev tegusõna või kaassõna nõuab.', [
         ['joonistamine', 'Daria huvitub juba lapsest saati …', 'joonistamisest'],
         ['uus päevakava', 'Esimesel nädalal harjub ta kiiresti …', 'uue päevakavaga'],
@@ -619,7 +619,7 @@ export const LESSONS = withShapes({
         'meeldib → da-vorm: vaadata.',
         'proovima → da-vorm; tegema → teha (erandlik vorm).',
       ]), 'Kaheksa lauset näitavad, kas ma- ja da-vorm on käes.'), { task: 'G03' }),
-      tag(purpose(B.writing('037_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset oma õppimisest: mida sa pead tegema, mida tahad osata, mida hakkad tegema ja mis on raske (pean …, tahan …, hakkan …, on raske …).', [5, 7]), 'Oma laused on sinu sõnumi materjal.'), { task: 'W11' }),
+      tag(purpose(B.writing('037_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset oma õppimisest: mida sa pead tegema, mida tahad osata, mida hakkad tegema ja mis on raske (pean …, tahan …, hakkan …, on raske …).', [5, 7]), 'Neid lauseid kasutad hiljem oma sõnumis.'), { task: 'W11' }),
       hide(B.crossword('037_p_cross', 'Ristsõna: õppimine.', 'Loe vihjet ja kirjuta õppimisega seotud sõna ristsõnasse.', [
         ['Selle sooritad lõpus, et saada tunnistus.', 'eksam'], ['Raamat, mille järgi tunnis õpitakse.', 'õpik'], ['Kõik sõnad, mida sa keeles tead.', 'sõnavara'],
         ['A2, B1 või B2 — keeleoskuse …', 'tase'], ['Lühike kontroll, näiteks proovi…', 'test'], ['Paber, mis näitab, et eksam on sooritatud.', 'tunnistus'],
@@ -958,7 +958,7 @@ export const LESSONS = withShapes({
         ['B', 'Hea mõte! Lepime kokku: nädal aega äppi ja laupäeval kohtud keelesõbraga.'],
       ], 'g_notice'), 'Enne kui sa ise arutad, näed, kuidas sõber annab nõu, põhjendab ja kokku lepib.'), { task: 'R12' }),
       'Üks-ühele: loe sina sõbra B rolli, õpilane sõbra A rolli; siis vahetage. Õpilane näitab sest-, kuna- ja seepärast-laused ning ütleb, kus on tegusõna (kuna …, ei ole mul; seepärast tahaksin ma). See on tunni lõpu paaritöö näidis.'),
-      hide(tag(purpose(B.writing('038_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: kuidas sa keelt õpid ja miks just nii. Kasuta igaüht vähemalt üks kord: sest, kuna, seepärast. Siis kontrolli: kas tegusõna on pärast kuna-lauset ja pärast seepärast kohe järgmine?', [5, 7]), 'Oma laused on sinu arutelu materjal.'), { task: 'W10' }), V5_CUT),
+      hide(tag(purpose(B.writing('038_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: kuidas sa keelt õpid ja miks just nii. Kasuta igaüht vähemalt üks kord: sest, kuna, seepärast. Siis kontrolli: kas tegusõna on pärast kuna-lauset ja pärast seepärast kohe järgmine?', [5, 7]), 'Neid lauseid kasutad hiljem oma arutelus.'), { task: 'W10' }), V5_CUT),
       hide(B.choice('038_p_link', 'Mis sõna sobib?', 'Vali lausesse sobiv sidesõna. Mõtle, kas järgneb põhjus või tagajärg ja kus on tegusõna.', [
         ['Anna õpib õhtul, … päeval on tal tööl kiire.', 'sest', 'seepärast', 'nii et'],
         ['… kursus lõpeb hilja, teeb Anna kodutöö hommikul.', 'Kuna', 'Sest', 'Seepärast'],
@@ -1268,7 +1268,7 @@ export const LESSONS = withShapes({
         'viisakas palve teile: saa + ksite → saaksite.',
         'viisakas palve endale: või + ksin → võiksin.',
       ]), 'Kaheksa lauset näitavad, kas kääne ja viisakas palve on käes.'), { task: 'G13' }),
-      tag(purpose(B.writing('039_p_sent', 'Kirjuta terved laused.', 'Kirjuta 6–8 lauset: millal sa oled millestki puudunud või maha jäänud, mida sa tegid ja kellelt abi palusid. Lõpus kirjuta kaks viisakat palvet (Kas te saaksite …? Kas ma võiksin …?).', [6, 8]), 'Oma laused on sinu e-kirja materjal.'), { task: 'W09' }),
+      tag(purpose(B.writing('039_p_sent', 'Kirjuta terved laused.', 'Kirjuta 6–8 lauset: millal sa oled millestki puudunud või maha jäänud, mida sa tegid ja kellelt abi palusid. Lõpus kirjuta kaks viisakat palvet (Kas te saaksite …? Kas ma võiksin …?).', [6, 8]), 'Neid lauseid kasutad hiljem oma e-kirjas.'), { task: 'W09' }),
       hide(B.adsmatch('039_p_ads', 'Kuulutused: kust abi saada?', 'Loe kuulutusi. Leia igale õppijale sobiv kuulutus ja kirjuta selle täht; üks kuulutus võib sobida mitmele.', [
         ['Keelekool Sõna: õhtune rühm', 'Inglise keel B1, teisipäeval ja neljapäeval kell 18–19.30. Rühmas on kuni 10 õppijat. Kursus kestab 12 nädalat ja maksab 290 eurot.'],
         ['Individuaaltunnid', 'Õpetaja tuleb sinu töö juurde või kohtume veebis. Aja valid ise, ka varahommikul. Tund maksab 35 eurot, esimene tund poole hinnaga.'],
