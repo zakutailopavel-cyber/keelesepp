@@ -31,6 +31,14 @@
   "a2-022|*|V11-input",
   "a2-023|*|V11-input"
  ],
+ "a2-module-06": [
+  "a2-026|*|V11-input",
+  "a2-027|*|V12-corner-minutes",
+  "a2-028|*|V11-input",
+  "a2-028|*|V12-corner-minutes",
+  "a2-029|*|V11-input",
+  "a2-029|*|V12-corner-minutes"
+ ],
  "course": [
   "*|*|V6-gap-L1"
  ]
