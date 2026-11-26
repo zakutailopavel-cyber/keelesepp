@@ -1,28 +1,93 @@
-// A2 course (A1 → A2 roadmap), module 6 „Söök, jook ja kohvik” (a2-026…030), level A2, in the final shape
-// (docs/COURSE_FINAL_SHAPE_A2.md, row m6: RÄÄK LUGE PROJ KIRJ; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
-// One storyline, one year before the B1 course (docs/COURSE_CAST.md): Sofia (27) rents a room from Malle Pärn (66) in
-// Mustamäe (flatmate Grete, 22) and learns Estonian at Keelekool Sõna (teacher Maret, administrator Ene, classmates Lucía
-// from Valencia — a vegetarian, husband Mart —, Dmitri, Tom from Ireland — milk allergy). Her brother Jaan is the cook of
-// café Pann (owner Ants Raud, barista Siim; open daily 8–16, tel 5512 3344); uncle Viktor sells apples, eggs and honey at
-// Nõmme market; Kadri (Jaan's wife) and the children Mia (does not eat fish) and Oskar (may not eat nuts); Jaan's old
-// acquaintance Anna works in a shop; Markus is a regular guest of Pann; Sofia's friend Kati visits on Saturday; radio
-// „Mustamäe hääl” (host Ülle) with passers-by Aino, Kalju, Liina; phone customers Heino and Merike.
-//   026 RÄÄK L→S  the market and Kadri's Sunday lunch — söön leiba (partitive) against mulle maitseb leib (nominative);
-//                 corner S2 (question card: one asks, one answers); main: the Sunday menu agreed on an idea card (S03).
-//   027 LUGE R→S  Malle's soup and the language school's food day — quantity + partitive (kaks liitrit vett, kilo
-//                 kartuleid); corner R3 (signs and packaging); main: choosing the food-day menu within 30 € (S12).
-//   028 PROJ R→W  café Pann, Kati's visit and Ants Raud's call for reviews — ordering (Ma soovin + partitive, Palun mulle
-//                 üks …); corner W2a (an invitation to Kati); main: a 70–90-word review for Pann's website (W05).
-//   029 KIRJ L→W  the bill and Mia's party — prices, -ga / ilma …-ta; corner L2 (Lucía's call, true / false); main: a
-//                 50–70-word letter to Kadri with the shopping list (W04), planned, written and edited.
-//   030 EKS       the module check; its exam-form tasks carry their Harno A2 ids (R1, R5, L3, W2a, S2).
-// Every teaching lesson: „Mäletad?” naming the previous lesson and one of modules 2–4, an in-lesson pair task, a home
-// recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2). The v3 file is in archive/v3/a2/module06.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 6 „Söök, jook ja kohvik” (a2-026…030), stage A2- (lessons 021–050).
+// Methodology v5 for A2 (docs/METHODOLOGY_A2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25), in the
+// pattern of A2 module 5 (the first A2 module on v6):
+//   - every teaching lesson: ≤ 14 blocks (≤ 5 / 4 / 5) in a 60-minute lesson; one input; one learning picture on the page of
+//     its task (art/visuals/a2-module-06.js); a 5-minute pronunciation corner (data.pronunciation: 026 vokaalid, 027 the
+//     dictation heard for välted, 028 intonatsioon, 029 välted); the rule box („Märka”, bold forms, one „Vene keeles …
+//     — eesti keeles …” line) is produced by the Harjuta form task, whose hints are the dictionary form or the other form
+//     of the pair (Ma söön leiba. → Mulle maitseb [leib]), never the answer;
+//   - Kasuta in the standard order: situation → main task (data.taskType, data.support = „Abikaart”, data.stretch =
+//     „Lisaväljakutse”) → home task (homeTask, always „Harjuta → moodul 6”) → exit check (exitCheck: 30 s of speech after
+//     a speaking main task, one rewritten line after a writing main task) beside the self-check (three success criteria
+//     0–1–2 + one own sentence, data.evidence);
+//   - main-task types rotate and differ from module 5 (survey, infogap, phone, ranking): 026 presentation (my plate),
+//     027 roleplay (a market stall with HIDDEN INFORMATION, G9), 028 project (the group's café guide, a classmate answers:
+//     data.peerReply), 029 message (the group's lunch order in the course chat, without ready phrases or a given opening);
+//   - spaced retrieval: every vocab block carries data.review (3 words from 3–15 lessons back, used again in the input);
+//   - real network: 026's home task is the media log („Minu eesti keele võrgustik”, a real public page with its URL),
+//     028's café card goes to a classmate who answers, 029's order goes to the course chat (data.realAddressee);
+//   - Harno A2 exam corners from module 6 (COURSE_FINAL_SHAPE_A2.md, finalShape.js profile a2): 026 S2 (question card),
+//     027 R3 (signs and packaging), 028 W2a (an invitation), 029 L2 (a phone order, true / false); the control
+//     tags R1, R4, L3, L2, W2a, S2;
+//   - a teacher page per lesson (lesson.teacherPage); until the A2 sheet renders it, the same plan stands in the teacher
+//     note of the lesson's „Mäletad?” block.
+//   026 RÄÄK L→S  „Mida sa sööd ja jood?” — a street radio poll (listening). sööma / jooma + osastav (söön leiba, ei joo
+//                 piima) against maitseb / meeldib + nimetav (mulle maitseb leib); three fridges = whose is it?; the S2
+//                 question card; main: „Minu taldrik”, a 45–60-second talk with a photo or a drawing.
+//   027 LUGE R→S  „Kilo kartuleid, palun!” — a market's weekly offers (reading). Quantity + osastav (kaks liitrit piima,
+//                 kilo kartuleid); the module's COLD TASK („Proovi kohe: osta toitu” without help, its parallel is the
+//                 control's speaking 1); the dictation (5 sentences) is the pronunciation corner; the R3 corner; main: buying
+//                 at a market stall with hidden information (the picture's price signs).
+//   028 PROJ R→W  „Mida te soovite?” — a café menu (reading). Ma soovin + osastav, Palun mulle üks + nimetav, tass kohvi;
+//                 three customers in the picture; the W2a corner, an invitation (its parallel is the control's writing);
+//                 main: a café card for the group's café guide, read and answered by a classmate; home: the card as a
+//                 45-second recording.
+//   029 KIRJ L→W  „Arve, palun!” — a phone order that changes (listening, the L2 corner). -ga / ilma …-ta, prices in words;
+//                 the bill in the picture has two errors; the module's last teaching lesson: one speech and one text
+//                 without ready phrases or a given opening (G9); main: the group's lunch order in the course chat.
+//   030 EKS       Control 6 (one sheet, 9 blocks, 45 min): reading, listening, writing, speaking 10 points each; raw points,
+//                 the Harno scale (× 2), the thresholds named one way, „ükski osa ei tohi olla 0 punkti”; 4 of the 20 closed
+//                 items recycle modules 4–5 (teacher note „Varasemast”); writing parallel to 028's invitation, speaking
+//                 1 parallel to 027's cold task.
+// No lesson uses the continuing story's cast (G7). Dictation: one, in 027 (5 sentences). Texts are learning texts, the
+// people and places are invented (Aino, Kalju, Liina, Tiina, kohvik Lumi …); real pages are named only by title and URL.
+// The final-shape module (2026-10-29, one storyline with Sofia, Jaan, Malle …) is kept below as OLD: every old block keeps
+// its id and comes back hidden (retire), so learners' saved answers keep their key and Harjuta still draws on the old
+// form tasks.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask } from '../stationBlocks.js';
 
 export const MODULE = { id: 'a2-module-06', course: 'a2', title: 'Söök, jook ja kohvik', level: 'A2', design: 'v2', template: 'v4' };
 
-export const LESSONS = withShapes({
+// one line for every block taken off the sheets by the v5 / v6 rewrite
+const V6_CUT = 'v5+v6 (2026-11-26): lehelt maha — tunni eelarve (60 min), üks sisend, loo tegelased mitte, uus tunni ülesanne';
+// a recording is heard twice (methodV5.js G6); in the control the player is locked
+const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// more fields on a block (v6 markers: taskType, support, stretch, review, pronunciation, peerReply, mediaLog, hiddenInfo)
+const v6 = (block, data) => ({ ...block, data: { ...block.data, ...data } });
+// the self-check of v6 (G24): the main task's three success criteria rated 0–1–2 and one own sentence as evidence
+const selfcheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, criteria, stamp, 'Kuidas mul läks?');
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0, 1 või 2. Kirjuta üks oma lause.', criteria, scale: [0, 1, 2], evidence: true } };
+};
+// a check is one sheet with its own label (no „Avasta” subtitle)
+const checkSheet = (label, subtitle) => ({ discover: { label, slot: 1, subtitle } });
+// the thresholds, named one way everywhere (METHODOLOGY_A2_V5.md §2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi, et eksamil oleks varu).';
+// the teacher's plan of a lesson, shown today in the teacher note of its first block (A2 sheets do not render
+// lesson.teacherPage yet; METHODOLOGY_V6.md §2 i)
+const planNote = (p) => [
+  `Õpetaja leht. Eesmärk: ${p.goal}`,
+  `Põhitee (60 min): ${p.core}`,
+  `Lühike tee (45 min): ${p.short}`,
+  `Alternatiiv: ${p.alt}`,
+  `Kui aega jääb: ${p.extra}`,
+  `Tüüpvead: ${p.errors.join(' · ')}`,
+].join('\n');
+// the old blocks the new lesson does not reuse come back hidden, in their old phase
+const PHASES = ['discover', 'practice', 'transfer'];
+function retire(old, lesson) {
+  const used = new Set(PHASES.flatMap((p) => (lesson[p] || []).map((b) => b.id)));
+  const out = { ...lesson };
+  PHASES.forEach((p) => { out[p] = [...(lesson[p] || []), ...(old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, V6_CUT))]; });
+  return out;
+}
+
+// ---------------------------------------------------------------- the final-shape module (2026-10-29, one storyline): every
+// block stays here with its id; the v6 lessons below take what they reuse and hide the rest (retire).
+const OLD = {
   'a2-026': {
     title: 'Toit ja joogid',
     canDo: 'Ma räägin, mida ma söön ja joon ning mis mulle maitseb (söön leiba, mulle maitseb leib), küsin seda teistelt ja lepin kokku pere lõuna menüü.',
@@ -707,6 +772,513 @@ export const LESSONS = withShapes({
       B.selfcheck('030_t_self', ['Ma täidan toidu küsitluse.', 'Ma kirjutan 40–60-sõnalise sõnumi oma soovidest.', 'Ma räägin oma toidust umbes minuti.', 'Ma tellin kohvikus ilma abita.'], 'Moodul 6 on läbitud'),
     ],
   },
+};
+
+// ---------------------------------------------------------------- the v6 lessons
+const P026 = {
+  goal: 'õppija ütleb, mida ta sööb ja joob ja mis talle maitseb (sööma / jooma + osastav, maitseb / meeldib + nimetav), ja tutvustab 45–60 sekundiga oma toidupäeva.',
+  core: 'Mäletad? (3) → sõnad (4) → raadio 2× (8) → Märka (4) → kolm külmkappi paaris (6) → lüngad (5) → hääldusnurk (5) → eitavad laused (5) → küsimuskaart (6) → minu taldrik (9) → väljumine (2) → kodutöö ja enesekontroll (3).',
+  short: 'raadio → Märka → kolm külmkappi → lüngad → minu taldrik → väljumine; eitavad laused ja hääldusnurk koju (Harjuta).',
+  alt: 'foto asemel joonistab õppija oma taldriku tahvlile; kaaslased arvavad, mis kell ta seda sööb, ja küsivad kaks küsimust.',
+  extra: 'mida süüakse õppija kodumaal hommikul — kolm lauset: seal süüakse …, mulle maitseb …, ma ei joo ….',
+  errors: ['„ma söön leib” → ma söön leiba (vene „ем хлеб”)', '„mulle maitseb kohvi” → mulle maitseb kohv', '„ma ei joo piim” → ma ei joo piima (eitus + osastav)', '„mulle meeldib õunad” → mulle meeldivad õunad'],
+};
+const P027 = {
+  goal: 'õppija ütleb koguse osastavaga (kaks liitrit piima, kilo kartuleid, pakk võid), küsib hinda ja ostab turul nii, et raha jätkub.',
+  core: 'Mäletad? (3) → sõnad (4) → KÜLM ÜLESANNE „Proovi kohe” ilma abita, õpetaja paneb kirja 3 märget (4) → turu pakkumised (7) → Märka (4) → lüngad (5) → etteütlus ja välted (6) → sildid (5) → minu supp paaris (5) → turuleti juures VARJATUD INFOGA (10) → väljumine (2) → kodutöö ja enesekontroll (3).',
+  short: 'Proovi kohe → turu pakkumised → Märka → lüngad → turuleti juures → väljumine; sildid ja etteütlus koju (Harjuta).',
+  alt: 'turuleti asemel päris pood: õppija vaatab telefonis ühe poe e-poodi ja paneb ostukorvi viis asja 10 euro eest, siis ütleb kogused ja summa.',
+  extra: 'mis maksab toit õppija kodumaal — kolm lauset: kilo … maksab …, liiter … maksab ….',
+  errors: ['„kaks liitrid piima” → kaks liitrit piima (arv + ainsuse osastav)', '„kilo kartulid” → kilo kartuleid', '„pakk või” → pakk võid', '„kaks liitri piima” (vene „два литра”) → kaks liitrit'],
+};
+const P028 = {
+  goal: 'õppija tellib kohvikus endale ja teisele (Ma soovin suppi. Palun mulle üks tee. Palun tass kohvi.) ja kirjutab rühma kohvikujuhti 30–45-sõnalise kaardi.',
+  core: 'Mäletad? (3) → sõnad (4) → menüü (7) → Märka (4) → kolm klienti pildi järgi (6) → lüngad (5) → hääldusnurk: intonatsioon (5) → eksaminurk: kutse sõbrale (8) → kohvikus paaris (6) → kohvikujuhi kaart, kaaslane loeb ja küsib (9) → väljumine: üks lause uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'menüü → Märka → kolm klienti → lüngad → kohvikujuhi kaart → väljumine; kutse ja hääldusnurk koju (Harjuta).',
+  alt: 'kaardi asemel suuline soovitus: õppija soovitab kaaslasele 45 sekundiga üht kohvikut ja kaaslane küsib kaks küsimust.',
+  extra: 'kohvik õppija kodulinnas — mida seal tellitakse ja mis see maksab; kolm lauset.',
+  errors: ['„Ma soovin supp” → Ma soovin suppi (soovima + osastav)', '„Palun mulle üks teed” → Palun mulle üks tee (üks + nimetav)', '„tass kohv” → tass kohvi', '„Anna mulle kohvi!” võõrale → Palun mulle üks kohv.'],
+};
+const P029 = {
+  goal: 'õppija saab aru telefoni tellimusest ja hindadest, kontrollib arvet, ütleb -ga ja ilma …-ta (kohv piimaga, tee ilma suhkruta) ning kirjutab ilma abita rühma lõunatellimuse.',
+  core: 'Mäletad? (3) → sõnad (4) → telefonikõne 2× (8) → Märka (4) → arvel on viga, pildi järgi (6) → tabel -ga / ilma …-ta (5) → hääldusnurk: välted (5) → muuda tellimust (6) → rühma tellimus kursuse vestlusesse (10) → väljumine: üks lause uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'telefonikõne → Märka → arvel on viga → tabel → rühma tellimus → väljumine; muuda tellimust ja hääldusnurk koju (Harjuta).',
+  alt: 'kirjaliku tellimuse asemel helistab õppija „kohvikusse” (õpetaja) ja tellib rühmale; õpetaja kordab tellimuse ühe veaga, õppija parandab.',
+  extra: 'jootraha õppija kodumaal ja Eestis — kas jäetakse? Kolm lauset.',
+  errors: ['„tee ilma suhkur” → tee ilma suhkruta', '„kohv piim” → kohv piimaga (omastav + -ga)', '„kaks euro” → kaks eurot', '„viis eurot kakskümmend sent” → kakskümmend senti'],
+};
+const P030 = {
+  goal: 'kontroll 6: neli oskust 10 punkti, toorpunktid, Harno skaala ja lävendid; võrdlus kontrolliga 5.',
+  core: 'kuidas punkte loetakse (2) → lugemine 1–2 (14) → kuulamine 1–2 (10) → kirjutamine (10) → rääkimine üks-ühele (5) → tulemus (4).',
+  short: 'kui aega on 35 minutit: lugemine, kuulamine ja kirjutamine tunnis, rääkimine järgmise tunni alguses (5 min).',
+  alt: 'rühmas: rääkimine paaris (üks müüja, teine ostja; siis vahetus), õpetaja hindab kahte õppijat korraga sama juhendi järgi.',
+  extra: 'õppija vaatab oma kahte nõrgemat rida juhendis ja kirjutab, mida ta Harjutas kordab.',
+  errors: ['kuulamisel kirjutatakse terve lause — piisab 1–2 sõnast', 'kirjutamisel puudub üks neljast punktist', 'rääkimisel „kaks liitri” → kaks liitrit'],
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 026 listening: what I eat and drink
+  'a2-026': retire(OLD['a2-026'], {
+    title: 'Mida sa sööd ja jood?',
+    canDo: 'Ma räägin, mida ma söön ja joon ning mis mulle maitseb (söön leiba, mulle maitseb leib), ja tutvustan oma toidupäeva pildi järgi.',
+    teacherPage: P026,
+    discover: [
+      teach(B.review('026_d_review', [['Mis kell on sinu lähim pood avatud?', 'a2-024'], ['Mis on sinu köögis? Mis on külmkapis?', 'a2-016'], 'Mida sa hommikul sööd ja jood?']), planNote(P026)),
+      tag(v6(B.vocab('026_d_vocab', 'Tunni sõnad.', ['leib — хлеб', 'juust — сыр', 'piim — молоко', 'liha — мясо', 'kala — рыба', 'puder — каша', 'köögiviljad — овощи', 'puuviljad — фрукты', 'jook — напиток', 'maitsema — нравиться на вкус']),
+        { review: ['hommikusöök', 'tavaliselt', 'köök'] }), { topic: ['maitsema', 'taimetoitlane', 'jogurt'] }),
+      twice(teach(tag(B.listening('026_d_radio', 'Raadio küsib: mida te sööte?', 'Kuula kaks korda. Kirjuta lünka üks sõna.', [
+        'Ülle: Tere! Siin on raadio „Linna hääl”. Täna küsime: mida te hommikusöögiks sööte ja joote?',
+        'Aino: Mina söön tavaliselt putru. Ma joon ka tassi kohvi piimaga.',
+        'Ülle: Kas teile meeldib eesti toit?',
+        'Aino: Jah! Mulle maitseb must leib. Ma söön leiba iga päev.',
+        'Kalju: Mina hommikul ei söö. Ma joon ainult kaks tassi kohvi.',
+        'Kalju: Lõunal söön ma tööl suppi. Mulle ei maitse kala, aga liha ma söön.',
+        'Liina: Mina olen taimetoitlane. Ma ei söö liha ega kala.',
+        'Liina: Hommikul söön ma jogurtit ja puuvilju. Mulle meeldivad õunad.',
+        'Liina: Õhtul joon ma teed. Kohvi ma ei joo.',
+        'Ülle: Ja kus te sööte?',
+        'Kalju: Kodus, köögis. Meie köök on väike, aga soe.',
+        'Ülle: Aitäh! Head isu kõigile!',
+      ], ['Aino sööb hommikul [putru].', 'Ainole maitseb must [leib].', 'Kalju joob hommikul kaks tassi [kohvi].', 'Lõunal sööb Kalju tööl [suppi].', 'Kaljule ei maitse [kala].', 'Liina ei söö liha ega [kala].', 'Liinale meeldivad [õunad].', 'Õhtul joob Liina [teed].'], 'g_listen'), { task: 'L04' }),
+      'Kuulamisstrateegia (enne esimest kuulamist): „Ennusta: mida inimesed hommikul söövad?” Esimesel korral kirjutab õpilane ainult toidud, teisel korral kontrollib vormi (putru, kohvi, teed — aga maitseb leib). Vanad sõnad: hommikusöök, tavaliselt, köök.')),
+      B.notice('026_d_notice', 'Märka: söön leiba, aga mulle maitseb leib', [
+        'Mida? sööma, jooma + osastav: ma söön **leiba**, **juustu**, **putru**',
+        'ma joon **kohvi**, **teed**, **vett** · eitus: ma ei joo **piima**',
+        'Mis? maitseb, meeldib + nimetav: mulle maitseb **leib**, talle meeldib **kohv**',
+        'Mitu: ma söön **õunu**, aga mulle meeldivad **õunad**',
+        'Küsi: Mida sa sööd? — Mis sulle maitseb?',
+        'Vene keeles „я ем хлеб” — eesti keeles ma söön leiba (osastav, mitte „söön leib”).',
+      ], 'full'),
+      teach(tag(B.rolecards('026_d_fridge', 'Proovi kohe: kolm külmkappi.', 'Vaata pilti. Ütle, kes mida sööb. Kelle külmkapp see on?',
+        'Sina räägid külmkappidest 1 ja 2. Ütle iga külmkapi kohta kaks lauset: Selle inimese külmkapis on … Ta sööb … ja joob … Siis küsi B-lt: kelle külmkapp see on? Kas B arvas õigesti?',
+        'Kuula A-d ja vali inimene: Rasmus (sportlane), Leida (70, armastab kooki) või Eva (ei söö liha). Siis räägi sina külmkapist 3: mida see inimene sööb, mida ta ei söö? A arvab, kelle külmkapp see on.',
+        ['Külmkapis 1 on …', 'Ta sööb … ja joob …', 'Kelle külmkapp see on?'], ['See on … külmkapp, sest …', 'Ta ei söö …', 'Külmkapis 3 on …']), { task: 'S06', level: 3, fluency: true }),
+      'Üks-ühele: õpilane räägib külmkappidest 1 ja 2, õpetaja arvab; siis räägib õpetaja külmkapist 3 ja õpilane arvab. Pildil on toidud algvormis (liha, munad, piim), nii et õpilane teeb ise osastava: 1 = Rasmus (sööb liha ja mune, joob piima ja vett), 2 = Eva (sööb porgandeid, õunu ja juustu, joob mahla, liha ei söö), 3 = Leida (sööb kooki, kala, moosi ja võid). Paranda ainult osastavat.'),
+    ],
+    practice: [
+      tag(B.gaps('026_p_gaps', 'Mida? Mis?', 'Kirjuta sõna õiges vormis.', [
+        'Hommikul ma söön [leiba] ja [juustu]. (leib; juust)',
+        'Lapsed söövad [putru]. (puder)',
+        'Ma joon [kohvi], aga ma ei joo [piima]. (kohv; piim)',
+        'Pärast trenni joon ma [vett]. (vesi)',
+        'Mulle maitseb must [leib]. (Ma söön leiba.)',
+        'Ma söön [õunu]. Mulle meeldivad [õunad]. (õun)',
+        'Talle meeldib [kohv]. (Ta joob kohvi.)',
+      ], '', 'half'), { task: 'G03' }),
+      teach(tag(v6(B.choice('026_p_pron', 'Hääldusnurk: õ, ä, ö, ü.', 'Kuula sõna ja vali. Siis räägi üks lause kaasa.', [
+        ['Sõna 1', 'või', 'vöö'],
+        ['Sõna 2', 'söö', 'soo'],
+        ['Sõna 3', 'jää', 'jaa'],
+        ['Sõna 4', 'küla', 'kõla'],
+      ], 'half', 'g_listen'), { pronunciation: 'vokaalid' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Näita suu kuju: õ — huuled laiad, keel taga; ö ja ü — huuled ümarad; ä — suu lahti. Ütle igast reast võtmes oleva sõna (või, söö, jää, küla); õpilane valib. Siis varjutamine: loe „Ma söön hommikul putru ja joon teed.”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: õ ei ole „ы”, ä on lahtisem kui „э”, öö ja üü on pikad.'),
+      teach(why(B.transformation('026_p_neg', 'Ei, ma ei söö!', 'Sõber eksib. Kirjuta eitav lause.', [
+        ['Sa sööd hommikul putru.', 'Ei, ma ei …', 'Ei, ma ei söö hommikul putru.'],
+        ['Sa jood õhtul kohvi.', 'Ei, ma ei …', 'Ei, ma ei joo õhtul kohvi.'],
+        ['Sulle maitseb kala.', 'Ei, mulle ei …', 'Ei, mulle ei maitse kala.'],
+        ['Sa sööd liha.', 'Ei, ma ei …', 'Ei, ma ei söö liha.'],
+        ['Sulle meeldivad porgandid.', 'Ei, mulle ei …', 'Ei, mulle ei meeldi porgandid.'],
+        ['Sa jood piima.', 'Ei, ma ei …', 'Ei, ma ei joo piima.'],
+        ['Sa jood hommikul teed.', 'Ei, ma ei …', 'Ei, ma ei joo hommikul teed.'],
+        ['Sulle meeldib juust.', 'Ei, mulle ei …', 'Ei, mulle ei meeldi juust.'],
+      ]), [
+        'ei + söö; putru jääb osastavasse.',
+        'ei + joo; kohvi jääb osastavasse.',
+        'ei + maitse; kala on nimetav (mis?).',
+        'ei + söö; liha (osastav = algvorm).',
+        'ei + meeldi (ka mitmuses); porgandid on nimetav.',
+        'ei + joo; piima (osastav).',
+        'ei + joo; teed jääb osastavasse.',
+        'ei + meeldi; juust on nimetav (mis?).',
+      ]), 'Üks-ühele: õpilane kirjutab ja loeb lause ette; siis ütleb ta ühe tõese lause enda kohta („Ma ei joo …”).'),
+      teach(tag(B.rolecards('026_p_cards', 'Eksaminurk: küsimuskaart „Toit”.', 'A küsib märksõnade järgi, B vastab. Siis vahetage.',
+        'Sa küsid. Märksõnad: hommikusöök? lemmiktoit? mida ei söö? turg või pood? kohvik? Küsi iga märksõna kohta üks küsimus.',
+        'Sa vastad täislausega ja lisad ühe detaili: kus, millal või miks. Siis küsid sina. Märksõnad: lõuna? jook? magus? kodus süüa? külaline?',
+        ['Mida sa … sööd?', 'Kas sa …?'], ['Ma söön …, sest …', 'Mulle maitseb …']), { harno: 'S2', task: 'S03', fluency: true }),
+      'Üks-ühele: nagu Harno A2 rääkimise 2. osas. Õpetaja küsib viis küsimust, õpilane vastab ja lisab detaili; siis küsib õpilane õpetajalt teise kaardi järgi. Kokku 5–6 minutit, hinda nagu eksamil.'),
+    ],
+    transfer: [
+      B.text('026_t_sit', 'Olukord: meie rühma toidupäev', 'Teie rühm teeb seinale plakati „Mida me sööme?”. Iga õppija näitab ühte toidupilti oma telefonist või joonistab oma taldriku. Ta räägib 45–60 sekundit: mis see on, millal ta seda sööb ja mis talle maitseb. Kaaslased küsivad kaks küsimust.'),
+      teach(tag(v6(B.speaking('026_t_plate', 'Minu taldrik.', 'Näita pilti ja räägi 45–60 sekundit. Siis vasta kahele küsimusele.', [
+        'Mis toit see on?',
+        'Millal ja kus sa seda sööd?',
+        'Mida sa selle kõrvale jood?',
+        'Mis sulle maitseb? Mida sa ei söö?',
+      ], [45, 60]), {
+        taskType: 'presentation', realAddressee: 'rühma kaaslased (plakat „Mida me sööme?”)',
+        support: ['See on minu … (hommikusöök, lõuna, õhtusöök).', 'Ma söön seda tavaliselt …, ma joon selle kõrvale …', 'Mulle maitseb …, aga ma ei söö …'],
+        stretch: 'Võrdle oma toitu kodumaa toiduga: mis on sama, mis on teistsugune?',
+      }), { task: 'S15', main: true, level: 4 }),
+      'Üks-ühele: õpilane näitab telefonist pilti (või joonistab taldriku) ja räägib 45–60 sekundit; õpetaja küsib kaks küsimust („Kas sa teed seda ise?”, „Mis see maksab?”). Abikaart: kolm lausealgust, kui õpilane jääb vait (märgi, et seda kasutati). Lisaväljakutse: võrdlus kodumaaga. Rühmas: kaaslased küsivad, õpetaja märgib osastava vead.'),
+      exitCheck(tag(B.speaking('026_t_exit', 'Väljumine: minu toidupäev.', 'Ütle 30 sekundiga: mida sa sööd ja jood ühel päeval?', [
+        'Mida sa sööd hommikul ja lõunal?',
+        'Mida sa jood? Mis sulle ei maitse?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true })),
+      homeTask(teach(v6(tag(B.examWriting('026_t_home', 'Kodus: minu eesti keele võrgustik.', 'Vaata üht eestikeelset toidulehte. Kirjuta 25–40 sõna. Harjuta → moodul 6.', 'teade', {
+        situation: 'Vaata üht päris eestikeelset toidulehte, nt „Toitumine.ee” (https://toitumine.ee) või oma poe retseptilehte. Kirjuta oma meediapäevikusse.',
+        points: ['mida sa vaatasid', 'üks uus toidusõna sellelt lehelt', 'mis toit või retsept sulle meeldis', 'kas sa soovitad seda lehte kaaslasele ja miks'],
+        words: [25, 40],
+      }), { task: 'W02' }), { mediaLog: true, lines: 15 }),
+      'Meediapäevik „Minu eesti keele võrgustik” (mooduli kirje): õppija avab ise ühe päris eestikeelse lehe (lehte sisse ei kopeerita) ja kirjutab neli punkti. Järgmisel tunnil loeb ta oma uue sõna ette. Harjuta → moodul 6: sõnad ja vormid (10 min).')),
+      teach(selfcheck('026_t_self', ['Ma ütlen osastavas: söön leiba, joon kohvi, ei joo piima.', 'Ma ütlen nimetavas: mulle maitseb leib, meeldivad õunad.', 'Ma räägin oma toidupäevast 45–60 sekundit.'], 'Tund 26 on läbitud'), 'Üks-ühele: õpilane hindab end kolmel real; õpetaja ütleb oma hinde samale reale ja võrdlete. Õpilane kirjutab ühe oma lause tõendiks.'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 027 reading: quantities at the market
+  'a2-027': retire(OLD['a2-027'], {
+    title: 'Kilo kartuleid, palun!',
+    canDo: 'Ma räägin turul müüjaga ja ostan toitu nii, et raha jätkub: ütlen koguseid osastavaga (kaks liitrit piima, kilo kartuleid) ja loen turu pakkumisi.',
+    teacherPage: P027,
+    discover: [
+      teach(B.review('027_d_review', [['Mis sulle maitseb ja mida sa ei söö?', 'a2-026'], ['Mis on sinu kodu lähedal: pood või turg?', 'a2-019'], 'Mida sa sel nädalal poest ostad?']), planNote(P027)),
+      tag(v6(B.vocab('027_d_vocab', 'Tunni sõnad.', ['kilo — килограмм', 'liiter — литр', 'pool — половина', 'pakk — пачка', 'pudel — бутылка', 'purk — банка', 'tükk — штука', 'natuke — немного', 'odav — дешёвый', 'kallis — дорогой']),
+        { review: ['pood', 'turg', 'maksma'] }), { topic: ['purk', 'päts', 'pakkumine', 'meepurk', 'kilekott', 'pagar'] }),
+      teach(tag(B.speaking('027_d_cold', 'Proovi kohe: osta toitu.', 'Osta õpetajalt supi jaoks neli asja. Ilma abita.', [
+        'Mida sa tahad osta?',
+        'Kui palju: kilo, liiter, mitu tükki?',
+        'Mis see maksab? Kuidas sa maksad?',
+      ], [45, 60]), { task: 'S01', level: 3 }),
+      'MOODULI KÜLM ÜLESANNE (2–3 min, enne lugemist ja reeglit): õpetaja on müüja, õpilane ostab ilma abita; õpetaja ei aita ega paranda. Pane kirja kolm märget: kas kogus + osastav on õige (kilo kartuleid, liiter piima), kas õpilane küsib hinda, kas ta on viisakas (palun, aitäh). Kontrolli 6 rääkimise 1. osa on selle paralleel (teine toit, samad kriteeriumid) — võrdle.'),
+      teach(tag(B.reading('027_p_flyer', 'Turu pakkumised.', 'Loe turu pakkumisi. Vasta ühe-kolme sõnaga.', 'Kase turg: nädala pakkumised',
+        'Kase turg on avatud teisipäevast pühapäevani kella kaheksast kolmeni. Pood „Pihlakas” on turu kõrval.\n\nSel nädalal on head hinnad! Kilo kartuleid maksab 80 senti. Kilo porgandeid maksab üks euro. Kümme muna maksab kaks eurot ja viiskümmend senti. Liiter piima maksab 1,20 eurot.\n\nMeepurk maksab kuus eurot, aga kaks purki maksavad ainult kümme eurot. Leiba müüb pagar Tiit: päts musta leiba maksab kaks eurot.\n\nKui ostad üle kahekümne euro, saad kilo õunu tasuta. Kotti too ise: turul ei ole kilekotte. Maksta saab sularahas ja kaardiga. Laupäeval kell kümme saab proovida uut juustu.',
+        [['Mis päeval on turg kinni?', 'esmaspäeval'], ['Kus on pood „Pihlakas”?', 'turu kõrval'], ['Kui palju maksab kilo kartuleid?', '80 senti|kaheksakümmend senti'], ['Mis maksab kaks eurot ja viiskümmend senti?', 'kümme muna|munad'], ['Kui palju maksavad kaks meepurki?', 'kümme eurot|10 eurot'], ['Millal saad õunu tasuta?', 'üle kahekümne euro|üle 20 euro'], ['Mida pead turule kaasa võtma?', 'koti|kotti|oma koti'], ['Kas turul saab maksta kaardiga?', 'jah|saab'], ['Mida saab laupäeval proovida?', 'uut juustu|juustu']]), { task: 'R15' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Otsi numbreid: mis maksab kui palju?” Üks-ühele: õpilane joonib alla kõik kogused (kilo kartuleid, kümme muna, liiter piima, päts leiba) — need on reegli näited. Vanad sõnad: pood, turg, maksma.'),
+      B.notice('027_d_notice', 'Märka: kui palju? → osastav', [
+        'Arv + ainsuse osastav: kaks **liitrit**, kolm **porgandit**, viis **tomatit**',
+        'Mõõt + aine: liiter **piima**, pakk **võid**, päts **leiba**',
+        'Mõõt + mitu tükki: kilo **kartuleid**, kilo **õunu**',
+        'Pool kilo, natuke, palju + osastav: pool kilo kapsast, natuke soola',
+        'Aga: üks liiter, üks muna (üks + nimetav)',
+        'Küsi: Kui palju maksab kilo …? Mitu … on vaja?',
+        'Vene keeles „два литра молока” — eesti keeles kaks liitrit piima (osastav).',
+      ], 'half'),
+    ],
+    practice: [
+      tag(B.gaps('027_p_gaps', 'Kui palju?', 'Kirjuta kogus ja toode õiges vormis.', [
+        'Palun kaks [liitrit] [piima]. (liiter; piim)',
+        'Supi jaoks on vaja kolm [porgandit]. (porgand)',
+        'Osta ka kilo [kartuleid]. (kartul)',
+        'Mul on vaja pakk [võid] ja päts [leiba]. (või; leib)',
+        'Turult ostan kilo [õunu] ja viis [tomatit]. (õun; tomat)',
+      ], '', 'half'), { task: 'G08' }),
+      teach(half(v6(tag(B.dictation('027_p_dict', 'Etteütlus ja hääldus: pikk ja lühike.', 'Kuula lauset, korda valjusti ja kirjuta. Märka pikka häälikut.', [
+        'Palun kaks liitrit piima.',
+        'Osta kilo kartuleid ja pakk võid.',
+        'Päts leiba maksab kaks eurot.',
+        'Mul on vaja natuke soola.',
+        'Kümme muna on kapis.',
+      ], 5), { task: 'L08' }), { pronunciation: 'välted' })),
+      'Hääldusnurk + etteütlus, 6 min. Enne: ütle paarid liiter – liitrit, pakk – paki, kapis – kapp; õpilane kordab ja ütleb, kumb on pikem. Siis loe iga lause kaks korda; õpilane kordab valjusti ja kirjutab. Kontrolli topelttähti: liitrit, pakk, kapis, natuke (üks t).'),
+      teach(tag(B.adsmatch('027_p_signs', 'Eksaminurk: sildid ja pakendid.', 'Loe silte. Mis silt aitab? Kirjuta täht.', [
+        ['A. Piimapakk', 'Piim, 1 liiter. Hoia külmkapis. Ava pakk ja joo kolme päevaga.'],
+        ['B. Silt puuviljade juures', 'Kaalu ise! Pane kott kaalule ja vajuta numbrit.'],
+        ['C. Küpsiste pakk', 'Kaeraküpsised. Selles on pähkleid. Hoia kuivas kohas.'],
+        ['D. Silt kassa kohal', 'Kiirkassa: kuni 10 toodet. Ainult kaardiga.'],
+        ['E. Silt leiva riiulil', 'Eilne leib: pool hinda!'],
+      ], [
+        ['Sa tahad maksta sularahas. Kuhu sa ei lähe?', 'D'],
+        ['Laps ei tohi pähkleid süüa. Mida peab lugema?', 'C'],
+        ['Piim on lahti esmaspäevast. Kas neljapäeval võib juua?', 'A'],
+        ['Sa tahad odavat leiba.', 'E'],
+        ['Sa ostad õunu. Kust saad hinnasildi?', 'B'],
+        ['Sul on korvis ainult kolm asja ja kiire.', 'D'],
+        ['Kus küpsiseid hoida?', 'C'],
+      ]), { harno: 'R3', level: 3 }),
+      'Eksaminurk nagu Harno A2 lugemise 3. osas (sildid, pakendid). 5 min, ilma abita; siis kontroll: miks just see silt? Õpilane ütleb sildilt ühe sõna, mis aitas.'),
+    ],
+    transfer: [
+      B.text('027_t_sit', 'Olukord: turul', 'Laupäeval teete kaaslasega suppi neljale inimesele. Sul on 10 eurot ja ostunimekiri. Sa lähed turule. Müüja on õpetaja või kaaslane. Vaata pilti: seal on hinnad. Kõik ei lähe nii, nagu plaanisid.'),
+      teach(tag(v6(B.rolecards('027_t_market', 'Turuleti juures.', 'Vaata pilti. A ostab, B müüb. Siis vahetage.',
+        'Sa ostad. Sinu nimekiri: kilo kartuleid, pool kilo porgandeid, üks kapsas, kümme muna, liiter piima. Raha on 10 eurot. Ütle kogus, küsi hinda ja maksa. Kui midagi ei ole, vali muu.',
+        'Sa müüd. Vaata pildilt hindu. Küsi: Mida te soovite? Kui palju? Kas veel midagi? Lõpus ütle summa.',
+        [], []), {
+        taskType: 'roleplay', hiddenInfo: true,
+        support: ['Palun kilo … ja pool kilo …', 'Kui palju maksab …?', 'Kas teil on …? Siis võtan …'],
+        stretch: 'Sul on ainult 8 eurot: muuda nimekirja ja ütle müüjale, miks.',
+      }), { task: 'S05', main: true, level: 4 }),
+      'Üks-ühele: õpetaja on müüja. Varjatud info (ütle alles ostu ajal): munad on täna otsas; piima on ainult pooleliitristes pudelites (0,70 €) — õpilane peab ütlema „kaks pudelit piima”; kapsas maksab täna 1,50 € (pildil 1 €). Õige summa ilma munadeta: 0,80 + 0,50 + 1,50 + 1,40 = 4,20 €. Kui õpilane ei küsi hinda, ütle summa valesti ja vaata, kas ta kontrollib. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: 8 eurot. Siis vahetage: õpilane müüb, õpetaja ostab ja ütleb ühe koguse valesti („kaks kilo kartulid”).'),
+      homeTask(teach(tag(v6(B.writing('027_t_home', 'Kodus: minu ostunimekiri.', 'Kirjuta oma toidu ostunimekiri lausetega. Siis Harjuta → moodul 6.', [4, 6], ['kilo', 'liitrit'], 1), { lines: 10 }), { task: 'W06' }),
+        'Kodutöö: 4–6 lauset (25–45 sõna): mis toit, mida ja kui palju on vaja, mis see umbes maksab. Harjuta → moodul 6: kogused ja osastav (10 min). Järgmise tunni „Mäletad?” küsib seda.')),
+      half(exitCheck(tag(B.speaking('027_t_exit', 'Väljumine: minu ostukorv.', 'Ütle 30 sekundiga: mida sa ostad ja kui palju?', [
+        'Mida sa ostad ja kui palju?',
+        'Kui palju see maksab? Mis on otsas?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('027_t_self', ['Ma ütlen koguse: kaks liitrit piima, kilo kartuleid.', 'Ma küsin hinda ja ütlen summa.', 'Ma ostan nii, et raha jätkub.'], 'Tund 27 on läbitud'), 'Üks-ühele: õpetaja ütleb, kas „müüja” sai kõigest aru; õpilane hindab kolme rida ja kirjutab ühe koguse lause tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 028 reading: ordering in a café
+  'a2-028': retire(OLD['a2-028'], {
+    title: 'Mida te soovite?',
+    canDo: 'Ma loen kohviku menüüd, tellin endale ja teisele (Ma soovin suppi. Palun mulle üks tee.) ja kirjutan rühma kohvikujuhti lühikese kaardi.',
+    teacherPage: P028,
+    discover: [
+      teach(B.review('028_d_review', [['Mida sa ostad supi jaoks ja kui palju?', 'a2-027'], ['Mis kell sa tavaliselt lõunat sööd?', 'a2-011'], 'Kas sa käid kohvikus? Mida sa seal jood?']), planNote(P028)),
+      tag(v6(B.vocab('028_d_vocab', 'Tunni sõnad.', ['menüü — меню', 'soovima — желать', 'tellima — заказывать', 'supp — суп', 'magustoit — десерт', 'kook — пирог', 'klaas — стакан', 'tass — чашка', 'otsas — закончился', 'tasuta — бесплатно']),
+        { review: ['avatud', 'kesklinn', 'vastas'] }), { topic: ['menüü', 'taimetoit', 'päevasupp', 'omlett', 'juustupirukas', 'seenesupp', 'kaerapuder', 'teenindaja'] }),
+      teach(tag(B.reading('028_d_menu', 'Kohviku menüü.', 'Loe menüüd. Vasta ühe-kolme sõnaga.', 'Kohvik Lumi',
+        'Kohvik Lumi on kesklinnas, raamatukogu vastas. Oleme avatud iga päev kella kaheksast neljani. Hommikul on meil vaikne, lõunal on palju inimesi.\n\nHommikusöök kella kaheksast üheteistkümneni: kaerapuder moosiga 3,50 €, omlett juustuga 4,90 €.\n\nLõuna kella üheteistkümnest neljani. Päevasupp on täna seenesupp, see maksab 4,50 €. Kanasupp maksab 5 €. Kala kartulitega maksab 8,90 €. Taimetoit: juustupirukas salatiga 6 €.\n\nMagustoit: õunakook 3 €, pannkoogid moosiga 3,50 €.\n\nJoogid: kohv 2,20 €, tee 1,80 €, mahl 2,50 €. Klaas vett on tasuta. Leib on supi kõrvale tasuta.\n\nKas sul on allergia? Küsi teenindajalt! Meie teenindajad räägivad eesti, vene ja inglise keelt.',
+        [['Kus kohvik asub?', 'raamatukogu vastas|kesklinnas'], ['Mis on täna päevasupp?', 'seenesupp'], ['Mis toit sobib taimetoitlasele?', 'juustupirukas salatiga|juustupirukas'], ['Kui palju maksab tee?', '1,80 €|1,80 eurot|1,80'], ['Mis on tasuta?', 'vesi ja leib|klaas vett|vesi|leib'], ['Mis kellani saab hommikusööki?', 'üheteistkümneni|kella üheteistkümneni|11-ni']]), { task: 'R08' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Silmitse kõigepealt pealkirju: hommikusöök, lõuna, joogid.” Üks-ühele: õpilane ütleb enne küsimusi, mida ta ise tellib ja mis see maksab. Vanad sõnad: avatud, kesklinn, vastas.'),
+      B.notice('028_d_notice', 'Märka: kuidas tellida?', [
+        'Ma soovin + osastav: Ma soovin **suppi**, **teed**, **salatit**.',
+        'Palun mulle üks + nimetav: Palun mulle üks **supp**, üks **tee**.',
+        'Kogus + osastav: tass **kohvi**, klaas **vett**, tükk **kooki**.',
+        'Küsi: Kas teil on taimetoitu? Mis selles supis on?',
+        'Vene keeles „мне, пожалуйста, чай” — eesti keeles palun mulle üks tee (nimetav).',
+      ], 'half'),
+      half(teach(tag(B.rolecards('028_d_three', 'Proovi kohe: kolm klienti.', 'Vaata pilti. A tellib klientide eest, B on teenindaja.',
+        'Sa oled kliendid 1, 2 ja 3. Vaata pildilt, mida iga klient tahab. Telli viisakalt ja küsi hinda.',
+        'Sa oled teenindaja. Kirjuta tellimused üles ja ütle hind menüü järgi. Küsi: Kas veel midagi? Siis vahetage.',
+        ['Ma soovin …', 'Palun mulle üks …'], ['Mida te soovite?', 'See maksab …']), { task: 'S13', level: 3 }),
+      'Üks-ühele: õpilane tellib kolme kliendi eest, õpetaja on teenindaja ja kirjutab. Pildil on toidud algvormis (tee, õunakook, seenesupp, leib, kohv, mahl), nii et õpilane valib ise vormi: 1 = Palun mulle üks tee ja tükk õunakooki. 2 = Ma soovin seenesuppi ja leiba (liha ei taha). 3 = Palun kaks tassi kohvi ja üks mahl. Siis vahetage.')),
+    ],
+    practice: [
+      tag(B.gaps('028_p_gaps', 'Telli kohvikus.', 'Telli: kirjuta sõna õiges vormis.', [
+        'Ma soovin [suppi] ja [salatit]. (supp; salat)',
+        'Palun mulle üks [supp] ja üks [tee]. (Ma soovin suppi ja teed.)',
+        'Palun tass [kohvi] ja klaas [vett]. (kohv; vesi)',
+        'Palun üks tükk [kooki]. (kook)',
+        'Ma soovin ka [teed]. (tee)',
+      ], '', 'full'), { task: 'G03' }),
+      teach(tag(v6(B.choice('028_p_pron', 'Hääldusnurk: küsimus või palve?', 'Kuula õpetajat. Vali: küsimus või palve. Siis korda.', [
+        ['Lause 1', 'küsimus', 'palve'],
+        ['Lause 2', 'palve', 'küsimus'],
+        ['Lause 3', 'küsimus', 'palve'],
+        ['Lause 4', 'palve', 'küsimus'],
+      ], 'half', 'g_listen'), { pronunciation: 'intonatsioon' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Loe: 1 „Kas teil on taimetoitu?” 2 „Palun mulle üks tee.” 3 „Mis selles supis on?” 4 „Arve, palun.” Õpilane valib, siis kordab iga lause kaks korda (varjutamine). Eesti küsimus läheb lõpus alla, nagu palvegi — mitte üles nagu vene „У вас есть…?”. Viisakus tuleb sõnast „palun” ja rahulikust häälest.'),
+      half(teach(tag(B.rolecards('028_p_cafe', 'Kohvikus Lumi.', 'A on klient, B teenindaja. Kasutage menüüd. Siis vahetage.',
+        'Sa oled näljane, aga sul on ainult 8 eurot. Sa ei söö liha. Telli lõuna ja jook. Küsi, mis supis on.',
+        'Sa oled teenindaja. Täna on kala otsas. Küsi: Mida te soovite? Kas veel midagi? Ütle hind ja „Head isu!”',
+        ['Ma soovin …', 'Mis selles supis on?'], ['Kahjuks on … otsas.', 'Kokku on … eurot.']), { task: 'S12', fluency: true }),
+      'Üks-ühele: õpetaja on teenindaja; õpilane tellib 8 euro eest ilma lihata (seenesupp 4,50 + tee 1,80 = 6,30 või juustupirukas 6 € + vesi). Teisel korral kiiremini; siis vahetage.')),
+      teach(tag(v6(B.examWriting('028_p_invite', 'Eksaminurk: kutse sõbrale.', 'Kutsu sõber kohvikusse Lumi. Kirjuta 35–50 sõna.', 'kutse', {
+        situation: 'Sinu sõber tuleb laupäeval kesklinna. Ta ei söö liha ja ei joo kohvi. Vaata menüüd.',
+        points: ['kuhu ja mis kell te lähete', 'kus kohvik asub', 'mida sõber seal süüa ja juua saab', 'kui palju see umbes maksab'],
+        words: [35, 50], opening: 'Tere!',
+      }), { lines: 16 }), { harno: 'W2a' }),
+      'Eksaminurk tunnis (Harno A2 kirjutamise 2. osa: kutse ≥ 30 sõna), 8 min, ilma abita. Kontrolli 6 kirjutamine on selle paralleel (uus kohvik, samad neli punkti). Üks-ühele: õpetaja on sõber ja vastab kutsele ühe küsimusega.'),
+    ],
+    transfer: [
+      B.text('028_t_sit', 'Olukord: meie kohvikujuht', 'Teie rühm teeb uutele õppijatele „Kohvikujuhi”: head kohvikud kooli lähedal. Iga õppija kirjutab ühe kohviku kaardi: kus see on, millal on avatud, mida tellida ja mis see maksab. Kaaslane loeb kaarti ja küsib ühe küsimuse. Kaardid pannakse seinale.'),
+      teach(tag(v6(B.examWriting('028_t_review', 'Kohvikujuht: minu kohvik.', 'Kirjuta ühe kohviku kaart, 30–45 sõna.', 'teade', {
+        situation: 'Vali kohvik oma linnas või kohvik Lumi. Kaart läheb rühma kohvikujuhti.',
+        points: ['kus kohvik asub ja millal on avatud', 'mida seal tellida', 'mis see maksab', 'kellele sa seda soovitad ja miks'],
+        words: [30, 45],
+      }), {
+        taskType: 'project', peerReply: true, realAddressee: 'rühma kaaslased (kohvikujuht seinal)',
+        support: ['Kohvik … asub …', 'Seal on avatud kella …st kella …ni.', 'Ma soovitan …, sest …'],
+        stretch: 'Lisa üks hoiatus: mis on kallis või mida seal ei ole.',
+      }), { task: 'W05', main: true }),
+      'Kirjutamine tunnis, 8 min. Siis kaaslase vastus (mooduli kaaslase vahetus): kaardid liiguvad paremale, kaaslane loeb ja kirjutab alla ühe küsimuse või „kaks tärni ja üks soov” (kas kõik neli punkti on olemas?). Üks-ühele: õpetaja on kaaslane ja küsib ühe küsimuse. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: hoiatus.'),
+      homeTask(teach(tag(B.speaking('028_t_home', 'Kodus: soovita kohvikut.', 'Salvesta 45 sekundit: soovita oma kohvikut. Siis Harjuta → moodul 6.', [
+        'Mis kohvik see on ja kus see asub?',
+        'Mida sa seal tellid? Mis see maksab?',
+        'Kellele sa seda soovitad ja miks?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune salvestus: kohvikujuhi kaart suuliselt, ilma kaarti vaatamata. Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 6: tellimine (10 min).')),
+      exitCheck(tag(v6(B.writing('028_t_exit', 'Väljumine: parem lause.', 'Kirjuta üks lause oma kaardist uuesti, kaaslase küsimuse järgi.', [1, 2]), { lines: 9 }), { task: 'W10', level: 3 })),
+      teach(selfcheck('028_t_self', ['Ma tellin: Ma soovin suppi. Palun mulle üks tee.', 'Ma ütlen koguse: tass kohvi, klaas vett.', 'Minu kaardis on kõik neli punkti ja kaaslane saab aru.'], 'Tund 28 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas tema kui kaaslane leidis kaardist kõik neli punkti. Õpilane kirjutab ühe tellimuse lause tõendiks.'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 029 listening: the order and the bill (the module's last teaching lesson)
+  'a2-029': retire(OLD['a2-029'], {
+    title: 'Arve, palun!',
+    canDo: 'Ma saan aru telefoni tellimusest ja hindadest, kontrollin arvet (kohv piimaga, tee ilma suhkruta) ja kirjutan ilma abita rühma lõunatellimuse.',
+    teacherPage: P029,
+    discover: [
+      teach(B.review('029_d_review', [['Mida sa kohvikus tellid? Ütle viisakalt.', 'a2-028'], ['Kas sul on tihti külalisi? Mida sa neile pakud?', 'a2-018'], 'Kuidas sa maksad: kaardiga või sularahas?']), planNote(P029)),
+      tag(v6(B.vocab('029_d_vocab', 'Tunni sõnad.', ['euro — евро', 'sent — цент', 'kokku — всего', 'arve — счёт', 'viga — ошибка', 'suhkur — сахар', 'sidrun — лимон', 'koor — сливки', 'ilma — без', 'muutma — изменять']),
+        { review: ['kaart', 'kassa', 'külaline'] }), { topic: ['allergia', 'tellimus', 'kliendikaart', 'juustupirukas', 'seenesupp'] }),
+      twice(teach(tag(B.examListen('029_p_change', 'Eksaminurk: tellimus telefonis.', 'Kuula telefonikõnet kaks korda. Õige või vale?', 'truefalse', [
+        'Teenindaja: Kohvik Lumi, tere!',
+        'Tiina: Tere! Siin on Tiina. Ma soovin tellida lõunat kaasa. Meil on täna kolm külalist.',
+        'Teenindaja: Palun. Mida te soovite?',
+        'Tiina: Kaks seenesuppi ja üks juustupirukas. Ja kaks kohvi piimaga.',
+        'Teenindaja: Kas veel midagi?',
+        'Tiina: Oot, ma muudan tellimust. Üks külaline ei joo kohvi. Palun üks kohv piimaga ja üks tee ilma suhkruta.',
+        'Teenindaja: Selge. Kas pirukas on salatiga?',
+        'Tiina: Jah, aga palun salat ilma sibulata.',
+        'Teenindaja: Kokku on üheksateist eurot. Kas teil on kliendikaart?',
+        'Tiina: Ei ole. Ma maksan kohapeal kassas, sularahas. Ma tulen kell pool üks.',
+        'Teenindaja: Hästi. Leib on supi kõrvale tasuta. Nägemiseni!',
+      ], [
+        ['Tiina tahab süüa kohvikus laua ääres.', false],
+        ['Tiinal on täna kolm külalist.', true],
+        ['Tiina tellib kaks seenesuppi.', true],
+        ['Lõpuks tellib Tiina kaks kohvi.', false],
+        ['Tee on ilma suhkruta.', true],
+        ['Salat on sibulaga.', false],
+        ['Kõik maksab kokku üheksateist eurot.', true],
+        ['Tiina maksab kaardiga.', false],
+      ], 'g_listen'), { harno: 'L2', task: 'L05' }),
+      'Eksaminurk nagu Harno A2 kuulamise 2. osas (õige / vale). Kuulamisstrateegia: „Loe väited enne läbi ja jooni alla numbrid ja sõnad ilma, kaks, kokku.” Esimesel korral märgib õpilane ainult kindlad vastused, teisel korral ülejäänud. Vanad sõnad: kaart (kliendikaart), kassa, külaline.')),
+      B.notice('029_d_notice', 'Märka: -ga, ilma …-ta ja hind', [
+        'Millega? kohv **piimaga**, tee **sidruniga**, pannkoogid **moosiga** (-ga)',
+        'Ilma milleta? tee ilma **suhkruta**, salat ilma **sibulata**, kook ilma **kooreta**',
+        'Hind: 2,20 € = kaks **eurot** kakskümmend **senti** · aga üks euro, üks sent',
+        'Arvel on viga. Kokku on 19 eurot.',
+        'Vene keeles „без сахара” — eesti keeles ilma suhkruta (lõpus -ta).',
+      ], 'half'),
+      teach(tag(B.speaking('029_d_bill', 'Proovi kohe: arvel on viga.', 'Vaata pilti. Leia kaks viga ja ütle need teenindajale.', [
+        'Mis on arvel valesti?',
+        'Mis on õige? Kui palju on kokku?',
+        'Mida teenindaja nüüd teeb?',
+      ], [45, 60]), { task: 'S10', level: 3 }),
+      'Üks-ühele, ilma valmis fraasideta (mooduli viimane tund): õpetaja on teenindaja. Võti: tee on arvel suhkruga (tellitud ilma suhkruta); pannkooke on arvel kaks (tellitud üks); õige summa 9,00 + 2,20 + 1,80 + 3,50 = 16,50 €, mitte 20,00 €. Kui õpilane ütleb ainult „vale”, küsi: „Mis on õige?”'),
+    ],
+    practice: [
+      teach(half(tag(B.table('029_d_rule', 'Millega? Ilma milleta?', 'Kirjuta mõlemad vormid.', 'Sõna, Millega? (-ga), Ilma milleta? (ilma …-ta)', [
+        'suhkur | [suhkruga] | ilma [suhkruta]',
+        'sidrun | [sidruniga] | ilma [sidrunita]',
+        'sibul | [sibulaga] | ilma [sibulata]',
+        'koor | [koorega] | ilma [kooreta]',
+        'moos | [moosiga] | ilma [moosita]',
+      ], 'g_notice'), { task: 'G02', level: 2 })),
+      'Üks-ühele: õpilane täidab tabeli ja ütleb reegli ise: omastav (suhkru-, koore-) + -ga või ilma + omastav + -ta. Siis ütleb ta iga rea kohta ühe tellimuse („Palun tee ilma suhkruta.”).'),
+      teach(tag(v6(B.choice('029_p_pron', 'Hääldusnurk: pikk ja lühike.', 'Kuula ja vali pikk või lühike sõna. Siis räägi kaasa.', [
+        ['Sõna 1', 'kooki', 'koogi'],
+        ['Sõna 2', 'tükki', 'tüki'],
+        ['Sõna 3', 'kassa', 'kaasa'],
+        ['Sõna 4', 'kala', 'kalla'],
+      ], 'half', 'g_listen'), { pronunciation: 'välted' }), { task: 'L01' }),
+      'Hääldusnurk, 5 min. Ütle igast reast võtmes oleva sõna (kooki, tükki, kassa, kala); õpilane valib. Selgita: topelttäht on pikk ja tugev (kooki, tükki, kassa), g on lühike (koogi); kaasa — pikk aa. Siis varjutamine: „Palun tee ilma suhkruta ja tükk kooki.”, õpilane räägib kohe kaasa, kaks korda.'),
+      teach(why(B.transformation('029_p_ilma', 'Muuda tellimust.', 'Klient muudab tellimust. Kirjuta uus lause.', [
+        ['Palun kohv. (+ piim)', 'Palun kohv …', 'Palun kohv piimaga.'],
+        ['Palun tee suhkruga. (– suhkur)', 'Palun tee …', 'Palun tee ilma suhkruta.'],
+        ['Salat sibulaga, palun. (– sibul)', 'Salat …', 'Salat ilma sibulata, palun.'],
+        ['Pannkoogid, palun. (+ moos)', 'Pannkoogid …', 'Pannkoogid moosiga, palun.'],
+        ['Kohv maksab 2,20 €.', 'Kohv maksab kaks …', 'Kohv maksab kaks eurot kakskümmend senti.'],
+        ['Tee maksab 1,80 €.', 'Tee maksab üks …', 'Tee maksab üks euro kaheksakümmend senti.'],
+        ['Kook koorega, palun. (– koor)', 'Kook …', 'Kook ilma kooreta, palun.'],
+        ['Pirukas maksab 6,50 €.', 'Pirukas maksab kuus …', 'Pirukas maksab kuus eurot viiskümmend senti.'],
+        ['Supp maksab 4,50 €.', 'Supp maksab neli …', 'Supp maksab neli eurot viiskümmend senti.'],
+      ]), [
+        '+ = -ga: piim → piimaga.',
+        '– = ilma …-ta: suhkur → ilma suhkruta.',
+        'sibul → ilma sibulata.',
+        'moos → moosiga.',
+        '2 € → kaks eurot, 20 senti → kakskümmend senti.',
+        '1 € → üks euro (nimetav), 80 senti.',
+        'koor → ilma kooreta.',
+        '6 € → kuus eurot, 50 senti → viiskümmend senti.',
+        '4 € → neli eurot, 50 senti → viiskümmend senti.',
+      ]), 'Üks-ühele: õpilane kirjutab ja loeb lause ette; õpetaja on teenindaja ja kordab tellimuse.'),
+      teach(tag(B.speaking('029_p_talk', 'Paaris: muuda tellimust.', 'Telli kohvikus Lumi ja muuda kaks asja. Paariline kordab.', [
+        'Mida sa tellid süüa ja juua?',
+        'Mida sa muudad: mis -ga, mis ilma …-ta?',
+        'Kui palju see kokku maksab?',
+        'Kuidas sa maksad: kaardiga või sularahas?',
+        'Mis kell sa tuled?',
+      ], [45, 60]), { task: 'S02', fluency: true }),
+      'Paaris, ilma valmis fraasideta: A tellib ja muudab kaks asja, B on teenindaja, kordab tellimuse ühe veaga („kohv suhkruga”) ja ütleb summa menüü järgi (tund 28); A parandab. Siis vahetage, teisel korral kiiremini. Üks-ühele: õpetaja on teenindaja.'),
+    ],
+    transfer: [
+      B.text('029_t_sit', 'Olukord: mooduli lõpulõuna', 'Reedel pärast tundi läheb teie rühm kohvikusse Lumi lõunale. Kohvik palub tellimuse ette. Te kirjutate selle kursuse vestlusesse. Üks kaaslane ei söö liha, ühel on piimaallergia. Igaühel on kuni 10 eurot. Kirjuta tellimus ilma abita.'),
+      teach(tag(v6(B.examWriting('029_t_order', 'Rühma tellimus.', 'Kirjuta rühma tellimus, 30–45 sõna. Ilma antud alguseta.', 'teade', {
+        situation: 'Kirjuta kursuse vestlusesse, mida rühm kohvikust Lumi tellib. Kaaslased kontrollivad ja vastavad.',
+        points: ['mitu inimest tuleb ja mis kell', 'mida te tellite ja kui palju', 'mis on ilma lihata või ilma piimata', 'kui palju see umbes maksab'],
+        words: [30, 45],
+      }), {
+        taskType: 'message', realAddressee: 'kursusekaaslased (kursuse vestlus)',
+        support: ['Märksõnad: … inimest · kell …', 'supp · pirukas · ilma lihata · ilma piimata', 'kokku · umbes · eurot'],
+        stretch: 'Üks kaaslane tuleb hiljem: kirjuta, mida ta soovib ja mis muutub.',
+      }), { task: 'W04', main: true }),
+      'Mooduli viimane tund: ilma antud alguse ja valmis lauseteta. Kirjutamine tunnis, 8 min; siis loeb kaaslane tellimuse ja küsib ühe küsimuse (kas kõik neli punkti on olemas?). Abikaart on märksõnad, mitte laused (märgi kasutamine). Lisaväljakutse: hiline kaaslane. Võimalik summa: 3 seenesuppi 13,50 + juustupirukas 6 + 4 teed 7,20 …'),
+      homeTask(teach(tag(B.speaking('029_t_home', 'Kodus: häälsõnum kohvikule.', 'Salvesta 45 sekundit: muuda tellimust. Siis Harjuta → moodul 6.', [
+        'Kes sa oled ja mis on sinu tellimus?',
+        'Mida sa muudad? Mida sa tahad ilma …-ta?',
+        'Mis kell sa tuled ja kuidas sa maksad?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune häälsõnum ilma valmis fraasideta. Tunnis kuulab õpetaja salvestuse ja kordab tellimuse ühe veaga; õpilane parandab. Harjuta → moodul 6: -ga, ilma …-ta ja hinnad (10 min).')),
+      exitCheck(tag(v6(B.writing('029_t_exit', 'Väljumine: parem lause.', 'Kirjuta üks lause tellimusest uuesti, kaaslase märkuse järgi.', [1, 2]), { lines: 9 }), { task: 'W10', level: 3 })),
+      teach(selfcheck('029_t_self', ['Ma saan telefonis aru tellimusest ja hinnast.', 'Ma ütlen ja kirjutan: kohv piimaga, tee ilma suhkruta.', 'Ma kirjutan tellimuse ilma abita ja kaaslane saab aru.'], 'Moodul 6: söök, jook ja kohvik'), 'Üks-ühele: õpilane hindab kolme rida, õpetaja ütleb oma hinde; õpilane kirjutab ühe lause oma tellimusest tõendiks.'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 030 control 6: one sheet, four skills
+  'a2-030': retire(OLD['a2-030'], {
+    title: 'Kontroll 6 — söök, jook ja kohvik',
+    assessment: true,
+    phases: checkSheet('Kontroll', 'Lugemine, kuulamine, kirjutamine ja rääkimine, igaüks 10 punkti (45 min)'),
+    canDo: 'Ma näitan ilma abita, et loen kohvikus ja poes vajalikku, saan aru tellimusest ja teadaandest, kirjutan kaaslasele kutse, ostan toitu ja räägin oma toidust; ma tean oma punkte ja lävendeid.',
+    teacherPage: P030,
+    discover: [
+      teach(B.text('030_d_situation', 'Kontroll 6: kuidas punkte loetakse', `Kontrollis on neli osa, igas 10 punkti, kokku 40. Töötad 45 minutit ilma abita. Harno A2 eksamil on igas osas 20 punkti: korruta oma punktid kahega. ${THRESHOLDS} Lõpus võrdled tulemust kontrolliga 5 (tund 25).`), planNote(P030)),
+      teach(tag(B.choice('030_p_polite', 'Lugemine 1. Mida öelda?', 'Loe olukorda. Vali sobiv lause. (5 punkti)', [
+        ['Teenindaja toob toidu. Mida ta ütleb?', 'Head isu!', 'Jõudu tööle!', 'Head ööd!'],
+        ['Sa tahad kohvikus maksta.', 'Arve, palun!', 'Menüü, palun!', 'Head isu!'],
+        ['Sa ei söö liha.', 'Kas teil on taimetoitu?', 'Kas teil on kana?', 'Kas teil on praadi?'],
+        ['Toit on väga hea.', 'Aitäh, väga maitsev!', 'Vabandust, see on vale!', 'Palun korrake!'],
+        ['Müüja räägib väga kiiresti.', 'Palun rääkige aeglasemalt!', 'Palun rääkige kiiremini!', 'Head aega!'],
+      ], 'full', 'g_read'), { harno: 'R1', task: 'R01' }),
+      'Varasemast: 5. küsimus (palun rääkige aeglasemalt) on moodulist 5. Iga õige vastus 1 punkt.'),
+      teach(tag(B.reading('030_p_ad', 'Lugemine 2. Uus kohvik.', 'Loe kuulutust. Vasta ühe-kolme sõnaga. (5 punkti)', 'Uus kohvik Supipott',
+        'Uus kohvik Supipott avab uksed 1. detsembril! Kohvik asub kesklinnas, Rüütli tänaval, bussipeatuse vastas. Me oleme teisel korrusel, lift on ukse kõrval. Kohvikus on kakskümmend lauda ja suur aken, kust näeb vanalinna.\n\nOleme avatud esmaspäevast reedeni kella kümnest kuueni ja laupäeval kella üheteistkümnest neljani. Pühapäeval on kohvik kinni.\n\nIga päev on menüüs kolm suppi: üks lihaga, üks kalaga ja üks taimetoitlastele. Suur supp maksab viis eurot, väike supp kolm eurot. Leib ja vesi on supi kõrvale tasuta. Magustoiduks on kook ja pannkoogid. Kohvi saab piimaga või ilma piimata. Teed on meil kümme sorti.\n\nKui sul on allergia, ütle seda teenindajale. Lastele on väike supp ja mänguasjad. Avamispäeval saab iga klient tassi kohvi tasuta ja lapsed saavad jäätist. Tule ja too sõber kaasa!',
+        [['Mis korrusel kohvik on?', 'teisel|teisel korrusel'], ['Mis päeval on kohvik kinni?', 'pühapäeval'], ['Mitu suppi on iga päev menüüs?', 'kolm|3'], ['Mis on supi kõrvale tasuta?', 'leib ja vesi|leib|vesi'], ['Mida saab avamispäeval tasuta?', 'tassi kohvi|kohvi|tass kohvi']]), { task: 'R15', harno: 'R4' }),
+      'Varasemast: 1. küsimus (mis korrusel) on moodulist 4. Harno-pikkune tekst (≈ 125 sõna). Iga õige vastus 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'),
+      twice(teach(tag(B.listening('030_p_listen', 'Kuulamine 1. Tellimus kohvikus.', 'Kuula tellimust kaks korda. Kirjuta lünka üks-kaks sõna. (5 punkti)', [
+        'Teenindaja: Tere! Mida te soovite?',
+        'Klient: Palun üks kanasupp ja klaas õunamahla.',
+        'Teenindaja: Kas leiba ka?',
+        'Klient: Jah, kaks tükki musta leiba, palun.',
+        'Teenindaja: Kas magustoitu soovite?',
+        'Klient: Jah, üks tükk šokolaadikooki.',
+        'Teenindaja: Ja kohvi?',
+        'Klient: Ei, kohvi ma ei joo. Palun tee ilma suhkruta.',
+        'Teenindaja: Kokku on üksteist eurot nelikümmend senti. Kas maksate kaardiga?',
+        'Klient: Jah, kaardiga, palun.',
+      ], ['Klient soovib [kanasuppi|kanasupp].', 'Ta joob klaasi [õunamahla|mahla].', 'Magustoiduks on tükk [šokolaadikooki|kooki].', 'Teed joob ta ilma [suhkruta].', 'Kokku maksab ta üksteist eurot nelikümmend [senti].'], 'g_listen'), { task: 'L03', harno: 'L3' }),
+      'Varasemast pole (mooduli 6 tellimus). Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      twice(teach(tag(B.examListen('030_p_tf', 'Kuulamine 2. Teadaanne poes.', 'Kuula teadaannet kaks korda. Õige või vale? (5 punkti)', 'truefalse', [
+        'Teadaanne: Head kliendid! Meie pood on täna avatud kella kaheksast kümneni.',
+        'Teadaanne: Sel nädalal maksab kilo õunu ainult üks euro.',
+        'Teadaanne: Kaks liitrit piima maksab kaks eurot.',
+        'Teadaanne: Värske leib on teisel korrusel, kohviku kõrval.',
+        'Teadaanne: Täna kell neli saab poes proovida uut juustu tasuta. Aitäh!',
+      ], [
+        ['Pood on täna avatud kella kümneni.', true],
+        ['Kilo õunu maksab kaks eurot.', false],
+        ['Kaks liitrit piima maksab kaks eurot.', true],
+        ['Leib on esimesel korrusel.', false],
+        ['Juustu saab proovida tasuta.', true],
+      ], 'g_listen'), { task: 'L06', harno: 'L2' }),
+      'Varasemast: 1. väide (kella …st …ni) on moodulist 5, 4. väide (mis korrusel) moodulist 4.'), true),
+      teach(tag(B.examWriting('030_t_msg', 'Kirjutamine. Kutse kaaslasele.', 'Kirjuta kaaslasele kutse, 25–40 sõna, kõigist neljast punktist. (10 punkti)', 'kutse', {
+        situation: 'Reedel lähed kohvikusse Supipott lõunale. Kutsu kaaslane kaasa. Ta ei söö liha.',
+        points: ['kuhu ja mis kell te lähete', 'kuidas sinna saab', 'mida seal süüa ja juua saab', 'kui palju see umbes maksab'],
+        words: [25, 40],
+      }), { task: 'W04', harno: 'W2a' }),
+      'Üks-ühele: õpilane kirjutab üksi, ilma abita ja ilma antud alguseta. See on tunni 28 eksaminurga („Kutse sõbrale”) paralleel: samad neli punkti, uus kohvik. Varasemast: „kuidas sinna saab” (moodul 5). Hinda allpool oleva juhendi järgi (kirjutamise viis rida).'),
+      teach(tag(B.speaking('030_t_say', 'Rääkimine. Osta ja räägi.', 'Osta õpetajalt toitu ja vasta kahele küsimusele. (10 punkti)', [
+        '1. osa: osta turult pannkookide jaoks kolm asja (kogus, hind, maksmine).',
+        '2. osa: mida sa sööd hommikul ja mis sulle ei maitse?',
+        '2. osa: kus sa käid kohvikus ja mida sa seal tellid?',
+      ], [45, 75]), { task: 'S02', harno: 'S2' }),
+      'Üks-ühele: õpetaja on müüja, siis eksamineerija. 1. osa on tunni 27 külma ülesande („Proovi kohe: osta toitu”) paralleel — uus toit, samad kriteeriumid; võrdle oma märkmetega. Ära aita. Hinda allpool oleva juhendi järgi.'),
+      teach(B.table('030_t_score', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja hindab iga rida: 0, 1 või 2 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja kaaslane saab kõigest aru; 1 = alla 25 sõna või osa on segane; 0 = kutsest ei saa aru. | ',
+        'Kirjutamine, vormid: 2 = osastav, -ga ja ilma …-ta peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vormidest ei saa aru. | ',
+        'Kirjutamine, sõnavara: 2 = toidu ja kohviku sõnad õiged; 1 = mõni sõna puudub või on vale; 0 = sõnu on väga vähe. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, ost: 2 = kolm asja koguse ja hinnaga; 1 = üks-kaks asja; 0 = ostu ei toimu. | ',
+        'Rääkimine, vormid: 2 = kilo kartuleid, liiter piima, söön leiba peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = raske aru saada. | ',
+        'Rääkimine, vastused: 2 = kaks vastust täislausega ja detailiga; 1 = üks vastus või ainult sõnad; 0 = ei vasta. | ',
+        'Rääkimine, sõnavara: 2 = toidu ja ostu sõnad õiged; 1 = mõni sõna puudub; 0 = sõnu on väga vähe. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10). Lugemine 5 + 5 küsimust ja kuulamine 5 + 5 küsimust, iga õige vastus 1 punkt — kokku 10 + 10 + 10 + 10 = 40.'),
+      teach(B.table('030_t_result', 'Minu tulemus: moodul 6.', 'Kirjuta punktid ja Harno skaala. Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 5 (%), Mida harjutada?', [
+        'Lugemine |  |  |  | ',
+        'Kuulamine |  |  |  | ',
+        'Kirjutamine |  |  |  | ',
+        'Rääkimine |  |  |  | ',
+        'Kokku (/40) |  |  |  | ',
+      ]), 'Õpetajale: Harno järgi sooritatud = kokku ≥ 24/40 (60 %) ja ükski osa ei ole 0. KeeleSepa sisemine lävi: eksamiks valmis ≥ 28/40 (70 %), sertifikaat ≥ 32/40 (80 %). Kui osa on alla 6/10, anna üks parandusülesanne: lugemine → Harjuta „Lugemine” (moodul 6), kuulamine → tunni 26 või 29 salvestis uuesti ilma tekstita, kirjutamine → sama kutse parandatult, rääkimine → uus salvestus „Minu ostud turul”. Varasemast (moodulid 4–5) on 4 küsimust 20-st (20 %): lugemine 1.5, lugemine 2.1, kuulamine 2.1 ja 2.4.'),
+    ],
+  }),
 }, {
   'a2-026': 'RÄÄK L→S', 'a2-027': 'LUGE R→S', 'a2-028': 'PROJ R→W', 'a2-029': 'KIRJ L→W', 'a2-030': 'EKS',
 });
