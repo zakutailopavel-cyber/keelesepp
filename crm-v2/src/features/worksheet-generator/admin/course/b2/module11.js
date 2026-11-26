@@ -92,6 +92,8 @@ const peerReply = (b) => ({ ...b, data: { ...b.data, peerReply: 'Kursusekaaslane
 const mediaLog = (b) => ({ ...b, data: { ...b.data, mediaLog: true } });
 // G19: a free rewrite (register, politeness) is checked by the teacher
 const openRewrite = (b) => ({ ...b, data: { ...b.data, open: true } });
+// a control's rubric stays directly under the task it scores (courseSheet.js lessonOrder)
+const keepPlace = (b) => ({ ...b, data: { ...b.data, keepPlace: true } });
 const HARJUTA = 'Harjuta → moodul 11: sõnad ja vormid (10 min).';
 
 // the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
@@ -1095,7 +1097,7 @@ export const LESSONS = withPurposes(withShapes({
       ],
     },
     discover: [
-      station(teach(tag(B.writing('051_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Kuu lõpus ei jätku raha väikeste ostude, mitte väikese palga pärast.” Kirjuta 5 minutiga 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7]), { task: 'W14', harno: 'W2b' }),
+      station(teach(tag(homeLines(B.writing('051_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Kuu lõpus ei jätku raha väikeste ostude, mitte väikese palga pärast.” Kirjuta 5 minutiga 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7]), 12), { task: 'W14', harno: 'W2b' }),
         'Mooduli külm ülesanne (algtase), 5 minutit, kirjalikult (moodul 10 mõõtis rääkimist, moodul 11 mõõdab kirjutamist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (kuigi, seetõttu, samas …) ja 2–3 korduvat viga. Hoia leht alles: tunnis b1b2-055 kirjutab õppija paralleelse ülesande samades tingimustes (kontrolli kirjutamise 1. osa) ja te võrdlete. Õppija ei pea kirjutama oma päris rahast.'), 1, 5),
       station(withReview(tag(B.vocab('051_d_vocab', 'Tunni sõnad.', ['eelarve — бюджет', 'püsimakse — регулярный платёж', 'tellimus — подписка', 'tühistama — отменять', 'prooviaeg — пробный период', 'kulu — расход', 'sissetulek — доход', 'säästma — экономить', 'reserv — резерв (запас денег)', 'kõrvale panema — откладывать (деньги)']), { topic: ['püsimakse', 'prooviaeg', 'reserv'] }), ['võlg', 'kahetsema', 'kompromiss']), 2, 22),
       why(teach(tag(B.reading('051_d_text', 'Loe artiklit.', 'Vaata enne pealkirja ja lõikude esimesi lauseid (1 minut). Siis loe ja vasta. Küsimustele 5–7 järelda ja näita lauset tekstist.', 'Kuhu kaob raha enne kuu lõppu?', [
@@ -1796,9 +1798,9 @@ export const LESSONS = withPurposes(withShapes({
         'Järeldus kogu artiklist: raha (B), keskkond (C), turvalisus (E, F) — „ostmine muutub teadlikuks otsuseks”.',
       ]),
       PART('055_t_wpart', 'W', { minutes: 23, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): kolm rida 0–2 — samad tingimused nagu mooduli külmas alguses (tund 51). Kirjutamine 2 (umbes 18 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: lugemine … / 16 + kirjutamine … / 18 = … / 34.' }),
-      teach(tag(B.writing('055_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Kaardiga makstes kulutame rohkem kui sularahaga.” Sul on 5 minutit ja 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7], [], 0, 'g_use'), { task: 'W14', harno: 'W2b' }),
+      teach(tag(homeLines(B.writing('055_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Kaardiga makstes kulutame rohkem kui sularahaga.” Sul on 5 minutit ja 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7], [], 0, 'g_use'), 12), { task: 'W14', harno: 'W2b' }),
         'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-051 (5 minutit, 5–7 lauset, fraase ega algust ei ole), uus väide samast teemast. Hinda kolme rea järgi 0–2 (hindamine all). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
-      B.rubric('055_t_rubric', 'Hindamine: kirjutamine 1 (6 punkti).', 'Iga rida 0–2 punkti.', ['Seisukoht esimeses lauses, põhjus ja näide (0–2).', 'Vastuargument ja vastus sellele (0–2).', 'Keel: sidendid (kuigi …, siiski; seetõttu) ja mooduli vormid (sihitis, kesksõna) (0–2).']),
+      keepPlace(B.rubric('055_t_rubric', 'Hindamine: kirjutamine 1 (6 punkti).', 'Iga rida 0–2 punkti.', ['Seisukoht esimeses lauses, põhjus ja näide (0–2).', 'Vastuargument ja vastus sellele (0–2).', 'Keel: sidendid (kuigi …, siiski; seetõttu) ja mooduli vormid (sihitis, kesksõna) (0–2).'])),
       tag(homeLines(B.examWriting('055_t_claim', 'Kirjutamine 2: kiri teenusepakkujale (umbes 140 sõna, 12 punkti).', 'Kirjuta 130–150 sõna. Pöördumist ja algust ei anta.', 'kiri', {
         situation: 'Proovisid kuu aega tasuta keeleõppe äppi. Prooviaja lõpus tühistasid tellimuse, aga järgmisel kuul võeti sinu kontolt ikkagi 11,99 eurot ja leping pikenes automaatselt aastaks. Kirjuta teenusepakkuja klienditeenindusele.',
         points: ['mis juhtus ja millal (tühistamine, makse)', 'miks makse ei ole sinu arvates õige (tingimused, tõend)', 'mida palud: raha tagasi ja lepingu lõpetamise kinnitus', 'mis ajaks ootad vastust ja mida teed, kui vastust ei tule'],
