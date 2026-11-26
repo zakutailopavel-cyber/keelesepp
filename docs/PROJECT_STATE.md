@@ -1,3 +1,11 @@
+## 2026-11-26 — B1 moodul 17 metoodika v6 järgi — PEATATUD (agent/b1-m17-v6)
+
+- Main kontrollitud: fcdbcb0 (2026-11-26). Haru `agent/b1-m17-v6` tehtud `origin/agent/b1-m16-v6` (#1351) peale + `origin/main`; draft-PR „WIP: B1 module 17 to methodology v6 (paused)”. Omanik peatas kursusetöö; deploy'd ega production'i kirjutusi pole; TartuNLP heli (lubatud) genereeriti 083_d_radio ja 084_d_voice jaoks.
+- Tehtud: `b1/module17.js` ümber kirjutatud moodulite 14–16 mallis (vana lugu `OLD`-ina, lehelt läinud plokid peidetud): 081 teated (külm kiri, R1 nurk, umbisikuline, põhiülesanne telefonikõne haldurile varjatud infoga `phone`), 082 ametlik kiri (R3a nurk, rektsioon, kiri linnaosale `message`, päris leht eesti.ee), 083 numbrid (L1 nurk, muutuse väljendid, infolünk `infogap`, meediapäevik stat.ee), 084 kiri sõbrale (häälsõnum, R4 nurk, sidesõnad + kuigi, kiri `message`, `peerReply`), 085 kontroll üks leht R+W (R1 8 + R4 8, W1a 8 + W2 12 = 36 p, W2 = 081 külma ülesande paralleel). `lessonGoals.js` 081–085, `strictModulesV5/V6.json` + m17, heli + `listeningAudio.json`.
+- Väravad: `method-v5.mjs --module 17` → 0; `method-v6.mjs --module 17` → 0; `final-shape.mjs` 95 (baasjoones 85, **uusi 10**, kõik moodulis 17: V7 084_d_warm juhis, V11-output 082/083, V11-fluency 084, V14-known/V14-topic sõnavara). Vitest, e2e, Vabamorf, ekraanipildid tegemata.
+- Lõpetamata: final shape 10 uut probleemi; `--retrofit --write-baseline`; baasjoonte kärpimine (V6-corner-R3, academicValue*Baseline m17 kirjed); m18 „Mäletad?” (086 → a2b1-084, 087 → a2b1-066 vana lugu); 4 õpipilti (`art/visuals/b1-module-17.js`); vana heli 084_d_radio jt manifestis; `reviewSheet.test.js` näidis a2b1-084; vitest; enne/pärast ekraanipildid.
+- Järgmine samm: kui omanik töö jätkab — paranda final-shape'i 10 uut probleemi ja käivita vitest.
+
 ## 2026-11-26 — B1 moodul 16 metoodika v6 järgi (agent/b1-m16-v6)
 
 - Main kontrollitud: 441bbcf (2026-11-26 10:26 UTC; #1344 ja #1347 ühendatud). Haru `agent/b1-m16-v6` tehtud `origin/agent/b1-m15-v6` peale + `origin/main` (kaks korda); draft-PR #1351 „B1 module 16 to methodology v6”. Deploy'd ega production'i kirjutusi pole; TartuNLP heli (lubatud) genereeriti üks kord.
