@@ -11,6 +11,7 @@
     "test": "vitest run",
     "course:final-shape": "node ../tools/course-audit/final-shape.mjs",
     "course:method-v5": "node ../tools/course-audit/method-v5.mjs",
+    "course:method-v6": "node ../tools/course-audit/method-v6.mjs",
     "build:sheet-kit": "node scripts/build-sheet-kit.mjs"
   },
   "dependencies": {
