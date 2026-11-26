@@ -69,7 +69,7 @@ export const LESSONS = withShapes({
     title: 'Teated trepikojas',
     canDo: 'Ma loen maja ja tänava teateid, seletan neid uuele naabrile ning helistan värvifirmasse ja küsin umbisikulise vormiga, millal ja kuidas töid tehakse.',
     discover: [
-      B.review('081_d_review', [['Millised kolm ettepanekut olid Männi 8 elanikel hoovi jaoks?', 'a2b1-079'], ['Mitu kirja plaanis Sofia enne märtsi lõppu Maretile saata?', 'a2b1-074'], 'Milliseid teateid sa viimati oma majas või töö juures lugesid?']),
+      B.review('081_d_review', [['Millised kolm ettepanekut olid Männi 8 elanikel hoovi jaoks?', 'a2b1-079'], ['Mis oli Tõnu plaaniga valesti ja mida sa talle soovitaksid?', 'a2b1-074'], 'Milliseid teateid sa viimati oma majas või töö juures lugesid?']),
       B.topicOpener('081_d_open', 'Teema avaleht: asjaajamine Eestis', [
         'Eestis saab suure osa asjadest riigi ja linnaga ajada internetis. Riigiportaali eesti.ee esimesed kasutajad logisid sisse 2003. aastal ja portaali haldab Riigi Infosüsteemi Amet. Portaali sisenetakse ID-kaardi, mobiil-ID või Smart-ID-ga. Seal saab vaadata oma andmeid, esitada taotlusi ja leida teiste asutuste e-teenuseid. Paljudel asutustel on ka oma iseteenindus, näiteks Sotsiaalkindlustusametil, kus vaadatakse ja hallatakse pensioni ja peretoetusi.',
         'Riik saadab inimesele ka ise teateid. Alates 2021. aastast saadab eesti.ee teavituse e-posti aadressile või telefoninumbrile, mis on rahvastikuregistris kirjas. Nii antakse teada näiteks sellest, et juhiluba hakkab aeguma. Seepärast tasub oma kontaktandmed aeg-ajalt üle vaadata. Riigiportaali postkasti kirju saab suunata ka oma tavalisele e-posti aadressile.',
@@ -447,7 +447,7 @@ export const LESSONS = withShapes({
     title: 'Eksam ja e-teenused',
     canDo: 'Ma saan raadiosaatest ja telefonikõnest aru, kuidas keeleeksamile registreerida ja riigi e-teenust turvaliselt kasutada, annan kuuldu edasi ning koostan ja tutvustan koos naabritega uue elaniku meelespea.',
     discover: [
-      B.review('083_d_review', [['Mida pidi ühistu linnaosa valitsusele saatma, et toetuse taotlus läbi vaadataks?', 'a2b1-082'], ['Millise plaani valisid Viktor ja Ülo Peipsi-äärseks sõiduks?', 'a2b1-072'], 'Kas sa oled kunagi mõnele eksamile või kursusele registreerinud? Kuidas see käis?']),
+      B.review('083_d_review', [['Mida pidi ühistu linnaosa valitsusele saatma, et toetuse taotlus läbi vaadataks?', 'a2b1-082'], ['Mida tähendab aia korras „ärgu segagu” ja kuidas ütled seda lihtsalt?', 'a2b1-072'], 'Kas sa oled kunagi mõnele eksamile või kursusele registreerinud? Kuidas see käis?']),
       B.text('083_d_hook', 'Eksam on ka riigi teenus', 'On märtsi lõpp. Sofia registreerib end Harno B1 eksamile ja ka Ruslan mõtleb eksamile. Eesti keele tasemeeksam on riigi teenus nagu iga teinegi: on registreerimine, tähtaeg, reeglid ja elektrooniline tunnistus. Hommikul bussis kuulab Sofia raadiosaadet „Päevateema”, kus räägitakse, kuidas eksamile registreerida. Täna kuulad saadet ja Ruslani kõnet Sotsiaalkindlustusametisse, annad edasi, mida kuulsid, ning koostad koos naabritega uue elaniku meelespea.'),
       B.examListen('083_d_radio', 'Raadio „Päevateema”: eksamiks valmis?', 'Kuula raadiosaadet kaks korda ja vali iga küsimuse juurde õige vastus.', 'choice', [
         'Ülle: Tere päevast! Stuudios on keeleõppe nõustaja Merit Kask. Merit, kevadel registreerib end eksamile palju inimesi. Kust alustada?',
