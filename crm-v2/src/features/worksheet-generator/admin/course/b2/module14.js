@@ -1145,22 +1145,24 @@ export const LESSONS = withPurposes(withShapes(withRetired({
         '(C) Seejärel hinnatakse abivajadust. Sotsiaaltöötaja tuleb tavaliselt koju ja vaatab, mida inimene veel ise teeb: kas ta suudab süüa teha, end pesta, ravimeid võtta ja arveid maksta. Hindamine ei ole eksam ega kontroll, vaid vestlus. Selle eesmärk on leida lahendus, mis toetab inimese iseseisvust, mitte ei võta seda ära. Hinnatud abivajaduse põhjal lepitakse kokku teenus ja selle maht. Hea on, kui hindamise juures on ka pereliige: ema ei pruugi võõrale tunnistada, et ta on viimasel ajal mitu korda kukkunud või söömata jätnud.',
         '(D) Valla pakutavaid teenuseid on mitut liiki. Koduteenuse puhul käib hooldaja mõned korrad nädalas kodus: toob toidu, aitab koristada või saadab arsti juurde. Häirenupp on käe peal kantav nupp, millele vajutades saab üksi elav eakas kiiresti abi kutsuda, näiteks kui ta on kukkunud. Mõnes kohas on päevakeskus, kus saab süüa, suhelda ja liikuda. Mõni vald korraldab ka transporti, et eakas jõuaks arsti juurde või poodi ilma lähedaste abita. Kui kodus elamine ei ole enam turvaline, aitab vald leida koha hooldekodus.',
         '(E) Teenused ei ole alati tasuta. Sageli maksab inimene osa ise. Selle omaosaluse suurus sõltub tema sissetulekust ja valla hinnakirjast. Hooldekodu koha puhul on viimastel aastatel valla osa suurenenud, nii et pere ei pea kõike ise kandma. Summad on igas vallas erinevad, seepärast tasub küsida hinnad kirjalikult ja neid võrrelda. Kui pere sissetulek on väike, võib vald osa tasust kanda või pakkuda toetust; seda tuleb aga eraldi taotleda.',
-        '(F) Kõige raskem ei ole aga sageli paberitöö, vaid vestlus kodus. Paljud eakad ütlevad, et nad ei vaja abi, sest nad ei taha olla kellelegi koormaks. Sotsiaaltöötajate sõnul aitab, kui pere ei otsusta eaka eest, vaid koos temaga. Esimene teenus võib olla väike, näiteks toidu koju toomine kaks korda nädalas. Kui ema näeb, et võõras abistaja ei võta temalt kodu ära, on järgmine samm kergem. Sageli tuleb pärast esimest kuud ema ise küsima, kas hooldaja võiks käia ka kolmandal päeval.',
+        '(F) Kõige raskem ei ole aga sageli paberitöö, vaid vestlus kodus. Paljud eakad ütlevad, et nad ei vaja abi, sest nad ei taha olla kellelegi koormaks. Sotsiaaltöötajate sõnul aitab, kui pere ei otsusta eaka eest, vaid koos temaga. Vestluseks tasub valida rahulik hetk, mitte telefonikõne pärast järjekordset kukkumist. Hea on rääkida sellest, mida ema ise tahab säilitada: oma kodu, aeda, harjumusi ja sõpru. Esimene teenus võib olla väike, näiteks toidu koju toomine kaks korda nädalas. Kui ema näeb, et võõras abistaja ei võta temalt kodu ära, on järgmine samm kergem. Sageli tuleb pärast esimest kuud ema ise küsima, kas hooldaja võiks käia ka kolmandal päeval.',
         '(G) Abi küsimine ei ole nõrkus. Kuumalaine, libedus või gripihooaeg on üksi elavale eakale suurem oht kui teistele, sest ta kuulub riskirühma. Kui naaber, laps ja sotsiaaltöötaja teavad üksteisest, ei pea keegi kriisi ootamata üksi hakkama saama ning kiirabi kutsutakse õigel ajal.',
         'Allikas: KeeleSepp õppetekst.',
       ].join('\n\n'), []), { task: 'R13', voice: 'article' }),
-      'Lugemine, umbes 27 minutit koos sõnade ja küsimustega. Strateegia (v6 §2 l, lugemine: silmitse → otsi → arva kontekstist): enne lugemist vaatab õppija 1 minuti pealkirja ja lõikude algusi ning ütleb, millest tekst räägib. Kordamise sõnad (volitus, e-teenus, sissetulek) on tekstis: lase need leida. Tekst on õppetekst ilma täpse statistikata; summad ja teenused erinevad valla kaupa.'),
-      why(teach(tag(B.choice('066_d_mc', 'Eksaminurk: vali õige vastus.', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus kolmest. Küsimustele 3, 6 ja 7 järelda.', [
-        ['Mida märkavad lapsed lõigu A järgi sageli alles juhuslikult?', 'et ema ei saa enam igapäevaste asjadega üksi hakkama', 'et ema tahab kolida hooldekodusse', 'et ema on vallale ise helistanud'],
-        ['Mida on lõigu B järgi vaja, kui laps pöördub ema eest valla poole?', 'ema nõusolekut ja sageli volitust', 'arsti tõendit ja passi', 'ainult lapse enda isikukoodi'],
-        ['Mida tahab autor öelda lausega „Hindamine ei ole eksam ega kontroll, vaid vestlus”? Järelda.', 'eesmärk on koos leida sobiv abi, mitte inimest hinnata ega karistada', 'sotsiaaltöötaja kontrollib, kas korter on puhas', 'eakas peab vastama küsimustele kirjalikult'],
-        ['Milleks on lõigu D järgi häirenupp?', 'et kukkunud või haige eakas saaks kiiresti abi kutsuda', 'et hooldaja teaks, millal uks avada', 'et eakas saaks poes maksta'],
-        ['Millest sõltub lõigu E järgi omaosaluse suurus?', 'inimese sissetulekust ja valla hinnakirjast', 'ainult teenuse kestusest', 'sellest, kui kaugel inimene vallamajast elab'],
-        ['Miks soovitavad sotsiaaltöötajad lõigu F järgi alustada väikesest teenusest? Järelda.', 'eakas harjub abiga ega tunne, et temalt võetakse iseseisvus', 'väike teenus on alati tasuta', 'suurt teenust ei saa kohe taotleda'],
-        ['Milline on autori hoiak abi küsimise suhtes? Järelda.', 'abi küsimine on mõistlik ja aitab ohtu vältida', 'abi tuleks küsida ainult viimases hädas', 'pere peaks kõik ise ära tegema'],
+      'Lugemine, umbes 27 minutit koos sõnade ja küsimustega. Strateegia (v6 §2 l, lugemine: silmitse → otsi → arva kontekstist): enne lugemist vaatab õppija 1 minuti pealkirja ja lõikude algusi ning ütleb, millest tekst räägib. Kordamise sõnad (volitus, e-teenus, sissetulek) on tekstis: lase need leida. Tekst on õppetekst ilma täpse statistikata (umbes 540 sõna); summad ja teenused erinevad valla kaupa.'),
+      why(teach(tag(B.choice('066_d_mc', 'Eksaminurk: vali õige vastus.', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast. Küsimustele 4, 7 ja 8 järelda.', [
+        ['Mida märkavad lapsed lõigu A järgi sageli alles juhuslikult?', 'et ema ei saa enam igapäevaste asjadega üksi hakkama', 'et ema tahab kolida hooldekodusse', 'et ema on vallale ise helistanud', 'et ema on uue korteri ostnud'],
+        ['Mida tähendab lõigu A järgi, et pere vastutab inimese toimetuleku eest „esmajoones”?', 'pere vastutab esimesena, vald aitab siis, kui perest ei piisa', 'vald vastutab alati rohkem kui pere', 'pere ei pea vanema eest midagi tegema', 'vastutus on ainult hooldekodul'],
+        ['Mida on lõigu B järgi vaja, kui laps pöördub ema eest valla poole?', 'ema nõusolekut ja sageli volitust', 'arsti tõendit ja passi', 'ainult lapse enda isikukoodi', 'notari kinnitatud lepingut hooldajaga'],
+        ['Mida tahab autor öelda lausega „Hindamine ei ole eksam ega kontroll, vaid vestlus”? Järelda.', 'eesmärk on koos leida sobiv abi, mitte inimest hinnata ega karistada', 'sotsiaaltöötaja kontrollib, kas korter on puhas', 'eakas peab vastama küsimustele kirjalikult', 'pere peab tõestama, et ta ei saa ise aidata'],
+        ['Milleks on lõigu D järgi häirenupp?', 'et kukkunud või haige eakas saaks kiiresti abi kutsuda', 'et hooldaja teaks, millal uks avada', 'et eakas saaks poes maksta', 'et sotsiaaltöötaja teaks, kus eakas on'],
+        ['Millest sõltub lõigu E järgi omaosaluse suurus?', 'inimese sissetulekust ja valla hinnakirjast', 'ainult teenuse kestusest', 'sellest, kui kaugel inimene vallamajast elab', 'sellest, kui vana inimene on'],
+        ['Miks soovitavad sotsiaaltöötajad lõigu F järgi alustada väikesest teenusest? Järelda.', 'eakas harjub abiga ega tunne, et temalt võetakse iseseisvus', 'väike teenus on alati tasuta', 'suurt teenust ei saa kohe taotleda', 'hooldaja ei taha alguses rohkem tööd'],
+        ['Milline on autori hoiak abi küsimise suhtes? Järelda.', 'abi küsimine on mõistlik ja aitab ohtu vältida', 'abi tuleks küsida ainult viimases hädas', 'pere peaks kõik ise ära tegema', 'abi küsimine on häbiasi'],
       ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }),
-      'Eksaminurk (Harno B2 lugemine, osa 1): seitse valikvastust kolmest. Küsimused 3, 6 ja 7 on järeldusküsimused: nõua lauset, millele vastus toetub. Arutelu paaris (5 min): „Kas sinu kodumaal hoolitseb eakate eest pere või riik? Mida võiks Eesti sealt õppida — või vastupidi?”'), [
+      'Eksaminurk (Harno B2 lugemine, osa 1): kaheksa küsimust, neli valikut (eksamil seitse küsimust). Küsimused 4, 7 ja 8 on järeldusküsimused: nõua lauset, millele vastus toetub. Arutelu paaris (5 min): „Kas sinu kodumaal hoolitseb eakate eest pere või riik? Mida võiks Eesti sealt õppida — või vastupidi?”'), [
         '(A): „üksi elav ema ei käi enam poes, unustab ravimid või ei julge talvel trepist alla minna”.',
+        '(A): „vastutab … esmajoones tema pere, ent vallal on kohustus aidata, kui perest üksi ei piisa”.',
         '(B): „ema nõusolek on vajalik. Sageli küsitakse volitust”.',
         'Järeldus (C): „Selle eesmärk on leida lahendus, mis toetab inimese iseseisvust.”',
         '(D): „saab üksi elav eakas kiiresti abi kutsuda, näiteks kui ta on kukkunud”.',
@@ -1507,7 +1509,7 @@ export const LESSONS = withPurposes(withShapes(withRetired({
         'Kõige rohkem kartsin suulist osa. [[Selgus aga, et küsimused olid igapäevaelust: töö, pere ja kodukoht.]] Eksamineerija oli rahulik ja kordas küsimust, kui ma kohe aru ei saanud.',
         'Ühe asjaga ole siiski ettevaatlik. [[Ära usalda foorumi juttu, vaid kontrolli nõudeid ametlikult lehelt.]] Nõuded võivad muutuda ja iga inimese olukord on veidi erinev.',
       ], ['Eksamil võib kasutada ka sõnaraamatut ja telefoni.'], 'g_read'), { task: 'R16', harno: 'R4' }),
-      'Eksaminurk (Harno B2 lugemine, osa 4): terved laused lünkadesse, üks üleliigne. Küsi iga lünga juures, mis naaberlauses vihjab (sama hirm → tegelikult; küsimuste kogu → lugesin küsimusi; teisiti → seal aitas …). Üleliigne lause on vale ka sisult: telefoni ei tohi kasutada (vt 068_p_forms rida 10).'), [
+      'Eksaminurk (Harno B2 lugemine, osa 4): terved laused lünkadesse, üks üleliigne. Küsi iga lünga juures, mis naaberlauses vihjab (sama hirm → tegelikult; küsimuste kogu → lugesin küsimusi; teisiti → seal aitas …). Üleliigne lause on vale ka sisult: telefoni ei tohi kasutada (vt vormiülesande rida 10).'), [
         'Hirm → „Tegelikult ei pea …”: järgmine lause seletab, miks (seadusetekst on laual).',
         '„küsimuste kogust” → „Lugesin iga päev kümme küsimust …”; järgmine lause räägib tulemusest.',
         '„Keeleeksamiga oli teisiti” → „Seal aitas …”; järgmine lause nimetab vestlusringi ja raadio.',
@@ -1602,8 +1604,10 @@ export const LESSONS = withPurposes(withShapes(withRetired({
         'Kogukulu hulka kuuluvad ehitamise kõrval ka hooldus ja [elekter].',
         'Kaasava eelarve idee peab olema kõigile avatud ja selle peab saama ellu viia ühe [aasta] jooksul.',
         'Kirjale tuleb lisada nimi ja kontakt, sest anonüümsele kirjale vald [ei vasta|ei vasta üldse].',
+        'Jaanuse sõnul on üks läbimõeldud kiri parem kui kümme vihast [kommentaari|kommentaari sotsiaalmeedias].',
+        'Enne kirjutamist soovitab Jaanus rääkida kõigepealt [naabritega|oma naabritega].',
       ], 'g_listen')), { voice: 'interview', task: 'L04', harno: 'L3' }),
-      'Kuulamine, umbes 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: ennusta → võtmesõnad → kontrolli): seekord „kontrolli” — õppija kirjutab ennustused pliiatsiga ja kontrollib neid kuulates. Eksaminurk (Harno B2 kuulamine, osa 3): 10 lünka, 1–2 sõna. Kordamise sõnad (kogukulu, õiglane, riskirühm) on saates.'), [
+      'Kuulamine, umbes 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: ennusta → võtmesõnad → kontrolli): seekord „kontrolli” — õppija kirjutab ennustused pliiatsiga ja kontrollib neid kuulates. Eksaminurk (Harno B2 kuulamine, osa 3): 12 lünka, 1–2 sõna. Kordamise sõnad (kogukulu, õiglane, riskirühm) on saates.'), [
         'Jaanus: „üldjuhul kolmekümne päeva jooksul”.',
         'Jaanus: „selle peale ei saa vald midagi otsustada”.',
         'Jaanus: „Hea ettepanek algab konkreetsest kohast ja probleemist.”',
@@ -1614,6 +1618,8 @@ export const LESSONS = withPurposes(withShapes(withRetired({
         'Jaanus: „arvestatud ka hoolduse ja elektriga”.',
         'Jaanus: „selle peab saama ellu viia ühe aasta jooksul”.',
         'Jaanus: „anonüümsele kirjale vald ei vasta”.',
+        'Jaanus: „Üks hästi läbimõeldud kiri on parem kui kümme vihast kommentaari sotsiaalmeedias.”',
+        'Jaanus: „Räägi kõigepealt naabritega.”',
       ]),
     ],
     practice: [
