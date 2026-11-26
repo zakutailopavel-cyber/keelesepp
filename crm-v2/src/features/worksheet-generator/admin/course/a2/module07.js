@@ -1,30 +1,98 @@
-// A2 course (A1 → A2 roadmap), module 7 „Pood, raha ja ostud” (a2-031…035), level A2, in the final shape
-// (docs/COURSE_FINAL_SHAPE_A2.md, row m7: PROB AVAS KUUL LUGU; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
-// One storyline, one year before the B1 course (docs/COURSE_CAST.md): late November, Sofia's first Estonian winter. Sofia
-// (27) rents a room from Malle Pärn (66) in Mustamäe, flatmate Grete (22). Department store Kaubahall: Anna (Jaan's old
-// acquaintance) works in the home goods department on the 4th floor, her colleague Siiri at the till and the info desk.
-// Uncle Viktor sells apples, eggs and honey at Nõmme market, Leida woollen socks and mittens; Markus is a regular of café
-// Pann; the second-hand shop „Teine Ring” (owner Mirjam, seller Kristo); Sofia's mother Helgi in Tartu, friend Kati abroad.
-//   031 PROB R→S  Malle's birthday present for 40 € (Grete broke Malle's blue teacup) — the adjective with the noun in the
-//                 partitive (Ma otsin sinist tassi, Mul on vaja sooja salli); a first try on the phone, the rule, a second
-//                 try in the shop; corner R2 (sentences ↔ three short texts); main: the present agreed with Grete (S03).
-//   032 AVAS L→S  Nõmme market and the till — numbers in cases, the module's grammar item: kahe euro eest, viie euroga,
-//                 kaheksast kolmeni, kümne protsendi soodustus, kuni viiekümne euroni; try first → rule → try again;
-//                 corner S1 (the till picture + topic questions, S06); main: the flat's food basket for 25 € (S12).
-//   033 KUUL L→W  the second-hand shop „Teine Ring” — the comparative (odavam, soojem … kui; Kas teil on suuremat?); a
-//                 fitting-room talk, Helgi's voicemail, the owner on the radio; corner L3 (short answers); main: a 50–70-word
-//                 letter to Kati about the jacket she chose (W04), planned and edited.
-//   034 LUGU R→W  the kettle that broke after ten days — kuni reedeni, … jooksul, kahe aasta garantii, kviitungiga /
-//                 ilma kviitungita; Viktor at Kaubahall's info desk; corner W1 (a text from a business card); main: the
-//                 end of the story, 60–80 words (W05).
-//   035 EKS       the module check; its exam-form tasks carry their Harno A2 ids (R1, R2, R3, L3, W1, W2a, S1, S2).
-// Every teaching lesson: „Mäletad?” naming the previous lesson and one of modules 3–5, an in-lesson pair task, a home
-// recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2). The v3 file is in archive/v3/a2/module07.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 7 „Pood, raha ja ostud” (a2-031…035), stage A2- (lessons 021–050).
+// Methodology v5 for A2 (docs/METHODOLOGY_A2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25), in the
+// pattern of A2 modules 5–6:
+//   - every teaching lesson: ≤ 14 blocks (≤ 5 / 4 / 5) in a 60-minute lesson; one input; one learning picture on the page of
+//     its task (art/visuals/a2-module-07.js); a 5-minute pronunciation corner (data.pronunciation: 031 välted — the long
+//     partitive against the short genitive, kotti / koti; 032 the dictation of prices + varjutamine; 033 intonatsioon;
+//     034 vokaalid); the rule box („Märka”, bold forms, one „Vene keeles … — eesti keeles …” line) is produced by the
+//     Harjuta form task, whose hints are the dictionary form, a number or the other form of the pair, never the answer;
+//   - Kasuta in the standard order: situation → main task (data.taskType, data.support = „Abikaart”, data.stretch =
+//     „Lisaväljakutse”) → home task (homeTask, always „Harjuta → moodul 7”) → exit check (exitCheck: 30 s of speech after
+//     a speaking main task, one rewritten line after a writing main task) beside the self-check (three success criteria
+//     0–1–2 + one own sentence, data.evidence);
+//   - main-task types rotate and differ from modules 5–6 (survey, infogap, phone, ranking; presentation, roleplay, project,
+//     message): 031 jigsaw (two shop cards, the pair chooses one present for 40 €), 032 mediation (a neighbour who does not
+//     read Estonian asks about a shop's flyer), 033 report (a price comparison for the group's „Säästuleht”, a classmate
+//     answers: data.peerReply), 034 narrative (a picture story of a return, without ready phrases or a given opening);
+//   - spaced retrieval: every vocab block carries data.review (3 words from 3–15 lessons back, used again in the lesson);
+//   - real network: 031's message goes to the group chat, 032's home task is the media log („Minu eesti keele võrgustik”,
+//     a real shop page with its URL), 033's report goes to a classmate who answers, 034's story to the group's blog;
+//   - Harno A2 exam corners spread over the module (COURSE_FINAL_SHAPE_A2.md, finalShape.js profile a2): 031 R2 (sentences
+//     ↔ three short texts), 032 L3 (the input, short answers), 033 S1 (the picture + topic questions), 034 W1 (a text from
+//     a business card); the control tags R1, R4, L3, W1, S2;
+//   - a teacher page per lesson (lesson.teacherPage); until the A2 sheet renders it, the same plan stands in the teacher
+//     note of the lesson's „Mäletad?” block.
+//   031 PROB R→S  „Mida te otsite?” — a department store's gift leaflet (reading). otsima / vajama / mul on vaja +
+//                 adjective and noun in the partitive (sinist tassi, sooja salli) against the nominative (mul on sinine
+//                 tass); the module's COLD TASK („Proovi kohe: poes” without help, its parallel is the control's speaking 1);
+//                 the store's floors in the picture = guided use; the R2 corner; main: a jigsaw — A knows the store, B the
+//                 fair, together they choose a present for 40 €.
+//   032 AVAS L→S  „Kahe euro eest” — a store's radio announcement (listening, the L3 corner). Numbers in the genitive:
+//                 kümne euro eest, viie euroga, kahekümne protsendi soodustus, kuni kolmekümne euroni; the dictation of
+//                 prices (5 sentences); a call about a second-hand ad (bargaining); main: mediation — the learner explains
+//                 the flyer in the picture to a neighbour who does not read Estonian.
+//   033 KUUL L→W  „Kas teil on suuremat?” — at a second-hand shop (listening). The comparative (odavam, soojem, parem …
+//                 kui; Kas teil on suuremat?); a fitting-room role play; Kasuta opens with the S1 corner on the picture of
+//                 two jackets; main: a 30–45-word price comparison for the group's „Säästuleht”, read and answered by a
+//                 classmate (the situation is in the task card, no separate situation block).
+//   034 LUGU R→W  „Kviitung on alles” — the story of a kettle that broke (reading). kuni reedeni, kahe nädala jooksul, kahe
+//                 aasta garantii, kviitungiga / ilma karbita, tagastada / vahetada; the info desk with HIDDEN INFORMATION
+//                 (G9); the W1 corner (a business card); the module's last teaching lesson: one speech and one text without
+//                 ready phrases or a given opening (G9); main: a picture story of a return — keywords per frame beside the
+//                 picture (the plan), then 30–45 words on the next page.
+//   035 EKS       Control 7 (one sheet, 9 blocks, 45 min): reading, listening, writing, speaking 10 points each; raw points,
+//                 the Harno scale (× 2), the thresholds named one way, „ükski osa ei tohi olla 0 punkti”; 4 of the 20 closed
+//                 items recycle modules 4–6 (teacher note „Varasemast”); writing parallel to 034's business-card corner,
+//                 speaking 1 parallel to 031's cold task.
+// No lesson uses the continuing story's cast (G7). Dictation: one, in 032 (5 sentences). Texts are learning texts, the
+// people and places are invented (Marta, Igor, Kristel, Galina, kaubamaja Täht, pood „Uus Elu” …); real pages are named only
+// by title and URL. The final-shape module (2026-10-29, one storyline with Sofia, Malle, Grete, Anna …) is kept below as OLD:
+// every old block keeps its id and comes back hidden (retire), so learners' saved answers keep their key and Harjuta still
+// draws on the old form tasks.
+import { B, hide, tag, teach, withShapes } from '../blocks.js';
+import { exitCheck, homeTask } from '../stationBlocks.js';
 
 export const MODULE = { id: 'a2-module-07', course: 'a2', title: 'Pood, raha ja ostud', level: 'A2', design: 'v2', template: 'v4' };
 
-export const LESSONS = withShapes({
+// one line for every block taken off the sheets by the v5 / v6 rewrite
+const V6_CUT = 'v5+v6 (2026-11-26): lehelt maha — tunni eelarve (60 min), üks sisend, loo tegelased mitte, uus tunni ülesanne';
+// a recording is heard twice (methodV5.js G6); in the control the player is locked
+const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// more fields on a block (v6 markers: taskType, support, stretch, review, pronunciation, peerReply, mediaLog, hiddenInfo)
+const v6 = (block, data) => ({ ...block, data: { ...block.data, ...data } });
+// the self-check of v6 (G24): the main task's three success criteria rated 0–1–2 and one own sentence as evidence
+const selfcheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, criteria, stamp, 'Kuidas mul läks?');
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0, 1 või 2. Kirjuta üks oma lause.', criteria, scale: [0, 1, 2], evidence: true } };
+};
+// a check is one sheet with its own label (no „Avasta” subtitle)
+const checkSheet = (label, subtitle) => ({ discover: { label, slot: 1, subtitle } });
+// the thresholds, named one way everywhere (METHODOLOGY_A2_V5.md §2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi, et eksamil oleks varu).';
+// the teacher's plan of a lesson, shown today in the teacher note of its first block (A2 sheets do not render
+// lesson.teacherPage yet; METHODOLOGY_V6.md §2 i)
+const planNote = (p) => [
+  `Õpetaja leht. Eesmärk: ${p.goal}`,
+  `Põhitee (60 min): ${p.core}`,
+  `Lühike tee (45 min): ${p.short}`,
+  `Alternatiiv: ${p.alt}`,
+  `Kui aega jääb: ${p.extra}`,
+  `Tüüpvead: ${p.errors.join(' · ')}`,
+].join('\n');
+// the old blocks the new lesson does not reuse come back hidden, in their old phase
+const PHASES = ['discover', 'practice', 'transfer'];
+function retire(old, lesson) {
+  const used = new Set(PHASES.flatMap((p) => (lesson[p] || []).map((b) => b.id)));
+  const out = { ...lesson };
+  PHASES.forEach((p) => { out[p] = [...(lesson[p] || []), ...(old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, V6_CUT))]; });
+  return out;
+}
+
+// ---------------------------------------------------------------- the final-shape module (2026-10-29, one storyline): every
+// block stays here with its id; the v6 lessons below take what they reuse and hide the rest (retire).
+const OLD = {
   'a2-031': {
     title: 'Kingitus Mallele',
     canDo: 'Ma ütlen poes, mida ma otsin (sinist tassi, sooja salli), küsin hinda ja värvi ning lepin sõbraga kokku, mis kingitus 40 euro eest osta.',
@@ -733,6 +801,469 @@ export const LESSONS = withShapes({
       B.selfcheck('035_t_self', ['Ma täidan tagastuse vormi.', 'Ma kirjutan poele 40–60 sõna.', 'Ma räägin oma ostudest umbes minuti.', 'Ma lahendan poes probleemi.'], 'Moodul 7 on läbitud'),
     ],
   },
+};
+
+// ---------------------------------------------------------------- the v6 lessons
+const P031 = {
+  goal: 'õppija ütleb poes, mida ta otsib (otsin sinist tassi, mul on vaja sooja salli), küsib värvi ja hinda ning valib kaaslasega kahe poe info põhjal kingituse 40 euro eest.',
+  core: 'Mäletad? (3) → sõnad (4) → KÜLM ÜLESANNE „Proovi kohe: poes” ilma abita, õpetaja paneb kirja 3 märget (4) → kaubamaja infoleht (7) → Märka (4) → lüngad (5) → kaubamaja korrused pildi järgi paaris (6) → hääldusnurk: kotti / koti (5) → eksaminurk R2: kolm poodi (8) → kingitus kahe kaardiga, kumbki teab üht kaarti (9) → väljumine (2) → kodutöö ja enesekontroll (3).',
+  short: 'Proovi kohe → infoleht → Märka → lüngad → korrused pildi järgi → kingitus kahe kaardiga → väljumine; eksaminurk ja hääldusnurk koju (Harjuta).',
+  alt: 'kaartide asemel päris e-pood: paar vaatab telefonis kahte poodi (üks kummalgi), räägib, mis seal on ja mis see maksab, ja valib ühe kingituse 40 euro eest.',
+  extra: 'mis on hea kingitus õppija kodumaal — kolm lauset: seal kingitakse …, mulle meeldib …, ma ei kingi ….',
+  errors: ['„ma otsin sinine tass” → ma otsin sinist tassi (vene „ищу шарф” = nimetava kuju)', '„mul on vaja soe sall” → mul on vaja sooja salli', '„mul on sinist tassi” → mul on sinine tass (omamine + nimetav)', '„kaks sinist tassi” on õige — aga „ma otsin siniseid tasse” (mitmus)'],
+};
+const P032 = {
+  goal: 'õppija ütleb hinna ja soodustuse arvu omastavaga (kümne euro eest, viie euroga, kahekümne protsendi soodustus, kuni kolmekümne euroni) ja seletab poe reklaamlehte lihtsas eesti keeles inimesele, kes seda ei loe.',
+  core: 'Mäletad? (3) → sõnad (4) → kaubamaja raadio 2×, eksaminurk L3 (8) → Märka (4) → minu ostud paaris (5) → lüngad (5) → etteütlus ja varjutamine (6) → kuulutus: talvesaapad, kauplemine (7) → naaber küsib: reklaamleht pildilt (10) → väljumine (2) → kodutöö ja enesekontroll (3).',
+  short: 'raadio → Märka → lüngad → naaber küsib → väljumine; etteütlus ja kauplemine koju (Harjuta).',
+  alt: 'reklaamlehe asemel päris pood: õppija toob tundi ühe eestikeelse poe paberlehe või ekraanipildi ja seletab kaaslasele kolm pakkumist.',
+  extra: 'kauplemine õppija kodumaal: kas turul kaubeldakse? Kolm lauset: seal saab … euro eest, ma ostsin … euroga.',
+  errors: ['„kümme euro eest” → kümne euro eest (omastav)', '„viis euroga” → viie euroga', '„kaks euro” → kaks eurot (arv + osastav)', '„за два евро” → „eest kaks eurot” → kahe euro eest (eest on lõpus)'],
+};
+const P033 = {
+  goal: 'õppija saab kuuldust aru, mis on odavam, soojem või parem, palub poes teist suurust (Kas teil on suuremat?) ja kirjutab rühma säästulehele 30–45-sõnalise hinnavõrdluse, millele kaaslane vastab.',
+  core: 'Mäletad? (3) → sõnad (4) → kasutatud asjade pood 2× (8) → Märka (4) → võrdle paaris (5) → lüngad (5) → hääldusnurk: küsimus või väide (5) → proovikabiinis (5) → eksaminurk S1: kaks jopet pildil ja küsimused (7) → hinnavõrdlus, kaaslane vastab (9) → väljumine: üks lause uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'kuulamine → Märka → lüngad → eksaminurk S1 → hinnavõrdlus → väljumine; proovikabiin ja hääldusnurk Harjutasse.',
+  alt: 'kirjaliku võrdluse asemel paarisarutelu: kaks õppijat võrdlevad kahte päris poodi oma linnas ja ütlevad koos, kumba nad soovitavad ja miks.',
+  extra: 'õppija võrdleb hindu Eestis ja kodumaal — kolm lauset: … on Eestis kallim kui …, aga … on odavam.',
+  errors: ['„odavam mis” (vene „чем”) → odavam kui', '„rohkem odav” → odavam', '„Kas teil on suurem?” → Kas teil on suuremat? (osastav)', '„hea → heam” → parem; „väike → väikem” → väiksem'],
+};
+const P034 = {
+  goal: 'õppija loeb poe reegleid ja lugu, tagastab või vahetab katkise asja (kuni reedeni, kahe nädala jooksul, kviitungiga / ilma karbita) ja kirjutab ilma abita pildiloo oma ostust.',
+  core: 'Mäletad? (3) → sõnad (4) → lugu „Uus veekeetja” (7) → Märka (4) → kas saab tagastada? paaris (5) → lüngad (5) → hääldusnurk: õ, ä, ö, ü (5) → infoletis VARJATUD INFOGA (6) → eksaminurk W1: visiitkaart (8) → plaan pildi järgi (3) → pildilugu (8) → väljumine: üks lause uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'lugu → Märka → lüngad → infoletis → plaan ja pildilugu → väljumine; visiitkaart ja hääldusnurk koju (Harjuta).',
+  alt: 'pildiloo asemel päris kogemus: õppija jutustab ühe oma ostu loo (mis läks katki, mida poes öeldi) ja kaaslane küsib kaks küsimust; siis kirjutab ta loo.',
+  extra: 'õppija vaatab ühe päris eestikeelse poe tagastamise tingimusi (kui kaua? kas kviitung on vaja?) ja ütleb kolm lauset.',
+  errors: ['„kuni reede” → kuni reedeni', '„jooksul kaks nädalat” (vene „в течение”) → kahe nädala jooksul', '„ilma kviitung” → ilma kviitungita', '„ma tahan tagastama” → ma tahan tagastada'],
+};
+const P035 = {
+  goal: 'kontroll 7: neli oskust 10 punkti, toorpunktid, Harno skaala ja lävendid; võrdlus kontrolliga 6.',
+  core: 'kuidas punkte loetakse (2) → lugemine 1–2 (14) → kuulamine 1–2 (10) → kirjutamine (10) → rääkimine üks-ühele (5) → tulemus (4).',
+  short: 'kui aega on 35 minutit: lugemine, kuulamine ja kirjutamine tunnis, rääkimine järgmise tunni alguses (5 min).',
+  alt: 'rühmas: rääkimine paaris (üks müüja, teine ostja; siis vahetus), õpetaja hindab kahte õppijat korraga sama juhendi järgi.',
+  extra: 'õppija vaatab oma kahte nõrgemat rida juhendis ja kirjutab, mida ta Harjutas kordab.',
+  errors: ['kuulamisel kirjutatakse terve lause — piisab 1–2 sõnast', 'kirjutamisel puudub üks neljast punktist', 'rääkimisel „ma otsin sinine müts” → sinist mütsi'],
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 031 reading: what I am looking for (problem lesson)
+  'a2-031': retire(OLD['a2-031'], {
+    title: 'Mida te otsite?',
+    canDo: 'Ma ütlen poes, mida ma otsin (sinist tassi), küsin hinda ja lepin kaaslasega kingituse kokku.',
+    teacherPage: P031,
+    discover: [
+      teach(B.review('031_d_review', [['Mida sa ütled, kui arvel on viga?', 'a2-029'], ['Mis korrusel sa elad? Kas majas on lift?', 'a2-019'], 'Mida sa kingid sõbrale sünnipäevaks?']), planNote(P031)),
+      tag(v6(B.vocab('031_d_vocab', 'Tunni sõnad.', ['kingitus — подарок', 'sünnipäev — день рождения', 'otsima — искать', 'vaja — нужно', 'värv — цвет', 'sinine — синий', 'soe — тёплый', 'sall — шарф', 'müts — шапка', 'osakond — отдел']),
+        { review: ['korrus', 'kassa', 'odav'] }), { topic: ['vajama', 'kaubamaja', 'kinkekaart', 'villane', 'laualamp', 'teetass', 'pakkima', 'šokolaad', 'kodukaubad', 'laat', 'pangaautomaat'] }),
+      teach(tag(B.speaking('031_d_cold', 'Proovi kohe: poes.', 'Küsi õpetajalt poes kingitust. Ilma abita.', [
+        'Mida sa otsid? Kellele?',
+        'Mis värvi see on? Mis see maksab?',
+        'Kus see on? Kas seda saab pakkida?',
+      ], [45, 60]), { task: 'S01', level: 3 }),
+      'MOODULI KÜLM ÜLESANNE (2–3 min, enne lugemist ja reeglit): õpetaja on müüja, õpilane küsib ilma abita kingitust (nt emale); õpetaja ei aita ega paranda. Pane kirja kolm märget: kas omadussõna ja nimisõna on osastavas (otsin sinist tassi, sooja salli), kas õpilane küsib värvi ja hinda, kas ta on viisakas (tere, palun, aitäh). Kontrolli 7 rääkimise 1. osa on selle paralleel (teine kingitus, samad kriteeriumid) — võrdle.'),
+      teach(tag(B.reading('031_d_shop', 'Kaubamaja infoleht.', 'Loe infolehte. Vasta ühe-kolme sõnaga.', 'Kaubamaja Täht: kingituste nädal',
+        'Kas sa otsid sõbrale sünnipäevaks kingitust? Kaubamaja Täht aitab!\n\nEsimesel korrusel on toidukaubad: hea tee, kohv ja šokolaad. Teisel korrusel on riiete osakond. Seal on sooje salle, mütse ja kindaid. Hall villane sall maksab 15 eurot.\n\nKolmandal korrusel on kodukaubad: tassid, taldrikud ja lambid. Sinine teetass maksab 9 eurot, valge laualamp 25 eurot. Sel nädalal saab kaks tassi ühe hinnaga!\n\nKas sa ei tea, mida osta? Kassas on kinkekaardid: 10, 20 või 50 eurot. Kingitusi pakime tasuta, kassa on lifti kõrval. Odav ja ilus kingitus on ka lill: lillepood on maja ees. Kaubamaja on avatud iga päev kella üheksast üheksani.',
+        [['Mis korrusel on riided?', 'teisel|teisel korrusel'], ['Kui palju maksab hall sall?', '15 eurot|viisteist eurot|15'], ['Mis on kolmandal korrusel?', 'kodukaubad|tassid ja lambid|tassid, taldrikud, lambid'], ['Mida saab sel nädalal ühe hinnaga?', 'kaks tassi|tassid'], ['Kus on kassa?', 'lifti kõrval'], ['Mis maksab 9 eurot?', 'sinine teetass|teetass|tass'], ['Mis kellani on kaubamaja avatud?', 'üheksani|kella üheksani|21-ni'], ['Mis on esimesel korrusel?', 'toidukaubad|tee, kohv, šokolaad|toit'], ['Kus on lillepood?', 'maja ees'], ['Mis värvi on laualamp?', 'valge']]), { task: 'R15' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Silmitse kõigepealt: mis korrusel mis on?” Üks-ühele: õpilane joonib alla kõik asjad koos omadussõnaga (hea tee, hall villane sall, sinine teetass, valge laualamp) — Märka-kastis teeb ta neist osastava. Vanad sõnad: korrus, kassa, odav.'),
+      B.notice('031_d_notice', 'Märka: ma otsin sinist tassi', [
+        'Mida? otsima, vajama + osastav: ma otsin **sinist tassi**, **sooja salli**',
+        'Mul on vaja **halli mütsi**, **valget lampi**, **head teed**',
+        'Mitu: ma otsin **sooje kindaid**, **siniseid tasse**',
+        'Aga: mul on **sinine tass**, see on **soe sall** (nimetav)',
+        'Küsi: Mis värvi? Mis see maksab? Kas teil on …?',
+        'Vene keeles „ищу шарф” (nagu nimetav) — eesti keeles ma otsin salli (osastav).',
+      ], 'half'),
+    ],
+    practice: [
+      half(tag(B.gaps('031_p_gaps', 'Mida nad otsivad?', 'Kirjuta sõnad õiges vormis.', [
+        'Ma otsin emale [sinist] [tassi]. (sinine tass)',
+        'Talvel on mul vaja [sooja] [salli]. (soe sall)',
+        'Isa vajab [halli] [mütsi]. (hall müts)',
+        'Kas teil on [valget] [lampi]? (valge lamp)',
+        'Vanaema tahab [head] [teed]. (hea tee)',
+        'Lapsed otsivad [sooje] [kindaid]. (soojad kindad)',
+        'Mul on juba [sinine] [tass]. (Ma otsin sinist tassi.)',
+        'See [soe] [sall] on ilus. (Ma vajan sooja salli.)',
+      ], '', 'half'), { task: 'G03' })),
+      half(teach(tag(B.rolecards('031_p_floors', 'Proovi: kes mida otsib?', 'Vaata pilti. Ütle, mida klient otsib ja mis korrusel.',
+        'Sina räägid klientidest 1 ja 2. Ütle iga kliendi kohta kaks lauset: Klient … otsib … See on … korrusel. Siis küsi B-lt: mida otsib klient 3?',
+        'Kuula A-d ja kontrolli pildilt korrust. Siis räägi sina kliendist 3: mida ta otsib ja mis korrusel see on? Lõpuks ütle: mida sina seal otsid?',
+        [], []), { task: 'S05', level: 3, fluency: true }),
+      'Üks-ühele: õpilane räägib klientidest 1 ja 2, õpetaja kontrollib korrust; siis räägib õpilane kliendist 3. Pildil on asjad algvormis (sall — soe, hall), nii et õpilane teeb ise osastava: 1 = Ta otsib sooja halli salli. See on teisel korrusel. 2 = Ta otsib kahte sinist tassi. Need on kolmandal korrusel. 3 = Ta vajab valget lampi ja head teed: lamp on kolmandal, tee esimesel korrusel. Paranda ainult osastavat.')),
+      teach(tag(v6(B.choice('031_p_pron', 'Hääldusnurk: kotti või koti?', 'Kuula sõna ja vali. Siis räägi lause kaasa.', [
+        ['Sõna 1', 'kotti', 'koti'],
+        ['Sõna 2', 'lambi', 'lampi'],
+        ['Sõna 3', 'kappi', 'kapi'],
+        ['Sõna 4', 'poti', 'potti'],
+      ], 'half', 'g_listen'), { pronunciation: 'välted' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Ütle igast reast võtmes oleva sõna (kotti, lambi, kappi, poti); õpilane valib. Selgita: osastav on pikk ja tugev (Ma otsin kotti, lampi, kappi, potti), omastav lühike (koti hind, lambi värv). Siis varjutamine: loe „Ma otsin sooja salli ja sinist tassi.”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: topelttäht on päriselt pikem, mitte ainult tugevam.'),
+      teach(tag(B.adsmatch('031_p_shops', 'Eksaminurk: kolm poodi.', 'Loe kolme teksti. Kirjuta lause juurde A, B või C.', [
+        ['A. Kaubamaja Täht, 3. korrus', 'Sel nädalal on kõik tassid 20 % odavamad. Kingitused pakime tasuta. Kui kaup ei sobi, saab selle vahetada kahe nädala jooksul.'],
+        ['B. Pood „Uus Elu”', 'Meil on vanad, aga ilusad asjad: joped, tassid ja raamatud. Maksta saab ainult kaardiga. Kaupa tagasi tuua ei saa.'],
+        ['C. Laat kooli hoovis', 'Laupäeval kella kümnest kaheni on kooli hoovis laat: villased sokid, sallid ja mesi. Müüjad võtavad ainult sularaha.'],
+      ], [
+        ['Siin saab kingituse tasuta pakkida.', 'A'],
+        ['Siin on vanad ja kasutatud asjad.', 'B'],
+        ['Siin on vaja sularaha.', 'C'],
+        ['Siin saab villaseid asju osta ainult ühel päeval.', 'C'],
+        ['Siin ei saa ostu tagasi tuua.', 'B'],
+        ['Siin saab tassi vahetada, kui see ei sobi.', 'A'],
+        ['Siin saab maksta ainult kaardiga.', 'B'],
+        ['Siin on tass praegu odavam.', 'A'],
+      ]), { harno: 'R2', level: 3 }),
+      'Eksaminurk nagu Harno A2 lugemise 2. osas (lause ↔ kolm lühikest teksti), 8 min, ilma abita. Siis kontroll: miks just see tekst? Õpilane ütleb tekstist ühe sõna, mis aitas (tasuta, kasutatud, sularaha …).'),
+    ],
+    transfer: [
+      B.text('031_t_sit', 'Olukord: kingitus kaaslasele', 'Kaaslasel on järgmisel nädalal sünnipäev. Rühm kogus 40 eurot. A käis kaubamajas, B laadal kooli hoovis. Kumbki teab ainult oma kaarti. Kaaslane joob palju teed ja tal on alati külm.'),
+      teach(tag(v6(B.rolecards('031_t_jigsaw', 'Kingitus kahe kaardiga.', 'Räägi oma kaardist. Siis valige koos kingitus.',
+        'Kaubamaja Täht: sinine teetass ja pakk head teed — 14 €, hall villane sall — 15 €, valge laualamp — 25 €. Pakkimine on tasuta.',
+        'Laat kooli hoovis: soojad villased sokid — 8 €, punane müts ja kindad — 18 €, purk mett — 6 €. Maksta saab ainult sularahas.',
+        [], []), {
+        taskType: 'jigsaw', realAddressee: 'rühma kaaslane (sünnipäevakingitus)',
+        support: ['Kaubamajas / laadal on … See maksab … eurot.', 'Me võime osta … ja …, kokku … eurot.', 'Ma arvan, et … on hea, sest kaaslane …'],
+        stretch: 'Raha on ainult 30 eurot: muutke valikut ja öelge, miks.',
+      }), { task: 'S03', main: true, level: 4 }),
+      'Kahe kaardi töö: A näeb ainult kaubamaja kaarti, B ainult laada kaarti — teineteise kaarti ei vaata. Kumbki räägib oma kaardist (mis seal on, mis värvi, mis maksab), siis valivad nad koos kingituse kuni 40 euroni. Võimalik: teetass ja tee 14 + sokid 8 + mesi 6 = 28 € või sall 15 + müts ja kindad 18 = 33 €. Üks-ühele: õpetaja on B ja tahab alguses kõige kallimat (lamp + müts ja kindad = 43 €); õpilane põhjendab hinna ja kaaslase sooviga. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: 30 eurot.'),
+      homeTask(teach(v6(tag(B.speaking('031_t_home', 'Kodus: häälsõnum rühmale.', 'Salvesta rühmale 45 sekundit: mis kingitus ja miks. Siis Harjuta → moodul 7.', [
+        'Mida te ostate, mis see maksab ja miks see sobib?',
+      ], [45, 60]), { task: 'S15' }), { realAddressee: 'rühma vestlus (häälsõnum)' }),
+      'Kodutöö: häälsõnum rühma vestlusesse (45–60 s), ilma kaarti vaatamata: mida te ostate, mis värvi, mis see maksab ja miks see sobib. Harjuta → moodul 7: sõnad ja osastav (10 min). Järgmise tunni „Mäletad?” küsib seda.')),
+      half(exitCheck(tag(B.speaking('031_t_exit', 'Väljumine: meie kingitus.', 'Ütle 30 sekundiga: mida te ostate ja miks?', [
+        'Mida te ostate, mis see maksab ja miks?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('031_t_self', ['Ütlen: otsin sinist tassi.', 'Küsin värvi ja hinda.', 'Valime kingituse 40 € eest.'], 'Tund 31 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas „kaaslane” sai kõigest aru. Õpilane kirjutab ühe oma lause (Ma otsin …) tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 032 listening: prices in the genitive
+  'a2-032': retire(OLD['a2-032'], {
+    title: 'Kahe euro eest',
+    canDo: 'Ma saan kuuldust aru poe teadaandest, ütlen hinna (kümne euro eest) ja räägin naabrile, mida reklaamleht pakub.',
+    teacherPage: P032,
+    discover: [
+      teach(B.review('032_d_review', [['Mida sa otsid poest? Ütle värviga.', 'a2-031'], ['Mis kell on sinu lähim pood lahti?', 'a2-024'], 'Mis on sinu poes odav ja mis on kallis?']), planNote(P032)),
+      tag(v6(B.vocab('032_d_vocab', 'Tunni sõnad.', ['hind — цена', 'soodustus — скидка', 'protsent — процент', 'eest — за', 'raha — деньги', 'sularaha — наличные', 'rahakott — кошелёк', 'paar — пара', 'müüja — продавец', 'ostja — покупатель']),
+        { review: ['kokku', 'järjekord', 'kilo'] }), { topic: ['soodustus', 'sularaha', 'pakkumine', 'kliendikaart', 'kliendikaardiga', 'müüma', 'talvemüts', 'mänguasi', 'mänguasjad', 'sooduspäev', 'kaubamaja', 'ostlemine', 'naaber', 'talvesaapad', 'reklaamleht', 'kauplema'] }),
+      twice(teach(tag(B.listening('032_d_radio', 'Eksaminurk: teadaanne kaubamajas.', 'Kuula teadet kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Diktor: Head kliendid! Tere tulemast kaubamajja Pihlakas!',
+        'Diktor: Täna on meil suur sooduspäev.',
+        'Diktor: Kõik talvemütsid ja sallid saate täna kümne euro eest.',
+        'Diktor: Teisel korrusel saate kaks paari sokke viie euro eest.',
+        'Diktor: Kliendikaardiga on kohvil kahekümne protsendi soodustus.',
+        'Diktor: Esimesel korrusel on värsked õunad: kilo maksab ainult üks euro.',
+        'Diktor: Kui ostate kokku üle kolmekümne euro, saate kohvikus tasuta tassi teed.',
+        'Diktor: Lastele on kolmandal korrusel mänguasjad kuni viieteistkümne euroni.',
+        'Diktor: Kliendikaardi saate kassast tasuta. Kingitusi pakime ka tasuta.',
+        'Diktor: Täna on avatud kuus kassat, nii et järjekorda ei ole.',
+        'Diktor: Kaubamaja on täna avatud kella üheksast kümneni. Head ostlemist!',
+      ], ['Talvemütsid saab täna [kümne] euro eest.', 'Kohvil on [kahekümne|20] protsendi soodustus.', 'Kilo õunu maksab [üks] euro.', 'Tasuta tee saad, kui ostad üle [kolmekümne|30] euro.', 'Mänguasjad on [kolmandal] korrusel.', 'Kaubamaja on lahti kella [kümneni|22-ni].'], 'g_listen'), { harno: 'L3', task: 'L03' }),
+      'Eksaminurk nagu Harno A2 kuulamise 3. osas (lühivastused). Kuulamisstrateegia: „Ennusta: mis numbrid tulevad? Loe laused enne läbi.” Esimesel korral kirjutab õpilane ainult numbrid, teisel korral sõna õiges vormis (kümne euro eest, aga viis eurot). Vanad sõnad: kokku, järjekord, kilo.')),
+      B.notice('032_d_notice', 'Märka: kahe euro eest', [
+        'Kui palju? **kaks eurot** (osastav)',
+        'Mille eest? **kümne euro eest**',
+        'Mis hinnaga? **viie euroga**',
+        '**kahekümne protsendi** soodustus, kuni **kolmekümne euroni**',
+        'kaks → **kahe**, neli → **nelja**, viis → **viie**',
+        'Vene keeles „за два евро” — eesti keeles kahe euro eest.',
+      ], 'half'),
+      half(teach(tag(B.speaking('032_d_mine', 'Proovi kohe: minu ostud.', 'Küsi paariliselt. Vasta alati hinnaga.', [
+        'Mille eest sa ostsid telefoni?',
+        'Mis hinnaga sa ostad leiba?',
+        'Mis maksab kuni kahe euroni?',
+      ], [45, 60]), { task: 'S09', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti: üks-ühele küsib õpilane õpetajalt ja vastab ise. Õpetaja kuulab ainult arvu omastavat (kahesaja euro eest, kahe euroga, kuni kahe euroni) ja kordab õiget vormi, kui see on vale.')),
+    ],
+    practice: [
+      half(tag(B.gaps('032_p_gaps', 'Mille eest?', 'Kirjuta arv või sõna õiges vormis.', [
+        'Ma ostsin mütsi [kümne] euro eest. (10)',
+        'Sokid sain [viie] euroga. (5)',
+        'Leiva sain [kahe] euroga. (2)',
+        'Kaks kohvi [nelja] euro eest, palun. (4)',
+        'Kliendikaardiga on [kahekümne] protsendi soodustus. (20)',
+        'Kingitus võib maksta kuni [kolmekümne] euroni. (30)',
+        'Kassas maksin kolm [eurot]. (3 €)',
+        'Turg on lahti [kaheksast] [kolmeni]. (8–15)',
+      ], '', 'half'), { task: 'G08' })),
+      teach(half(v6(tag(B.dictation('032_p_dict', 'Etteütlus ja varjutamine: hinnad.', 'Kuula lauset, korda valjusti ja kirjuta.', [
+        'Müts maksab kümme eurot.',
+        'Ma ostsin sokid viie euro eest.',
+        'Kliendikaardiga on kümne protsendi soodustus.',
+        'Pood on lahti kaheksast kuueni.',
+        'Kingitus maksab kuni kahekümne euroni.',
+      ], 5), { task: 'L08' }), { pronunciation: 'varjutamine' })),
+      'Hääldusnurk + etteütlus, 6 min. Enne: varjutamine — loe raadiost kaks lauset („Kõik talvemütsid ja sallid saate täna kümne euro eest.”, „Kaubamaja on täna avatud kella üheksast kümneni.”), õpilane räägib kohe kaasa, kaks korda. Märka paari kümme – kümne: mm on pikk, m lühike. Siis loe iga etteütluse lause kaks korda; õpilane kordab valjusti ja kirjutab. Kontrolli: kümme (kaks m), kümne (üks m), viie, kahekümne.'),
+      teach(tag(B.phoneCards('032_p_boots', 'Kuulutus: talvesaapad.', 'A helistab kuulutuse peale, B müüb. Leppige hind kokku.',
+        'Kuulutus: kasutatud talvesaapad, suurus 38, mustad, hind 40 €, telefon 5566 7788.',
+        ['Ostja', ['Kas saapad on veel müügil?', 'Mis värvi need on?', 'Kas ma saan need kolmekümne euro eest?', 'Millal ma saan neid proovida?']],
+        ['Müüja', ['Saapad on mustad ja peaaegu uued.', 'Alla kolmekümne viie euro ma ei anna.', 'Proovida saab homme kella viiest seitsmeni.', 'Aadress on Akadeemia tee 22.']], [60, 120]), { task: 'S04', fluency: true }),
+      'Üks-ühele: õpetaja on müüja ja ei anna kohe järele. Õpilane helistab, küsib ja kaupleb: „Kas ma saan need kolmekümne euro eest?” Teine kõne kohe pärast seda, kiiremini: õpetaja on teine müüja (saapad maksavad 45 €, alla neljakümne ei anna). Paranda ainult arvu vormi (kolmekümne viie euro eest).'),
+    ],
+    transfer: [
+      B.text('032_t_sit', 'Olukord: naaber küsib', 'Sinu naaber Galina on Eestis uus. Ta ei loe veel eesti keelt. Postkastis on poe reklaamleht (vaata pilti). Galina helistab sulle ja küsib: mis on odav, mis see maksab ja millal pood on lahti? Seleta lihtsalt eesti keeles. Kõike ei pea ütlema: ütle ainult seda, mida Galina vajab.'),
+      teach(tag(v6(B.rolecards('032_t_flyer', 'Naaber küsib: reklaamleht.', 'Vaata pilti. A seletab, B küsib. Siis vahetage.',
+        'Sina näed reklaamlehte (pilt). Galina küsib. Vasta lühidalt ja lihtsalt: mis maksab kui palju, mille eest ja millal pood on lahti. Lõpus ütle, mida sina ostad.',
+        'Sa oled Galina. Sa tahad osta piima, leiba, kohvi ja talvemütsi. Raha on 20 eurot. Küsi: mis on odav? Kas kilo õunu on tasuta? Mis kell pood lahti on? Kui sa ei saa aru, küsi uuesti.',
+        [], []), {
+        taskType: 'mediation', realAddressee: 'naaber, kes eesti keelt ei loe',
+        support: ['Seal on … kümne protsendi soodustus.', 'Kaks … saab … euro eest.', 'Pood on lahti …st …ni.'],
+        stretch: 'Galina tahab ka kingitust lapsele: leia lehelt üks kuni kümne euroni ja seleta.',
+      }), { task: 'S13', main: true, level: 4 }),
+      'Vahendus: õppija ei loe lehte ette, vaid valib Galinale vajaliku (piim, leib, kohv, müts) ja ütleb selle lihtsalt. Võti pildi järgi: piim 2 tk 2 € (kaks pakki kahe euro eest), leib 1,50 €, kohv 6 € ja kliendikaardiga 10 % odavam, talvemütsid kõik kümne euro eest, üle 20 euro ostuga kilo õunu tasuta; E–R 8–20, L 9–16, P suletud. Galina 20 eurost: 2 + 1,50 + 6 + 10 = 19,50 € — õunu tasuta ei saa. Üks-ühele: õpetaja on Galina ja küsib uuesti, kui õppija loeb lehte sõna-sõnalt. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: mänguasi kuni kümne euroni.'),
+      homeTask(teach(v6(tag(B.examWriting('032_t_home', 'Kodus: minu eesti keele võrgustik.', 'Vaata üht päris poe pakkumisi. Kirjuta 25–40 sõna. Harjuta → moodul 7.', 'teade', {
+        situation: 'Vaata üht päris eestikeelset poe pakkumiste lehte, nt „Selver: pakkumised” (https://www.selver.ee) või oma poe reklaamlehte. Kirjuta oma meediapäevikusse.',
+        points: ['mis lehte sa vaatasid', 'üks uus sõna sellelt lehelt', 'mis oli odav ja mille eest', 'kas sa ostad seda ja miks'],
+        words: [25, 40],
+      }), { task: 'W12' }), { mediaLog: true }),
+      'Meediapäevik „Minu eesti keele võrgustik” (mooduli kirje): õppija avab ise ühe päris eestikeelse poe lehe (lehte sisse ei kopeerita) ja kirjutab neli punkti, ühe hinna omastavaga (… euro eest). Järgmisel tunnil loeb ta oma uue sõna ette. Harjuta → moodul 7: arvud ja hinnad (10 min).')),
+      half(exitCheck(tag(B.speaking('032_t_exit', 'Väljumine: nädala pakkumine.', 'Ütle 30 sekundiga: mis on sel nädalal odav?', [
+        'Mida saab osta ja mille eest?',
+        'Millal pood on lahti?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('032_t_self', ['Ütlen: kümne euro eest.', 'Saan teadaandest aru.', 'Naaber saab minust aru.'], 'Tund 32 on läbitud'), 'Üks-ühele: õpetaja ütleb, kas „Galina” sai kõigest aru; õpilane hindab kolme rida ja kirjutab ühe hinna lause (… euro eest) tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 033 listening: the comparative at a second-hand shop
+  'a2-033': retire(OLD['a2-033'], {
+    title: 'Kas teil on suuremat?',
+    canDo: 'Ma saan kuuldust aru, mis on odavam või parem, küsin suuremat ja kirjutan lühikese hinnavõrdluse.',
+    teacherPage: P033,
+    discover: [
+      teach(B.review('033_d_review', [['Mille eest sa ostsid oma mütsi või jope? Umbes.', 'a2-032'], ['Kas sa lähed poodi jalgsi või bussiga?', 'a2-022'], 'Kas sa ostad vahel kasutatud asju?']), planNote(P033)),
+      tag(v6(B.vocab('033_d_vocab', 'Tunni sõnad.', ['jope — куртка', 'kampsun — свитер', 'suurus — размер', 'proovima — примерять', 'sobima — подходить', 'kasutatud — подержанный', 'kerge — лёгкий', 'paks — толстый', 'kitsas — узкий', 'parem — лучше']),
+        { review: ['kallis', 'otsas', 'turg'] }), { topic: ['talvejope', 'proovikabiin', 'säästuleht', 'peaaegu', 'villane', 'puuvillane', 'odavam', 'soojem', 'kallim', 'suurem', 'väiksem', 'pikem', 'kergem', 'paksem'] }),
+      twice(teach(tag(B.listening('033_d_shop', 'Kasutatud asjade poes.', 'Kuula kaks korda. Kirjuta lünka üks-kaks sõna: mis on erinev?', [
+        'Kristel: Tere! Kas ma saan aidata?',
+        'Igor: Tere! Ma otsin sooja talvejopet. Uus jope on poes väga kallis.',
+        'Kristel: Meil on kaks head jopet. Hall maksab kakskümmend viis eurot, must maksab nelikümmend.',
+        'Igor: Miks must on kallim?',
+        'Kristel: Must on peaaegu uus ja soojem. Hall on vanem, aga väga kerge.',
+        'Igor: Ma proovin musta. Hm, see on mulle väike. Kas teil on suuremat?',
+        'Kristel: Kahjuks suuremad mustad joped on otsas. Aga hall on suurus L.',
+        'Igor: Hall sobib hästi! Aga kas see on talvel soe?',
+        'Kristel: Paksu kampsuniga küll. Turul on kampsunid odavamad kui siin.',
+        'Igor: Hea mõte. Ma võtan halli jope. Kas ma saan maksta kaardiga?',
+        'Kristel: Jah, muidugi. Aitäh ja ilusat päeva!',
+      ], ['Igor otsib sooja [talvejopet|jopet].', 'Hall jope maksab [kakskümmend viis|25] eurot.', 'Must jope on peaaegu uus ja [soojem].', 'Must jope on Igorile [väike|liiga väike].', 'Hall jope on suurus [L].', 'Turul on kampsunid [odavamad].', 'Igor maksab [kaardiga].'], 'g_listen'), { task: 'L04' }),
+      'Kuulamisstrateegia (enne esimest kuulamist): „Loe laused läbi ja jooni alla võrdlussõnad: kallim, soojem, odavamad.” Esimesel korral märgib õpilane ainult kindlad vastused, teisel korral ülejäänud. Vanad sõnad: kallis, otsas, turg.')),
+      B.notice('033_d_notice', 'Märka: odavam kui …', [
+        'odav → **odavam**, soe → **soojem**, kallis → **kallim**',
+        'suur → **suurem**, väike → **väiksem**, pikk → **pikem**, hea → **parem**',
+        'Hall jope on odavam **kui** must.',
+        'Poes: Kas teil on **suuremat**? **väiksemat**? (osastav)',
+        'Vene keeles „дешевле, чем” — eesti keeles odavam kui (mitte „odavam mis”).',
+      ], 'half'),
+      half(teach(tag(B.speaking('033_d_compare', 'Proovi: kumb on parem?', 'Võrdle paarilisega. Ütle ka, miks.', [
+        'Kumb on odavam: turg või pood?',
+        'Kumb on soojem: jope või mantel?',
+        'Kumb on sulle parem: uus või kasutatud?',
+      ], [45, 60]), { task: 'S02', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti: õpilane vastab täislausega ja põhjendab (… on odavam kui …, sest …); siis küsib ta sama õpetajalt. Paranda ainult keskvõrret ja sõna „kui”.')),
+    ],
+    practice: [
+      half(tag(B.gaps('033_p_gaps', 'Võrdle.', 'Kirjuta omadussõna keskvõrdes.', [
+        'Hall jope on [odavam] kui must. (odav)',
+        'Villane sall on [soojem] kui õhuke sall. (soe)',
+        'Must kott on [kallim] kui pruun. (kallis)',
+        'See jope on mulle väike. Kas teil on [suuremat]? (suur)',
+        'Need kingad on suured. Kas teil on [väiksemat] suurust? (väike)',
+        'Kasutatud jope on hea, aga uus on [parem]. (hea)',
+        'Tom on pikk, aga Igor on veel [pikem]. (pikk)',
+        'Turul on õunad [odavamad] kui poes. (odav)',
+      ], '', 'half'), { task: 'G05' })),
+      teach(tag(v6(B.choice('033_p_pron', 'Hääldusnurk: küsimus või väide?', 'Kuula õpetajat. Vali: küsimus või väide. Siis korda.', [
+        ['Lause 1', 'küsimus', 'väide'],
+        ['Lause 2', 'väide', 'küsimus'],
+        ['Lause 3', 'küsimus', 'väide'],
+      ], 'half', 'g_listen'), { pronunciation: 'intonatsioon' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Loe: 1 „Kas teil on suuremat?” 2 „Hall on parem.” 3 „Kumb on odavam?” Siis ütle ise üks lause („Must on kallim.” või „Kas must on kallim?”), õpilane arvab. Õpilane valib, siis kordab iga lause kaks korda (varjutamine). Eesti küsimus Kas …? ja Kumb …? läheb lõpus alla — küsimuse teeb sõna kas / kumb, mitte hääl üles nagu vene keeles. Rõhk on sõna esimesel silbil (odavam, soojem), mitte lõpus.'),
+      teach(tag(B.rolecards('033_p_fitting', 'Proovikabiinis.', 'A ostab, B müüb. Siis vahetage.',
+        'Sa otsid sooja jopet kuni 40 euroni. Proovi kahte jopet: hall ja must. Must on väike: küsi suuremat. Küsi hinda ja vali.',
+        'Sa oled müüja. Hall jope: 25 €, suurus L, kerge. Must jope: 40 €, suurus M, soe. Suuremat musta ei ole. Ütle, kumb on soojem ja kumb odavam.',
+        ['Kas ma võin seda proovida?', 'Kas teil on suuremat?'], ['Hall on odavam kui must.', 'See sobib teile.']), { task: 'S12', fluency: true }),
+      'Üks-ühele: õpetaja on müüja; õpilane proovib, küsib suuremat ja valib 40 euro eest. Teisel korral kiiremini; siis vahetage.'),
+    ],
+    transfer: [
+      teach(tag(B.speaking('033_p_picture', 'Eksaminurk: pilt ja küsimused.', 'Kirjelda pilti umbes üks minut. Siis vasta küsimustele.', [
+        'Kes on pildil ja kus nad on?',
+        'Mis jopesid nad vaatavad? Mis on erinev?',
+        'Kumb jope on sinu arvates parem? Miks?',
+        'Kus sina tavaliselt riideid ostad?',
+        'Kas sa ostad kasutatud asju? Miks?',
+      ], [60, 75]), { harno: 'S1', task: 'S06' }),
+      'Eksaminurk nagu Harno A2 rääkimise 1. osas: õpilane kirjeldab pilti umbes minuti, õpetaja ei sega; siis küsib õpetaja teemaküsimused (riided, pood, raha). Kokku 6–7 minutit, hinda nagu eksamil. Pildil: hall jope 25 €, L, kerge; must jope 40 €, M, soe, peaaegu uus.'),
+      teach(tag(v6(B.examWriting('033_t_report', 'Säästuleht: minu võrdlus.', 'Võrdle kahte poodi või asja. Kirjuta 30–45 sõna.', 'teade', {
+        situation: 'Rühma „Säästuleht” seinal: kus on odavam ja parem osta? Kaaslane loeb ja küsib ühe küsimuse.',
+        points: ['mida sa võrdled', 'mis on odavam (hinnaga)', 'mis on parem ja miks', 'mida sa soovitad'],
+        words: [30, 45],
+      }), {
+        lines: 5, taskType: 'report', peerReply: true, realAddressee: 'rühma kaaslased (säästuleht seinal)',
+        support: ['… on odavam kui …', '… on parem, sest …', 'Ma soovitan …'],
+        stretch: 'Lisa üks number: kui palju odavam see on (nt viis eurot).',
+      }), { task: 'W05', main: true, level: 4 }),
+      'Kirjutamine tunnis, 8 min. Siis kaaslase vastus (mooduli kaaslase vahetus): lehed liiguvad paremale, kaaslane loeb ja kirjutab alla ühe küsimuse või „kaks tärni ja üks soov” (kas kõik neli punkti on olemas? kas võrdlus on … kui …?). Üks-ühele: õpetaja on kaaslane ja küsib ühe küsimuse. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: number.'),
+      homeTask(teach(tag(B.speaking('033_t_home', 'Kodus: soovita poodi.', 'Salvesta 45 sekundit: kumb pood on parem? Siis Harjuta → moodul 7.', [
+        'Kumb pood on odavam ja parem? Miks? Mida sa seal ostad?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune salvestus: säästulehe võrdlus suuliselt, ilma lehte vaatamata. Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 7: keskvõrre (10 min).')),
+      half(exitCheck(tag(v6(B.writing('033_t_exit', 'Väljumine: parem lause.', 'Kirjuta üks lause võrdlusest uuesti, kaaslase küsimuse järgi.', [1, 2]), { lines: 2 }), { task: 'W10', level: 3 }))),
+      half(teach(selfcheck('033_t_self', ['Saan aru: odavam, soojem.', 'Võrdlen: … odavam kui …', 'Kaaslane saab aru.'], 'Tund 33 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas tema kui kaaslane leidis kõik neli punkti. Õpilane kirjutab ühe võrdluse lause tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 034 reading: the return (the module's last teaching lesson)
+  'a2-034': retire(OLD['a2-034'], {
+    title: 'Kviitung on alles',
+    canDo: 'Ma loen poe reegleid, vahetan katkise asja ja kirjutan loo oma ostust.',
+    teacherPage: P034,
+    discover: [
+      teach(B.review('034_d_review', [['Kumb on parem: pood või turg?', 'a2-033'], ['Mis kell on sinu pood lahti?', 'a2-024'], 'Mis läks sul viimati katki?']), planNote(P034)),
+      tag(v6(B.vocab('034_d_vocab', 'Tunni sõnad.', ['kviitung — чек', 'tagastama — возвращать (товар)', 'vahetama — обменивать', 'katki — сломан', 'garantii — гарантия', 'jooksul — в течение', 'karp — коробка', 'veekeetja — чайник', 'tagasi — обратно', 'parandama — чинить'], '3'),
+        { review: ['kassa', 'kesklinn', 'lahti'] }), { topic: ['kviitung', 'tagastama', 'kehtima', 'veekeetja', 'infolett', 'infoletti', 'infoletis', 'kodulehte', 'parandustöökoda', 'laualamp', 'lukk'] }),
+      teach(tag(B.reading('034_d_story', 'Loe lugu.', 'Loe lugu. Vasta ühe-kolme sõnaga.', 'Uus veekeetja',
+        'Marta ostis novembri lõpus kesklinna kaubamajast uue veekeetja. See maksis 29 eurot. Kassas ütles müüja: „Hoidke kviitung alles! Veekeetjal on kahe aasta garantii.” Marta pani kviitungi rahakotti. Kümme päeva hiljem veekeetja enam ei töötanud.\n\nPoe kodulehel oli kirjas: „Kaupa saab tagastada 14 päeva jooksul. Tagastamiseks on vaja kviitungit.” Laupäeval läks Marta kaubamaja infoletti, see on lahti kella kümnest. Kaasas oli veekeetja, karp ja kviitung. Müüja ütles: „Vabandust! Saate uue veekeetja.” Pakkumine kehtis kuni pühapäevani: Marta sai ka tasuta paki head teed.',
+        [['Kui pikk on garantii?', 'kaks aastat|kahe aasta|2 aastat'], ['Kus oli kviitung?', 'rahakotis'], ['Mitme päeva jooksul saab kaupa tagastada?', '14|14 päeva jooksul|neljateistkümne päeva jooksul'], ['Mida Marta võttis infoletti kaasa?', 'veekeetja, karbi, kviitungi|kviitungi ja karbi|kviitungi'], ['Mida sai tasuta kuni pühapäevani?', 'paki teed|pakk teed|teed']]), { task: 'R13' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Silmitse: mis juhtus? Siis otsi aega ja tingimust: mitme päeva jooksul? kuni millal?” Üks-ühele: õpilane joonib alla kõik ajasõnad (kahe aasta, 14 päeva jooksul, kuni pühapäevani) — need on reegli näited. Vanad sõnad: kassa, kesklinn, lahti.'),
+      B.notice('034_d_notice', 'Märka: kuni reedeni, kahe nädala jooksul', [
+        'Mis ajani? kuni **reedeni**, kuni **pühapäevani**',
+        'Kui kaua? **kahe nädala jooksul**, **kahe aasta** garantii',
+        '**kviitungiga**, ilma **karbita** · **tagastada**, **vahetada**',
+        'Vene keeles „в течение недели” — eesti keeles nädala jooksul.',
+      ], 'half'),
+      half(teach(tag(B.speaking('034_d_try', 'Proovi: kas saab tagastada?', 'Loe olukorda. Ütle, mida klient saab teha ja miks.', [
+        'Kampsun on väike: 5 päeva, kviitung on.',
+        'Lamp ei põle: 3 kuud, garantii 2 aastat.',
+        'Kingad on kitsad: 20 päeva, kviitungit pole.',
+      ], [45, 60]), { task: 'S11', level: 3 }),
+      'Juhendatud kasutus, ilma valmis fraasideta (mooduli viimane tund): õpilane ütleb poe reegli järgi (tagastada 14 päeva jooksul, vahetada garantii ajal, kviitungiga). Võti: 1 = saab tagastada või vahetada, sest 14 päeva ei ole läbi ja kviitung on; 2 = saab vahetada või parandada, sest garantii on kahe aasta jooksul; 3 = tagastada ei saa, sest 14 päeva on läbi ja kviitungit ei ole. Kui õpilane ütleb ainult „saab / ei saa”, küsi: „Miks?”')),
+    ],
+    practice: [
+      tag(B.gaps('034_p_gaps', 'Mis ajani? Millega?', 'Kirjuta aeg või sõna õiges vormis.', [
+        'Pakkumine kehtib kuni [reedeni]. (reede)',
+        'Pood on lahti kuni [pühapäevani]. (pühapäev)',
+        'Kaupa saab tagastada kahe [nädala] [jooksul]. (kaks nädalat)',
+        'Lambil on kahe [aasta] garantii. (kaks aastat)',
+        'Raha saab tagasi ainult [kviitungiga]. (kviitung)',
+        'Ilma [karbita] ei saa vahetada. (karp)',
+        'Ma tahan jope [tagastada]. (tagastama)',
+        'Kas ma saan suurust [vahetada]? (vahetama)',
+      ], '', 'full'), { task: 'G02' }),
+      teach(tag(v6(B.choice('034_p_pron', 'Hääldusnurk: õ, ä, ö, ü.', 'Kuula ja vali õige täishäälik. Siis räägi kaasa.', [
+        ['Sõna 1', 'korv', 'kõrv'],
+        ['Sõna 2', 'tüli', 'tuli'],
+        ['Sõna 3', 'pära', 'pere'],
+        ['Sõna 4', 'töö', 'too'],
+      ], 'full', 'g_listen'), { pronunciation: 'vokaalid' }), { task: 'L01' }),
+      'Hääldusnurk, 5 min. Ütle igast reast võtmes oleva sõna (korv, tüli, pära, töö); õpilane valib. Näita suu kuju: õ — huuled laiad, keel taga; ü ja ö — huuled ümarad; ä — suu lahti. Siis varjutamine: loe „Ma tahan veekeetja tagastada. Kviitung on mul kaasas.”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: õ ei ole „ы”, ä on lahtisem kui „э”, ü ei ole „ю”.'),
+      teach(v6(tag(B.rolecards('034_t_desk', 'Infoletis.', 'A on klient, B müüja. Lahendage probleem ilma valmis lauseteta.',
+        'Sa ostsid kolm nädalat tagasi laualambi, 25 eurot. Nüüd see ei põle. Kviitung on sul kaasas, karpi ei ole. Mida sa tahad: uut lampi või raha tagasi? Räägi müüjaga.',
+        'Sa oled infoleti müüja. Küsi: mis juhtus, millal klient ostis, kas kviitung on kaasas. Poe reegel: tagastada saab 14 päeva jooksul, vahetada kahe aasta garantii ajal.',
+        [], []), { task: 'S10', level: 4, fluency: true }), { hiddenInfo: true }),
+      'Üks-ühele, ilma valmis fraasideta: õpetaja on müüja. Varjatud info (ütle alles vestluse ajal): raha tagasi ei saa, sest 14 päeva on läbi; garantii ajal saab lambi vahetada, aga uus lamp tuleb poodi alles reedel — klient peab otsustama, kas ta tuleb kuni reedeni tagasi või võtab kohe teise lambi (30 €, maksab 5 eurot juurde). Ilma karbita vahetus on lubatud. Kui õpilane ei küsi, millal uus lamp tuleb, ära ütle seda ise.'),
+      teach(tag(B.examWriting('034_p_card', 'Eksaminurk: visiitkaart.', 'Kirjuta sõbrale visiitkaardi järgi 25–40 sõna.', 'teade', {
+        situation: 'Visiitkaart: Parandustöökoda „Kiire Käsi” · parandame veekeetjaid, lampe ja telefone · Pärnu mnt 15, 2. korrus · E–R 9–18, L 10–14 · tel 5566 7788. Sinu sõbra lamp on katki.',
+        points: ['mis koht see on ja mida seal tehakse', 'kus see asub', 'millal see on lahti', 'kuidas sinna helistada'],
+        words: [25, 40],
+      }), { harno: 'W1' }),
+      'Eksaminurk nagu Harno A2 kirjutamise 1. osas (tekst visiitkaardi järgi, ≥ 25 sõna), 8 min, ilma antud alguse ja valmis lauseteta. Kontrolli 7 kirjutamine on selle paralleel (uus visiitkaart, samad neli punkti). Üks-ühele: õpetaja on sõber ja küsib ühe küsimuse (Kas laupäeval ka?).'),
+    ],
+    transfer: [
+      teach(tag(B.planning('034_t_plan', 'Enne kirjutamist: plaan.', 'Vaata pilti. Kirjuta iga pildi kohta märksõnad.', ['Pilt 1: millal? mida? mille eest?', 'Pilt 2: mis juhtus?', 'Pilt 3: mis oli kaasas? mida sa ütlesid?', 'Pilt 4: kuidas lõppes?'], 1), { task: 'W11', level: 3 }),
+      'Plaan 3 min: ainult märksõnad (kuupäev, hind, lukk katki, kviitung, kahe nädala jooksul). Teie rühmal on blogi „Meie ostulood”: lood ostudest, mis läksid hästi või halvasti. Plaan ei ole valmis laused — need kirjutab õppija pildiloos ise.'),
+      teach(tag(v6(B.examWriting('034_t_story', 'Pildilugu: jope lukk.', 'Kirjuta lugu plaani järgi, 30–45 sõna. Ilma antud alguseta.', 'teade', {
+        situation: 'Neli pilti: ost, katkine lukk, infolett, lõpp. Lugu läheb rühma blogisse „Meie ostulood”.',
+        points: ['millal, mida ja mille eest ostsid', 'mis juhtus', 'mis oli infoletis kaasas', 'kuidas lugu lõppes'],
+        words: [30, 45],
+      }), {
+        lines: 5, taskType: 'narrative', realAddressee: 'rühma kaaslased (blogi „Meie ostulood”)',
+        support: ['Märksõnad: 3.12 · jope · 59 €', 'lukk · katki · 10.12', 'infolett · kviitung · kahe nädala jooksul · uus jope'],
+        stretch: 'Kirjuta ka, mida müüja ütles: üks lause jutumärkides.',
+      }), { task: 'W06', main: true, level: 4 }),
+      'Mooduli viimane tund: ilma antud alguse ja valmis lauseteta. Kirjutamine tunnis, 10 min; siis loeb kaaslane lugu ja ütleb ühe märkuse (kas kõik neli punkti on olemas?). Abikaart on märksõnad, mitte laused (märgi kasutamine). Lisaväljakutse: müüja lause. Pildi võti: 3.12 ostsin jope 59 euro eest; 10.12 lukk läks katki; 12.12 infoletis: kviitung ja jope kaasas, vahetada saab kahe nädala jooksul; uus jope.'),
+      homeTask(teach(tag(B.speaking('034_t_home', 'Kodus: minu ostulugu.', 'Salvesta 45 sekundit: räägi üht oma ostulugu. Siis Harjuta → moodul 7.', [
+        'Mida ja kus sa ostsid? Mis juhtus? Kuidas see lõppes?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune salvestus ilma valmis fraasideta: üks päris ostulugu (või väljamõeldud). Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 7: kuni …-ni, … jooksul, -ga / ilma …-ta (10 min); kirjuta oma üks viga Harjutas „Minu vead” alla õigesti.')),
+      half(exitCheck(tag(v6(B.writing('034_t_exit', 'Väljumine: parem lause.', 'Kirjuta üks lause loost uuesti, kaaslase märkuse järgi.', [1, 2]), { lines: 2 }), { task: 'W10', level: 3 }))),
+      half(teach(selfcheck('034_t_self', ['Loen reegleid: 14 päeva jooksul.', 'Räägin infoletis ilma abita.', 'Kirjutan loo ilma abita.'], 'Moodul 7: pood, raha ja ostud'), 'Üks-ühele: õpilane hindab kolme rida, õpetaja ütleb oma hinde; õpilane kirjutab ühe lause oma loost tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 035 control 7: one sheet, four skills
+  'a2-035': retire(OLD['a2-035'], {
+    title: 'Kontroll 7 — pood, raha ja ostud',
+    assessment: true,
+    phases: checkSheet('Kontroll', 'Lugemine, kuulamine, kirjutamine ja rääkimine, igaüks 10 punkti (45 min)'),
+    canDo: 'Ma näitan ilma abita, et loen poe teateid ja pakkumisi, saan aru hindadest ja tagastamisest, kirjutan visiitkaardi järgi teksti, küsin poes ja räägin oma ostudest; ma tean oma punkte ja lävendeid.',
+    teacherPage: P035,
+    discover: [
+      teach(B.text('035_d_situation', 'Kontroll 7: kuidas punkte loetakse', `Kontrollis on neli osa, igas 10 punkti, kokku 40. Töötad 45 minutit ilma abita. Harno A2 eksamil on igas osas 20 punkti: korruta oma punktid kahega. ${THRESHOLDS} Lõpus võrdled tulemust kontrolliga 6 (tund 30).`), planNote(P035)),
+      teach(tag(B.choice('035_p_polite', 'Lugemine 1. Mida öelda?', 'Loe olukorda. Vali sobiv lause. (5 punkti)', [
+        ['Müüja küsib: „Kas ma saan aidata?”', 'Jah, ma otsin sooja mütsi.', 'Jah, head isu!', 'Ei, aitäh, ma maksan.'],
+        ['Jope on sulle väike.', 'Kas teil on suuremat?', 'Kas teil on väiksemat?', 'Kas teil on kallimat?'],
+        ['Sa tahad teada hinda.', 'Mis see maksab?', 'Mis kell on?', 'Mis värvi see on?'],
+        ['Uus lamp ei põle.', 'Ma tahan seda vahetada.', 'Ma tahan seda proovida.', 'Ma tahan seda pakkida.'],
+        ['Kohvikus on söök läbi. Sa tahad maksta.', 'Arve, palun!', 'Menüü, palun!', 'Head isu!'],
+      ], 'full', 'g_read'), { harno: 'R1', task: 'R01' }),
+      'Varasemast: 5. küsimus (arve, palun) on moodulist 6. Iga õige vastus 1 punkt.'),
+      teach(tag(B.reading('035_p_read', 'Lugemine 2. Pood teatab.', 'Loe teadet. Vasta ühe-kolme sõnaga. (5 punkti)', 'Spordipood Samm: talvine sooduskuu',
+        'Detsembris on spordipoes Samm sooduskuu! Pood asub kesklinnas, Kauba tänaval 5, teisel korrusel. Oleme avatud esmaspäevast laupäevani kella kümnest seitsmeni ja pühapäeval kella kümnest neljani.\n\nKõik talvejoped on kahekümne protsendi soodustusega. Soojad mütsid ja kindad saab osta kümne euro eest. Kaks paari villaseid sokke maksavad kaheksa eurot. Suusad on sel kuul odavamad kui novembris. Kliendikaardiga saad veel viis protsenti soodustust. Kaardi saab kassast tasuta. Kui ostad üle saja euro eest, saad sooja mütsi tasuta.\n\nKui jope või saapad ei sobi, saab neid vahetada kahe nädala jooksul. Tagastamiseks on vaja kviitungit. Soodushinnaga kaupa saab ainult vahetada, raha tagasi ei saa.\n\nLaupäeval kell üks on laste suusapäev: lapsed saavad suuski tasuta proovida. Suusapäev kestab kaks tundi ja on poe vastas, pargis. Tule ja too sõber kaasa!',
+        [['Mis korrusel pood on?', 'teisel|teisel korrusel'], ['Mis kellani on pood pühapäeval lahti?', 'neljani|kella neljani|16-ni'], ['Mis maksab kümne euro eest?', 'mütsid ja kindad|mütsid|kindad'], ['Mitme nädala jooksul saab vahetada?', 'kahe|kahe nädala jooksul|kaks nädalat'], ['Mida saavad lapsed laupäeval teha?', 'suuski proovida|proovida suuski|suuski tasuta proovida']]), { task: 'R15', harno: 'R4' }),
+      'Varasemast: 1. küsimus (mis korrusel) on moodulist 4, 2. küsimus (mis kellani) moodulist 5. Harno-pikkune tekst (≈ 125 sõna). Iga õige vastus 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'),
+      twice(teach(tag(B.listening('035_p_listen', 'Kuulamine 1. Kassas.', 'Kuula kassavestlust kaks korda. Kirjuta lünka üks-kaks sõna. (5 punkti)', [
+        'Müüja: Tere! Kas teil on kliendikaart?',
+        'Klient: Jah, palun.',
+        'Müüja: Hall müts maksab kaksteist eurot.',
+        'Müüja: Kindad maksavad kaheksa eurot.',
+        'Müüja: Kliendikaardiga saate kümne protsendi soodustuse. Kokku on kaheksateist eurot.',
+        'Klient: Kas ma saan maksta sularahas?',
+        'Müüja: Jah, muidugi. Kviitungi panen kotti. Mütsi saab vahetada kahe nädala jooksul.',
+      ], ['Müts maksab [kaksteist|12] eurot.', 'Kindad maksavad [kaheksa|8] eurot.', 'Soodustus on [kümme|10] protsenti.', 'Klient maksab [sularahas].', 'Mütsi saab vahetada kahe [nädala] jooksul.'], 'g_listen'), { task: 'L03', harno: 'L3' }),
+      'Varasemast: 4. lünk (sularahas — kuidas maksta) on moodulist 6. Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      twice(teach(tag(B.listening('035_p_listen2', 'Kuulamine 2. Tagastus.', 'Kuula tagastamist kaks korda. Kirjuta lünka üks-kaks sõna. (5 punkti)', [
+        'Klient: Tere! Ma ostsin eile selle veekeetja. See ei tööta.',
+        'Müüja: Vabandust! Kas teil on kviitung?',
+        'Klient: Jah, siin on. Karp on ka kaasas.',
+        'Müüja: Kas soovite uut veekeetjat või raha tagasi?',
+        'Klient: Uut, palun. Aga kas teil on odavamat?',
+        'Müüja: Jah, valge veekeetja on viis eurot odavam. Ma annan teile viis eurot tagasi.',
+        'Klient: Aitäh! Kas sellel on ka garantii?',
+        'Müüja: Jah, garantii on kaks aastat.',
+      ], ['Klient ostis veekeetja [eile].', 'Kliendil on kaasas kviitung ja [karp].', 'Klient tahab [odavamat] veekeetjat.', 'Valge veekeetja on [viis|5] eurot odavam.', 'Garantii on [kaks|2] aastat.'], 'g_listen'), { task: 'L03', harno: 'L3' }),
+      'Mooduli 7 tagastus (tund 34). Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      teach(tag(B.examWriting('035_t_write', 'Kirjutamine. Tekst visiitkaardi järgi.', 'Kirjuta kaaslasele visiitkaardi järgi 25–40 sõna. (10 punkti)', 'teade', {
+        situation: 'Visiitkaart: Õmblustöökoda „Nõel” · parandame jopesid, vahetame lukke, lühendame pükse · Tartu mnt 8, 1. korrus · E–R 10–18 · tel 5123 4567. Sinu kaaslase jope lukk on katki.',
+        points: ['mis koht see on ja mida seal tehakse', 'kus see asub ja kuidas sinna saab', 'millal see on lahti', 'kuidas sinna helistada'],
+        words: [25, 40],
+      }), { task: 'W03', harno: 'W1' }),
+      'Üks-ühele: õpilane kirjutab üksi, ilma abita ja ilma antud alguseta. See on tunni 34 eksaminurga („Visiitkaart”) paralleel: samad neli punkti, uus töökoda. Varasemast: „kuidas sinna saab” (moodul 5). Hinda allpool oleva juhendi järgi (kirjutamise viis rida).'),
+      teach(tag(B.speaking('035_t_say', 'Rääkimine. Poes ja minu ostud.', 'Küsi õpetajalt poes ja vasta kahele küsimusele. (10 punkti)', [
+        '1. osa: küsi poes kingitust sõbrale (mida otsid, värv, hind, pakkimine).',
+        '2. osa: kus sa tavaliselt riideid ostad ja miks seal?',
+        '2. osa: mis oli sinu viimane ost? Kas see oli odavam või kallim, kui arvasid?',
+      ], [45, 75]), { task: 'S02', harno: 'S2' }),
+      'Üks-ühele: õpetaja on müüja, siis eksamineerija. 1. osa on tunni 31 külma ülesande („Proovi kohe: poes”) paralleel — uus kingitus, samad kriteeriumid; võrdle oma märkmetega. Ära aita. Hinda allpool oleva juhendi järgi.'),
+      teach(B.table('035_t_score', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja annab igale hindamisreale 0, 1 või 2 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja kaaslane saab kõigest aru; 1 = alla 25 sõna või osa on segane; 0 = tekstist ei saa aru. | ',
+        'Kirjutamine, vormid: 2 = kellaajad, korrus ja osastav peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vormidest ei saa aru. | ',
+        'Kirjutamine, sõnavara: 2 = poe ja teenuse sõnad õiged; 1 = mõni sõna puudub või on vale; 0 = sõnu on väga vähe. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, küsimine poes: 2 = ütleb, mida otsib, ja küsib värvi ja hinda; 1 = üks-kaks asja; 0 = küsimust ei ole. | ',
+        'Rääkimine, vormid: 2 = otsin sooja mütsi, … euro eest, odavam kui peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = raske aru saada. | ',
+        'Rääkimine, vastused: 2 = kaks vastust täislausega ja detailiga; 1 = üks vastus või ainult sõnad; 0 = ei vasta. | ',
+        'Rääkimine, sõnavara: 2 = poe, raha ja riiete sõnad õiged; 1 = mõni sõna puudub; 0 = sõnu on väga vähe. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10). Lugemine 5 + 5 küsimust ja kuulamine 5 + 5 lünka, iga õige vastus 1 punkt — kokku 10 + 10 + 10 + 10 = 40.'),
+      teach(B.table('035_t_result', 'Minu tulemus: moodul 7.', 'Kirjuta oma punktid ja Harno skaala. Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 6 (%), Mida harjutada?', [
+        'Lugemine |  |  |  | ',
+        'Kuulamine |  |  |  | ',
+        'Kirjutamine |  |  |  | ',
+        'Rääkimine |  |  |  | ',
+        'Kokku (/40) |  |  |  | ',
+      ]), 'Õpetajale: Harno järgi sooritatud = kokku ≥ 24/40 (60 %) ja ükski osa ei ole 0. KeeleSepa sisemine lävi: eksamiks valmis ≥ 28/40 (70 %), sertifikaat ≥ 32/40 (80 %). Kui osa on alla 6/10, anna üks parandusülesanne: lugemine → Harjuta „Lugemine” (moodul 7), kuulamine → tunni 32 või 33 salvestis uuesti ilma tekstita, kirjutamine → sama tekst parandatult, rääkimine → uus salvestus „Minu kingitus sõbrale”. Varasemast (moodulid 4–6) on 4 küsimust 20-st (20 %): lugemine 1.5, lugemine 2.1 ja 2.2, kuulamine 1.4.'),
+    ],
+  }),
 }, {
   'a2-031': 'PROB R→S', 'a2-032': 'AVAS L→S', 'a2-033': 'KUUL L→W', 'a2-034': 'LUGU R→W', 'a2-035': 'EKS',
 });
