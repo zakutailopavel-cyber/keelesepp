@@ -36,6 +36,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
+| financeApi | 2026-11-26 12:35 | `90b5160` (#1353 Minu kassa: õpetaja märgib saadud sularaha, `/cash/teacher-receipt`; `source: "teacher"` raamatupidamisest väljas) |
 | financeApi | 2026-11-19 ~15:0x | `05884e2` (#1285 `/accounting/entries/documents` — fail kandele) |
 | financeApi, invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders, syncLessonTokens, staffOperationsApi | 2026-11-18 13:2x | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp — group price, group packages, card merge) |
 | financeApi | 2026-11-12 10:27 | `f372e75` (#1212 unmark package lesson, #1213 credited invoices) |
