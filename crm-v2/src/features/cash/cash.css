@@ -13,12 +13,18 @@
 .cash-held__list strong { font-variant-numeric: tabular-nums; }
 .cash-held__list .button { min-height: 44px; }
 .cash-forms h2, .cash-entries h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 1.05rem; }
-.cash-table { display: grid; }
-.cash-row { display: grid; grid-template-columns: 96px 92px minmax(0, 1fr) 96px 120px auto; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid #eef1f4;border-top:1px solid light-dark(#eef1f4,#2f353d); }
+/* one column grid for every row (subgrid): a fixed 92px / 120px column was narrower than „õpetaja märkis” and
+   „Raamatupidamisest väljas”, so the badge ran over the name and the buttons, and `auto` moved the sum row by row */
+.cash-table { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr) max-content fit-content(230px) max-content; column-gap: 14px; }
+.cash-row { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; padding: 9px 0; border-top: 1px solid #eef1f4;border-top:1px solid light-dark(#eef1f4,#2f353d); }
+.cash-row > [role="cell"] { min-width: 0; }
+.cash-row > :first-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cash-row > :nth-child(5) { justify-self: start; }
+.cash-row > :nth-child(5) .badge { white-space: normal; }
 .cash-row.is-void { opacity: .55; }
-.cash-row__what { display: grid; gap: 2px; min-width: 0; }
+.cash-row__what { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
 .cash-row__what small { color: #5b6b80;color:light-dark(#5b6b80,#afb7c1); }
-.cash-row__sum { font-weight: 800; text-align: right; }
+.cash-row__sum { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cash-row__actions { display: flex; gap: 6px; justify-content: flex-end; }
 .cash-invoices { display: grid; gap: 8px; }
 .cash-invoices label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #dfe5e1;border:1px solid light-dark(#dfe5e1,#353d38); border-radius: var(--radius-md); cursor: pointer; }
@@ -26,7 +32,9 @@
 .cash-invoices span { display: grid; }
 .cash-invoices small { color: #5b6b80;color:light-dark(#5b6b80,#afb7c1); }
 @media (max-width: 720px) {
-  .cash-row { grid-template-columns: 1fr auto; }
+  .cash-table { display: block; }
+  .cash-row { grid-template-columns: 1fr auto; gap: 10px; }
   .cash-row > :nth-child(2), .cash-row > :nth-child(5) { display: none; }
   .cash-row__what { grid-column: 1 / -1; order: -1; }
+  .cash-row__actions { grid-column: 1 / -1; }
 }

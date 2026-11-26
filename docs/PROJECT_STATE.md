@@ -1,3 +1,14 @@
+## 2026-11-26 — Kassa: kirjete read ühes joones (agent/kassa-rows-align)
+
+- Main kontrollitud: 75ae303 (2026-11-26, release 14:44 UTC). Haru `agent/kassa-rows-align`, draft-PR „Kassa: entries rows share one column grid”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-26, ekraanipilt: „поправь у меня кассу чтобы все было ровно”): „Kassa” → „Kirjed” ridades jooksis märk „õpetaja märkis” nime peale, „Raamatupidamisest väljas” nuppude alla ja summa oli igas reas eri kohas.
+- Põhjus: iga rida oli oma grid kindlate veergudega `96px 92px 1fr 96px 120px auto` — 92 px ja 120 px olid märkidest kitsamad (märk on `nowrap`) ja `auto` nupuveerg nihutas summat rea kaupa.
+- Tehtud (ainult CSS, `crm-v2/src/features/cash/cash.css`): `.cash-table` on üks veeruruudustik (`max-content max-content minmax(0,1fr) max-content fit-content(230px) max-content`), `.cash-row` kasutab `subgrid`-i; pikk olek („Makstud sularahas pärast arvet …”) murdub oma veerus; kuupäev ja summa `tabular-nums`, `nowrap`. Telefonis (≤ 720 px) nagu enne virnas, nupud nüüd omal real. JSX-i, andmeid, reegleid ega lepinguid ei muudetud.
+- Uus test `crm-v2/src/features/cash/cashRows.test.js` (CSS-reeglid; jsdom ei paiguta).
+- Kontrollid: `npx vitest run src/features/cash src/styles` → 5 faili, 34 testi läbi; `npx eslint --quiet src/features/cash` puhas. Brauseris (staatiline leht päris `index.css` + `cash.css`-iga, 4 näidisrida, 1300 px): kõigi ridade veerud algavad samast kohast (41 / 147 / 270 / 734 / 830 / 1074 px), kattumisi pole; 375 px: virnas, horisontaalset kerimist pole. Kogu `npx vitest run` ja päris Kassa leht sisselogituna — käivitamata.
+- Riskid: `subgrid` vajab Chrome 117+ / Safari 16+ / Firefox 71+; vanemas brauseris langeks rida ühte veergu. Andme- ega turvariski pole.
+- Järgmine samm: omanik vaatab PR-i pilti; pärast ühendamist ja release'i kontrollida päris Kassa lehte.
+
 ## 2026-11-26 — B2 moodul 14 metoodika v5 + v6 järgi (agent/b2-m14-v6)
 
 - Main kontrollitud: e08f740 (2026-11-26, #1349 A2 m7). Haru `agent/b2-m14-v6` tehtud `origin/agent/b2-m13-v6` (#1348, veel ühendamata) peale + merge origin/main (kaks korda); draft-PR „B2 module 14 to methodology v6”. Deploy'd ega production'i kirjutusi pole; TartuNLP heli (lubatud) genereeriti.
