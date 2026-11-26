@@ -96,6 +96,7 @@
   "*|*|V4-type-speaking"
  ],
  "course": [
+  "*|*|V6-corner-R3",
   "*|*|V6-exam-L1",
   "*|*|V6-exam-L2",
   "*|*|V6-exam-R3",
@@ -104,9 +105,7 @@
   "*|*|V6-gap-L1",
   "*|*|V6-gap-L2",
   "*|*|V6-total-R3",
-  "*|*|V6-total-R4",
-  "*|*|V6-total-S1b",
-  "*|*|V6-variant-W1a"
+  "*|*|V6-total-S1b"
  ],
  "a2b1-module-14": [
   "*|*|V3-min-S03",
@@ -116,5 +115,8 @@
  ],
  "a2b1-module-15": [
   "*|*|V5-pairs"
+ ],
+ "a2b1-module-16": [
+  "*|*|V3-min-S04"
  ]
 }
