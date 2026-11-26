@@ -1,37 +1,48 @@
-// B2 course (B1 → B2 roadmap), module 12 „Tehnoloogia ja sotsiaalmeedia” (b1b2-056…060), stage B1+/B2- (the module file is
-// B2-: homework 140–180 words, the B2 opener and article lengths, a full Harno B2 mock in 060).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–10. Module goal (the learner): „Ma saan digimaailmas ise hakkama: kasutan e-riiki, otsustan,
-// mida tehisintellektilt küsida, kontrollin uudise enne jagamist ja kaitsen oma andmeid”; module product „Minu
-// digireeglid” (059 Kasuta, the S1 one-minute talk in 060). Technology from the learner's own angle: his e-services and a
-// neighbour who needs help, the AI tool at work or on the course, a post he is about to share, the apps on his phone. Not
-// repeated from earlier modules: the phone scam (old module 12), children's screen time (module 4), online conflict in a
-// house chat (module 10).
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 12).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   056 quest    „Kas sa saad e-riigis ise hakkama?”                       town (e-services)     final explain: help a neighbour (S13)
-//   057 debate   „Mida tohib tehisintellektilt küsida — ja mida mitte?”    work (or the course)  final decide: joint AI rules (S17)
-//   058 facts    „Kas see uudis on tõsi? Kontrolli, enne kui jagad”         culture (media)       final advise: a friend's post (S14)
-//   059 project  „Mida sinu telefon sinust teab?”                           free time (apps)      final plan: „Minu digireeglid” (S16)
-//   060 exam     Vahehindamine 3 — the full Harno B2 mock (L1–L4, R1, R2a, R2b, R3, R4, W1, W2a, S1, S2) on lessons 41–60,
-//                with „Minu digireeglid” as the S1 talk.
-// Grammar line of the roadmap (B2, docs/METHODOLOGY_STANDARD.md §5, grammarPlan 'impersonal' 058, 'nominalisation' 057 +
-// 059) by discovery and spiralled: the impersonal present and its negative — how things are done (retsept kirjutatakse
-// välja, paberit ei anta) (056); nominalisation with -mine / -ja in written rules — isikuandmete sisestamine, kasutaja,
-// saatja (057, back to 056's impersonal: isikuandmeid ei sisestata); the impersonal past and perfect with the -tud
-// participle in news and fact checks — näidati, küsiti, on töödeldud, ei ole kinnitatud (058, the full rule table); a
-// privacy policy in plain words and back — andmete kogumine ↔ andmeid kogutakse (059, both lines together); all in 060.
-// The one long text of the module's lessons is the topic opener (056 station 2, ≈ 330 words, after a 15-minute hook and
-// pre-taught words); 058's article is ≈ 300 words (its one long text). The course's cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js (g_vocab, g_read, g_notice, g_use; 060 g_read, g_listen, g_notice,
-// g_use) and the archetypes of the plan (KIRJ L→W, RÄÄK R→S, LUGE R→W, PROJ L→S — 057 and 059 swapped their slot, V5 still
-// holds) with the exam corners R1, R2b, R4, L2. The v2 storyline version (Oskar's account, TarkPlaan at Tuul Logistika,
-// Viktor's phishing call, the 4.b parents' evening) is in git history before 2026-11-19.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B2 course (B1 → B2 roadmap), module 12 „Tehnoloogia ja sotsiaalmeedia” (b1b2-056…060), stage B2-.
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25),
+// built on the pattern of module 11 (the first v6 module). On the v3 station engine with the v4 task formats.
+// Module goal (the learner): „Ma saan digimaailmas ise hakkama ja aitan teisi: seletan e-riigi teadet lihtsas keeles,
+// otsustan, mida tehisintellektile anda, kontrollin postitust enne jagamist ja kaitsen oma andmeid.” Technology from the
+// learner's own angle: a neighbour's e-state notice, the AI tool at work or on the course, a post in the group chat, the
+// apps on the phone. Nobody has to tell his real data: every task allows a typical or invented case.
+//   Avasta  (4): station 1 — 056 the module's COLD TASK in speech (1 min to think, 1 min to talk, no phrases; module 11
+//                measured writing, module 12 measures speaking; its parallel is 060_t_cold), 057–059 the 5-min
+//                „Parandatud versioon” of the previous lesson's draft (data.revisionOf, v6 G16); station 2 the words (10
+//                + 3 review words from 3–15 lessons back, data.review, v6 G18), ONE input and one scheme — reading
+//                ≈ 470–500 words with 3 inference questions (056 „E-riik: mugav kõigile või ainult osavatele?”, 058 „Miks
+//                me jagame valet, kuigi me ei taha?”) or listening ≈ 3.5–4 min, 2 voices (057 and 059 „Digitund”), a
+//                reading / listening strategy line in the instruction.
+//   Harjuta (3–4): the rule box (B1 one-line review, B2 step, one L1-contrast line „Vene keeles …”), one form task of 10
+//                items that PRODUCES the rule box's bold forms (hint = the dictionary form, never the answer; v6 G15), one
+//                second task of 8 rows, and the 10-min DRAFT of the home text in class (056–058; in 059 the in-class
+//                product is the project text itself).
+//   Kasuta  (5): station 4 the main task — a type module 11 did not use, except the module's one mediation (v6 G17):
+//                056 mediation, 057 survey, 058 presentation, 059 project — each with an „Abikaart” and a
+//                „Lisaväljakutse” (data.support / data.stretch, v6 G24) and hidden information on the teacher's card
+//                (v5 G9); the EXIT in the main task's skill (v6 G14: 056–058 30–60 s of speech, 059 one line of the
+//                project rewritten after the peer's wish); the self-check with 3 criteria rated 0–1–2 and one own
+//                sentence as evidence; the home text (finish the draft, ~140 / ~180 words, 1-min voice message,
+//                „Harjuta → moodul 12”); the analytic Harno B2 rubric with a borderline sample (v5 G10).
+//   056 quest   „Kas sa saad e-riigis ise hakkama?”                   reading   impersonal present + its negative  mediation
+//   057 debate  „Mida tohib tehisintellektilt küsida — ja mida mitte?”  radio     -mine / -ja nouns (official style)  survey
+//   058 facts   „Kas see uudis on tõsi? Kontrolli, enne kui jagad”      reading   impersonal past and perfect         presentation
+//   059 project „Mida sinu telefon sinust teab?”                        radio     terms ↔ plain words (-mine ↔ -takse) project
+//   060 exam    Kontroll 12 (vahehindamine 3): one sheet, 45 min, LISTENING + SPEAKING (m10 L + S, m11 R + W). Why the
+//                short form and not the full four-skill mock that v5 §5 lists at B2 060: v6 §2 g (the course blueprint:
+//                „B2, lesson 5 of a module: 2 skills alternating”) wins over v5 for a v6-strict module, as the
+//                coordinator did for 040 (b2/module08.js); reading and writing of lessons 41–55 were tested in 045–055,
+//                the next full mock is 080. Why L + S: the module's cold task is spoken (056_d_cold), so its parallel is
+//                spoken; e-services, scam calls and house-chat rumours reach the learner as notices and voice messages.
+// Real network (v6 G25): real document + link task 056_t_guide (eesti.ee, a 3-item task — the page was not opened by the
+// author), media log 058_t_msg („Minu eesti keele võrgustik”), peer exchange 059_t_guide (another pair answers with two
+// stars and a wish). Mediation 056_t_call; peer feedback round 059 (v6 §2 l). Texts are adapted learning texts
+// („KeeleSepp õppetekst”) without exact statistics (owner 2026-11-25); no story cast, no dictation, no „Kas teadsid?”.
+// Module 11's last product (the control letter 055_t_claim) is revised in 056's home task (three marked sentences into
+// „Minu vead” in Harjuta): station 1 of 056 holds the cold task, and the sheet has no room for a second 5-min block.
+// Kept: lesson ids, titles, topics, the v4 formats; the v4 lessons of 2026-11-19 are kept below as V4 and every block that
+// is not on a v6 sheet is taken from there with retire() (hidden, id and learners' answers kept, old explanations in
+// OLD_WHY). A kept id keeps its block type.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -62,7 +73,9 @@ const perClip = (block) => {
   return { ...block, data: { ...block.data, questions: block.data.questions.map((q, i) => ({ ...q, script: clips[i] })) } };
 };
 
-export const LESSONS = withShapes({
+
+// the v4 lessons of 2026-11-19 („task-based”): the source of every block that is not on a v6 sheet
+const V4 = {
   'b1b2-056': {
     title: 'Kas sa saad e-riigis ise hakkama?',
     phases: grammar('Keel: umbisikuline olevik — kuidas midagi tehakse: retsept kirjutatakse välja, dokument allkirjastatakse, paberit ei anta'),
@@ -790,14 +803,10 @@ export const LESSONS = withShapes({
       B.selfcheck('060_t_self', ['Lugemine: … / 43 punkti; kuulamine: … / 34 punkti.', 'Kirjutamine: … / 25 punkti (kiri 10, kokkuvõte 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Vahehindamine 3 tehtud'),
     ],
   },
-}, {
-  'b1b2-056': 'KIRJ L→W', 'b1b2-057': 'RÄÄK R→S', 'b1b2-058': 'LUGE R→W', 'b1b2-059': 'PROJ L→S', 'b1b2-060': 'PROOV',
-});
+};
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the v4 explanations of the retired blocks (shown with the hidden block, courseSheet.js withExplanations)
+const OLD_WHY = {
   // 056
   '056_d_facts': [
     '1. lõik: „PIN1 on sisselogimiseks ja PIN2 allkirjastamiseks”.',
@@ -1035,3 +1044,895 @@ export const EXPLAIN = {
     'Teade: „saavad detsembris ühe tasuta trenni”.',
   ],
 };
+
+// ---- v6 helpers (the same mechanisms as b2/module11.js) ---------------------------------------------------------------
+// G18: the vocab block brings back three old words (3–15 lessons back); they are named on the sheet and used in the input
+const withReview = (b, review) => ({ ...b, data: { ...b.data, title: `${b.data.title} Kordamiseks: ${review.join(', ')}.`, review } });
+// G17 / G24: the main task of Kasuta — its type, the „Abikaart” (2–3 sentence starters) and the „Lisaväljakutse” line;
+// both are printed on the learner's card too (the fold-out card is UI work, v6 §2 i)
+const mainTask = (b, taskType, support, stretch, tags = {}) => tag({ ...b, data: { ...b.data, taskType, support, stretch } }, { main: true, level: 4, ...tags });
+// G16: the 5-min „Parandatud versioon” that opens lessons 057–059 (replaces the warm-up statement, not an extra block)
+const revision = (id, of, instruction) => {
+  const b = B.writing(id, 'Parandatud versioon.', instruction, [3, 4]);
+  return teach(tag({ ...b, data: { ...b.data, revisionOf: of } }, { task: 'W10' }),
+    '„Parandatud versioon” (5 minutit, v6): õppija kirjutab ümber kolm lauset, mille sa eelmise tunni mustandis või kodutekstis märkisid (ainult märgi, ära paranda ise), ja ütleb ühe reaga, mis muutus. Kontrolli kohe: kas viga on parandatud? Korduv viga läheb õppija „Minu vead” nimekirja Harjutas. Kui õppija kodutööd ei teinud, parandab ta tunni mustandi kolm lauset.');
+};
+// G16: the in-class draft of the home text's first paragraph (≈ 10 min, feedback on one rubric criterion)
+const draft = (id, title, instruction, criterion, range = [5, 7]) => teach(tag(B.writing(id, `Mustand tunnis: ${title} (10 minutit).`, instruction, range), { task: 'W11', level: 3 }),
+  `Mustand tunnis, 10 minutit (v6): see on kodutöö esimene lõik. Tagasiside ainult ühele kriteeriumile — ${criterion}. Märgi kolm lauset (ära paranda): järgmise tunni alguses kirjutab õppija need ümber („Parandatud versioon”). Paaris: kaaslane loeb ja ütleb hindamisjuhendi selle rea järgi üht head ja üht parandust. Kui aega jääb vähe, piisab kolmest lausest.`);
+// G14: the exit — 30–60 s of speech performing the lesson's can-do (the main task's skill), done in class
+const exitTalk = (id, instruction, questions, note) => teach(tag(exitCheck(inLesson(B.speaking(id, 'Väljumine: 30 sekundit.', instruction, questions, [30, 60]))), { task: 'S11', fluency: true }),
+  `Väljumiskontroll (v6 G14), 3 minutit: üks sooritus tunni oskusest, mitte vormiküsimused. Kuula, ära sega vahele. ${note} Lõpus üks tugevus ja üks parandus.`);
+// G24: the self-check — three success criteria rated 0–1–2 and one own sentence as evidence
+const selfCheck = (id, criteria, stamp, titleMore) => {
+  const b = B.selfcheck(id, criteria, stamp, titleMore);
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0 — veel mitte, 1 — osaliselt, 2 — jah. Kirjuta alla üks oma lause, mis seda tõendab.', criteria, evidence: true } };
+};
+// the home text: the draft finished at home + the 1-min voice message + Harjuta (v6 G18); the sheet gives few lines
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// G25: the module's peer exchange (another pair reads the product and answers) and media log („Minu eesti keele võrgustik”)
+const peerReply = (b) => ({ ...b, data: { ...b.data, peerReply: 'Teine paar loeb juhendi ja vastab: kaks tugevat kohta ja üks soov (edukriteeriumide järgi).', realAddressee: 'kursusekaaslased' } });
+const mediaLog = (b) => ({ ...b, data: { ...b.data, mediaLog: true } });
+// a control's rubric stays directly under the task it scores (courseSheet.js lessonOrder)
+const keepPlace = (b) => ({ ...b, data: { ...b.data, keepPlace: true } });
+// v5 G6: a control's recordings are locked; short clips are heard once, the interview twice
+const once = (b) => ({ ...b, data: { ...b.data, plays: 1, lockPlays: true } });
+const twice = (b) => ({ ...b, data: { ...b.data, plays: 2, lockPlays: true } });
+const HARJUTA = 'Harjuta → moodul 12: sõnad ja vormid (10 min).';
+
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as module 11)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (umbisikuline olevik ja minevik, -mine ja -ja, sihitis) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample) => {
+  const b = B.rubricW2(id, title);
+  return teach({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Kontrolli oma teksti enne saatmist.', criteria: B2_WRITING.map(([name], i) => ({ name, max: 3, hint: B2_WRITING_SHORT[i] })) } }, sample);
+};
+// the analytic speaking rubric of the control's discussion (12 points: four criteria 0–3, the same scale as writing)
+const SPEAKING_12 = [
+  ['Ülesande täitmine ja suhtlus', '3 seisukoht kohe, reageerib partnerile ja uuele infole, jõuab ühise reeglini · 2 üks neist nõrk · 1 räägib, aga ei reageeri · 0 ei vasta ülesandele'],
+  ['Sujuvus ja ülesehitus', '3 räägib sujuvalt, põhjendab ja seob mõtted · 2 pausid ei sega · 1 pausid segavad kohati · 0 üksikud sõnad'],
+  ['Sõnavara', '3 täpne ja mitmekesine (mooduli sõnad) · 2 piisav, mõni kordus · 1 piiratud · 0 ei kanna sisu'],
+  ['Grammatika ja hääldus', '3 vead ei sega (umbisikuline, -mine, minevik) · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'],
+];
+
+// why a v4 block left the sheet
+const CUT_HOOK = 'v5/v6: station 1 is the cold task (056) or the 5-min „Parandatud versioon” (057–059); the hook text and the warm-up talk merged into it';
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) or a second input';
+const CUT_DRILL = 'exit gaps → Harjuta (v6 G14: the exit is a performance of the can-do, not three form items)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home text on the sheet carries the 1-min voice message and the Harjuta link (v5 §3, v6 G18)';
+const CUT_OLDTASK = 'v4 task replaced by the v6 task of the same station (new id, other block type)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, listening + speaking (v6 §2 g: B2 lesson 5 = 2 skills alternating)';
+const RETIRE_WHY = {
+  '056_d_open': CUT_STATS, '056_d_facts': CUT_STATS, '056_t_voice': CUT_INPUT, '056_t_cards': 'the four checkpoint cards: the notice on the mediation card 056_t_call is the case now (v5: ≤ 5 blocks on Kasuta)',
+  '057_d_rules': 'v4 input (work rules, ≈ 150 words): the lesson\'s one input is now the radio 057_d_radio (v5: inputs alternate reading / listening, B2 listening 3–4 min)',
+  '057_d_ask': CUT_INPUT, '057_t_chat': CUT_INPUT, '057_t_tf': CUT_INPUT, '057_t_debate': CUT_OLDTASK,
+  '058_d_article': 'v4 input (sentence bank, ≈ 300 words): the lesson\'s one input is now the article 058_d_text (v5: reading 400–600 words with inference)',
+  '058_t_posts': 'five posts: three of them are on the presentation card 058_t_present (v5: one input, ≤ 5 blocks on Kasuta)', '058_t_voice': CUT_INPUT, '058_t_decide': CUT_OLDTASK, '058_t_friend': CUT_OLDTASK,
+  '059_d_know': CUT_STATS, '059_t_checks': CUT_INPUT, '059_t_plan': 'planning card „Minu digireeglid”: the module product is the project 059_t_guide (v6 G17 project)', '059_t_talk': CUT_OLDTASK,
+};
+const reasonFor = (id) => RETIRE_WHY[id] || (/^060_/.test(id) ? CUT_CONTROL : /_d_(hook|talk)$/.test(id) ? CUT_HOOK : /_t_more$/.test(id) ? CUT_EXTRA
+  : /_t_exit$/.test(id) ? CUT_DRILL : /_t_(home|homework|letter|essay)$/.test(id) ? CUT_HOME : CUT_OLDTASK);
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module12: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reasonFor(id));
+};
+// every v4 block of the lesson that is not on the v6 sheet goes, hidden, to the end of its own phase (a kept id must keep
+// its block type)
+const withRetired = (lessons) => Object.fromEntries(Object.entries(lessons).map(([id, l]) => {
+  const used = new Map(['discover', 'practice', 'transfer'].flatMap((p) => (l[p] || []).map((b) => [b.id, b])));
+  const phases = Object.fromEntries(['discover', 'practice', 'transfer'].map((p) => {
+    const old = (V4[id]?.[p] || []).filter((b) => !used.has(b.id)).map((b) => retire(b.id));
+    return [p, [...(l[p] || []), ...old]];
+  }));
+  used.forEach((b, bid) => {
+    if (V4_BLOCKS[bid] && V4_BLOCKS[bid].type !== b.type) throw new Error(`module12: ${bid} oli ${V4_BLOCKS[bid].type}, nüüd ${b.type}`);
+  });
+  return [id, { ...l, ...phases }];
+}));
+
+// the purpose of every task („kes, kellele, mis tulemus”, stations.js st-purpose) for the teacher page — not printed in the
+// instruction (v6 §2 e, G22: the instruction stays ≤ 25 words)
+const PURPOSE = {
+  '056_d_cold': 'Õpetaja kuuleb mooduli alguses, kuidas sa praegu arvamust ütled.',
+  '056_d_text': 'Tead pärast lugemist, kellele e-riik on mugav ja kust saab abi.',
+  '056_d_scheme': 'Skeem on sinu seletuse järjekord naabrile.',
+  '056_p_forms': 'Naabri meelespeas on kirjas, kuidas asju aetakse ja mida ei tehta.',
+  '056_p_active': 'Juhend räägib asjast, mitte inimesest, kes seda teeb.',
+  '056_p_draft': 'Juhendi algus on valmis ja õpetaja märgib kolm lauset.',
+  '056_t_call': 'Naaber saab teatest aru ja teab, mida ta ise teeb.',
+  '056_t_say': 'Näitad 30 sekundiga, et oskad teadet lihtsas keeles seletada.',
+  '056_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '056_t_guide': 'Naaber hoiab juhendit külmkapi uksel ja saab ise hakkama.',
+  '056_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '057_d_revise': 'Sinu juhend naabrile saab paremaks ja sa näed oma vigu.',
+  '057_d_radio': 'Kuuled koolitajalt, mida vestlusrobotile anda ja mida mitte.',
+  '057_d_scheme': 'Skeemist näed, mis robotile sobib ja mis mitte.',
+  '057_p_forms': 'Kursuse reeglid on kirjas lühidalt ja ametlikult.',
+  '057_p_nom': 'Oskad ametlikku reeglit seletada ja tavalist lauset ametlikuks teha.',
+  '057_p_draft': 'Arutluse esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '057_t_survey': 'Rühm teab, kuidas inimesed robotit kasutavad, ja saab reeglisoovituse.',
+  '057_t_say': 'Näitad 30 sekundiga, et oskad küsitluse tulemust esitada.',
+  '057_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '057_t_argue': 'Kursuse uudiskirja lugejad saavad kaalutud arvamuse.',
+  '057_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '058_d_revise': 'Sinu arutlus saab paremaks ja sa näed oma vigu.',
+  '058_d_text': 'Tead pärast lugemist, miks valeinfo levib ja kuidas seda peatada.',
+  '058_d_scheme': 'Kolm küsimust on sinu esitluse plaan.',
+  '058_p_check': 'Faktikontrolli lugeja teab, mis juhtus ja mis on praegu tõsi.',
+  '058_p_fix': 'Faktikontrolli lugeja usaldab teksti, sest selles pole vigu.',
+  '058_p_draft': 'Sõnumi esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '058_t_present': 'Rühm teab, millist postitust jagada ja millist mitte.',
+  '058_t_say': 'Näitad 30 sekundiga, et oskad sõbrale rahulikult seletada.',
+  '058_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '058_t_msg': 'Sõber kustutab vale postituse ega tunne end rünnatuna.',
+  '058_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '059_d_revise': 'Sinu sõnum sõbrale saab paremaks ja sa näed oma vigu.',
+  '059_d_radio': 'Kuuled juristilt, millised õigused sul oma andmete üle on.',
+  '059_d_scheme': 'Skeem tõlgib tingimuste keele lihtsaks keeleks.',
+  '059_p_forms': 'Saad aru tingimustest ja oskad neid teisele lihtsalt öelda.',
+  '059_p_plain': 'Oskad tingimuste lauset lihtsaks teha ja vastupidi.',
+  '059_p_talk': 'Paar teab, millised viis reeglit oma juhendisse panna.',
+  '059_t_guide': 'Uus kursuslane teab viit reeglit ja saab teiselt paarilt tagasisidet.',
+  '059_t_line': 'Näitad, et oskad oma teksti tagasiside järgi paremaks teha.',
+  '059_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '059_t_request': 'Firma saab kirjast aru ja saadab sinu andmed.',
+  '059_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '060_p_clips': 'Näitad, et saad lühiteatest aru ka siis, kui kuuled seda üks kord.',
+  '060_p_listen': 'Näitad, et saad intervjuust aru ka siis, kui vastus on teiste sõnadega.',
+  '060_t_cold': 'Näed, kuidas su rääkimine on mooduli algusest muutunud.',
+  '060_t_rubric': 'Näed, mille eest üheminutilise arvamuse punktid tulevad.',
+  '060_t_prep': 'Arutelu alguses on sul seisukoht ja argumendid valmis.',
+  '060_t_debate': 'Näitad, et oskad arutelus seisukohta kaitsta ja kokku leppida.',
+  '060_t_srubric': 'Näed, mille eest arutelu punktid tulevad.',
+};
+const withPurposes = (lessons) => Object.fromEntries(Object.entries(lessons).map(([id, l]) => [id, { ...l, ...Object.fromEntries(['discover', 'practice', 'transfer'].map((p) => [p, (l[p] || []).map((b) => (PURPOSE[b.id] ? { ...b, data: { ...b.data, purpose: PURPOSE[b.id] } } : b))])) }]));
+
+export const LESSONS = withPurposes(withShapes(withRetired({
+  'b1b2-056': {
+    title: 'Kas sa saad e-riigis ise hakkama?',
+    phases: grammar('Kordamine: tehakse, öeldakse · B2: retsept kirjutatakse välja, teade saadetakse, paberit ei anta, koode ei öelda'),
+    format: 'quest',
+    topic: 'town',
+    canDo: 'Ma loen artiklit e-riigist, seletan naabrile lihtsas keeles, mida tema e-riigi teade tähendab ja mida ta peab tegema, ning kirjutan talle umbes 140-sõnalise juhendi; kasutan umbisikulist olevikku ja selle eitust.',
+    teacherPage: {
+      goal: 'Холодная задача устно; статья о e-riik; безличная форма и её отрицание; посредничество: уведомление соседке простыми словами; черновик в классе, дома инструкция 140 слов + eesti.ee.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 10 предложений, черновик 3 предложения; посредничество без третьего препятствия.',
+      hook: '«Väide: riik peaks jätma igale teenusele ka paberil asjaajamise võimaluse.» Ученик думает 1 минуту и говорит 1 минуту без помощи. Это холодная задача модуля (устно; модуль 11 мерил письмо): не помогайте, не давайте фраз, не исправляйте; запишите, если можно. В уроке 060 ученик говорит параллельную задачу в тех же условиях (060_t_cold).',
+      plan: [
+        '0–5: станция 1 — холодная задача: 1 минута подумать, 1 минута говорить; заметки или запись сохраните до 060',
+        '5–30: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: пробежать заголовок и первые фразы абзацев (1 мин), статья (6 мин), 7 вопросов, из них 3 на вывод (10 мин), схема «как идёт e-услуга» (5 мин)',
+        '30–52: станция 3 — безличная форма одной строкой (B1), B2: -takse / -dakse и отрицание ei anta / ei öelda; 10 предложений, «деятель уходит» (8 строк); черновик первого абзаца инструкции (10 мин), обратная связь — порядок шагов',
+        '52–70: станция 4 — посредничество: соседка не понимает уведомление; вы — соседка со скрытой информацией',
+        '70–75: выход: 30 секунд соседке; самооценка 0–1–2 + своё предложение; домашнее задание: инструкция 140 слов + три вещи со страницы eesti.ee, голосовое 1 мин, Harjuta; три отмеченных предложения из письма 055 — в «Minu vead»',
+        'Kui aega jääb (75–90): мини-дебаты «бумага или экран» — вы против, ученик за, потом наоборот, в конце компромисс',
+      ],
+      sources: 'Статья «E-riik: mugav kõigile või ainult osavatele?» — учебный текст KeeleSepp, без точной статистики (раньше: e-голоса 2023, digiретсепт 99 %, e-развод 2024 — убраны). Общая основа: PIN1 — вход, PIN2 — подпись, цифровая подпись равна собственноручной, коды блокируются после трёх ошибок; digiabi в библиотеках и самоуправлениях; доверенность (volitus) на eesti.ee; andmejälgija в eesti.ee. Уведомление на карточке и соседка — учебные.',
+      groups: 'Холодная задача — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Черновик — каждый сам, партнёр читает по строке рубрики «Ülesande täitmine». Станция 4 — пары: один объясняет, другой — соседка по вашей карточке, потом смена; в 1:1 соседка — вы.',
+      errors: [
+        '«Retsept kirjutakse välja» → «kirjutatakse» (от da-инфинитива: kirjutada → kirjutatakse).',
+        '«Paberit ei antakse» → «ei anta» (в отрицании короткая форма без -kse: ei anta, ei öelda, ei tehta).',
+        '«Koodid ei küsita» → «Koode ei küsita» (отрицание → частичный объект).',
+        '«Nad kirjutavad retsepti» в инструкции → «Retsept kirjutatakse välja» (русское «выписывают» = эстонское безличное).',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по устной речи. Отметьте: позиция в первой фразе, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 060 ученик говорит параллельную задачу (060_t_cold), вы сравниваете.',
+        'Посредничество (v6 §2 l): ученик не читает уведомление вслух, а объясняет его своими словами. Пенсионеру — он может играть себя; студенту — соседка = бабушка; уставшему — только два шага. Тему выборов не обсуждаем.',
+        'Слова на повтор (tingimused, tõend из урока 53, leping из 53–54) есть в статье: попросите ученика найти их и сказать, откуда он их знает.',
+      ],
+    },
+    discover: [
+      station(teach(tag(inLesson(B.speaking('056_d_cold', 'Külm algus: arvamus ühe minutiga.', 'Väide: „Riik peaks jätma igale teenusele ka paberil asjaajamise võimaluse.” Mõtle 1 minut. Räägi 1 minut: seisukoht, põhjus, näide, vastuargument.', [
+        'Kas oled väitega nõus? Miks?',
+        'Too üks näide oma elust või tuttava elust.',
+        'Mida ütleks keegi, kes arvab teisiti?',
+      ], [60, 90])), { task: 'S11', harno: 'S1', fluency: true }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, suuliselt (moodul 11 mõõtis kirjutamist, moodul 12 mõõdab rääkimist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (kuigi, seetõttu, samas …) ja 2–3 korduvat viga. Võimalusel salvesta. Tunnis b1b2-060 räägib õppija paralleelse ülesande samades tingimustes (kontrolli rääkimise 1. osa) ja te võrdlete.'), 1, 5),
+      station(withReview(tag(B.vocab('056_d_vocab', 'Tunni sõnad.', ['e-teenus — электронная услуга', 'riigiportaal — государственный портал', 'sisse logima — входить (в систему)', 'allkirjastama — подписывать', 'digiallkiri — цифровая подпись', 'teade — уведомление', 'kehtivus — срок действия', 'mugavus — удобство', 'volitus — доверенность', 'andmekogu — база данных (государственная)']), { topic: ['e-teenus', 'riigiportaal', 'digiallkiri', 'andmekogu', 'volitus', 'kehtivus'] }), ['tingimused', 'tõend', 'leping']), 2, 25),
+      why(teach(tag(B.reading('056_d_text', 'Loe artiklit.', 'Vaata enne pealkirja ja lõikude esimesi lauseid (1 minut). Siis loe ja vasta. Küsimustele 5–7 järelda ja näita lauset tekstist.', 'E-riik: mugav kõigile või ainult osavatele?', [
+        'Eestis on harjutud, et riigiga suheldakse arvuti või telefoni kaudu. Retsept kirjutatakse välja digitaalselt, maksudeklaratsioon esitatakse mõne minutiga ja üürileping allkirjastatakse kodust lahkumata. Välismaalt tulnud külaline imestab sageli, et paberit ei anta peaaegu kuskil. Paljude jaoks on see nii tavaline, et nad ei mõtle selle peale enam üldse. Kuid kas e-riik on tõesti kõigi jaoks sama mugav?',
+        'Süsteem põhineb kahel koodil. Esimese koodiga logitakse riigiportaali või panka sisse, teisega antakse digiallkiri. Digiallkiri on seaduse järgi sama väärtuslik kui allkiri paberil: kui allkirjastad lepingu, oled selle tingimustega nõus täpselt nii, nagu oleksid kirjutanud oma nime pastakaga. Kui koodi sisestatakse mitu korda valesti, blokeeritakse see ajutiselt. Seepärast ei kirjutata koode kunagi kaardi peale ja neid ei öelda kellelegi telefonis — ka mitte inimesele, kes ütleb, et helistab pangast.',
+        'Mugavusel on hind, mida igaüks ei maksa ühtemoodi. Kes on kasvanud arvutiga, vajutab nuppe julgelt ja parandab vea kiiresti. Eakam inimene või hiljuti Eestisse kolinud pere tunneb end aga sageli nagu eksamil, mille küsimusi keegi ette ei öelnud. Riigiportaali tekstid on kirjutatud ametlikus keeles ja üks vale klõps võib tähendada, et taotlus jääb pooleli. Mõni loobub ja palub lapselt abi, mõni ootab, kuni dokumendi kehtivus on juba läbi. Kes keelt veel hästi ei oska, peab lisaks otsima sõnaraamatust iga teist sõna. Nii võtab viieminutiline asi tund aega ja tuju on rikutud.',
+        'Riik ei ole kohapealset teenindust siiski kaotanud. Paljudes omavalitsustes ja raamatukogudes aidatakse inimest arvuti taga, kui ta selleks aja broneerib. Abistaja ei tee asja inimese eest, vaid istub kõrval ja seletab, mida järgmisena vajutada. Kui keegi teine peab sinu asju ajama, näiteks haiglas oleva vanema eest, antakse talle volitus. Ilma volituseta ei tohi isegi lähedane sinu nimel dokumente allkirjastada.',
+        'E-riik tähendab ka seda, et sinu andmed on riigi andmekogudes. Riigiportaalis on teenus, kust saab vaadata, kes on sinu andmeid mõnes andmekogus kasutanud. Kõik andmekogud seal veel ei ole, kuid inimene saab vähemalt osaliselt ise kontrollida, et keegi ei vaata tema andmeid ilma põhjuseta. Kui tekib kahtlus, võib küsida selgitust ja nõuda tõendit, miks andmeid vaadati.',
+        'Kõige rohkem muresid ei tule siiski tehnikast, vaid unustamisest. ID-kaardi kehtivus lõpeb, kuid inimene märkab seda alles siis, kui ta peab kiiresti lepingut allkirjastama. Riik saadab enne aegumist teate e-posti aadressile, mis on riigiportaali kirja pandud. Kui see aadress on vana, ei jõua teade kohale. Sama kehtib telefoninumbri kohta: kui number on vahetunud, ei jõua kohale ka kinnituskood. Seepärast soovitavad abistajad kord aastas oma kontaktandmed üle vaadata — see võtab vähem aega kui tassi kohvi joomine.',
+        'Kas e-riik on kõigile mugav? Pigem on ta mugav neile, kes julgevad küsida. Sageli ei puudu inimesel mitte oskus, vaid julgus. Kõige paremini õpib see, kes vajutab ise ja kelle kõrval istub keegi kannatlikult. Kui sina oskad, siis ära tee naabri eest, vaid seleta talle, kuidas asju aetakse. Järgmisel korral saab ta juba ise hakkama.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Milleks kasutatakse teksti järgi kahte koodi?', 'esimese koodiga logitakse sisse, teisega antakse digiallkiri'],
+        ['Mis juhtub, kui koodi sisestatakse mitu korda valesti?', 'kood blokeeritakse ajutiselt'],
+        ['Kuidas aidatakse inimest raamatukogus või omavalitsuses?', 'abistaja istub kõrval ja seletab, mida vajutada, aga ei tee asja tema eest'],
+        ['Mida peab lähedane saama, et sinu nimel dokumente allkirjastada?', 'volituse|volitus'],
+        ['Miks võrdleb autor e-riiki eksamiga, mille küsimusi keegi ette ei öelnud? Järelda.', 'eakas või uus inimene ei tea, mida temalt oodatakse, ja kardab eksida'],
+        ['Miks ei jõua aegumise teade mõne inimeseni? Järelda, mida ta oleks pidanud tegema.', 'tema e-posti aadress on vana; ta oleks pidanud kontaktandmed üle vaatama'],
+        ['Mida tahab autor öelda lausega „Sageli ei puudu inimesel mitte oskus, vaid julgus”? Milline on tema hoiak?', 'inimesed saavad e-riigiga hakkama, kui keegi neid julgustab ja kõrval aitab'],
+      ]), { task: 'R15', voice: 'article' }), 'Lugemine, umbes 25 minutit koos sõnade ja skeemiga. Strateegia (v6 §2 l, lugemine: silmitse → otsi → arva kontekstist): enne lugemist vaatab õppija 1 minuti pealkirja ja lõikude esimesi lauseid ning ütleb, millest tekst räägib. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Kordamise sõnad (tingimused, tõend, leping) on tekstis: lase need leida. Tekst on õppetekst ilma täpse statistikata.'), [
+        '2. lõik: „Esimese koodiga logitakse … sisse, teisega antakse digiallkiri.”',
+        '2. lõik: „Kui koodi sisestatakse mitu korda valesti, blokeeritakse see ajutiselt.”',
+        '4. lõik: „Abistaja ei tee asja inimese eest, vaid istub kõrval ja seletab …”',
+        '4. lõik: „Ilma volituseta ei tohi isegi lähedane sinu nimel dokumente allkirjastada.”',
+        'Järeldus 3. lõigust: ta „tunneb end … nagu eksamil”, tekstid on ametlikus keeles ja „üks vale klõps” võib asja rikkuda.',
+        'Järeldus 6. lõigust: teade läheb aadressile, „mis on riigiportaali kirja pandud”; abistajad soovitavad „kontaktandmed üle vaadata”.',
+        'Järeldus 7. lõigust: „Kõige paremini õpib see, kes vajutab ise ja kelle kõrval istub keegi kannatlikult.”',
+      ]),
+      teach(B.diagram('056_d_scheme', 'flow', { title: 'Skeem: kuidas e-teenus käib?', instruction: 'Kirjuta iga kasti juurde üks näide tekstist. Viimase kasti juurde kirjuta, kust saab abi.', nodes: 'Sisse logimine: esimene kood\nVorm: andmed kontrollitakse üle\nKinnitamine: teine kood, digiallkiri\nTeade: kinnitus saadetakse e-postile\nKui ei tööta: …' }, 'full', 'g_read'),
+        'Skeem on õppija seletuse järjekord jaamas 4 (kõigepealt, siis, lõpuks). Õppija täidab selle pärast lugemist; viimase kasti vastus (raamatukogu, omavalitsus, lähedane volitusega) on hiljem tema juhendi lõpp.'),
+    ],
+    practice: [
+      station(teach(B.notice('056_p_notice', 'Märka: retsept kirjutatakse välja — paberit ei anta', [
+        'Artiklist: retsept **kirjutatakse** välja · paberit **ei anta** · koode **ei öelda** kellelegi · inimest **aidatakse** arvuti taga',
+        'Kordamine (B1): umbisikuline tegumood = tegija ei ole tähtis: Eestis **tehakse** palju internetis.',
+        'B2: da-tegevusnimi + -takse / -dakse: allkirjastada → **allkirjastatakse**, saata → **saadetakse**, kontrollida → **kontrollitakse**, maksta → **makstakse** · lühike da-vorm: tuua → **tuuakse**, anda → **antakse**, öelda → **öeldakse**',
+        'B2, eitus: ei + vorm ilma lõputa -kse: **ei anta**, **ei küsita**, **ei kirjutata**, **ei tehta**',
+        'Sihitis jääb nagu tavalauses: arst kirjutab retsepti välja → retsept kirjutatakse välja · eituses osastav: retsepti ei kirjutata.',
+        'Vene keeles öeldakse sageli „выписывают” (3. isik mitmus) — eesti keeles on umbisikuline vorm: kirjutatakse.',
+      ], 'full'), 'Kordamine ühe minutiga (tehakse). Siis B2 samm: vormi moodustamine da-tegevusnimest ja eitus ilma lõputa -kse. Lase õppijal leida artiklist kolm lauset ja öelda, kes tegelikult tegija on. L1 rida: vene keele „они выписывают” ei ole eesti keeles „nad kirjutavad”, vaid „kirjutatakse”.'), 3, 22),
+      why(teach(tag(B.gaps('056_p_forms', 'Meelespea naabrile.', 'Kas lause on jaatav või eitav? Kirjuta sulgudes olev tegusõna umbisikulises vormis. Panka ei ole.', [
+        'Retsept [kirjutatakse] arsti juures välja digitaalselt ja paberit ei ole vaja. (välja kirjutama)',
+        'Üürileping [allkirjastatakse] teise koodiga, mitte esimesega. (allkirjastama)',
+        'Apteegis paberretsepti enam [ei anta], sest kõik on arvutis olemas. (andma)',
+        'Teade dokumendi aegumisest [saadetakse] e-posti aadressile. (saatma)',
+        'Pangast ei [küsita] kunagi telefonis sinu koode. (küsima)',
+        'Raamatukogus [aidatakse] inimest arvuti taga, kui ta aja broneerib. (aitama)',
+        'Kas sinu linnas [tehakse] seda ka kohapeal, kui inimesel arvutit ei ole? (tegema)',
+        'Kõik andmed [kontrollitakse] enne kinnitamist veel kord üle. (kontrollima)',
+        'Koode [ei öelda] kellelegi, ka mitte sugulasele ega pangatöötajale. (ütlema)',
+        'Kas teenuse eest [makstakse] kaardiga või pangalingiga? (maksma)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Kes seda teeb? Kas tegija on tähtis?” Read 3 ja 9: eitus ilma lõputa -kse (ei anta, ei öelda). Rida 7: teha → tehakse. Lisa küsimus: „Mida sina oskad juba ise teha?”'), [
+        'kirjutada → kirjutatakse.',
+        'allkirjastada → allkirjastatakse.',
+        'Eitus ilma lõputa -kse: anda → ei anta.',
+        'saata → saadetakse.',
+        'Eitus: küsida → ei küsita (ei on lauses juba olemas).',
+        'aidata → aidatakse.',
+        'teha → tehakse (lühike da-vorm).',
+        'kontrollida → kontrollitakse.',
+        'Eitus: öelda → ei öelda.',
+        'maksta → makstakse.',
+      ]),
+      why(teach(tag(B.transformation('056_p_active', 'Tegija jääb ära.', 'Tee lausest umbisikuline lause: tegijat ei nimetata. Sihitis jääb õigesse vormi.', [
+        ['Perearst kirjutab retsepti välja digitaalselt juba samal päeval.', 'Retsept …', 'Retsept kirjutatakse välja digitaalselt juba samal päeval.'],
+        ['Apteeker ei anna sulle apteegis enam paberretsepti kätte.', 'Paberretsepti …', 'Paberretsepti ei anta sulle apteegis enam kätte.|Paberretsepti ei anta apteegis enam kätte.'],
+        ['Riik saadab teate dokumendi aegumisest sinu e-posti aadressile.', 'Teade …', 'Teade dokumendi aegumisest saadetakse sinu e-posti aadressile.'],
+        ['Abistaja näitab raamatukogus nuppe, mida järgmisena vajutada.', 'Raamatukogus …', 'Raamatukogus näidatakse nuppe, mida järgmisena vajutada.'],
+        ['Pank ei küsi kunagi telefoni teel sinu koode.', 'Sinu koode …', 'Sinu koode ei küsita kunagi telefoni teel.'],
+        ['Lähedane allkirjastab dokumendi sinu nimel ainult volituse alusel.', 'Dokument …', 'Dokument allkirjastatakse sinu nimel ainult volituse alusel.'],
+        ['Inimesed toovad vana dokumendi uue kättesaamisel kaasa.', 'Vana dokument …', 'Vana dokument tuuakse uue kättesaamisel kaasa.'],
+        ['Raamatukogu abistaja ei tee seda kunagi sinu eest.', 'Raamatukogus …', 'Raamatukogus ei tehta seda kunagi sinu eest.'],
+      ], 'full', 'g_notice'), { task: 'G05' }),
+      'Juhendis on tähtis asi, mitte tegija. Kontrolli sihitist: terve asi → nimetav (retsept, teade, dokument), eitus ja hulk → osastav (paberit, koode, nuppe).'), [
+        'Terve asi → nimetav: retsept kirjutatakse välja.',
+        'Eitus → osastav: paberretsepti ei anta.',
+        'Terve teade → nimetav: teade saadetakse.',
+        'Lahtine hulk → osastav mitmus: nuppe näidatakse.',
+        'Eitus → osastav: koode ei küsita.',
+        'Üks terve dokument → nimetav: dokument allkirjastatakse.',
+        'tuua → tuuakse.',
+        'Eitus: teha → ei tehta.',
+      ]),
+      draft('056_p_draft', 'juhendi esimene lõik', 'Kirjuta naabrile vähemalt 6 lauset: mida ta peab kõigepealt tegema ja kuidas seda tehakse? Kasuta kolme umbisikulist vormi.', 'Ülesande täitmine (sammud õiges järjekorras, lihtne keel)', [6, 10]),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('056_t_call', 'Naabri teade: seleta lihtsas keeles (8–10 minutit).', 'Naaber ei saa e-riigi teatest aru. Seleta lihtsas keeles, mida see tähendab ja mida ta teeb. Kontrolli, kas ta sai aru.',
+        'Sinu kaart. Naaber (eakas, hiljuti kolinud) näitab sulle telefonis teadet:\n„Teie isikutunnistuse (ID-kaardi) kehtivus lõpeb 30 päeva pärast. Uue dokumendi taotlus esitatakse riigiportaalis. Taotlemiseks on vaja kehtivat dokumenti ja uut fotot. Pärast kehtivuse lõppu ei ole digiallkirja andmine ega e-teenustesse sisselogimine võimalik.”\nSeleta naabrile kolm asja: mis juhtub, mida ta kõigepealt teeb, mida ta ei pea kartma.\nAbikaart: See teade tähendab, et … · Kõigepealt logitakse sisse …, siis … · Sa ei pea kartma, sest …\nLisaväljakutse: seleta ka, kuidas naaber saab vajadusel anda tütrele volituse.',
+        'Naabri kaart on õpetajal.', [], []), 'mediation',
+      ['See teade tähendab, et …', 'Kõigepealt logitakse sisse …, siis …', 'Sa ei pea kartma, sest …'],
+      'Seleta ka, kuidas naaber saab vajadusel anda tütrele volituse.', { task: 'S13' }),
+      'Vahendus (v6 §2 l): õppija ei loe teadet ette, vaid ütleb selle oma sõnadega lihtsas keeles. Sina oled naaber. Ütle ainult seda, mida küsitakse. Varjatud info (ütle ükshaaval): 1) „Ma kirjutasin koodid kaardi taha, et ei unustaks.” 2) „Mul ei ole arvutit, ainult telefon.” 3) „Mu tütar elab Soomes — kas tema võib minu eest taotluse teha?” Õppija peab reageerima: koodid → kaardi pealt ära, uued koodid; telefon → raamatukogu või omavalitsuse digiabi (aeg broneeritakse); tütar → volitus (ilma volituseta ei tohi). Õnnestunud, kui õppija ütleb lihtsas keeles kolm asja, kasutab vähemalt kolm umbisikulist vormi (sh eitus), küsib „Ütle oma sõnadega, mida sa teed?” ega tee asja naabri eest. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 18, { final: 'explain' }),
+      exitTalk('056_t_say', 'Ütle naabrile 30 sekundiga, mida teade tähendab ja mida ta teeb esimesena. Kasuta üht eitust.', ['Mida teade tähendab?', 'Mida naaber kõigepealt teeb?'], 'Kas õppija ütleb lihtsas keeles kaks asja ja kasutab umbisikulist vormi koos eitusega (paberit ei anta, koode ei öelda)?'),
+      selfCheck('056_t_self', ['Leidsin artiklist vajaliku info ja järeldasin autori hoiaku.', 'Kasutasin umbisikulist olevikku ja eitust (kirjutatakse, ei anta).', 'Seletasin naabrile lihtsas keeles kolm sammu ja kontrollisin, kas ta sai aru.'], 'Teade seletatud', 'Ma oskan teisele e-riigi teadet seletada'),
+      tag(homeTask(homeLines(B.examWriting('056_t_guide', 'Kodus: juhend naabrile (umbes 140 sõna).', `Lõpeta tunni mustand juhendiks (130–150 sõna). Algust ei anta. Salvesta ka 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Naaber palus, et kirjutaksid talle sammud paberile, mida ta saab külmkapi uksel hoida. Päris allikas: riigiportaal eesti.ee (https://www.eesti.ee) — leia sealt isikut tõendava dokumendi taotlemise juhend ja kirjuta üles kolm asja: kus taotlus esitatakse, mida on vaja üles laadida ja kuidas dokument kätte saadakse. Lisa need juhendisse. Kontrolli 055 kiri: kirjuta kolm õpetaja märgitud lauset parandatult Harjutas „Minu vead” alla.',
+        points: ['mida teade tähendab (lihtsas keeles)', 'sammud õiges järjekorras: kõigepealt, siis, lõpuks (umbisikuline vorm)', 'mida ei tehta ja mille eest hoiduda (koodid, võõrad helistajad)', 'kust saab abi, kui midagi ei tööta (info eesti.ee lehelt)'],
+        words: [130, 150],
+      }), 6)), { task: 'W12' }),
+      writingRubric('056_t_rubric', 'Hindamisjuhend: juhend naabrile (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Sinu kaart lõpeb. Sa pead minna internetis. Seal kirjutakse taotlus. Sa paned foto. Koodid ära ütle. Kui ei saa, küsi. Head aega!” Hinnang: ülesanne 2 (sammud on olemas, kuid eesti.ee info ja abi koht puuduvad), ülesehitus 2 (järjekord on selge, sidendeid kõigepealt / siis / lõpuks ei ole), sõnavara 2 (puuduvad kehtivus, taotlus esitatakse, volitus), grammatika 1 („pead minna” → pead minema, „kirjutakse” → kirjutatakse, „Koodid ära ütle” → Koode ära ütle). Kui õppija lisab eesti.ee kolm asja, sidendid ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-057': {
+    title: 'Mida tohib tehisintellektilt küsida — ja mida mitte?',
+    phases: grammar('Kordamine: lugemine, kirjutamine · B2: isikuandmete sisestamine, faktide kontrollimine, teksti kasutaja, kirja saatja'),
+    format: 'debate',
+    topic: 'work',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest tehisintellektist igapäevaelus, küsitlen kaaslasi nende harjumuste kohta ja esitan tulemused ning kirjutan kursuse uudiskirja umbes 180-sõnalise arutluse; kasutan -mine- ja -ja-nimisõnu.',
+    teacherPage: {
+      goal: 'Радио «Digitund»: чат-бот как «быстрый практикант»; номинализация -mine / -ja (isikuandmete sisestamine, kasutaja); опрос группы и доклад за 1 минуту; черновик рассуждения в классе, дома 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 предложений, черновик 3 предложения; опрос — два человека и три вопроса.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, которые вы отметили в черновике или инструкции урока 056, и одной строкой говорит, что изменил. Вопрос, если есть время: «Ты спрашивал(а) что-нибудь у чат-бота на этой неделе?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (56)',
+        '5–27: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: прочитать вопросы и предсказать ответы (2 мин), радио дважды (9 мин), 10 вопросов, из них 3 на вывод (5 мин), схема «что можно дать роботу — что нет» (4 мин)',
+        '27–50: станция 3 — -mine одной строкой (B1), B2: -mine с родительным определением и -ja; 10 предложений, официально ↔ обычно (8 строк); черновик рассуждения (10 мин), обратная связь — структура',
+        '50–70: станция 4 — опрос: 4 вопроса трём людям, заметки, доклад группе за 1 минуту; скрытая информация от вас как одного из опрошенных',
+        '70–75: выход: 30 секунд — главный результат и одно правило; самооценка; домашнее задание: рассуждение 180 слов, голосовое 1 мин, Harjuta',
+        'Kui aega jääb (75–90): ученик даёт боту (на телефоне учителя или своём) один безопасный запрос из схемы и проверяет ответ по второму источнику',
+      ],
+      sources: 'Радио «Digitund» — учебный текст KeeleSepp (ведущая Piret и тренер Andres вымышлены). Общая основа: GDPR (персональные данные), AI Act ЕС (человек должен знать, что общается с машиной), бесплатные чат-боты могут использовать введённый текст для обучения, «галлюцинации» — уверенно выдуманные ссылки и законы; школьные правила ИИ в Эстонии (TI-Hüpe) — без цифр.',
+      groups: 'Радио — каждый сам, вопросы на вывод сравнивают в паре. Опрос: каждый спрашивает трёх человек (двое из группы + вы); в 1:1 вы отвечаете за трёх людей по карточкам «студент, бухгалтер, пенсионер». Доклад — каждый сам.',
+      errors: [
+        '«Isikuandmed sisestamine on keelatud» → «Isikuandmete sisestamine» (объект перед -mine — в родительном падеже).',
+        '«Kontrollimine faktide» → «faktide kontrollimine» (определение стоит перед словом).',
+        '«Teksti vastutab saatja» → «Teksti eest vastutab saatja» (vastutama + eest).',
+        '«Kasutajad peab kontrollima» → «Kasutaja peab …» / «Kasutajad peavad …» (согласование числа).',
+      ],
+      notes: [
+        'Опрос (v6 §2 d): ученик сам задаёт вопросы, записывает ответы и обобщает («kolmest inimesest kaks …»). Работа — одна из возможных тем: безработному — правила курса, пенсионеру — «я не пользуюсь, но внук пользуется».',
+        'Слова на повтор (eksitav из урока 52, kahetsema и kompromiss из модулей 10–11) есть в радио: спросите, где они прозвучали.',
+        'Обратная связь, 2–3 цели: -mine с родительным определением; -ja как деятель; обобщение результатов опроса без «все говорят».',
+      ],
+    },
+    discover: [
+      station(revision('057_d_revise', 'b1b2-056', 'Kirjuta ümber kolm lauset, mille õpetaja sinu juhendis naabrile märkis. Lisa üks rida: mida sa muutsid ja miks?'), 1, 5),
+      station(withReview(tag(B.vocab('057_d_vocab', 'Tunni sõnad.', ['tehisintellekt — искусственный интеллект', 'vestlusrobot — чат-бот', 'isikuandmed — персональные данные', 'sisestama — вводить', 'kasutaja — пользователь', 'kontrollima — проверять', 'vastutama (millegi eest) — отвечать (за что-то)', 'otsustama — решать', 'usaldusväärne — надёжный', 'allikas — источник']), { topic: ['tehisintellekt', 'vestlusrobot', 'isikuandmed'] }), ['eksitav', 'kahetsema', 'kompromiss']), 2, 22),
+      teach(B.diagram('057_d_scheme', 'compare', { title: 'Skeem: mida robotile anda — mida mitte?', instruction: 'Kuulates täida mõlemad pooled. Lisa kummalegi poole üks oma näide.', left: 'Võib anda', right: 'Ei anna', leftItems: 'oma kirja mustand ilma nimedeta\nsõna, millest ei saa aru\n…\n…', rightItems: 'isikukood\n…\n…\n…' }, 'half', 'g_notice'),
+        'Skeem täidetakse kuulates (teisel korral). Vasakule: tekstide parandamine, ideede kogumine, sõnade seletamine, nädala toiduplaan. Paremale: isikukood, terviseandmed, kliendi nimi ja aadress, pangaandmed, arsti tõend. Skeemist saab hiljem küsitluse 2. küsimus.'),
+      why(teach(tag(B.examListen('057_d_radio', 'Kuulamine: raadiosaade „Digitund”.', 'Enne kuulamist loe küsimused ja ennusta vastused. Kuula kaks korda ja vali õige vastus.', 'choice', [
+        'Piret: Tere! Saates „Digitund” räägime täna tehisintellektist. Paljud kasutavad vestlusrobotit juba iga päev: kirjade parandamiseks, tõlkimiseks, retseptide otsimiseks. Stuudios on täiskasvanute koolitaja Andres. Andres, kas see on hea või halb uudis?',
+        'Andres: Tere! Mõlemat. Vestlusrobot on nagu väga kiire praktikant: ta teeb palju tööd ära, aga tema tööd tuleb alati kontrollida. Halb uudis algab siis, kui inimene unustab, et vastutus jääb ikka temale.',
+        'Piret: Milleks sa ise seda kasutad?',
+        'Andres: Kõige rohkem tekstide parandamiseks ja ideede kogumiseks. Kui kirjutan pika kirja, palun robotil leida kordused ja liiga pikad laused. Aga seda, mida ma lõpuks saadan, otsustan ise.',
+        'Piret: Kuulajad küsivad kõige sagedamini isikuandmete kohta. Mida ei tohiks sisestada?',
+        'Andres: Lihtne reegel: ära sisesta midagi, mida sa ei kirjutaks postkaardile. Isikukood, terviseandmed, kliendi nimi ja aadress, pangaandmed — need ei kuulu vestlusrobotisse. Paljud tasuta teenused kasutavad sisestatud teksti oma süsteemi arendamiseks. Kui saadad arsti tõendi, et robot selle lihtsamalt ümber sõnastaks, võib see tekst jääda kuhugi, mille üle sul pole kontrolli.',
+        'Piret: Aga kui nimed enne ära kustutada?',
+        'Andres: See on hea harjumus. Asenda nimi sõnaga „klient” või „kolleeg” ja kustuta numbrid. Siis saab robot ikka aidata, aga keegi ei tunne inimest ära.',
+        'Piret: Teine mure on vead. Kas vestlusrobot eksib tihti?',
+        'Andres: Ta ei eksi nagu inimene, kes väsib. Ta eksib enesekindlalt. Ta võib välja mõelda seaduse paragrahvi või raamatu, mida pole olemas, ja kirjutada selle väga veenvalt. Seepärast on faktide kontrollimine kasutaja töö. Kui vastus on tähtis — tervis, raha, leping —, otsi kinnitust usaldusväärsest allikast.',
+        'Piret: Kas koolid peaksid robotit keelama?',
+        'Andres: Minu meelest mitte. Keelamine ei aita, sest kodus kasutatakse seda niikuinii. Parem on kokku leppida, millal see on lubatud. Näiteks võib robotiga harjutada sõnu või paluda selgitust, aga kontrolltöö kirjutab õppija ise. Mõnel kursusel tuleb kodutöö lõppu kirjutada ka üks lause selle kohta, kuidas robotit kasutati.',
+        'Piret: Kas eksitav vastus võib ka kahju teha?',
+        'Andres: Võib küll. Tean inimest, kes kirjutas üürileandjale roboti abil väga range kirja. Kiri oli eksitav, sest robot oli võtnud aluseks teise riigi seaduse. Hiljem ta kahetses, sest suhe üürileandjaga läks halvaks. Hea kompromiss on lasta robotil teha mustand ja siis see oma sõnadega üle vaadata.',
+        'Piret: Mida soovitad inimesele, kes pole seda kunagi proovinud?',
+        'Andres: Alusta väikesest. Palu robotil seletada mõnda sõna või teha nädala toiduplaan. Küsi alati: kust see info pärineb? Ja ära unusta, et robot ei tunne sind ega sinu olukorda. Ta pakub keskmist vastust, aga sinu elu ei ole keskmine.',
+        'Piret: Aitäh, Andres!',
+      ], [
+        ['Millega võrdleb täiskasvanute koolitaja Andres saate alguses vestlusrobotit ja miks?', 'kiire praktikandiga, kelle tööd tuleb alati kontrollida', 'kogenud juristiga, kes teab kõiki seadusi', 'tasuta tõlkijaga, kes ei tee kunagi vigu', 'väsinud kolleegiga, kes eksib õhtuti'],
+        ['Milleks kasutab Andres vestlusrobotit oma igapäevases töös kõige rohkem?', 'tekstide parandamiseks ja ideede kogumiseks', 'kirjade saatmiseks otse klientidele', 'kursuse kontrolltööde kirjutamiseks', 'arvete ja maksete tegemiseks'],
+        ['Millise lihtsa reegli annab Andres kuulajatele isikuandmete sisestamise kohta?', 'ära sisesta midagi, mida sa postkaardile ei kirjutaks', 'sisesta ainult oma nimi ja aadress', 'kasuta isikuandmetega ainult tasulist teenust', 'küsi enne igalt kliendilt kirjalik luba'],
+        ['Mida soovitab Andres teha inimeste nimedega enne seda, kui sisestad teksti?', 'asendada need sõnaga „klient” või „kolleeg”', 'kirjutada need suurte tähtedega', 'jätta need teksti lõppu eraldi reale', 'tõlkida need enne inglise keelde'],
+        ['Kuidas vestlusrobot Andrese sõnul tavaliselt eksib, kui ta vastab valesti?', 'enesekindlalt ja nii veenvalt, et viga on raske märgata', 'ainult siis, kui ta on pikalt töötanud', 'harva ja alati väga märgatavalt', 'ainult numbrites ja kuupäevades'],
+        ['Kelle töö on Andrese sõnul faktide kontrollimine, kui vastus on tähtis?', 'teksti kasutaja töö', 'programmi looja töö', 'kursuse õpetaja töö', 'riigi ametniku töö'],
+        ['Mida arvab Andres sellest, kui kool vestlusroboti kasutamise täielikult keelab?', 'see ei aita, parem on kokku leppida, millal see on lubatud', 'see on ainus mõistlik lahendus koolis', 'see sobib ainult ülikoolis, mitte koolis', 'see tuleks kirjutada riigi seadusesse'],
+        ['Miks läks Andrese tuttava suhe üürileandjaga pärast kirja halvaks? Järelda.', 'robot võttis aluseks teise riigi seaduse ja kiri oli eksitav', 'kiri jäi saatmata, sest robot ei töötanud', 'üürileandja ei osanud eesti keelt lugeda', 'üürnik ei olnud mitu kuud üüri maksnud'],
+        ['Mida tahab Andres öelda saate lõpus lausega „sinu elu ei ole keskmine”? Järelda.', 'robot ei tunne sinu olukorda, vastust tuleb oma eluga kohandada', 'robot annab alati parima võimaliku vastuse', 'keskmine inimene ei kasuta vestlusrobotit', 'robotit tohib kasutada ainult keerulistel juhtudel'],
+        ['Milline on Andrese hoiak vestlusroboti suhtes kogu saate jooksul?', 'robot on kasulik abiline, kui vastutajaks jääb inimene', 'robot on ohtlik ja tuleks igal pool keelata', 'robot teeb inimese töö alati paremini', 'robotit kasutavad ainult noored inimesed'],
+      ], 'g_listen'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, umbes 22 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: ennusta → võtmesõnad → kontrolli): õppija loeb küsimused, ennustab pliiatsiga ja kontrollib kuulates. Küsimused 8–10 on järeldusküsimused: nõua põhjendust kuuldust. Kordamise sõnad (eksitav, kahetsema, kompromiss) on saates. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Andres: „Vestlusrobot on nagu väga kiire praktikant … tema tööd tuleb alati kontrollida.”',
+        'Andres: „Kõige rohkem tekstide parandamiseks ja ideede kogumiseks.”',
+        'Andres: „ära sisesta midagi, mida sa ei kirjutaks postkaardile”.',
+        'Andres: „Asenda nimi sõnaga „klient” või „kolleeg” ja kustuta numbrid.”',
+        'Andres: „Ta eksib enesekindlalt … ja kirjutab selle väga veenvalt.”',
+        'Andres: „faktide kontrollimine on kasutaja töö”.',
+        'Andres: „Keelamine ei aita … Parem on kokku leppida, millal see on lubatud.”',
+        'Järeldus: robot „oli võtnud aluseks teise riigi seaduse” ja kiri oli „väga range” ning eksitav.',
+        'Järeldus: robot „ei tunne sind ega sinu olukorda” ja pakub „keskmist vastust”.',
+        'Järeldus kogu saatest: „vastutus jääb ikka temale”; robot aitab, kui inimene kontrollib.',
+      ]),
+    ],
+    practice: [
+      station(teach(B.notice('057_p_notice', 'Märka: isikuandmete sisestamine, teksti kasutaja', [
+        'Saatest: faktide **kontrollimine** on kasutaja töö · tekstide parandamiseks · ära sisesta isikuandmeid',
+        'Kordamine (B1): tegusõnast nimisõna -mine: lugema → lugemine, õppima → õppimine.',
+        'B2, -mine = tegevus kui asi: sisestama → **sisestamine**, kasutama → **kasutamine**, keelama → **keelamine**, tõlkima → **tõlkimine** · sihitis läheb omastavasse ette: sisestan isikuandmeid → **isikuandmete** sisestamine, kontrollin fakte → **faktide** kontrollimine',
+        'B2, -ja = kes teeb: kasutama → **kasutaja**, saatma → **saatja**, looma → **looja**, koolitama → **koolitaja**',
+        'Ametlik stiil: Isikuandmete sisestamine on keelatud. = Isikuandmeid ei tohi sisestada. · Vastutab saatja. = Selle eest vastutab see, kes saadab.',
+        'Vene keeles „ввод данных” — eesti keeles on laiend ees ja omastavas: andmete sisestamine (mitte „sisestamine andmed”).',
+      ], 'full'), 'Kordamine ühe minutiga (lugemine). Siis B2 samm: -mine koos omastava laiendiga ja -ja tegijana. Lase õppijal leida saatest või skeemist kolm reeglit ja öelda need ametlikult. L1 rida: vene keeles on laiend järel (ввод данных), eesti keeles ees (andmete sisestamine).'), 3, 23),
+      why(teach(tag(B.gaps('057_p_forms', 'Kursuse reeglid.', 'Kirjuta sulgudes oleva tegusõna -mine- või -ja-vorm. Laiend läheb ette omastavasse. Panka ei ole.', [
+        'Reegel 1: [isikuandmete sisestamine] vestlusrobotisse on keelatud. (isikuandmed, sisestama)',
+        'Reegel 2: iga vastuse puhul on [faktide kontrollimine] kasutaja kohustus. (faktid, kontrollima)',
+        'Reegel 3: kirja sisu eest vastutab alati selle [saatja], mitte programm. (saatma)',
+        'Reegel 4: kui robot eksib, peab seda märkama teksti [kasutaja]. (kasutama)',
+        'Reegel 5: robotiga [tõlkimine] on lubatud ainult avalike tekstide puhul. (tõlkima)',
+        'Andrese arvates ei ole roboti [keelamine] koolis hea lahendus. (keelama)',
+        'Uue programmi [kasutamine] lepitakse enne kokku juhatajaga. (kasutama)',
+        'Ka kursuse [koolitaja] kasutab robotit harjutuste koostamiseks. (koolitama)',
+        'Kodutöö lõpus on kohustuslik ühe lause [kirjutamine] roboti kasutamise kohta. (kirjutama)',
+        'Programmi [looja] ei vastuta selle eest, mida sina saadad. (looma)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Kas see on tegevus või tegija?” Read 1 ja 2: laiend omastavas ette (isikuandmete, faktide). Read 3, 4, 8, 10: -ja. Lisa küsimus: „Milline neist reeglitest on sinu arvates liiga range?”'), [
+        'Tegevus + sihitis → omastav laiend ette: isikuandmete sisestamine.',
+        'kontrollin fakte → faktide kontrollimine.',
+        'Kes saadab → saatja.',
+        'Kes kasutab → kasutaja.',
+        'Tegevus → tõlkimine.',
+        'Tegevus → keelamine.',
+        'Tegevus → kasutamine.',
+        'Kes koolitab → koolitaja.',
+        'Tegevus → kirjutamine.',
+        'Kes loob → looja.',
+      ]),
+      why(teach(tag(B.transformation('057_p_nom', 'Reegel kahel viisil.', 'Tee lausest -mine- või -ja-vormiga lause või vastupidi. Alusta antud sõnadega.', [
+        ['Kliendi isikuandmeid ei tohi kunagi vestlusrobotisse sisestada.', 'Isikuandmete …', 'Isikuandmete sisestamine vestlusrobotisse on alati keelatud.|Isikuandmete sisestamine vestlusrobotisse on keelatud.'],
+        ['Fakte peab enne saatmist kontrollima see, kes teksti kasutab.', 'Faktide …', 'Faktide kontrollimine enne saatmist on kasutaja kohustus.|Faktide kontrollimine enne saatmist on kasutaja töö.'],
+        ['Kirja sisu eest vastutab alati see, kes kirja saadab.', 'Kirja sisu eest …', 'Kirja sisu eest vastutab alati kirja saatja.|Kirja sisu eest vastutab alati saatja.'],
+        ['Avalike tekstide tõlkimine robotiga on meie kursusel lubatud.', 'Avalikke tekste …', 'Avalikke tekste tohib meie kursusel robotiga tõlkida.|Avalikke tekste võib meie kursusel robotiga tõlkida.'],
+        ['Töötajate ja klientide hindamine masina abil on keelatud.', 'Töötajaid ja kliente …', 'Töötajaid ja kliente ei tohi masina abil hinnata.'],
+        ['Paroolide jagamine kolleegidega ei ole meil lubatud.', 'Paroole …', 'Paroole ei tohi kolleegidega jagada.|Paroole ei tohi jagada kolleegidega.'],
+        ['See, kes teksti loeb, peab selle enne saatmist üle kontrollima.', 'Teksti …', 'Teksti lugeja peab selle enne saatmist üle kontrollima.'],
+        ['Masina vastuseid tuleb tervise ja raha puhul alati kontrollida.', 'Masina vastuste …', 'Masina vastuste kontrollimine on tervise ja raha puhul kohustuslik.|Masina vastuste kontrollimine tervise ja raha puhul on kohustuslik.'],
+      ], 'full', 'g_notice'), { task: 'G05' }),
+      'Ametlik reegel on lühike, tavaline lause on selgem. Kontrolli omastavat laiendit (isikuandmete, faktide, paroolide) ja eitust tavalises lauses (ei tohi + da-tegevusnimi).'), [
+        'isikuandmeid sisestada → isikuandmete sisestamine.',
+        'kontrollida fakte → faktide kontrollimine; see, kes kasutab → kasutaja.',
+        'see, kes saadab → saatja.',
+        'tõlkimine on lubatud → tohib / võib tõlkida.',
+        'hindamine on keelatud → ei tohi hinnata (eituses osastav: kliente).',
+        'jagamine on keelatud → ei tohi jagada.',
+        'see, kes loeb → lugeja.',
+        'tuleb kontrollida → kontrollimine on kohustuslik.',
+      ]),
+      draft('057_p_draft', 'arutluse esimene lõik', 'Kirjuta 5–7 lauset: kas robot peaks sinu töökohas või kursusel olema lubatud? Kasuta kolme -mine- või -ja-sõna.', 'Ülesehitus ja sidusus (seisukoht, põhjus, näide)'),
+    ],
+    transfer: [
+      station(teach(mainTask(B.ideaCard('057_t_survey', 'Küsitlus: kuidas me tehisintellekti kasutame? (12–15 minutit)', 'Küsi neli küsimust kolme inimese käest ja märgi vastused lühidalt. Siis esita tulemused 1 minutiga.', [
+        'Kursus koostab ühised reeglid tehisintellekti kasutamiseks. Enne seda on vaja teada, kuidas inimesed seda päriselt kasutavad.',
+        'Vastajad: kaks õppijat ja õpetaja; üks-ühele vastab õpetaja kolme kaardi järgi. Märgi vastused tabelisse oma vihikus.',
+        'Abikaart: Kolmest vastajast kaks kasutavad robotit … · Keegi ei sisesta …, sest … · Minu soovitus kursusele: … on lubatud, … on keelatud.',
+        'Lisaväljakutse: leia vastustest üks vastuolu ja paku selle kohta reegel.',
+      ], [
+        'Milleks sa vestlusrobotit kasutad (või miks mitte)?',
+        'Mida sa sinna kunagi ei sisestaks?',
+        'Kas sa kontrollid vastuseid? Kuidas?',
+        'Milline reegel peaks meie kursusel kehtima?',
+      ], 'Üheminutiline kokkuvõte: kolm tulemust ja üks reeglisoovitus (-mine- ja -ja-sõnadega).', [120, 180]), 'survey',
+      ['Kolmest vastajast kaks kasutavad robotit …', 'Keegi ei sisesta …, sest …', 'Minu soovitus kursusele: … on lubatud, … on keelatud.'],
+      'Leia vastustest üks vastuolu ja paku selle kohta reegel.', { task: 'S09' }),
+      'Küsitlus (v6 §2 d): õppija küsib ise, kirjutab vastused üles ja üldistab („kolmest inimesest kaks …”). Sina oled üks vastajatest. Varjatud info (ütle 3. küsimuse juures): „Ausalt öeldes panin eelmisel nädalal oma kliendi lepingu robotisse, et see lühemaks teha. Nimed olid sees.” Õppija peab kokkuvõttes sellele reageerima (isikuandmete sisestamine on keelatud → nimed enne kustutada; vastutab saatja) ja tegema sellest reegli. Üks-ühele vastad kolme kaardi järgi: tudeng (kasutab iga päev, ei kontrolli), raamatupidaja (ei kasuta, kardab andmete pärast), pensionär (lapselaps kasutab tema eest). Õnnestunud, kui õppija esitab tulemused üldistades, kasutab vähemalt kolm -mine- või -ja-sõna ja pakub ühe reegli. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 20, { final: 'advise' }),
+      exitTalk('057_t_say', 'Ütle 30 sekundiga küsitluse tähtsaim tulemus ja üks reegel. Kasuta üht -mine-sõna.', ['Mis oli küsitluse tähtsaim tulemus?', 'Millise reegli sa pakud?'], 'Kas õppija üldistab tulemuse (kolmest kaks …) ja sõnastab reegli -mine-sõnaga (isikuandmete sisestamine on keelatud)?'),
+      selfCheck('057_t_self', ['Sain raadiosaatest aru ja järeldasin koolitaja hoiaku.', 'Kasutasin -mine- ja -ja-sõnu (isikuandmete sisestamine, kasutaja).', 'Küsitlesin kolme inimest ja esitasin tulemused üldistades.'], 'Küsitlus tehtud', 'Ma oskan küsitluse tulemusi esitada'),
+      tag(homeTask(homeLines(B.examWriting('057_t_argue', 'Kodus: arutlus uudiskirja (umbes 180 sõna).', `Lõpeta tunni mustand arutluseks (170–190 sõna). Pealkirja ja algust ei anta. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'arutlus', {
+        situation: 'Kursuse uudiskiri kogub arvamusi teemal „Kas tehisintellekt peaks kursusel ja tööl olema lubatud?”. Kasuta oma küsitluse tulemusi.',
+        points: ['sinu seisukoht ja miks teema on oluline', 'kaks argumenti näitega (küsitluse tulemused, raadiosaade)', 'vastuargument ja sinu vastus sellele', 'kolm reeglit ametlikus stiilis (-mine, -ja)'],
+        words: [170, 190],
+      }), 6)), { task: 'W14' }),
+      writingRubric('057_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tehisintellekt on hea. Ma kasutan iga päev. Aga mõnikord on vale. Sisestamine andmed on keelatud. Minu kolleeg panis lepingu. See oli halb. Kokkuvõttes robot on hea ja halb.” Hinnang: ülesanne 2 (seisukoht ja näide on olemas, kuid reeglid ja vastuargumendile vastamine puuduvad), ülesehitus 2 (lõike ja sidendeid ei ole, järeldus kordab algust), sõnavara 2 („hea”, „halb” korduvad; puuduvad vastutus, kasutaja, usaldusväärne allikas), grammatika 1 („Sisestamine andmed” → andmete sisestamine; „Kokkuvõttes robot on” → Kokkuvõttes on robot). Kui õppija lisab kolm reeglit, vastuargumendi ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-058': {
+    title: 'Kas see uudis on tõsi? Kontrolli, enne kui jagad',
+    phases: grammar('Kordamine: tehti, öeldi · B2: postitust jagati, pilti on töödeldud, väidet ei ole kinnitatud, allikat ei leitud'),
+    format: 'facts',
+    topic: 'culture',
+    canDo: 'Ma loen artiklit sellest, miks inimesed valeinfot jagavad, kontrollin postitust kolme küsimusega, esitlen 1–2 minutiga oma faktikontrolli ja kirjutan sõbrale umbes 140-sõnalise sõnumi; kasutan umbisikulist minevikku ja täisminevikku.',
+    teacherPage: {
+      goal: 'Статья «почему мы делимся ложью»; безличное прошедшее и перфект (jagati, on töödeldud, ei ole kinnitatud); презентация факт-чека 1–2 минуты; черновик сообщения в классе, дома 140 слов + медиадневник.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); статья — абзацы 1–5 и вопросы 1–5; станция 3 — правило и 10 пропусков, черновик 3 предложения; презентация — один пост, без вопросов аудитории.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, отмеченные в черновике или рассуждении урока 057. Вопрос, если есть время: «Ты когда-нибудь поделился новостью, которая оказалась неправдой?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (57)',
+        '5–30: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: пробежать первые фразы абзацев, потом искать ответы (scan); статья (6 мин), 7 вопросов, из них 3 на вывод (10 мин), схема «три вопроса» (5 мин)',
+        '30–50: станция 3 — безличное прошедшее одной строкой (B1), B2: -ti / -di, on + -tud, отрицание; факт-чек с 10 пропусками, исправить 8 строк; черновик сообщения другу (10 мин), обратная связь — грамматика',
+        '50–70: станция 4 — презентация: один из трёх постов, 1–2 минуты, два вопроса аудитории; скрытая информация в вопросе',
+        '70–75: выход: 30 секунд другу; самооценка; домашнее задание: сообщение 140 слов + медиадневник, голосовое, Harjuta',
+        'Kui aega jääb (75–90): игра «два заголовка» — ученик придумывает одну правдивую и одну ложную новость о своём городе, вы угадываете',
+      ],
+      sources: 'Статья «Miks me jagame valet, kuigi me ei taha?» — учебный текст KeeleSepp без цифр. Общая основа: исследования Pennycook & Rand (вопрос о точности перед шерингом снижает распространение фейков), эмоции и скорость распространения ложных новостей, советы факт-чекеров (кто, когда, где ещё; обратный поиск по картинке). Посты на карточке — учебные.',
+      groups: 'Статья — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: каждый выбирает пост, 3 минуты подготовки, потом презентации по очереди; слушатели задают два вопроса. В 1:1 вы — аудитория.',
+      errors: [
+        '«Pilt tehakse eile» → «Pilt tehti eile» (время известно → прошедшее).',
+        '«Väidet ei olnud kinnitatakse» → «Väidet ei ole kinnitatud» (перфект: on / ei ole + -tud).',
+        '«Pilti on töötletud» → «töödeldud» (töötlema → töödeldud).',
+        '«Teist allikat ei leiti» → «ei leitud» (отрицание прошедшего = ei + -tud).',
+      ],
+      notes: [
+        'Презентация (v6 §2 d): у ученика нет готового текста — только план из схемы (кто, когда, где ещё, решение). Не заставляйте зачитывать.',
+        'Слова на повтор (tõend из урока 53, ahvatlema из 52, harjumus из модулей 9–11) есть в статье.',
+        'Медиадневник (v6 §2 k) — в домашнем задании: один эстонский источник новостей, одно новое слово, одно предложение. В следующем уроке спросите одного ученика.',
+      ],
+    },
+    discover: [
+      station(revision('058_d_revise', 'b1b2-057', 'Kirjuta ümber kolm lauset, mille õpetaja sinu arutluses märkis. Lisa üks rida: mida sa muutsid ja miks?'), 1, 5),
+      station(withReview(tag(B.vocab('058_d_vocab', 'Tunni sõnad.', ['valeinfo — ложная информация', 'väide — утверждение', 'kinnitama — подтверждать', 'uuring — исследование', 'jagama — делиться (в соцсетях)', 'töödeldud — обработанный (о фото)', 'pealkiri — заголовок', 'kahtlane — подозрительный', 'järeldus — вывод', 'faktikontroll — проверка фактов']), { topic: ['valeinfo', 'faktikontroll', 'töödeldud'] }), ['tõend', 'ahvatlema', 'harjumus']), 2, 25),
+      why(teach(tag(B.reading('058_d_text', 'Loe artiklit.', 'Loe lõikude esimesed laused (1 minut). Siis otsi tekstist vastused. Küsimustele 5–7 järelda ja näita lauset tekstist.', 'Miks me jagame valet, kuigi me ei taha?', [
+        'Igaüks on vähemalt korra jaganud midagi, mis hiljem osutus valeks. Võib-olla oli see pilt üleujutatud tänavast, mis tegelikult tehti teises riigis aastaid tagasi, või hoiatus, et homme suletakse kõik pangaautomaadid. Jagaja ei olnud halb inimene. Ta tahtis sõpru hoiatada. Teadlased, kes on uurinud, miks valeinfo levib, on jõudnud järeldusele, et enamik inimesi ei jaga valet meelega, vaid kiirustades.',
+        'Esimene põhjus on emotsioon. Uudis, mis tekitab hirmu, viha või imestust, levib kiiremini kui rahulik ja täpne tekst. Sellised pealkirjad on tehtud nii, et need ahvatlevad klõpsama: „Seda ei näidatud teile uudistes!” või „Arstid vaikivad!”. Kui tunne on tugev, ei jõua mõistus järele. Me vajutame jagamisnuppu enne, kui oleme küsinud, kas see on üldse tõsi.',
+        'Teine põhjus on harjumus. Sotsiaalmeedias liigume uudisvoos kiiresti ja otsustame sekundiga. Ühes uuringus paluti inimestel enne jagamist vastata ainult ühele küsimusele: kui täpne see pealkiri sinu arvates on? Juba see väike paus vähendas valeuudiste jagamist märgatavalt. Inimesed ei muutunud targemaks, nad lihtsalt mõtlesid hetke. See näitab, et probleem ei ole alati teadmatus, vaid kiirus: me teame küll, et internetis on valet, aga ei mõtle sellele õigel hetkel.',
+        'Kolmas põhjus on usaldus. Me usume rohkem seda, mille saatis sõber või sugulane, kui seda, mis tuli võõralt. Kui tädi saadab pere vestlusrühma häälsõnumi, mille on salvestanud „üks tuttav arst”, tundub see usaldusväärne, kuigi keegi ei tea, kes see arst on. Valeinfo levib sageli just lähedaste inimeste kaudu, sest nende saadetut ei kontrollita.',
+        'Mida siis teha? Faktikontrollijad soovitavad kolme lihtsat küsimust. Kes on autor ja kas tal on nimi? Millal tekst või pilt avaldati? Kas sama on kirjutanud ka mõni teine, usaldusväärne allikas? Kui pilt on töödeldud või vana, saab seda sageli kontrollida pildiotsinguga. Kui väidet ei ole kinnitanud ükski teine allikas, tasub oodata. Tõeline uudis ei kao tunniga kuhugi.',
+        'Viimastel aastatel on lisandunud veel üks mure: pilte ja hääli saab teha tehisintellektiga. Video, kus tuntud inimene ütleb midagi šokeerivat, võib olla täiesti välja mõeldud. Selliseid videoid on raske ära tunda, kuid ka siin aitavad samad küsimused. Kui tuntud inimene oleks tõesti midagi sellist öelnud, kirjutaksid sellest kõik suured väljaanded. Kui seda ei ole teinud keegi peale ühe anonüümse konto, on põhjust kahelda.',
+        'Valeinfot ei levita ainult inimesed. Mõnikord teevad seda võltskontod, mille taga ei ole ühtegi päris inimest. Need jagavad sama postitust sadu kordi, et see tunduks populaarne. Kui näed, et sama lause on kümnes kommentaaris sõna-sõnalt, on see märk, et keegi püüab arvamust kunstlikult suuremaks teha.',
+        'Raskem on siis, kui sõber on valeinfot juba jaganud. Avalik kommentaar „see on vale!” paneb inimese kaitsesse ja ta ei taha enam kuulata. Parem on kirjutada talle eraldi, rahulikult ja tõendiga: „Ma kontrollisin seda, vaata siit.” Nii ei kaota keegi nägu ja vale ei levi edasi. Kui sõber vastab ärritunult, ära vaidle edasi. Piisab sellest, et tõend on tema käes; sageli kustutab ta postituse hiljem ise.',
+        'Valeinfost ei saa lahti ühe korraga, aga igaüks saab olla väike filter. Kui iga inimene peatub enne jagamist mõneks sekundiks, liigub internetis vähem müra ja rohkem tõde. See ei nõua eriteadmisi, ainult harjumust küsida: kust see tuli?',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Miks jagab enamik inimesi teadlaste järgi valeinfot?', 'kiirustades, mitte meelega'],
+        ['Millised uudised levivad kiiremini kui rahulikud tekstid?', 'need, mis tekitavad hirmu, viha või imestust'],
+        ['Mida paluti uuringus inimestel enne jagamist teha?', 'vastata, kui täpne pealkiri nende arvates on'],
+        ['Milliseid kolme küsimust soovitavad faktikontrollijad?', 'kes on autor, millal see avaldati, kas teine usaldusväärne allikas kinnitab seda'],
+        ['Miks levib valeinfo autori arvates just lähedaste kaudu? Järelda.', 'lähedasi usaldatakse ja nende saadetut ei kontrollita'],
+        ['Miks ei soovita autor kirjutada avalikku kommentaari „see on vale!”? Järelda.', 'inimene tunneb end rünnatuna, ei kuula ja kaotab nägu'],
+        ['Mida tahab autor öelda lausega „Tõeline uudis ei kao tunniga kuhugi”?', 'jagamisega võib oodata, sest õige info on ka hiljem olemas'],
+      ]), { task: 'R15', voice: 'popsci' }), 'Lugemine, umbes 25 minutit koos sõnade ja skeemiga. Strateegia (v6 §2 l, lugemine: silmitse → otsi): õppija loeb lõikude esimesed laused, ütleb, mis lõigus on põhjused ja mis lõigus nõuanded, ning otsib siis vastused. Küsimused 5–7 on järeldusküsimused: nõua lauset tekstist. Kordamise sõnad (tõend, ahvatlema, harjumus) on tekstis. Tekst on õppetekst ilma täpse statistikata.'), [
+        '1. lõik: „enamik inimesi ei jaga valet meelega, vaid kiirustades”.',
+        '2. lõik: „Uudis, mis tekitab hirmu, viha või imestust, levib kiiremini.”',
+        '3. lõik: „paluti inimestel … vastata … kui täpne see pealkiri sinu arvates on?”',
+        '5. lõik: „Kes on autor …? Millal … avaldati? Kas sama on kirjutanud ka mõni teine, usaldusväärne allikas?”',
+        'Järeldus 4. lõigust: „Me usume rohkem seda, mille saatis sõber …” ja „nende saadetut ei kontrollita”.',
+        'Järeldus 6. lõigust: kommentaar „paneb inimese kaitsesse”; eraldi kirjutades „ei kaota keegi nägu”.',
+        'Järeldus 5. lõigust: „Kui väidet ei ole kinnitanud ükski teine allikas, tasub oodata.”',
+      ]),
+      teach(B.diagram('058_d_scheme', 'flow', { title: 'Skeem: kolm küsimust enne jagamist', instruction: 'Kirjuta iga kasti juurde üks näide tekstist. Viimases kastis vali: jagan, ootan või ei jaga.', nodes: 'Postitus: tugev tunne — hirm, viha, imestus\nKes? Autor ja tema nimi\nMillal? Kuupäev, vana pilt\nKust veel? Teine usaldusväärne allikas\nOtsus: …' }, 'half', 'g_read'),
+        'Skeem on õppija esitluse plaan jaamas 4. Õppija täidab selle pärast lugemist; viimase kasti otsus vajab põhjendust („sest teist allikat ei leitud”).'),
+    ],
+    practice: [
+      station(teach(B.notice('058_p_notice', 'Märka: pilt avaldati, väidet ei ole kinnitatud', [
+        'Artiklist: inimestel **paluti** vastata · pilt **tehti** teises riigis · seda ei **näidatud** teile · pilt on **töödeldud** · väidet ei ole **kinnitatud**',
+        'Kordamine (B1): umbisikuline olevik: kontrollitakse, jagatakse (tund 56).',
+        'B2, lihtminevik -ti / -di: jagada → **jagati**, avaldada → **avaldati**, öelda → **öeldi**, leida → **leiti** · eitus: ei + -tud / -dud: **ei jagatud**, **ei leitud**',
+        'B2, täisminevik: on + -tud / -dud: pilti **on töödeldud**, uudist **on jagatud** tuhat korda · eitus: **ei ole kinnitatud**, **ei ole avaldatud**',
+        'Kumb? Lihtminevik — aeg on teada (eile, aastaid tagasi pilt tehti); täisminevik — tähtis on tulemus praegu (pilti on muudetud, seepärast ma seda ei usu).',
+        'Vene keeles on mõlemad sageli „было сделано” — eesti keeles küsi: kas aeg on teada (tehti) või on tähtis tulemus praegu (on tehtud)?',
+      ], 'full'), 'Kordamine ühe minutiga (kontrollitakse). Siis B2 samm: kaks minevikku ja nende eitus. Lase õppijal leida artiklist kolm vormi ja öelda, kas aeg on teada. L1 rida: vene keele üks vorm vastab kahele eesti vormile.'), 3, 20),
+      why(teach(tag(B.formtext('058_p_check', 'Faktikontroll: „Üleujutus vanalinnas?”', 'Kirjuta sulgudes olev tegusõna umbisikulises minevikus. Kas aeg on teada või on tähtis tulemus? Panka ei ole.', 'Faktikontroll', [
+        'Eile õhtul [jagati] (jagama) sotsiaalmeedias pilti, kus vanalinna tänav on vee all. Postituse all [kirjutati] (kirjutama), et vesi tõusis paari tunniga.',
+        'Kontrollisime pilti. Selgus, et foto [tehti] (tegema) tegelikult teises riigis ja juba aastaid tagasi. Pilti [on töödeldud] (töötlema): taevas on tumedamaks muudetud.',
+        'Ühtegi teist allikat, mis üleujutust kinnitaks, [ei leitud] (leidma). Linnavalitsus teatas, et ühtegi tänavat [ei suletud] (sulgema).',
+        'Postitust [on jagatud] (jagama) juba üle tuhande korra, kuid väidet [ei ole kinnitatud] (kinnitama). Postituse autori nime [ei avaldatud] (avaldama).',
+        'Kokkuvõte: pilt on vana. Seda [on kasutatud] (kasutama) varemgi, et inimesi hirmutada.',
+      ], 'g_notice'), { task: 'G03', harno: 'R3' }),
+      'Pärast iga lünka küsi: „Kas aeg on teada või on tähtis tulemus praegu?” Lüngad 1–3, 5, 6 ja 9: aeg on teada (eile, aastaid tagasi) → lihtminevik ja selle eitus. Lüngad 4, 7, 8 ja 10: tulemus praegu → täisminevik.'), [
+        'Aeg on teada (eile õhtul) → jagati.',
+        'Aeg on teada → kirjutati.',
+        'Aeg on teada (aastaid tagasi) → tehti.',
+        'Tulemus praegu (pilt on teistsugune) → on töödeldud.',
+        'Eitus, aeg teada → ei leitud.',
+        'Eitus, aeg teada → ei suletud.',
+        'Tulemus praegu (jagamisi on tuhat) → on jagatud.',
+        'Eitus, tulemus praegu → ei ole kinnitatud.',
+        'Eitus, aeg teada → ei avaldatud.',
+        'Tulemus praegu → on kasutatud.',
+      ]),
+      why(teach(tag(B.errorfix('058_p_fix', 'Paranda faktikontroll enne avaldamist.', 'Igas lauses on üks minevikuvormi viga. Kirjuta lause õigesti.', [
+        ['Pilt tehakse eile õhtul Tartus, aga postitati alles täna hommikul.', 'Pilt tehti eile õhtul Tartus, aga postitati alles täna hommikul.'],
+        ['Väidet ei ole kinnitatakse ühegi teise usaldusväärse allikaga.', 'Väidet ei ole kinnitatud ühegi teise usaldusväärse allikaga.'],
+        ['Postitust on jagatakse juba tuhat korda, kuigi see on vale.', 'Postitust on jagatud juba tuhat korda, kuigi see on vale.'],
+        ['Autori nime eile ei avaldati ja kontaktandmeid ei olnud.', 'Autori nime eile ei avaldatud ja kontaktandmeid ei olnud.'],
+        ['Eile õhtul öeldati raadios, et tee on remondi tõttu suletud.', 'Eile õhtul öeldi raadios, et tee on remondi tõttu suletud.'],
+        ['Pilti on töötletud: taevas on tumedam ja vett on rohkem.', 'Pilti on töödeldud: taevas on tumedam ja vett on rohkem.'],
+        ['Ühtegi teist allikat ei leiti, kuigi otsisime terve õhtu.', 'Ühtegi teist allikat ei leitud, kuigi otsisime terve õhtu.'],
+        ['Sama videot näidatud juba mitu aastat tagasi teises riigis.', 'Sama videot näidati juba mitu aastat tagasi teises riigis.'],
+      ], 'full', 'g_notice'), { task: 'G06' }),
+      'Need on tüüpilised vead vene keelt kõnelevalt õppijalt. Lase õppijal öelda reegel kahe sõnaga (aeg teada / tulemus praegu, eitus -tud).'), [
+        'Aeg on teada (eile) → lihtminevik: tehti.',
+        'Täisminevik: ei ole + -tud: kinnitatud.',
+        'Täisminevik: on + -tud: jagatud.',
+        'Eitus minevikus: ei + -tud: ei avaldatud.',
+        'öelda → öeldi.',
+        'töötlema → töödeldud.',
+        'Eitus minevikus: ei leitud.',
+        'Aeg on teada → näidati (lauses puudus tegusõna).',
+      ]),
+      draft('058_p_draft', 'sõnumi esimene lõik', 'Kirjuta sõbrale vähemalt 6 lauset: mida postituses väideti ja mida sa kontrollisid? Kasuta kolme minevikuvormi (jagati, on töödeldud …).', 'Grammatika ja õigekiri (umbisikuline minevik ja täisminevik)', [6, 12]),
+    ],
+    transfer: [
+      station(teach(mainTask(B.ideaCard('058_t_present', 'Faktikontroll: esitlus (1–2 minutit).', 'Vali üks postitus. Kontrolli seda skeemi kolme küsimusega ja esitle tulemus 1–2 minutiga. Vasta siis kahele küsimusele.', [
+        'Sinu kursuse vestlusgrupis jagati eile kolme postitust. Teised õppijad palusid, et vaataksid need üle.',
+        'Esitluse plaan: mida väideti → mida kontrollisid (kes, millal, kust veel) → sinu otsus: jagan, ootan või ei jaga.',
+        'Abikaart: Postituses väideti, et … · Kontrollisin … ja selgus, et … · Seepärast soovitan …',
+        'Lisaväljakutse: ütle, miks see postitus inimesi ahvatleb, ja paku sellele ausam pealkiri.',
+      ], [
+        'A. Anonüümne leht: „Homme suletakse kõik pangaautomaadid! Võtke sularaha kohe välja!” Avaldatud täna, autorit pole, tuhandeid jagamisi.',
+        'B. Linnavalitsuse leht: „Kesklinna parkla on remondi tõttu kolm päeva suletud.” Avaldatud eile, kontaktisiku nimi ja telefon.',
+        'C. Video „Hunt jalutab kaubanduskeskuses!” Postitaja ütleb, et see juhtus täna. Video all on kommentaar: „Nägin seda juba eelmisel talvel.”',
+      ], 'Esitlus 1–2 minutit ja otsus (jagan / ootan / ei jaga) koos tõendiga.', [60, 120]), 'presentation',
+      ['Postituses väideti, et …', 'Kontrollisin … ja selgus, et …', 'Seepärast soovitan …'],
+      'Ütle, miks see postitus inimesi ahvatleb, ja paku sellele ausam pealkiri.', { task: 'S16' }),
+      'Esitlus (v6 §2 d): 3 minutit ettevalmistust skeemi järgi, siis 1–2 minutit ilma ettelugemiseta. Sina oled kuulaja. Varjatud info (ütle pärast esitlust, vali postituse järgi): A — „Aga mu ema sai sama teate ka SMS-iga, seal oli panga nimi!” (õppija: pangad sellist teadet ei saada, kontrolli panga enda lehelt või äpist, ära vajuta lingile); B — „Aga see on ju ametlik leht, miks sa kontrollid?” (õppija: ametlik leht on hea allikas, aga kuupäev ja koht tuleb ikka vaadata); C — „Aga video on ju päris, mitte töödeldud!” (õppija: päris video, kuid vana — aeg ja koht ei ole tõesed). Õnnestunud, kui õppija esitleb plaani järgi, kasutab vähemalt kolm minevikuvormi (jagati, on töödeldud, ei leitud), annab tõendiga otsuse ja reageerib uuele infole. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 20, { final: 'present' }),
+      exitTalk('058_t_say', 'Ütle 30 sekundiga sõbrale, miks sa seda postitust ei jaga. Kasuta üht minevikuvormi: jagati, on töödeldud …', ['Mida postituses väideti?', 'Mida sa kontrollisid ja mis selgus?'], 'Kas õppija ütleb rahulikult (mitte „see on vale!”) ühe tõendi ja kasutab umbisikulist minevikku või täisminevikku?'),
+      selfCheck('058_t_self', ['Sain artiklist aru ja järeldasin, miks valeinfo levib.', 'Kasutasin umbisikulist minevikku ja täisminevikku (jagati, ei ole kinnitatud).', 'Esitlesin faktikontrolli plaani järgi ja vastasin küsimustele.'], 'Postitus kontrollitud', 'Ma oskan postitust enne jagamist kontrollida'),
+      tag(homeTask(homeLines(mediaLog(B.examWriting('058_t_msg', 'Kodus: sõnum sõbrale (umbes 140 sõna).', `Lõpeta tunni mustand sõnumiks (130–150 sõna) ja täida meediapäevik. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Sõber jagas postitust A oma suhtlusrühmas. Kirjuta talle eraldi, rahulikult ja tõendiga; algust ei anta. Minu eesti keele võrgustik (meediapäevik): vali üks eestikeelne uudisteallikas, mida jälgid — näiteks ERR uudised, https://www.err.ee, raadio või taskuhääling. Kirjuta sõnumi alla kolm rida: mida kuulasid või lugesid, üks uus sõna ja üks lause selle kohta.',
+        points: ['mida postituses väideti ja miks see sind kahtlema pani', 'mida sa kontrollisid ja mis selgus (jagati, ei leitud, ei ole kinnitatud)', 'mida sa soovitad teha (kustutada, parandada, oodata)', 'kuidas sa ise edaspidi enne jagamist kontrollid'],
+        words: [130, 150],
+      })), 6)), { task: 'W08' }),
+      writingRubric('058_t_rubric', 'Hindamisjuhend: sõnum sõbrale (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Sinu postitus on vale. Pank ei sulgeb automaate. Ma kontrollin ja see ei olnud kinnitatakse. Kustuta! Sa alati usud kõike.” Hinnang: ülesanne 2 (väide ja soovitus on olemas, kuid kontrollimise viis ja oma reegel puuduvad), ülesehitus 2 (järjekord on selge, sidendeid ei ole), sõnavara 2 (puuduvad allikas, väide, kinnitama, avaldama), grammatika 1 („ei sulgeb” → ei sulge, „ei olnud kinnitatakse” → ei ole kinnitatud); toon („Sa alati usud kõike”) paneb sõbra kaitsesse. Kui õppija lisab tõendi, rahuliku tooni ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-059': {
+    title: 'Mida sinu telefon sinust teab?',
+    phases: grammar('Kordamine: andmeid kogutakse (tund 56), andmete kogumine (tund 57) · B2: tingimuste keel ↔ lihtne keel: asukoha jagamine = asukohta jagatakse'),
+    format: 'project',
+    topic: 'freetime',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest oma andmete õigustest, muudan privaatsustingimuste keele lihtsaks ja vastupidi, koostan paaris juhendi „Minu digireeglid” ning kirjutan firmale umbes 140-sõnalise andmepäringu.',
+    teacherPage: {
+      goal: 'Радио о правах на данные; язык условий ↔ простой язык; проект в парах «Minu digireeglid», ответ другой пары; дома запрос данных фирме 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); радио — один раз и утверждения 1–7; станция 3 — правило и 10 предложений; проект — три правила вместо пяти.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, отмеченные в черновике или сообщении урока 058. Вопрос, если есть время: «Сколько приложений на твоём телефоне знают, где ты сейчас?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (58)',
+        '5–25: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: подчеркнуть ключевые слова в утверждениях (2 мин), радио дважды (9 мин), 10 утверждений «верно / неверно» (4 мин), схема «язык условий — простой язык» (3 мин)',
+        '25–45: станция 3 — повтор 56–57 одной строкой, B2: -mine ↔ -takse; 10 предложений, условия ↔ простой язык (8 строк)',
+        '45–70: станция 4 — проект в парах: пять правил с причинами (15 мин), обмен с другой парой: две звезды и пожелание (5 мин), выход: одна строка переписана по пожеланию (5 мин)',
+        '70–75: самооценка; домашнее задание: запрос данных фирме 140 слов, голосовое, Harjuta',
+        'Kui aega jääb (75–90): ученик открывает настройки своего телефона и проверяет, у каких приложений есть доступ к местоположению (никто не обязан показывать телефон)',
+      ],
+      sources: 'Радио «Digitund» — учебный текст KeeleSepp (ведущая Piret и юрист Mart вымышлены). Общая основа: GDPR — право на доступ к данным (ответ обычно в течение месяца, бесплатно), исправление и удаление; Andmekaitse Inspektsioon (aki.ee) — куда обращаться; разрешения приложений в настройках телефона. Без статистики.',
+      groups: 'Радио — каждый сам, утверждения на вывод сравнивают в паре. Проект — пары; две пары обмениваются листами и пишут «две звезды и пожелание». В 1:1 ученик пишет сам, вы — «другая пара».',
+      errors: [
+        '«Asukohta jagamine» → «asukoha jagamine» (перед -mine — родительный).',
+        '«Andmed kogutakse» → «Andmeid kogutakse» (процесс, частичный объект при безличной форме).',
+        '«Ma tahan teada minu andmed» → «Ma tahan teada, milliseid andmeid te minu kohta hoiate» (косвенный вопрос).',
+        '«Kustutage minu andmeid» → «Kustutage minu andmed» (результат целый → полный объект).',
+      ],
+      notes: [
+        'Проект (v6 §2 d): продукт модуля «Minu digireeglid» — пять правил с причинами для нового курсанта; он опирается на уроки 56–58 (e-riik, ИИ, проверка постов). Это и есть письмо в классе (v6 G16): дома пишется отдельный запрос данных.',
+        'Обмен с другой парой (data.peerReply, v6 G25): «две звезды и пожелание» по трём критериям самооценки. Выход — одна строка проекта переписана по пожеланию (письмо, навык главной задачи).',
+        'Слова на повтор (tellimus и tühistama из урока 51, volitus из 56) есть в радио.',
+      ],
+    },
+    discover: [
+      station(revision('059_d_revise', 'b1b2-058', 'Kirjuta ümber kolm lauset, mille õpetaja sinu sõnumis sõbrale märkis. Lisa üks rida: mida sa muutsid ja miks?'), 1, 5),
+      station(withReview(tag(B.vocab('059_d_vocab', 'Tunni sõnad.', ['privaatsus — приватность', 'nõusolek — согласие', 'asukoht — местоположение', 'luba — разрешение', 'andmed — данные', 'kustutama — удалять', 'jälgima — отслеживать', 'rakendus — приложение', 'andmepäring — запрос (своих) данных', 'säilitamine — хранение']), { topic: ['andmepäring', 'privaatsus', 'säilitamine'] }), ['tellimus', 'tühistama', 'volitus']), 2, 20),
+      teach(B.diagram('059_d_scheme', 'compare', { title: 'Skeem: tingimuste keel — lihtne keel', instruction: 'Pärast kuulamist kirjuta paremale lihtne lause umbisikulise vormiga.', left: 'Tingimustes on kirjas', right: 'Lihtsas keeles', leftItems: 'isikuandmete töötlemine\nandmete edastamine kolmandatele isikutele\nandmete säilitamine viis aastat\nturunduslike teadete saatmine\nasukohaandmete kogumine', rightItems: 'sinu andmeid kasutatakse\n…\n…\n…\n…' }, 'half', 'g_notice'),
+        'Skeem on tunni grammatika sild: vasakul tingimuste -mine-keel, paremal umbisikuline lause. Õige: andmeid antakse teistele firmadele; andmeid hoitakse viis aastat; sulle saadetakse reklaami; sinu asukohta kogutakse.'),
+      why(teach(tag(B.examListen('059_d_radio', 'Kuulamine: raadiosaade „Digitund”: sinu andmed.', 'Enne kuulamist joonista väidetes alla võtmesõnad. Kuula kaks korda: kas väide on õige või vale?', 'truefalse', [
+        'Piret: Tere tulemast „Digitundi”! Täna küsime, mida meie telefon meist teab. Stuudios on andmekaitsejurist Mart. Mart, kas telefon tõesti teab minust rohkem kui mu sõbrad?',
+        'Mart: Mõnes mõttes küll. Telefon teab, kus sa käid, millal sa magad, mida sa otsid ja kellega suhtled. Iga rakendus küsib paigaldamisel lubasid: asukoht, kaamera, mikrofon, kontaktid. Enamik inimesi vajutab „luba” lugemata, sest tahab rakendust kohe kasutada.',
+        'Piret: Kas see on ohtlik?',
+        'Mart: Mitte alati. Kaardirakendus vajab asukohta, see on loogiline. Aga kui taskulambi rakendus küsib ligipääsu kontaktidele, tasub küsida: milleks? Kui vastust ei ole, keeldu. Rakendus töötab enamasti ka ilma selle loata.',
+        'Piret: Paljud kuulajad kirjutavad, et nad ei saa privaatsustingimustest aru.',
+        'Mart: Need tekstid on pikad ja ametlikud: isikuandmete töötlemine toimub õigustatud huvi alusel. Lihtsas keeles tähendab see: me kasutame sinu andmeid, sest see on meile kasulik. Hea nõks on otsida tekstist kolm sõna: kolmandad isikud, säilitamine ja turundus. Siis näed, kellele andmeid antakse, kui kaua neid hoitakse ja kas sulle hakatakse reklaami saatma.',
+        'Piret: Kas inimesel on ka õigusi?',
+        'Mart: Muidugi. Euroopa Liidus kehtib isikuandmete kaitse üldmäärus. Sul on õigus küsida firmalt, milliseid andmeid ta sinu kohta hoiab. Seda nimetatakse andmepäringuks. Firma peab vastama üldjuhul ühe kuu jooksul ja tasuta. Sul on ka õigus nõuda andmete parandamist ja teatud juhtudel nende kustutamist.',
+        'Piret: Kuidas andmepäringut teha?',
+        'Mart: Kirjuta firma klienditeenindusele või andmekaitse kontaktile. Ütle, kes sa oled, milliseid andmeid küsid, ja palu ka teada, kellele neid on edasi antud. Hoia kirjast koopia. Kui vastust ei tule, võid pöörduda Andmekaitse Inspektsiooni poole.',
+        'Piret: Mis on kõige lihtsam asi, mida kuulaja täna õhtul teha saab?',
+        'Mart: Ava telefoni seaded ja vaata, millised rakendused tohivad sinu asukohta näha. Sageli on neid palju, aga vaja on paari. Teiseks vaata üle tellimused: paljud tasuta prooviajad on muutunud tasuliseks ja koos nendega jagad andmeid ka rakendustega, mida sa ammu ei kasuta. Tühista need, mida sa ei vaja, ja kustuta rakendus.',
+        'Piret: Ja kui hoolitsed vanema sugulase telefoni eest?',
+        'Mart: Siis tee seda koos temaga, mitte tema eest. Kui pead tema nimel firmaga suhtlema, küsi temalt volitus. Ka lähedane ei tohi lihtsalt teise inimese andmeid küsida.',
+        'Piret: Kas me peaksime telefoni kartma?',
+        'Mart: Ei. Telefon on tööriist. Aga tööriista omanik peaks teadma, mida see teeb. Andmed on nagu raha: kui sina ei tea, kuhu need lähevad, siis teab seda keegi teine.',
+        'Piret: Aitäh, Mart!',
+      ], [
+        ['Marti sõnul vajutab enamik inimesi lubade küsimisel „luba” teksti lugemata.', true],
+        ['Kaardirakendus ei peaks Marti arvates kunagi asukohta küsima.', false],
+        ['Kui rakendus küsib luba põhjuseta, soovitab Mart sellest keelduda.', true],
+        ['Sõna „turundus” näitab tingimustes, kui kaua andmeid hoitakse.', false],
+        ['Firma peab andmepäringule vastama üldjuhul ühe kuu jooksul.', true],
+        ['Andmepäringu eest tuleb tavaliselt maksta.', false],
+        ['Kui firma ei vasta, võib pöörduda Andmekaitse Inspektsiooni poole.', true],
+        ['Mart soovitab vanema sugulase telefoni seaded tema eest üksi ära muuta.', false],
+        ['Saatest võib järeldada, et unustatud prooviaeg võib maksta nii raha kui ka andmeid.', true],
+        ['Saatest võib järeldada, et Marti arvates tuleks nutitelefonist loobuda.', false],
+      ], 'g_listen'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, umbes 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: võtmesõnad): õppija joonib väidetes alla võtmesõnad ja kuulab neid. Väited 9–10 on järeldusväited: nõua põhjendust kuuldust. Kordamise sõnad (tellimus, tühistama, volitus) on saates. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Õige: „Enamik inimesi vajutab „luba” lugemata.”',
+        'Vale: „Kaardirakendus vajab asukohta, see on loogiline.”',
+        'Õige: „Kui vastust ei ole, keeldu.”',
+        'Vale: turundus näitab, „kas sulle hakatakse reklaami saatma”; kui kaua hoitakse — säilitamine.',
+        'Õige: „Firma peab vastama üldjuhul ühe kuu jooksul ja tasuta.”',
+        'Vale: „ühe kuu jooksul ja tasuta”.',
+        'Õige: „võid pöörduda Andmekaitse Inspektsiooni poole”.',
+        'Vale: „tee seda koos temaga, mitte tema eest”.',
+        'Õige järeldus: prooviajad „on muutunud tasuliseks ja koos nendega jagad andmeid”.',
+        'Vale järeldus: „Telefon on tööriist” — kartma ei pea, tuleb teada, mida see teeb.',
+      ]),
+    ],
+    practice: [
+      station(teach(B.notice('059_p_notice', 'Märka: asukoha jagamine = asukohta jagatakse', [
+        'Saatest: isikuandmete **töötlemine** · andmete **säilitamine** · kui kaua neid **hoitakse** · sulle **saadetakse** reklaami',
+        'Kordamine: umbisikuline olevik (tund 56: kontrollitakse) ja -mine (tund 57: sisestamine).',
+        'B2, tingimuste keel → lihtne keel: asukoha **jagamine** → asukohta **jagatakse** · andmete **kogumine** → andmeid **kogutakse** · andmete **kustutamine** → andmed **kustutatakse**',
+        'B2, lihtne keel → tingimuste keel: me anname andmeid teistele → andmete **edastamine** · kes rakendust kasutab → rakenduse **kasutaja**',
+        'Sihitis: andmeid kogutakse (osa, protsess) ↔ andmete kogumine (laiend omastavas ees) · eitus: andmeid **ei jagata**',
+        'Vene keeles „сбор данных” — eesti keeles andmete kogumine; lihtsas keeles eelistatakse tegusõna: andmeid kogutakse.',
+      ], 'full'), 'Kordamine ühe minutiga (tunnid 56 ja 57). Siis B2 samm: sama mõte kahes stiilis. Lase õppijal võtta skeemi vasakult üks rida ja öelda see lihtsas keeles. L1 rida: vene keele „сбор данных” on eesti keeles „andmete kogumine”, aga lihtne tekst eelistab tegusõna.'), 3, 20),
+      why(teach(tag(B.gaps('059_p_forms', 'Tingimused lihtsas keeles.', 'Kirjuta sulgudes oleva tegusõna põhjal -mine-vorm või umbisikuline olevik, nagu lause nõuab. Panka ei ole.', [
+        'Tingimustes: asukoha [jagamine] on vabatahtlik. (jagama)',
+        'Lihtsas keeles: sinu asukohta [jagatakse] ainult siis, kui sa lubad. (jagama)',
+        'Tingimustes: andmete [kogumine] algab rakenduse paigaldamisel. (koguma)',
+        'Lihtsas keeles: sinu andmeid [kogutakse] kohe, kui rakenduse paigaldad. (koguma)',
+        'Tingimustes: konto sulgemisel toimub andmete [kustutamine] kuu aja jooksul. (kustutama)',
+        'Lihtsas keeles: kui konto suletakse, [kustutatakse] andmed kuu aja jooksul. (kustutama)',
+        'Tingimustes: andmete [säilitamine] kestab viis aastat. (säilitama)',
+        'Lihtsas keeles: sinu andmeid [hoitakse] viis aastat. (hoidma)',
+        'Lihtsas keeles: reklaami [saadetakse] ainult sinu nõusolekul. (saatma)',
+        'Lihtsas keeles: ilma loata sinu andmeid teistele firmadele ei [anta]. (andma)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Kas see on tingimuste keel või lihtne keel?” Tingimustes -mine (jagamine, kogumine), lihtsas keeles umbisikuline olevik (jagatakse, kogutakse). Rida 10: eitus ilma lõputa -kse (ei anta). Lisa küsimus: „Mis rakendus sinu telefonis teab sinu asukohta?”'), [
+        'Tingimuste keel → -mine: jagamine.',
+        'Lihtne keel → umbisikuline: jagatakse.',
+        'Tingimuste keel → kogumine.',
+        'Lihtne keel → kogutakse.',
+        'Tingimuste keel → kustutamine.',
+        'Lihtne keel → kustutatakse.',
+        'Tingimuste keel → säilitamine.',
+        'Lihtne keel → hoitakse (hoida → hoitakse).',
+        'Lihtne keel → saadetakse.',
+        'Eitus ilma lõputa -kse: ei anta.',
+      ]),
+      why(teach(tag(B.transformation('059_p_plain', 'Tingimuste lause ja lihtne lause.', 'Tee tingimuste lausest lihtne lause või vastupidi. Alusta antud sõnadega.', [
+        ['Isikuandmete töötlemine toimub teie nõusolekul.', 'Teie andmeid …', 'Teie andmeid töödeldakse teie nõusolekul.|Teie andmeid kasutatakse teie nõusolekul.'],
+        ['Andmete edastamine teistele firmadele on lubatud.', 'Teie andmeid …', 'Teie andmeid võib anda teistele firmadele.|Teie andmeid tohib anda teistele firmadele.|Teie andmeid antakse teistele firmadele.'],
+        ['Reklaamteadete saatmine toimub e-posti teel.', 'Reklaami …', 'Reklaami saadetakse e-postiga.|Reklaami saadetakse e-posti teel.'],
+        ['Asukohta jälgitakse ainult rakenduse kasutamise ajal.', 'Asukoha …', 'Asukoha jälgimine toimub ainult rakenduse kasutamise ajal.'],
+        ['Me kustutame andmed kuu aja jooksul.', 'Andmete …', 'Andmete kustutamine toimub kuu aja jooksul.'],
+        ['See, kes rakendust kasutab, peab olema vähemalt 13-aastane.', 'Rakenduse …', 'Rakenduse kasutaja peab olema vähemalt 13-aastane.'],
+        ['Nõusoleku andmine on vabatahtlik.', 'Nõusolekut …', 'Nõusolekut ei pea andma.'],
+        ['Küpsiseid kasutatakse statistika kogumiseks.', 'Küpsiste …', 'Küpsiste kasutamise eesmärk on statistika kogumine.|Küpsiste kasutamine toimub statistika kogumiseks.'],
+      ], 'full', 'g_notice'), { task: 'G05' }),
+      'Lihtne lause = umbisikuline tegusõna (töödeldakse, saadetakse); tingimuste lause = -mine + toimub / on (jälgimine toimub, kasutaja peab). Kontrolli omastavat laiendit (asukoha, andmete, küpsiste).'), [
+        'töötlemine toimub → töödeldakse (või lihtsamalt: kasutatakse).',
+        'edastamine on lubatud → võib / tohib anda.',
+        'saatmine toimub → saadetakse.',
+        'jälgitakse → asukoha jälgimine toimub.',
+        'me kustutame → andmete kustutamine toimub.',
+        'see, kes kasutab → kasutaja.',
+        'andmine on vabatahtlik → ei pea andma.',
+        'kasutatakse … kogumiseks → kasutamise eesmärk on kogumine.',
+      ]),
+      teach(tag(inLesson(B.speaking('059_p_talk', 'Paaris enne projekti: mis sa arvad?', 'Arutage paaris 5 minutit. Siis valige viis reeglit, mis lähevad teie juhendisse.', [
+        'Mis sa arvad, kas inimesed loevad tingimusi enne, kui vajutavad „luba”? Miks?',
+        'Kas Eestis ja sinu kodumaal räägitakse andmete kaitsest piisavalt?',
+        'Milline tundide 56–58 reegel on uuele kursuslasele kõige tähtsam ja miks?',
+      ], [180, 240])), { task: 'S11', fluency: true }),
+      'Projekti ettevalmistus (5 minutit, paaris; üks-ühele oled sina partner): arvamus põhjendusega, siis valik. Ära paranda vorme, kuula põhjendusi. Lõpus peab paaril olema viie reegli nimekiri märksõnadega.'),
+    ],
+    transfer: [
+      station(teach(mainTask(peerReply(B.examWriting('059_t_guide', 'Projekt: „Minu digireeglid” uuele kursuslasele (15 minutit).', 'Kirjutage paaris juhend: viis reeglit, igaühel põhjus. Siis vahetage juhend teise paariga.', 'teade', {
+        situation: 'Kursusele tuleb uus õppija, kes kolis Eestisse eelmisel kuul. Kirjutage talle juhend „Minu digireeglid”: üks reegel e-riigi kohta (tund 56), üks tehisintellekti kohta (57), üks postituste kohta (58) ja kaks telefoni ja andmete kohta (59). Iga reegli juurde üks põhjus. Teine paar loeb juhendi ja kirjutab alla kaks tähte ja ühe soovi.\nAbikaart: Koode ei öelda kellelegi, sest … · Isikuandmete sisestamine robotisse on keelatud, sest … · Enne jagamist kontrollitakse …\nLisaväljakutse: lisa juhendi lõppu üks lause lihtsas keeles ühe tingimuste lause kohta.',
+        points: ['viis reeglit, igaühel põhjus', 'vähemalt kaks umbisikulist vormi (kontrollitakse, ei anta) ja kaks -mine-vormi (asukoha jagamine)', 'lihtne keel: uus kursuslane saab aru'],
+        words: [100, 130],
+      })), 'project',
+      ['Koode ei öelda kellelegi, sest …', 'Isikuandmete sisestamine robotisse on keelatud, sest …', 'Enne jagamist kontrollitakse …'],
+      'Lisa juhendi lõppu üks tingimuste lause lihtsas keeles.', { task: 'W02' }),
+      'Projekt (v6 §2 d): mooduli toode, mis kogub tunnid 56–59 kokku; paarid kirjutavad koos 15 minutit (see on tunni kirjutamine, v6 G16). Kaaslase vastus (v6 G25): paarid vahetavad juhendid, loevad ja kirjutavad alla kaks tähte ja ühe soovi enesekontrolli kolme kriteeriumi järgi (5 minutit). Varjatud info (ütle, kui paarid kirjutavad): „Uus kursuslane on 70-aastane ja tal on ainult nupptelefon ning ID-kaart.” Õppijad peavad vähemalt ühe reegli sellele inimesele kohandama (digiabi raamatukogus, volitus lähedasele, kaarti ja koode koos ei hoita). Õnnestunud, kui juhendis on viis reeglit põhjustega, vähemalt kaks umbisikulist ja kaks -mine-vormi ning üks reegel on kohandatud. Üks-ühele: õppija kirjutab üksi, sina oled „teine paar”. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 25, { final: 'plan' }),
+      teach(tag(exitCheck(B.writing('059_t_line', 'Väljumine: üks reegel paremaks.', 'Kirjuta üks reegel juhendist teise paari soovi järgi uuesti (1–2 lauset).', [1, 2])), { task: 'W10' }),
+        'Väljumiskontroll (v6 G14), 3 minutit: üks rida tootest, ümber kirjutatud kaaslase soovi järgi (põhiülesande oskus on kirjutamine). Kas uus rida on selgem ja kas vorm on õige (koode ei öelda, asukoha jagamine)? Lõpus üks tugevus ja üks parandus.'),
+      selfCheck('059_t_self', ['Sain raadiosaatest aru oma õigustest (luba, andmepäring, kustutamine).', 'Muutsin tingimuste keele lihtsaks ja vastupidi (andmete kogumine = andmeid kogutakse).', 'Kirjutasime viis selget reeglit põhjustega ja parandasime ühe kaaslase soovi järgi.'], 'Digireeglid valmis', 'Ma oskan oma andmeid kaitsta ja reegleid teisele seletada'),
+      tag(homeTask(homeLines(B.examWriting('059_t_request', 'Kodus: andmepäring firmale (umbes 140 sõna).', `Kirjuta firmale andmepäring (130–150 sõna). Pöördumist ja algust ei anta. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Vali rakendus, pood või kliendikaart, mida kasutad (või mõtle välja). Kirjuta firma klienditeenindusele või andmekaitse kontaktile. Oma päris andmeid ei pea kirjutama: kasuta väljamõeldud nime ja numbrit.',
+        points: ['kes sa oled ja mis teenust kasutad', 'milliseid andmeid küsid ja kellele neid on edasi antud', 'mida palud kustutada või parandada ja miks', 'mis ajaks ootad vastust (üldjuhul kuu jooksul) ja mida teed, kui vastust ei tule'],
+        words: [130, 150],
+      }), 6)), { task: 'W13' }),
+      writingRubric('059_t_rubric', 'Hindamisjuhend: andmepäring (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma kasutan teie äpp. Ma tahan teada minu andmed. Kustutage minu andmeid. Vastake kiiresti. Aitäh!” Hinnang: ülesanne 2 (palve on olemas, kuid tähtaeg ja küsimus, kellele andmeid on antud, puuduvad), ülesehitus 2 (lühikesed laused ilma sidenditeta), sõnavara 2 (puuduvad andmepäring, nõusolek, edastamine, kolmandad isikud), grammatika 1 („teie äpp” → teie äppi, „tahan teada minu andmed” → tahan teada, milliseid andmeid te minu kohta hoiate, „Kustutage minu andmeid” → minu andmed); toon on liiga käskiv. Kui õppija lisab tähtaja, viisaka palve (paluksin) ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-060': {
+    title: 'Kontroll 12 — kuulamine ja rääkimine (vahehindamine 3)',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma saan eksami vormis aru kaheksast lühiteatest, mida kuulen üks kord, ja umbes 3-minutilisest intervjuust ning räägin: ühe minuti arvamuse samades tingimustes nagu mooduli alguses ja arutelu, kus jõuan partneriga ühise reeglini; Harno lävi on 60 %.',
+    teacherPage: {
+      goal: 'Контроль модуля 12 (vahehindamine 3) на одном листе, 45 минут: аудирование (16 баллов) + говорение (18 баллов). Параллельная задача к холодной задаче урока 056, обсуждение с аналитической рубрикой.',
+      core: [1], alt: 1,
+      short: 'Если времени мало: аудирование (20 мин) в классе со всеми; говорение — парами в следующем уроке в тех же условиях (без подготовки дома).',
+      hook: 'Почему короткая форма, а не полный пробный экзамен: v5 §5 ставит в B2 060 полный экзамен, но v6 §2 g (blueprint курса: B2, урок 5 модуля = два навыка по очереди) для v6-модуля важнее; так же поступили с 040. Чтение и письмо уроков 41–55 проверены в 045–055, следующий полный экзамен — 080. Почему аудирование + говорение: контроль B2 чередует R + W и L + S (модуль 11 был R + W); холодная задача модуля устная (056_d_cold), поэтому и параллельная — устная; e-услуги, звонки мошенников и слухи в чате приходят к ученику как объявления и голосовые сообщения.',
+      plan: [
+        '0–2: инструкция, баллы и пороги (Harno 60 %, KeeleSepp 70 % и 80 %, ни одна часть не 0)',
+        '2–11: аудирование 1 — восемь коротких объявлений по 35–45 секунд, каждое один раз, 8 вопросов с выбором',
+        '11–22: аудирование 2 — интервью ≈ 3 минуты дважды, 8 пропусков по 1–3 слова (4 из них — перефразированы, не слово в слово)',
+        '22–45: говорение парами: 1 — параллельная задача (1 мин подумать, 1 мин говорить, новое утверждение); 2 — обсуждение по карточкам A / B, 4 минуты, общее правило; вы вносите новую информацию',
+      ],
+      sources: 'Объявления и интервью — учебные тексты KeeleSepp (Heino и организации вымышлены). Правила: 14 дней отказа при покупке в интернете (võlaõigusseadus), банк не спрашивает коды по телефону, digiabi в библиотеках.',
+      groups: 'Аудирование — все вместе, без словаря, запись заблокирована (объявления — 1 раз, интервью — 2 раза). Говорение — парами, остальные ждут вне класса или читают; в 1:1 партнёр — вы.',
+      errors: [
+        'Varasemast (≈ 25 % аудирования, v6 §2 f): объявление 2 — звонок «из банка» (модули 10–11: доверие, мошенничество), объявление 3 — отказ от интернет-покупки (урок 053), объявление 5 — слухи в чате дома (модуль 10: majagrupp), объявление 7 — пробный период и подписка (урок 051); в обсуждении — kompromiss и tingimusel, et (модули 10–11).',
+        'Сравнение с холодной задачей: положите рядом заметки (или запись) 056_d_cold и 060_t_cold и назовите ученику одно развитие и один следующий шаг.',
+      ],
+      notes: [
+        'Баллы: аудирование 8 + 8 = 16; говорение 1 — 6 баллов по трём строкам 0/1/2; говорение 2 — 12 баллов (4 критерия × 0–3). Всего 34. Harno 60 % = 21, KeeleSepp 70 % = 24, 80 % = 28. Ни одна часть не может быть 0 баллов.',
+      ],
+    },
+    // Methodology v5 + v6 (2026-11-26): one sheet, 45 minutes, ≤ 10 blocks, LISTENING + SPEAKING; points add up (v6 G20:
+    // L 8 + 8 items = 16 points; S 6 + 12 = the rubrics' maxima), the no-zero rule is stated (G21), the level is at least
+    // the lessons' (the interview ≈ 3 min ≥ 150 s, 4 of 8 gap answers paraphrased; clips 35–45 s heard once), the cold →
+    // parallel speaking is the same task with a new statement. The v4 full mock (three sheets, 30 blocks) stays hidden below.
+    discover: [
+      B.text('060_d_intro', 'Kontroll 12: kuulamine ja rääkimine (45 minutit)', 'Kontrollis on kaks osaoskust. Kuulamine (umbes 20 minutit): kaheksa lühiteadet, igaüht kuuled üks kord, ja intervjuu, mida kuuled kaks korda, kokku 16 punkti. Rääkimine (umbes 25 minutit, paaris): ühe minuti arvamus (6 punkti) ja arutelu (12 punkti) — kokku 18 punkti. Kokku 34 punkti. Harno: sooritatud alates 60 % (vähemalt 21 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (24 punkti), meie tunnistus alates 80 % (28 punkti) — see on sisemine lävi.'),
+      PART('060_d_lpart', 'L', { minutes: 20, points: 16, tasks: 2, note: 'Kuulamine 1: kaheksa lühiteadet, igaüks üks kord (8 punkti). Kuulamine 2: intervjuu kaks korda, 8 lünka (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      why(teach(tag(once(perClip(B.examListen('060_p_clips', 'Kuulamine 1: kaheksa lühiteadet (8 punkti).', 'Loe enne küsimus. Iga teadet kuuled ainult üks kord. Vali õige vastus.', 'choice', [
+        'Tähelepanu, raamatukogu külastajad! Alates järgmisest kuust saab meie teisel korrusel digiabi ka laupäeviti. Abistaja aitab ID-kaardi ja mobiilse lahendusega sisse logida, taotlusi täita ja dokumente allkirjastada. Abistaja ei tee asju teie eest, vaid näitab, kuidas neid tehakse. Palume aja eelnevalt broneerida telefoni teel või infoletis, sest ühe inimese kohta on aega pool tundi. Kaasa võtke oma ID-kaart ja vajaduse korral prillid. Koode me teilt ei küsi — need sisestate te ise. Digiabi on tasuta ja kestab kevadeni. Kui te ise helistada ei saa, võib aja teie eest broneerida ka lähedane.',
+        'Hea klient! Viimastel päevadel on meie klientidele helistanud inimesed, kes esinevad panga töötajana. Nad ütlevad, et teie kontoga on probleem, ja paluvad kinnitada makse või öelda koodi. Pank ei küsi kunagi telefonis teie koode ega palu teil raha turvalisele kontole kanda. Kui saite sellise kõne, lõpetage see kohe ja helistage ise panga numbril, mis on kirjas kaardi tagaküljel. Kui olete koodi juba öelnud, võtke meiega kohe ühendust. Pidage meeles: panga töötaja ei palu teil kunagi midagi kiiresti teha ega ähvarda konto sulgemisega.',
+        'Tere, siin e-pood Kodukaup. Teie tellitud tolmuimeja jõuab pakiautomaati homme. Kui toode ei sobi, võite neljateistkümne päeva jooksul lepingust taganeda. Selleks täitke meie kodulehel taganemisavaldus ja saatke toode tagasi originaalpakendis. Kui toode on terve ja töötab, maksab tagasisaatmise kulu ostja. Kui tootel on puudus, tasume saatmise ise. Raha kantakse teie kontole hiljemalt neljateistkümne päeva jooksul pärast avalduse saamist. Kui teil on küsimusi, kirjutage meie klienditeenindusele, mis vastab tööpäeviti kahe tunni jooksul.',
+        'Lugupeetud lapsevanemad! Alates uuest veerandist kehtib meie koolis tehisintellekti kasutamise kord. Kodutöödes võib vestlusrobotit kasutada ideede kogumiseks ja sõnade selgitamiseks, kuid iga töö lõppu kirjutab õpilane ühe lause selle kohta, kuidas ta robotit kasutas. Kontrolltöödes on robot keelatud. Õpilaste isikuandmeid ega hindeid robotisse ei sisestata. Küsimuste korral kirjutage klassijuhatajale e-koolis. Järgmisel kuul korraldab kool lapsevanematele ka infotunni, kus näidatakse, kuidas vestlusrobotit ohutult kasutada.',
+        'Head elanikud! Korteriühistu juhatus teatab, et maja vestlusrühmas on viimasel ajal jagatud teateid, mis ei ole tõesed. Vee sulgemise aeg ei muutu: vesi suletakse kolmapäeval kella kümnest kaheni. Ametlikud teated pannakse alati ka trepikoja stendile ja saadetakse e-postiga. Palume enne murettekitava teate edasisaatmist kontrollida, kas see on stendil. Vaidlusi palume rühmas mitte arutada, vaid kirjutada juhatusele. Kui vesi peaks mingil põhjusel kauem kinni olema, saadab juhatus kõigile korteritele kohe uue teate. Aitäh kõigile, kes aitavad hoida maja rühmas rahulikku õhkkonda!',
+        'Ja nüüd lühidalt tehnikauudistest. Populaarne treeningrakendus muutis oma tingimusi: edaspidi näevad kasutajate jooksuradu vaikimisi kõik. Andmekaitse spetsialistid soovitavad seaded üle vaadata, sest nii võib võõras inimene näha, kus sa elad ja millal sa kodust lahkud. Seadete muutmiseks avage profiil, valige privaatsus ja märkige „ainult mina”. Rakenduse esindaja ütles, et muudatusest teatati kõigile kasutajatele e-kirjaga. Kes ei soovi oma andmeid jagada, võib konto ka täielikult kustutada. Selleks tuleb saata rakendusele andmete kustutamise taotlus.',
+        'Hea klient! Teie muusikateenuse tasuta prooviaeg lõpeb kolme päeva pärast. Kui te tellimust ei tühista, muutub see automaatselt tasuliseks ja igakuine tasu võetakse teie kaardilt. Tellimuse saate tühistada rakenduse seadetes, kui valite „Minu konto” ja „Lõpeta tellimus”. Pärast tühistamist võite teenust kasutada prooviaja lõpuni. Kui teil on küsimusi, vastab meie klienditeenindus e-kirjale ühe tööpäeva jooksul. Kui soovite teenust edasi kasutada, ei pea te midagi tegema: tasu võetakse iga kuu samal kuupäeval. Hinnad leiate meie kodulehelt. Täname, et proovisite meie teenust!',
+        'Raadiouudiste lõpus üks parandus. Eile levis sotsiaalmeedias video, mille kohta väideti, et see näitab tormi Pärnu rannas. Meie toimetus kontrollis videot ja selgus, et see filmiti mitu aastat tagasi teises riigis. Pärnus eile tormi ei olnud ja rand on avatud nagu tavaliselt. Palume enne murettekitava video jagamist kontrollida, millal ja kus see tehti. Täpsemat infot leiate meie kodulehelt, kus on ka ilmateenistuse ametlik hoiatus. Täname kuulajaid, kes saatsid meile video kontrollimiseks, ja tuletame meelde: tõeline uudis ei kao tunniga kuhugi.',
+      ], [
+        ['1. Mida peab raamatukogu digiabi kasutaja enne tulekut tegema?', 'aja ette kokku leppima', 'oma koodid abistajale ütlema', 'tulema ainult laupäeval', 'tooma kaasa sülearvuti'],
+        ['2. Mida soovitab pank teha, kui keegi küsib telefonis sinu koodi?', 'kõne katkestama ja ise panka helistama', 'koodi ütlema ainult panga töötajale', 'raha turvalisele kontole kandma', 'ootama, kuni pank uuesti helistab'],
+        ['3. Millal maksab e-pood toote tagasisaatmise eest ise, mitte ostja?', 'kui tootel on viga', 'kui ostja saadab toote kahe päeva jooksul', 'alati, kui toode ei sobi', 'kui toode on originaalpakendis'],
+        ['4. Mida peab õpilane uue korra järgi koduse töö lõppu lisama?', 'selgituse, kuidas ta robotit kasutas', 'roboti vastuse koopia', 'vanema allkirja', 'klassijuhataja kinnituse'],
+        ['5. Kust saab elanik kontrollida, kas vestlusrühma teade on õige?', 'trepikoja teadetetahvlilt', 'maja vestlusrühmast', 'naabritelt küsides', 'veefirma kodulehelt'],
+        ['6. Miks soovitavad spetsialistid treeningrakenduse seadeid muuta?', 'võõras võib teada saada, millal kodu on tühi', 'rakendus muutub muidu tasuliseks', 'jooksurajad kustutatakse ilma loata', 'e-kirju tuleb muidu liiga palju'],
+        ['7. Mida peab klient tegema, et tema kaardilt raha ei võetaks?', 'tellimuse enne prooviaja lõppu lõpetama', 'kirjutama klienditeenindusele kaebuse', 'oma pangakaardi sulgema', 'ootama prooviaja lõpuni'],
+        ['8. Mida selgus videost, mida eile sotsiaalmeedias jagati?', 'see on vana ja tehtud mujal', 'Pärnu rand on tormi tõttu suletud', 'torm jõuab Pärnusse homme', 'video filmis raadio toimetus'],
+      ], 'g_listen', 1))), { task: 'L02', harno: 'L1' }),
+      'Kuulamine 1 nagu Harno B2 eksamil: iga teade 35–45 sekundit, kuulatakse üks kord, salvestis on lukus. Lase õppijatel enne iga teadet küsimus läbi lugeda (10 sekundit). Vastused on teiste sõnadega kui teates (broneerida → aja ette kokku leppida, puudus → viga, stend → teadetetahvel). Varasemast: teated 2, 3, 5 ja 7 kordavad moodulite 10–11 teemasid.'), [
+        'Teade 1: „Palume aja eelnevalt broneerida …” (aja broneerimine = aja ette kokku leppimine).',
+        'Teade 2: „lõpetage see kohe ja helistage ise panga numbril”. (Varasemast: moodulid 10–11.)',
+        'Teade 3: „Kui tootel on puudus, tasume saatmise ise.” (Varasemast: tund 53.)',
+        'Teade 4: „iga töö lõppu kirjutab õpilane ühe lause selle kohta, kuidas ta robotit kasutas”.',
+        'Teade 5: „Ametlikud teated pannakse alati ka trepikoja stendile.” (Varasemast: moodul 10, majagrupp.)',
+        'Teade 6: võõras võib näha, „kus sa elad ja millal sa kodust lahkud”.',
+        'Teade 7: „Kui te tellimust ei tühista, muutub see automaatselt tasuliseks.” (Varasemast: tund 51, tellimus ja prooviaeg.)',
+        'Teade 8: video „filmiti mitu aastat tagasi teises riigis”.',
+      ]),
+      why(teach(tag(twice(B.listening('060_p_listen', 'Kuulamine 2: raadiointervjuu (8 punkti).', 'Kuula intervjuud kaks korda. Kirjuta igasse lünka 1–3 sõna. Vastus võib olla teiste sõnadega kui intervjuus.', [
+        'Saatejuht: Tere! Täna on stuudios Heino, kes käib kord nädalas vabatahtlikuna raamatukogus eakaid digimaailmas aitamas. Heino, kuidas te selle tööni jõudsite?',
+        'Heino: Ma olin ise pensionil ja märkasin, et mu naabrid helistavad mulle iga kord, kui arvuti midagi küsib. Siis mõtlesin, et kui juba aitan, võiksin seda teha korralikult. Nüüd olen raamatukogus juba kolm aastat igal neljapäeval.',
+        'Saatejuht: Millega inimesed kõige sagedamini tulevad?',
+        'Heino: Kõige rohkem retseptide ja ID-kaardiga. Paljud ei tea, et retsepti ei pea paberil kaasas kandma. Teisel kohal on pangaasjad. Ja viimasel ajal küsitakse palju ka tehisintellekti kohta: lapselapsed kasutavad, vanaema tahab aru saada, mis see on.',
+        'Saatejuht: Mis on teie töö kõige tähtsam reegel?',
+        'Heino: Ma ei puuduta kunagi inimese hiirt ega klaviatuuri. Ma istun kõrval ja seletan. Kui ma teen ise, on asi küll kiiresti tehtud, aga järgmisel nädalal tuleb inimene sama murega tagasi. Kui ta vajutab ise, jääb see meelde.',
+        'Saatejuht: Ja koodid?',
+        'Heino: Koode ma ei vaata ega kirjuta üles. Palun inimesel need ise sisestada ja pööran end selleks ajaks ära. See on usalduse küsimus.',
+        'Saatejuht: Mis on kõige suurem takistus?',
+        'Heino: Hirm. Inimene kardab, et vajutab valesti ja kaotab raha. Seepärast alustame alati millestki ohutust, näiteks vaatame ilmateadet või raamatukogu lahtiolekuaegu. Kui esimene õnnestumine on käes, läheb edasi palju kergemini.',
+        'Saatejuht: Kas teie juurde tuleb ka nooremaid inimesi?',
+        'Heino: Tuleb küll. Eelmisel kuul tuli kolmekümneaastane mees, kes oli just Eestisse kolinud. Arvutit oskas ta paremini kui mina, aga ametlikest sõnadest ei saanud ta aru. Me istusime koos tund aega ja tegime talle väikese sõnastiku. Nüüd saadab ta mulle vahel sõnumi, et sai jälle ise hakkama.',
+        'Saatejuht: Kas olete ka ise midagi õppinud?',
+        'Heino: Väga palju. Näiteks kannatlikkust. Ja seda, et ametlikku teksti tuleb seletada lihtsas keeles. Kui kirjas on „taotluse menetlemine”, siis ma ütlen: riik vaatab su avalduse läbi. Inimese nägu läheb kohe rõõmsamaks.',
+        'Saatejuht: Mida soovitaksite neile, kes tahaksid samuti aidata?',
+        'Heino: Alustage oma majast. Igas trepikojas on keegi, kes vajab abi, aga ei julge küsida. Pange stendile väike teade ja kirjutage, millal te kodus olete. Ja ärge kunagi öelge „see on ju lihtne”. Inimesele, kes teeb seda esimest korda, ei ole see lihtne.',
+        'Saatejuht: Aitäh, Heino!',
+      ], [
+        'Heino aitab raamatukogus inimesi igal [neljapäeval].',
+        'Kõige sagedamini on inimestel küsimusi retseptide ja [ID-kaardi|ID-kaardiga] kohta.',
+        'Kui inimene teeb ise, ei pea ta järgmisel nädalal sama murega [tagasi tulema|uuesti tulema].',
+        'Kui inimene sisestab koode, vaatab Heino [mujale|teisele poole].',
+        'Kõige suurem takistus on inimeste [hirm].',
+        'Kui esimene asi [õnnestub|läheb hästi|läheb korda], on edasi palju kergem.',
+        'Ametliku teksti asemel kasutab Heino [lihtsat keelt|lihtsaid sõnu].',
+        'Heino soovitab uutel abistajatel alustada [oma majast].',
+      ], 'g_listen')), { voice: 'interview', task: 'L04', harno: 'L3' }),
+      'Kuulamine 2 (≈ 3 minutit, kaks korda, salvestis lukus). Lüngad 3, 4, 6 ja 7 on ümbersõnastatud (vastus ei ole intervjuus sõna-sõnalt): aktsepteeri iga sisult õiget 1–3-sõnalist vastust. Kontrolli taset: salvestis on pikem kui tundide klipid ja sama pikk kui tundide raadiosaated (v6 G20).'), [
+        'Heino: „olen raamatukogus juba kolm aastat igal neljapäeval”.',
+        'Heino: „Kõige rohkem retseptide ja ID-kaardiga.”',
+        'Ümbersõnastatud: „järgmisel nädalal tuleb inimene sama murega tagasi” → ei pea tagasi tulema.',
+        'Ümbersõnastatud: „pööran end selleks ajaks ära” → vaatab mujale.',
+        'Heino: „Hirm.”',
+        'Ümbersõnastatud: „Kui esimene õnnestumine on käes” → kui esimene asi õnnestub.',
+        'Ümbersõnastatud: „ametlikku teksti tuleb seletada lihtsas keeles” → lihtsat keelt.',
+        'Heino: „Alustage oma majast.”',
+      ]),
+      PART('060_t_spart', 'S', { minutes: 25, points: 18, tasks: 2, note: 'Rääkimine 1 (6 punkti): kolm rida 0–2 — samad tingimused nagu mooduli külmas alguses (tund 56). Rääkimine 2 (12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: kuulamine … / 16 + rääkimine … / 18 = … / 34.' }),
+      teach(tag(inLesson(B.speaking('060_t_cold', 'Rääkimine 1: arvamus ühe minutiga (6 punkti).', 'Väide: „Sotsiaalmeedia teeb inimesi pigem üksildaseks, kui ühendab neid.” Mõtle 1 minut. Räägi 1 minut: seisukoht, põhjus, näide, vastuargument.', [
+        'Kas oled väitega nõus? Miks?',
+        'Too üks näide oma elust või tuttava elust.',
+        'Mida ütleks keegi, kes arvab teisiti?',
+      ], [60, 90], '', 'g_use')), { task: 'S11', harno: 'S1', fluency: true }),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-056 (1 minut mõtlemiseks, 1 minut rääkimiseks, fraase ega algust ei ole), uus väide samast teemast. Hinda kolme rea järgi 0–2 (hindamine all). Võrdle külma alguse märkmetega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
+      keepPlace(B.rubric('060_t_rubric', 'Hindamine: rääkimine 1 (6 punkti).', 'Iga rida 0–2 punkti.', ['Seisukoht esimeses lauses, põhjus ja näide (0–2).', 'Vastuargument ja vastus sellele (0–2).', 'Keel: sidendid (kuigi …, siiski; seetõttu) ja mooduli vormid (tehakse, jagati, andmete kogumine) (0–2).'])),
+      B.planning('060_t_prep', 'Rääkimine 2: ettevalmistus (1 minut).', 'Loe oma kaarti. Kirjuta märksõnadega kaks argumenti ja üks näide. Punkte selle eest ei anta.', ['Minu seisukoht:', 'Argumendid ja näide:', 'Mida ma võin partnerile järele anda (tingimusel, et …)?'], 2),
+      teach(tag(B.rolecards('060_t_debate', 'Rääkimine 2: arutelu argumendikaartidega (4 minutit, 12 punkti).', 'Lugege oma kaarti. Öelge alguses oma seisukoht. Arutage 4 minutit ja jõudke ühise reeglini.',
+        'Kaart A. Teema: kas keelekursusel peaks tehisintellekti kasutamine kodutöödes olema lubatud? Sina oled pigem poolt: robot seletab sõnu ka öösel; kirja mustandi parandamine aitab vigu näha; keelamine ei aita, sest kodus kasutatakse seda niikuinii. Lisa üks oma näide.',
+        'Kaart B. Sina oled pigem vastu: õppija ei õpi, kui robot kirjutab tema eest; õpetaja ei näe, mida õppija päriselt oskab; isikuandmete sisestamine on oht. Lisa üks oma näide.',
+        ['Minu arvates peaks …, sest …', 'Ma saan aru, mida sa mõtled, aga …', 'Kas me võiksime kokku leppida, et …?'],
+        ['Ma ei ole päris nõus, sest …', 'Näiteks …', 'Olgu, aga ainult tingimusel, et …']), { task: 'S17', harno: 'S2' }),
+      'Arutelu 4 minutit (paaris; üks-ühele oled sina partner). Varjatud info (ütle teise minuti lõpus): „Eelmisel nädalal leiti kahest kodutööst täpselt sama roboti tekst.” Õppijad peavad sellele reageerima ja lisama reeglisse tingimuse (näiteks: robotit võib kasutada, kui kodutöö lõppu kirjutatakse, kuidas seda kasutati). Hinda all oleva juhendiga (4 × 0–3).'),
+      keepPlace(teach({ ...B.rubricSpeaking('060_t_srubric', 'Hindamine: rääkimine 2 (12 punkti).'), goal: 'g_use', data: { ...B.rubricSpeaking('060_t_srubric').data, title: 'Hindamine: rääkimine 2 (12 punkti).', instruction: 'Neli kriteeriumi, igaüks 0–3 punkti, kokku 12.', criteria: SPEAKING_12.map(([name, hint]) => ({ name, max: 3, hint })) } },
+        'Hinda arutelu nelja kriteeriumi järgi (0–3). Piiripealne näidis (≈ 7/12): õppija ütleb seisukoha ja ühe põhjuse, aga ei reageeri partneri argumendile ega uuele infole (ülesanne 1), räägib pausidega (2), sõnavara on piisav (2), vead ei takista (2). Mooduli keel on grammatika kriteeriumi osa: umbisikuline (tehakse, ei anta), -mine (isikuandmete sisestamine), minevik (jagati, on kinnitatud). Kontrolli tulemus = kuulamine … / 16 + rääkimine 1 … / 6 + rääkimine 2 … / 12.')),
+    ],
+  },
+}), {
+  'b1b2-056': 'LUGE R→S', 'b1b2-057': 'KUUL L→S', 'b1b2-058': 'AVAS R→S', 'b1b2-059': 'PROJ L→W', 'b1b2-060': 'EKS',
+}));
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v6 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
