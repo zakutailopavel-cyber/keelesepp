@@ -21,7 +21,7 @@ from estnltk.vabamorf.morf import spellcheck
 WORD = re.compile(r"[A-Za-zÕÄÖÜŠŽõäöüšž]+(?:-[A-Za-zÕÄÖÜŠŽõäöüšž]+)*")
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
 SKIP_KEYS = {'wrong', 'source', 'hint', 'img', 'audio', 'src', 'theme', 'tone', 'width', 'goal', 'id', 'type', 'answer_ru',
-             'kind', 'layout', 'showBank', 'columns', 'style', 'mode', 'shape'}
+             'kind', 'layout', 'showBank', 'columns', 'style', 'mode', 'shape', 'taskType'}
 # grammar terms of the explanations (endings, form names) and English words that only appear as technical values
 GRAMMAR = re.compile(r"^(?:da|des|tavat|tav|tud|nud|vat|ga|le|sse|ks|lt|ni|sin|us|ti|di|dud|hta|hti|htud|htaks|daks|dakse|hakse|miseks|ok|võrd)(?:-.*)?$")
 TECHNICAL = {'true', 'false', 'yes', 'no', 'flow', 'wide', 'compare', 'timeline', 'venn', 'tree', 'drive', 'kiss', 'full', 'half'}

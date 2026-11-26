@@ -136,7 +136,7 @@ const SCENE_LEAD_INS = new Set(['notice', 'tip', 'text', 'heading', 'phrasebank'
 const OWN_PICTURES = new Set(['image', 'picmatch', 'pictures', 'scenelabel', 'picrows']);
 const NOT_READ = new Set(['teacher', 'explain', 'transcript', 'audio', 'img', 'alt', 'caption']);
 const added = (block) => Boolean(block?.data?.artId || block?.data?.artFor);
-const isLeadIn = (block) => SCENE_LEAD_INS.has(block?.type) && !block?.data?.review && !added(block);
+const isLeadIn = (block) => SCENE_LEAD_INS.has(block?.type) && !(block?.type === 'tip' && block?.data?.review) && !added(block);
 const readText = (value) => (typeof value === 'string' ? value : Array.isArray(value) ? value.map(readText).join(' ')
   : value && typeof value === 'object' ? Object.entries(value).filter(([key]) => !NOT_READ.has(key)).map(([, item]) => readText(item)).join(' ') : '');
 const talksAboutPicture = (block) => !added(block) && !OWN_PICTURES.has(block?.type) && !block?.data?.img && /\bpil(t|di|ti)/i.test(readText(block?.data));
