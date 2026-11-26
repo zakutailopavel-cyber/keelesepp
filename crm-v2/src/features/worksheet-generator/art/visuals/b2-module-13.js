@@ -1,6 +1,6 @@
-// Visual briefs of b1b2 module 13; 2026-11-26 (v6): the same five pictures, new places — 061, 062 and 064 on Avasta before
-// the scheme, 063 on Kasuta before the debate, 065 kept on its own phase (as 055 / 060 in modules 11–12): on the one-sheet
-// control it would leave a page half empty.
+// Visual briefs of b1b2 module 13; 2026-11-26 (v6): four of the five pictures, new places — 061 and 064 on Avasta before the
+// scheme, 063 (the evaluation matrix) on Avasta before the article, 065 kept on its own phase (as 055 / 060 in modules
+// 11–12): on the one-sheet control it would leave a page half empty. 062's picture is in RETIRED (page balance).
 // Visual briefs of b1b2 module 13; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
 // Learner-facing text (scene, alt, caption, prompts) without the course cast since 2026-11-19 (task-based module 13,
 // docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. The same five pictures are kept
@@ -24,30 +24,15 @@ export default [
     prompts: ["Kuhu jõuab pildil pakend, mis jääb sorteerimata?", "Mis muutub, kui koored lähevad eraldi konteinerisse?", "Mis on sinu maja kõige suurem takistus: kaugus, juhis või ruum?"],
   },
   {
-    id: "b1b2-062-avasta-1",
-    phase: "discover",
-    format: "scene",
-    cast: ["Anna", "Markus"],
-    // 2026-11-19 (v4): the former 064 picture (food-waste chain), moved to the food lesson; file swapped with the street trees
-    scene: "Köögilaual analüüsivad kaks inimest toidu raiskamise ahelat: liiga suur ostukorv, riknenud toit, raisatud vesi ja energia ning prügila. Lahenduse poolel on ostunimekiri, õige hoidmine külmkapis ja ülejääkidest uus söök.",
-    accent: "the meal made from usable leftovers",
-    text: [],
-    place: "062_d_scheme",
-    learningJob: "seletada toidu raiskamise põhjusi ja tagajärgi ning siduda lahendus põhjusega",
-    alt: "Kaks inimest vaatavad köögis skeemi: ostukorvist ja riknenud toidust prügilani ning ostunimekirjast ülejääkide söögini.",
-    caption: "Pilt 1. Liigsete ostude tõttu läheb toit raisku; tänu nimekirjale läheb raisku vähem.",
-    prompts: ["Mis on pildil toidu raiskamise põhjus ja mis on tagajärg?", "Milline lahendus vastab millisele põhjusele?", "Mis sinu köögis kõige sagedamini raisku läheb ja mille tõttu?"],
-  },
-  {
     id: "b1b2-063-kasuta-1",
-    phase: "transfer",
+    phase: "discover",
     format: "scene",
     cast: ["Liis", "Markus"],
     // 2026-11-19 (v4): the same picture, retargeted from a firm's green budget to weighing choices in the energy transition
     scene: "Koosolekul võrdlevad kaks inimest tahvlil nelja lahendust: päikesepaneelid, elektrirattad, energiasääst ja taimne toit. Tabel hindab iga lahendust mõju, hinna, aja ja mugavuse järgi.",
     accent: "the chosen high-impact combination on the evaluation matrix",
     text: [],
-    place: "063_t_debate",
+    place: "063_d_text",
     learningJob: "võrrelda lahendusi mitme kriteeriumi järgi ja jõuda ühise seisukohani",
     alt: "Kaks inimest hindavad koosolekul tahvlil nelja lahendust mõju, hinna, aja ja mugavuse järgi.",
     caption: "Pilt 1. Iga lahendus maksab midagi: raha, aega või mugavust.",
@@ -82,5 +67,25 @@ export default [
     alt: "Õppija ja õpetaja vaatavad pärast kontrolli tahvlilt, mis on käes ja mida harjutada.",
     caption: "Pilt 1. Kontrolli tulemus näitab järgmise sammu.",
     prompts: ["Mis on pildil tahvli järgi juba käes ja mis vajab harjutamist?", "Millist oskust sina pärast seda moodulit kõige rohkem harjutaksid?", "Kuidas on su kirjutamine mooduli algusest muutunud?"],
+  },
+];
+
+// 2026-11-26 (v6): the food-waste chain of 062 left the sheet — the Avasta sheet holds the scheme beside the words and the
+// radio on two full pages, and a picture page alone was 59 % full (owner: every last page ≥ 70 %). The file stays in public/.
+export const RETIRED = [
+  {
+    id: "b1b2-062-avasta-1",
+    phase: "discover",
+    format: "scene",
+    cast: ["Anna", "Markus"],
+    // 2026-11-19 (v4): the former 064 picture (food-waste chain), moved to the food lesson; file swapped with the street trees
+    scene: "Köögilaual analüüsivad kaks inimest toidu raiskamise ahelat: liiga suur ostukorv, riknenud toit, raisatud vesi ja energia ning prügila. Lahenduse poolel on ostunimekiri, õige hoidmine külmkapis ja ülejääkidest uus söök.",
+    accent: "the meal made from usable leftovers",
+    text: [],
+    place: "062_d_scheme",
+    learningJob: "seletada toidu raiskamise põhjusi ja tagajärgi ning siduda lahendus põhjusega",
+    alt: "Kaks inimest vaatavad köögis skeemi: ostukorvist ja riknenud toidust prügilani ning ostunimekirjast ülejääkide söögini.",
+    caption: "Pilt 1. Liigsete ostude tõttu läheb toit raisku; tänu nimekirjale läheb raisku vähem.",
+    prompts: ["Mis on pildil toidu raiskamise põhjus ja mis on tagajärg?", "Milline lahendus vastab millisele põhjusele?", "Mis sinu köögis kõige sagedamini raisku läheb ja mille tõttu?"],
   },
 ];
