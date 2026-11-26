@@ -89,7 +89,7 @@ export function sheetProblems(doc) {
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
   // tasks a sheet; the textbook picture added to the sheet is not counted
   const v3 = fullerTemplate(doc.meta) && !doc.meta?.assessment;
-  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review).length;
+  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !(b.type === 'tip' && b.data?.review)).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
   const maxOwn = isTheory(doc) ? V3.theoryBlocks : V3.blocks[1];
   // methodology v5 (meta.methodV5, strictModulesV5.json): the lesson budget (methodV5.js G1) replaces the block count

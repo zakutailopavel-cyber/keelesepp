@@ -1,40 +1,42 @@
-// B2 course (B1 → B2 roadmap), module 11 „Raha ja tarbimine” (b1b2-051…055), stage B2- (roadmap levelStage B1+/B2-; a
-// step up from module 10: homework 160–180 words, participle phrases and concession in the language focus, a B2 opener).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–10. Module goal (the learner): „Ma oskan oma raha üle ise otsustada: leian eelarvest lekked,
-// tunnen ära müügivõtted, kasutan oma õigusi netiostu puhul ja kaalun enne laenu või järelmaksu plusse ja miinuseid”;
-// module product „Minu viis rahareeglit” (054 Kasuta, the S1 one-minute talk in 055). Money from the learner's own angle:
-// his month, a sale sign, a parcel that does not fit, a broken washing machine. Nobody is asked for real income or debts:
-// every task works with a typical or invented household. A themed module (MODULE.theme 'money', §7.1 rule 7, like module 6
-// „Tööelu” and module 9 „Tervis”): every lesson has the topic money with its own sub-topic. Not repeated from earlier
-// modules: food labels and the shopping basket (9), a complaint to a service (2), a phone scam (3), lending money to a
-// friend (10), who pays for learning (7), a 200 € trip (8).
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 11).
-// One format a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   051 facts    „Kuhu kaob raha enne kuu lõppu?”                           budget      final plan: a family's leak plan
-//   052 game     „„–70 % ainult täna!” Kas Black Friday on päriselt soodne?” sales       final advise: a friend's offers
-//   053 case     „Netist tellitud jope ei sobi — kas raha tuleb tagasi?”     returns     final complain: the e-shop (W13 at home)
-//   054 debate   „Pesumasin läks katki: säästud, järelmaks või kiirlaen?”    credit      final decide: debate and vote (S17)
-//   055 exam     Kontroll 11 in Harno B2 form + „Minu viis rahareeglit” as the S1 one-minute talk.
-// Grammar line of the module (old v2 file and docs/METHODOLOGY_STANDARD.md §5–§7: total vs partial object and subject;
-// participles as attributes; the impersonal in terms and the conditional in claims; a weighed opinion), by discovery and
-// spiralled: total vs partial object and subject (tühistasin tellimuse / ei tühistanud tellimust; raha ei jäänud üle;
-// arveid tuli palju) (051; back in 053's letter and 055); participles as attributes — -v, -tav, -tud, -nud with their own
-// phrase (kehtiv pakkumine, enne alandust küsitud hind, automaatselt pikenev leping) (052; back in 053's radio and terms,
-// 055); the impersonal in terms and the conditional in polite claims (raha tagastatakse, kaupa ei vahetata; paluksin,
-// oleksin tänulik, kas saaksite) (053, after module 4's impersonal; back in 055's R3 letter); a weighed opinion with
-// concession (kuigi … siiski, küll … aga, seevastu, ühest küljest … teisest küljest) (054; back in 055's essay and debate).
-// The one long text of the module is the topic opener (051 station 2, ≈ 340 words, after a 10-minute hook and pre-taught
-// words). The course's cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js (053 without g_listen: it has one recording, like 046 in module 10) and the
-// archetype set of COURSE_FINAL_SHAPE_B2 §4.1 row 11 in a new order (the topic needs it): 051 LUGU R→W, 052 PROB L→S,
-// 053 KUUL L→W, 054 AVAS R→S; exam corners R1 (051), L1 (052), R2b (053), W2b (054). The v2 storyline version (Kohvik Mets,
-// „Kokk Pluss”, the sofa from „Mööblimaailm”, the bank meeting) is in git history before 2026-11-19.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B2 course (B1 → B2 roadmap), module 11 „Raha ja tarbimine” (b1b2-051…055), stage B2-.
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25):
+// the first B2 module written to v6, the pattern for modules 12–16. On the v3 station engine with the v4 task formats.
+// Module goal (the learner): „Ma oskan oma raha üle ise otsustada: leian eelarvest lekked, tunnen ära müügivõtted, kasutan
+// oma õigusi netiostu puhul ja kaalun enne järelmaksu või laenu kogukulu.” Nobody tells his real income or debts: every
+// task works with a typical or invented household (NO_FIGURES on the teacher pages).
+//   Avasta  (4): station 1 — 051 the module's COLD TASK in writing (5 min, 5–7 sentences, no phrases), 052–054 the 5-min
+//                „Parandatud versioon” of the previous lesson's draft (data.revisionOf, v6 G16); station 2 the words (10
+//                + 3 review words from 3–15 lessons back, data.review, v6 G18), ONE input and one scheme — reading
+//                ≈ 470–510 words with 3 inference questions (051 article „Kuhu kaob raha enne kuu lõppu?”, 053 an e-shop's
+//                terms in real-document style + the real TTJA page) or listening ≈ 3.5–4 min, 2 voices (052 „Tarbija
+//                tund”, 054 „Rahakool”), a reading / listening strategy line in the instruction (predict, key words,
+//                skim → scan).
+//   Harjuta (4): station 3 the rule box (B1 one-line review, B2 step, one L1-contrast line „Vene keeles …”), one form task
+//                of 10 items that PRODUCES the rule box's bold forms (hint = dictionary form or the meaning, never the
+//                answer; v6 G15), one second task of 8 rows, and the 10-min DRAFT of the home text's first paragraph in
+//                class with feedback on one criterion (v6 G16; the teacher marks three sentences for the next lesson).
+//   Kasuta  (5): station 4 the main task — a different type every lesson (v6 G17): 051 ranking, 052 jigsaw, 053
+//                mediation, 054 debate — each with an „Abikaart” and a „Lisaväljakutse” on the card (data.support /
+//                data.stretch, v6 G24) and hidden information on the teacher's card (v5 G9); the EXIT = 30–60 s of speech
+//                performing the can-do (v6 G14); the self-check with 3 criteria rated 0–1–2 and one own sentence as
+//                evidence; the home text (finish the draft, ~140 / ~180 words, 1-min voice message, „Harjuta → moodul
+//                11”); the analytic Harno B2 rubric with a borderline sample (v5 G10).
+//   051 facts   „Kuhu kaob raha enne kuu lõppu?”                   reading   total vs partial object and subject   ranking
+//   052 game    „„–70 % ainult täna!” Kas Black Friday …?”          radio     participles as attributes            jigsaw
+//   053 case    „Netist tellitud jope ei sobi — kas raha tuleb …?”  e-terms   impersonal + polite conditional      mediation
+//   054 debate  „Pesumasin läks katki: säästud, järelmaks või …?”   radio     concession (kuigi … siiski, küll … aga) debate
+//   055 exam    Module control: one sheet, 45 min, READING + WRITING (m7 L + W, m8 R + S, m9 R + W, m10 L + S). Why R + W:
+//                the B2 control alternates R + W / L + S (m10 was L + S); the module's cold task is written, so its
+//                parallel task is written; money and consumer rights reach the learner as documents to read (terms,
+//                offers, fine print) and are answered in writing (a claim to a service provider = Harno B2 W1).
+// Real network (v6 G25): peer exchange 052_t_msg (a classmate answers with two stars and a wish), media log 054_t_argue
+// („Minu eesti keele võrgustik”), real source 053_t_claim (TTJA, https://www.ttja.ee, a 3-item task — the page was not
+// opened by the author). Mediation 053_t_explain, jigsaw 052_t_jigsaw (v6 §2 l). Texts are adapted learning texts
+// („KeeleSepp õppetekst”) without exact statistics (owner 2026-11-25); no story cast, no dictation, no „Kas teadsid?”.
+// Kept: lesson ids, titles, topics, the v4 formats; the v4 lessons of 2026-11-19 are kept below as V4 and every block that
+// is not on a v6 sheet is taken from there with retire() (hidden, id and learners' answers kept, old explanations in
+// OLD_WHY). A kept id keeps its block type.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -45,7 +47,7 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every v4 lesson (hidden since v6: the home task is the text on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 11. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
@@ -60,7 +62,64 @@ export const MODULE = { id: 'b1b2-module-11', course: 'b2', title: 'Raha ja tarb
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
-export const LESSONS = withShapes({
+// ---- v6 helpers ------------------------------------------------------------------------------------------------------
+// G18: the vocab block brings back three old words (3–15 lessons back); they are named on the sheet and used in the input
+const withReview = (b, review) => ({ ...b, data: { ...b.data, title: `${b.data.title} Kordamiseks: ${review.join(', ')}.`, review } });
+// G17 / G24: the main task of Kasuta — its type, the „Abikaart” (2–3 sentence starters) and the „Lisaväljakutse” line;
+// both are printed on the learner's card too (the fold-out card is UI work, v6 §2 i)
+const mainTask = (b, taskType, support, stretch, tags = {}) => tag({ ...b, data: { ...b.data, taskType, support, stretch } }, { main: true, level: 4, ...tags });
+// G16: the 5-min „Parandatud versioon” that opens lessons 052–054 (replaces the warm-up statement, not an extra block)
+const revision = (id, of, instruction) => {
+  const b = B.writing(id, 'Parandatud versioon.', instruction, [3, 4]);
+  return teach(tag({ ...b, data: { ...b.data, revisionOf: of } }, { task: 'W10' }),
+    '„Parandatud versioon” (5 minutit, v6): õppija kirjutab ümber kolm lauset, mille sa eelmise tunni mustandis või kodutekstis märkisid (ainult märgi, ära paranda ise), ja ütleb ühe reaga, mis muutus. Kontrolli kohe: kas viga on parandatud? Korduv viga läheb õppija „Minu vead” nimekirja Harjutas. Kui õppija kodutööd ei teinud, parandab ta tunni mustandi kolm lauset.');
+};
+// G16: the in-class draft of the home text's first paragraph (≈ 10 min, feedback on one rubric criterion)
+const draft = (id, title, instruction, criterion, range = [5, 7]) => teach(tag(B.writing(id, `Mustand tunnis: ${title} (10 minutit).`, instruction, range), { task: 'W11', level: 3 }),
+  `Mustand tunnis, 10 minutit (v6): see on kodutöö esimene lõik. Tagasiside ainult ühele kriteeriumile — ${criterion}. Märgi kolm lauset (ära paranda): järgmise tunni alguses kirjutab õppija need ümber („Parandatud versioon”). Paaris: kaaslane loeb ja ütleb hindamisjuhendi selle rea järgi üht head ja üht parandust. Kui aega jääb vähe, piisab kolmest lausest.`);
+// G14: the exit — 30–60 s of speech performing the lesson's can-do (the main task's skill), done in class
+const exitTalk = (id, instruction, questions, note) => teach(tag(exitCheck(inLesson(B.speaking(id, 'Väljumine: 30 sekundit.', instruction, questions, [30, 60]))), { task: 'S11', fluency: true }),
+  `Väljumiskontroll (v6 G14), 3 minutit: üks sooritus tunni oskusest, mitte vormiküsimused. Kuula, ära sega vahele. ${note} Lõpus üks tugevus ja üks parandus.`);
+// G24: the self-check — three success criteria rated 0–1–2 and one own sentence as evidence
+const selfCheck = (id, criteria, stamp, titleMore) => {
+  const b = B.selfcheck(id, criteria, stamp, titleMore);
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0 — veel mitte, 1 — osaliselt, 2 — jah. Kirjuta alla üks oma lause, mis seda tõendab.', criteria, evidence: true } };
+};
+// the home text: the draft finished at home + the 1-min voice message + Harjuta (v6 G18); the sheet gives few lines
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// G25: the module's peer exchange (a classmate reads the product and answers) and media log („Minu eesti keele võrgustik”)
+const peerReply = (b) => ({ ...b, data: { ...b.data, peerReply: 'Kursusekaaslane loeb teksti ja vastab: kaks tugevat kohta ja üks soov (hindamisjuhendi järgi).', realAddressee: 'kursusekaaslane' } });
+const mediaLog = (b) => ({ ...b, data: { ...b.data, mediaLog: true } });
+// G19: a free rewrite (register, politeness) is checked by the teacher
+const openRewrite = (b) => ({ ...b, data: { ...b.data, open: true } });
+const HARJUTA = 'Harjuta → moodul 11: sõnad ja vormid (10 min).';
+
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 1–10, 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (sihitis, kesksõna, umbisikuline, tingiv, möönev sidend ja sõnajärg selle järel) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = true) => {
+  const b = B.rubricW2(id, title);
+  return teach({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Kontrolli oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, sample);
+};
+
+// why a v4 block left the sheet
+const CUT_HOOK = 'v5/v6: station 1 is the cold task (051) or the 5-min „Parandatud versioon” (052–054); the hook text and the warm-up talk merged into it';
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) or a second input';
+const CUT_DRILL = 'exit gaps → Harjuta (v6 G14: the exit is a 30–60-s performance of the can-do, not three form items)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home text on the sheet carries the 1-min voice message and the Harjuta link (v5 §3, v6 G18)';
+const CUT_OLDTASK = 'v4 task replaced by the v6 task of the same station (new id, other block type)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, reading + writing (v5 §5)';
+
+// the v4 lessons of 2026-11-19 („task-based”): the source of every block that is not on a v6 sheet
+const V4 = {
   'b1b2-051': {
     title: 'Kuhu kaob raha enne kuu lõppu?',
     phases: grammar('Keel: täis- või osasihitis ja -alus — tühistasin tellimuse / ei tühistanud tellimust; raha ei jäänud üle; arveid tuli palju'),
@@ -719,14 +778,10 @@ export const LESSONS = withShapes({
       B.selfcheck('055_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Moodul 11 läbitud'),
     ],
   },
-}, {
-  'b1b2-051': 'LUGU R→W', 'b1b2-052': 'PROB L→S', 'b1b2-053': 'KUUL L→W', 'b1b2-054': 'AVAS R→S', 'b1b2-055': 'EKS',
-});
+};
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the v4 explanations (EXPLAIN until 2026-11-26), kept with the retired blocks
+const OLD_WHY = {
   // 051
   '051_d_facts': [
     '1. lõik: „Raha kaob sageli hoopis väikeste summade kaupa, mida me ei märka.”',
@@ -939,3 +994,851 @@ export const EXPLAIN = {
     'Õige: „Lapsed näevad, kuidas te poes otsustate, palju rohkem, kui te arvate.”',
   ],
 };
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id, reason) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module11: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reason);
+};
+
+// the purpose of every task („kes, kellele, mis tulemus”, stations.js st-purpose) for the teacher page — not printed in the
+// instruction (v6 §2 e, G22: the instruction stays ≤ 25 words)
+const PURPOSE = {
+  '051_d_cold': 'Õpetaja näeb mooduli alguses, kuidas sa praegu arvamust kirjutad.',
+  '051_d_text': 'Tead pärast lugemist, kuhu pere raha märkamatult kaob.',
+  '051_d_scheme': 'Skeemist näed, kus väikese kulu ahela saab katkestada.',
+  '051_p_forms': 'Sõbranna kokkuvõttest saab elukaaslane aru, mis on tehtud ja mis mitte.',
+  '051_p_fix': 'Pereliige saab sõnumist õigesti aru, mis on makstud ja mis mitte.',
+  '051_p_draft': 'Kirja esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '051_t_rank': 'Pere teab kolme sammu ja seda, kui palju raha kuus üle jääb.',
+  '051_t_say': 'Näitad 30 sekundiga, et oskad pereliikmele lekkeid ja sammu selgitada.',
+  '051_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '051_t_mail': 'Pereliige saab kirjast aru, kuhu raha kaob ja mida te koos muudate.',
+  '051_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '052_d_revise': 'Sinu kiri pereliikmele saab paremaks ja sa näed oma vigu.',
+  '052_d_radio': 'Kuuled nõustajalt, milliseid müügivõtteid sooduspäevadel kasutatakse.',
+  '052_d_scheme': 'Skeemist tead, mida enne ostu iga reklaami puhul kontrollida.',
+  '052_p_forms': 'Ostja märkmetes on pakkumise tingimused lühidalt ja täpselt kirjas.',
+  '052_p_part': 'Sõnum sõbrale on lühem ja täpsem, kui kasutad kesksõnu.',
+  '052_p_draft': 'Sõnumi esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '052_t_jigsaw': 'Sõber saab põhjendatud soovituse, kumb pakkumine on tegelikult soodsam.',
+  '052_t_say': 'Näitad 30 sekundiga, et oskad sõbrale pakkumist soovitada.',
+  '052_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '052_t_msg': 'Sõber ei osta tarbetut asja ja kursusekaaslane annab sulle tagasisidet.',
+  '052_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '053_d_revise': 'Sinu sõnum sõbrale saab paremaks ja sa näed oma vigu.',
+  '053_d_terms': 'Tead pärast lugemist, millal ja kuidas netiostust raha tagasi saab.',
+  '053_d_scheme': 'Otsustuspuu aitab naabrile samm-sammult seletada, mida teha.',
+  '053_p_forms': 'Saad aru poe tingimustest ja kirjutad poele viisaka nõude.',
+  '053_p_polite': 'E-pood loeb sinu kirja ja vastab, sest toon on viisakas ja kindel.',
+  '053_p_draft': 'Taganemisteate algus on valmis ja õpetaja märgib kolm lauset.',
+  '053_t_explain': 'Naaber saab aru, mida pood kirjutas, ja teab, mida täna teha.',
+  '053_t_say': 'Näitad 30 sekundiga, et oskad naabrile kolm sammu selgitada.',
+  '053_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '053_t_claim': 'E-pood saab sinu kirjast aru ja tagastab raha õigeaegselt.',
+  '053_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '054_d_revise': 'Sinu taganemisteade saab paremaks ja sa näed oma vigu.',
+  '054_d_radio': 'Kuuled võlanõustajalt, millele mõelda enne järelmaksu või laenu.',
+  '054_d_scheme': 'Valemist näed, miks väike kuumakse võib olla kallis.',
+  '054_p_forms': 'Foorumi lugeja näeb, et sa kaalud mõlemat poolt ausalt.',
+  '054_p_concede': 'Sinu arutluses on argument ja vastuargument ühes kaalutud lauses.',
+  '054_p_draft': 'Arutluse esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '054_t_debate': 'Pere jõuab otsuseni, kuidas katkise pesumasina asemele uus saada.',
+  '054_t_say': 'Näitad 30 sekundiga, et oskad oma seisukohta kaalutult öelda.',
+  '054_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '054_t_argue': 'Ajalehe lugejad saavad kaalutud arvamuse järelmaksu kohta.',
+  '054_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '055_d_read': 'Näitad, et saad eksami vormis arvamusartiklist aru.',
+  '055_d_mc': 'Näitad, et järeldad autori mõtteid ka siis, kui need pole otse öeldud.',
+  '055_t_cold': 'Näed, kuidas su kirjutamine on mooduli algusest muutunud.',
+  '055_t_rubric': 'Näed, mille eest viieminutilise arvamuse punktid tulevad.',
+  '055_t_claim': 'Teenusepakkuja saab kirjast aru ja tagastab valesti võetud raha.',
+  '055_t_wrubric': 'Näed, mille eest kirja punktid tulevad.',
+};
+const withPurposes = (lessons) => Object.fromEntries(Object.entries(lessons).map(([id, l]) => [id, { ...l, ...Object.fromEntries(['discover', 'practice', 'transfer'].map((p) => [p, (l[p] || []).map((b) => (PURPOSE[b.id] ? { ...b, data: { ...b.data, purpose: PURPOSE[b.id] } } : b))])) }]));
+
+export const LESSONS = withPurposes(withShapes({
+  'b1b2-051': {
+    title: 'Kuhu kaob raha enne kuu lõppu?',
+    phases: grammar('Kordamine: ei ostnud kohvi · B2: tühistasin tellimuse / ei tühistanud tellimust; maksin arved ära; kontole ei tulnud palka'),
+    format: 'facts',
+    topic: 'money',
+    subtopic: 'budget',
+    canDo: 'Ma loen artiklit raha lekete kohta, järjestan pere kulud ja lepin kokku kolm sammu ning kirjutan pereliikmele umbes 140-sõnalise ettepaneku; kasutan täis- ja osasihitist õigesti.',
+    teacherPage: {
+      goal: 'Холодная задача письменно; статья «куда уходят деньги»; полный и частичный объект и субъект бытия; ранжирование «утечек» семьи со скрытой информацией; черновик письма в классе, дома 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–5 и вопросы 1–6; станция 3 — правило и 10 предложений, черновик 3 предложения; ранжирование без третьего препятствия.',
+      hook: '«Väide: kuu lõpus ei jätku raha väikeste ostude, mitte väikese palga pärast.» Ученик 5 минут пишет 5–7 предложений без помощи. Это холодная задача модуля (письменно; модуль 10 мерил речь): не помогайте, не давайте фраз и начала, не исправляйте. Сохраните лист — в уроке 055 ученик пишет параллельную задачу в тех же условиях.',
+      plan: [
+        '0–5: станция 1 — холодная задача: 5 минут, 5–7 предложений без помощи; лист сохраните до 055',
+        '5–27: станция 2 — 10 слов + 3 слова на повтор (2 мин), стратегия: сначала пробежать заголовок и первые фразы абзацев (1 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин), схема «как маленький расход становится большим» (4 мин)',
+        '27–50: станция 3 — объект одной строкой (B1), B2: täis- / osasihitis и субъект бытия; 10 предложений, исправить сообщение (8 строк); черновик первого абзаца письма (10 мин), обратная связь по одному критерию — грамматика (объект)',
+        '50–70: станция 4 — ранжирование шести «утечек» семьи в паре, скрытая информация, три шага и примерная экономия',
+        '70–75: выход: 30 секунд члену семьи; самооценка 0–1–2 + одно своё предложение; домашнее задание: дописать письмо 140 слов, голосовое 1 мин, Harjuta',
+        'Kui aega jääb (75–90): игра «Потребность, желание или утечка?» — вы читаете 10 покупок, ученик решает и спорит с вами',
+      ],
+      sources: 'Статья «Kuhu kaob raha enne kuu lõppu?» — учебный текст KeeleSepp, без точной статистики. Общая основа: советы финансовых консультантов (записать расходы месяц, проверить регулярные платежи, откладывать в день зарплаты), опыт пробных подписок с автоматическим продлением. Семья и выписка — учебные.',
+      groups: 'Холодная задача — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Черновик — каждый сам, потом партнёр читает по строке рубрики «Grammatika». Станция 4 — пары с одной карточкой; вы — член семьи со скрытой информацией. В 1:1 вы — семья.',
+      errors: [
+        '«Ma ei tühistanud tellimuse» → «… tellimust» (в отрицании объект всегда в частичном падеже).',
+        '«Maksin arvet ära» → «Maksin arve ära» (действие закончено, результат целый).',
+        '«Meil ei ole reserv» → «Meil ei ole reservi» (отрицание бытия: субъект в partitiiv).',
+        '«Ma kahetsen see ost» → «Ma kahetsen seda ostu» (kahetsema — глагол чувства, всегда partitiiv).',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по письму. Отметьте: позиция в первом предложении, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 055 ученик пишет параллельную задачу (055_t_cold) в тех же условиях, вы сравниваете.',
+        'Деньги — тема деликатная: никто не называет свои доходы и долги. Все задания работают с «типичной» или выдуманной семьёй. Студенту — общежитие и подписки на троих; пенсионеру — коммунальные и аптека; уставшему после смены — кофе и перекусы.',
+        'Слова на повтор (võlg, kahetsema, kompromiss из модулей 9–10) есть в статье и в задании: попросите ученика найти их и сказать, откуда он их знает.',
+      ],
+    },
+    discover: [
+      station(teach(tag(B.writing('051_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Kuu lõpus ei jätku raha väikeste ostude, mitte väikese palga pärast.” Kirjuta 5 minutiga 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7]), { task: 'W14', harno: 'W2b' }),
+        'Mooduli külm ülesanne (algtase), 5 minutit, kirjalikult (moodul 10 mõõtis rääkimist, moodul 11 mõõdab kirjutamist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (kuigi, seetõttu, samas …) ja 2–3 korduvat viga. Hoia leht alles: tunnis b1b2-055 kirjutab õppija paralleelse ülesande samades tingimustes (kontrolli kirjutamise 1. osa) ja te võrdlete. Õppija ei pea kirjutama oma päris rahast.'), 1, 5),
+      station(withReview(tag(B.vocab('051_d_vocab', 'Tunni sõnad.', ['eelarve — бюджет', 'püsimakse — регулярный платёж', 'tellimus — подписка', 'tühistama — отменять', 'prooviaeg — пробный период', 'kulu — расход', 'sissetulek — доход', 'säästma — экономить', 'reserv — резерв (запас денег)', 'kõrvale panema — откладывать (деньги)']), { topic: ['püsimakse', 'prooviaeg', 'reserv'] }), ['võlg', 'kahetsema', 'kompromiss']), 2, 22),
+      why(teach(tag(B.reading('051_d_text', 'Loe artiklit.', 'Vaata enne pealkirja ja lõikude esimesi lauseid (1 minut). Siis loe ja vasta. Küsimustele 5–7 järelda ja näita lauset tekstist.', 'Kuhu kaob raha enne kuu lõppu?', [
+        'Kuu alguses tundub, et raha on piisavalt. Palk on kontol, arved on makstud ja külmkapp on täis. Kolm nädalat hiljem vaatab paljudele pangaäpist vastu number, mis paneb imestama: kuhu see kõik kadus? Suured kulud — üür või kodulaen, toit, transport ja lasteaed — on enamasti teada ja neid ei unustata. Raha ei kao tavaliselt suurte ostude tõttu. See kaob vaikselt, väikeste summade kaupa, mida me ei märka.',
+        'Väike kulu tundub tühine, sest me ei mäleta seda, ainult pank mäletab. Tass kohvi teel tööle, saiake bussijaamas, kiire lõuna kontori kõrval — igaüks neist maksab vaid paar eurot. Kui kohv tuleb aga igal tööpäeval, kujuneb sellest kuu jooksul summa, mille eest saaks pere nädala toidu. Üks tass kohvi ei ole probleem; probleem on see, et me ei joo seda üks kord, vaid kakssada korda aastas. Rahanõustajad nimetavad selliseid kulusid leketeks: ämber ei ole katki, aga põhjas on väike auk, millest vesi tilkhaaval välja voolab.',
+        'Kõige raskemini märgatavad lekked on tellimused. Muusika, filmid, pilveruum, mänguäpid ja trenniäpid maksavad igaüks vähe, kuid neid on sageli rohkem, kui inimene ise arvab. Paljud algavad tasuta prooviajaga. Kaardi andmed küsitakse kohe, prooviaeg muutub märkamatult tasuliseks ja tellimus pikeneb iga kuu automaatselt, kuni sa selle ise tühistad. Mõni avastab alles aasta pärast, et on kogu aeg maksnud äpi eest, mida ta pole kordagi avanud. Siis ta kahetseb, et ei pannud prooviaja lõppu kalendrisse.',
+        'Miks me neid kulusid ei näe? Üks põhjus on see, et kaardi ja telefoniga makstes ei tunne me raha kadumist. Sularaha puhul näed, kuidas rahakott tühjeneb; kaardi puhul kuuled ainult väikest piiksu. Teine põhjus on harjumus: kui ostad iga päev sama asja, ei ole see enam otsus. Kolmas põhjus on tunne. Pärast rasket päeva tundub väike ost tasu, mille oled ära teeninud. Ostu hetkel on see täiesti mõistlik mõte, kuu lõpus aga mitte.',
+        'Rahanõustajad ei soovita kõigest loobuda. Kes keelab endale iga rõõmu, kaotab varsti motivatsiooni ja ostab hiljem veel rohkem. Parem on kompromiss. Kõigepealt pane üheks kuuks kirja kõik kulud, ka kõige väiksemad, või vaata need pangaväljavõttest üle. Siis jaga kulud kolme liiki: vajadus, soov ja leke. Vajadused jäävad, soove valid teadlikult, lekked kaotad. Iga tellimuse kohta küsi: millal ma seda viimati kasutasin? Kui vastus on „ei mäleta”, tühista see kohe.',
+        'Teine nõuanne puudutab aega. Pane osa sissetulekust kõrvale kohe palgapäeval, mitte kuu lõpus, sest kuu lõpus ei jää sageli midagi üle. Isegi väike summa iga kuu kasvab aastaga reserviks, millest saab maksta katkise pesumasina või hambaarsti arve. Kellel reservi ei ole, peab ootamatu kulu korral raha laenama; nii tekib võlg, mille eest tuleb maksta ka intressi. Nii muutub väike leke lõpuks suureks kuluks.',
+        'Raha planeerimine ei tähenda, et iga senti tuleb karta. See tähendab, et sina otsustad, kuhu su raha läheb, mitte harjumus, reklaam või unustatud äpp. Kuu lõpus ei pea siis enam imestama, vaid saab vaadata, kas plaan toimis. Ja kui plaan kõigil kuudel ei õnnestu, ei ole see põhjus alla anda. Ka rahaga harjumine võtab aega, nagu iga uus harjumus: esimesel kuul leiad kaks leket, teisel kuul juba neli. Kõige tähtsam on alustada ja rääkida rahast pereliikmetega avalikult, mitte vaikida, kuni konto on tühi.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Miks ei kao raha teksti järgi tavaliselt suurte kulude tõttu?', 'suured kulud on teada ja neid ei unustata; raha kaob väikeste summade kaupa'],
+        ['Mida nimetavad rahanõustajad leketeks?', 'väikesi korduvaid kulusid, mida inimene ei märka'],
+        ['Kuidas muutub tasuta prooviaeg tasuliseks tellimuseks?', 'kaardi andmed küsitakse kohe, prooviaeg muutub märkamatult tasuliseks ja tellimus pikeneb automaatselt'],
+        ['Millisteks kolmeks liigiks soovitab tekst kulud jagada?', 'vajadus, soov ja leke'],
+        ['Miks võrdleb autor väikesi kulusid ämbriga, mille põhjas on auk? Järelda.', 'iga kulu on väike ja seda ei märka, aga kokku kaob palju raha'],
+        ['Miks soovitavad nõustajad kompromissi, mitte kõigest loobumist? Järelda.', 'kes keelab endale kõik, kaotab motivatsiooni ja ostab hiljem veel rohkem'],
+        ['Mida tahab autor öelda viimase lõiguga? Milline on tema hoiak?', 'planeerimine ei ole hirm, vaid see, et inimene ise otsustab, kuhu raha läheb'],
+      ]), { task: 'R15', voice: 'expert' }), 'Lugemine, umbes 22 minutit koos sõnade ja skeemiga. Strateegia (v6 §2 l, lugemine: silmitse → otsi → arva kontekstist): enne lugemist vaatab õppija 1 minuti pealkirja ja lõikude esimesi lauseid ning ütleb, millest tekst räägib. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Kordamise sõnad (võlg, kahetsema, kompromiss) on tekstis: lase need leida. Ära küsi õppija päris summasid.'), [
+        '1. lõik: „Suured kulud … on enamasti teada”; raha kaob „väikeste summade kaupa, mida me ei märka”.',
+        '2. lõik: „Rahanõustajad nimetavad selliseid kulusid leketeks.”',
+        '3. lõik: „Kaardi andmed küsitakse kohe, prooviaeg muutub märkamatult tasuliseks ja tellimus pikeneb …”',
+        '5. lõik: „jaga kulud kolme liiki: vajadus, soov ja leke”.',
+        'Järeldus 2. lõigust: auk on väike, aga vesi voolab „tilkhaaval välja” — kokku kaob palju.',
+        'Järeldus 5. lõigust: „Kes keelab endale iga rõõmu, kaotab varsti motivatsiooni ja ostab hiljem veel rohkem.”',
+        'Järeldus 7. lõigust: „sina otsustad, kuhu su raha läheb, mitte harjumus, reklaam või unustatud äpp”.',
+      ]),
+      teach(B.diagram('051_d_scheme', 'flow', { title: 'Skeem: kuidas väike kulu saab suureks?', instruction: 'Kirjuta iga kasti juurde üks näide tekstist. Viimase kasti juurde lisa üks oma samm.', nodes: 'Väike kulu: kohv, saiake, äpp — paar eurot\nKordub: iga tööpäev, iga kuu automaatselt\nEi märka: kaart piiksub, harjumus, tasu pärast rasket päeva\nKuu lõpus: konto tühi, reservi ei ole, tuleb laenata\nLahendus: kulud kirja, tellimused üle, palgapäeval kõrvale' }, 'full', 'g_read'),
+        'Skeem näitab ahelat põhjusest tagajärjeni (moodul 9) ja kohta, kus ahela saab katkestada. Õppija täidab selle pärast lugemist; viimase kasti samm on hiljem tema kirja ettepanek.'),
+    ],
+    practice: [
+      station(teach(B.notice('051_p_notice', 'Märka: tühistasin tellimuse — ei tühistanud tellimust', [
+        'Artiklist: kuni sa selle ise tühistad · kuu lõpus ei jää sageli midagi üle · pane osa sissetulekust kõrvale',
+        'Kordamine (B1): eitus → osastav: Ma ei ostnud **kohvi**.',
+        'B2, täissihitis — tegevus on lõpuni tehtud, tulemus on terve: Tühistasin **tellimuse**. · Maksin kõik **arved** ära. · Käskivas ja „tuleb” järel nimetav: Tühista vanad **tellimused**! · Tuleb **kulud** kirja panna.',
+        'B2, osasihitis — eitus: Ma ei tühistanud **tellimust**. · tegevus kestab: Maksan **laenu** tagasi. · lahtine hulk: Ostsin **puuvilju**. · tunde- ja mõttetegusõna: vajan **reservi**, kahetsen **ostu**.',
+        'B2, olemasolu lause alus — terve ja kindel: Rahakotti jäid ainult **mündid**. · eitus: Kontole ei tulnud **palka**. · lahtine hulk: Postkastis oli **arveid**. · Sõna raha on mõlemas sama: Raha jäi üle. · Raha ei jäänud üle.',
+        'Vene keeles võib sihitis mõlemal juhul sama olla — eesti keeles küsi kaks küsimust: kas on eitus? Kas tulemus on terve ja valmis?',
+      ], 'full'), 'Kordamine ühe minutiga (eitus → osastav). Siis B2 samm: tulemus otsustab (täis- või osasihitis) ja olemasolu lause alus. Lase õppijal leida artiklist kolm lauset ja öelda, miks seal on just see vorm. L1 rida: vene keeles kääne ei muutu, eesti keeles muudab eitus ja tulemus.'), 3, 23),
+      why(teach(tag(B.gaps('051_p_forms', 'Sõbranna kuu kokkuvõte.', 'Kas on eitus, kestev tegevus või terve tulemus? Kirjuta sulgudes olev sõna õiges vormis. Panka ei ole.', [
+        'Septembris tühistasin lõpuks muusikaäpi [tellimuse]. (tellimus)',
+        'Filmiplatvormi [tellimust] ma veel ei tühistanud, sest lapsed vaatavad seal multikaid. (tellimus)',
+        'Kuu alguses maksin kõik [arved] korraga ära. (arve)',
+        'Sel kuul tuli postkasti [arveid] rohkem kui tavaliselt. (arve)',
+        'Kahjuks ei tulnud novembris kontole [palka] õigel ajal. (palk)',
+        'Ma vajan ootamatute kulude jaoks [reservi]. (reserv)',
+        'Ma kahetsen seda [ostu] siiani: kasutasin kella ainult kaks korda. (ost)',
+        'Kolm aastat maksan juba auto [laenu] tagasi. (laen)',
+        'Enne palgapäeva jäid rahakotti alles ainult [mündid]. (münt)',
+        'Tühista kõik [tellimused], mida sa kuu jooksul ei avanud! (tellimus)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Kas on eitus? Kas tulemus on valmis?” Read 4, 5 ja 9 on olemasolu laused (alus). Read 6 ja 7: vajama ja kahetsema on tunde- ja mõttetegusõnad (alati osastav). Lisa küsimus: „Mida sina sel kuul tühistasid või ei tühistanud?”'), [
+        'Tegevus on lõpuni tehtud, tulemus terve → täissihitis (omastav): tellimuse.',
+        'Eitus → osasihitis: tellimust.',
+        'Kõik arved, makstud ära → täissihitis mitmuses (nimetav): arved.',
+        'Olemasolu lause, lahtine hulk → osaalus mitmuses: arveid.',
+        'Olemasolu lause eitusega → osaalus: palka.',
+        'vajama — mõttetegusõna → osastav: reservi.',
+        'kahetsema — tundetegusõna → osastav: ostu.',
+        'Tegevus kestab (maksan juba kolm aastat) → osastav: laenu.',
+        'Kindel, terve hulk olemasolu lauses → nimetav mitmus: mündid.',
+        'Käskiv, tulemus terve → nimetav mitmus: tellimused.',
+      ]),
+      why(teach(tag(B.errorfix('051_p_fix', 'Paranda sõnum enne saatmist.', 'Igas lauses on üks sihitise või aluse viga. Kirjuta lause õigesti.', [
+        ['Ma ei tühistanud tellimuse õigel ajal ja maksin jälle terve kuu eest.', 'Ma ei tühistanud tellimust õigel ajal ja maksin jälle terve kuu eest.'],
+        ['Eile maksin lõpuks elektriarvet ära, nii et see mure on läbi.', 'Eile maksin lõpuks elektriarve ära, nii et see mure on läbi.'],
+        ['Meil ei ole reserv ootamatute kulude jaoks, näiteks hambaarsti jaoks.', 'Meil ei ole reservi ootamatute kulude jaoks, näiteks hambaarsti jaoks.'],
+        ['Pane järgmisel kuul kõik kulusid kirja, ka kõige väiksemad!', 'Pane järgmisel kuul kõik kulud kirja, ka kõige väiksemad!'],
+        ['Turult ostsin puuviljad ja leiba, aga ei tea enam, kui palju.', 'Turult ostsin puuvilju ja leiba, aga ei tea enam, kui palju.'],
+        ['Kuu lõpus ei jäänud kontole rahasid, kuigi palk oli tavaline.', 'Kuu lõpus ei jäänud kontole raha, kuigi palk oli tavaline.'],
+        ['Ma kahetsen see ost, sest kasutasin kella ainult kaks korda.', 'Ma kahetsen seda ostu, sest kasutasin kella ainult kaks korda.'],
+        ['Kohvikus ostsin iga päev kohv, kuigi tööl on tasuta kohvimasin.', 'Kohvikus ostsin iga päev kohvi, kuigi tööl on tasuta kohvimasin.'],
+      ], 'full', 'g_notice'), { task: 'G06' }),
+      'Need on tüüpilised vead vene keelt kõnelevalt õppijalt. Lase õppijal öelda reegel ühe sõnaga (eitus, terve, kestab, hulk, tunne).'), [
+        'Eitus → osasihitis: tellimust.',
+        'Tegevus on tehtud (ära maksma) → täissihitis: arve.',
+        'Olemasolu eitus → osaalus: reservi.',
+        'Käskiv, kõik kulud → täissihitis mitmuses: kulud.',
+        'Lahtine hulk → osasihitis: puuvilju.',
+        'raha on ainsuses; eitus → raha (osastav = nimetav).',
+        'kahetsema → osastav: seda ostu.',
+        'Lahtine hulk, korduv tegevus → osastav: kohvi.',
+      ]),
+      draft('051_p_draft', 'kirja esimene lõik', 'Kirjuta pereliikmele vähemalt 6 lauset: mida märkasid oma kuludes? Kasuta vähemalt kolme sihitist. Õpetaja märgib kolm lauset.', 'Grammatika ja õigekiri (täis- ja osasihitis)', [6, 12]),
+    ],
+    transfer: [
+      station(teach(mainTask(B.ideaCard('051_t_rank', 'Pere eelarve: järjestage lekked (8–10 minutit).', 'Järjestage kuus leket kahe tunnuse järgi. Leppige kokku kolm sammu ja öelge, kui palju jääb kuus üle.', [
+        'Tuttav pere (kaks täiskasvanut, kaks last) palub nõu: kuu lõpus on konto alati tühi. Siin on osa nende oktoobri väljavõttest (üür, toit ja auto on välja jäetud).',
+        'Järjestage lekked: 1) mis maksab aastas kõige rohkem? 2) mida on kõige lihtsam muuta? Pere ei tohi tunda end süüdlasena: paku kompromiss, mitte etteheide.',
+        'Abikaart: Kõige rohkem maksab aastas …, sest … · Kõige lihtsam on tühistada … · Ma ei soovitaks loobuda …, kuigi …',
+        'Lisaväljakutse: pakkuge iga lekke asemele kompromiss, mitte ainult „tühista”.',
+        'Lõpuks: mis sa arvad, kas Eestis ja sinu kodumaal räägitakse peres rahast avalikult?',
+      ], [
+        'teine filmiplatvorm — 9,99 € kuus, viimati vaadatud juulis',
+        'mänguäpi kristallid — 4 korda 4,99 €',
+        'kohv tööl — 18 korda 2,80 €',
+        'spordiklubi — 39 € kuus, käidud üks kord',
+        'ajakirja prooviaeg lõppes — 1 € asemel nüüd 12,90 €',
+        'toidu kojutoomine — 5 korda, kokku 96 €',
+      ], 'Kolm sammu ja umbes kokku arvutatud sääst kuus.', [180, 240]), 'ranking',
+      ['Kõige rohkem maksab aastas …, sest …', 'Kõige lihtsam on tühistada …', 'Ma ei soovitaks loobuda …, kuigi …'],
+      'Pakkuge iga lekke asemele kompromiss, mitte ainult „tühista”.', { task: 'S12' }),
+      'Sina oled pere ema või isa. Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Kohvist ma ei loobu, see on mu ainus paus pikal vahetusel.” 2) „Need on ju väikesed summad, kas see on üldse oluline?” Varjatud info (ütle pärast teist takistust): „Ah jaa — kristallid ostis meie üheksa-aastane poeg minu telefonist, me ei teadnudki. Ja teist filmiplatvormi tellisime vanaema külaskäiguks, keegi ei mäleta parooli.” Õppija peab reageerima: kristallid → telefoni ostud lukku, mitte karistus; teine platvorm → tühistada (parool taastada). Õnnestunud, kui paar järjestab lekked põhjendusega (aastas: kojutoomine ja kohv on suurimad, platvorm ja ajakiri kõige lihtsamad tühistada), arvutab umbes kokku (kuus üle 60 euro), kasutab vähemalt kolm korda õiget sihitist (tühistage tellimus / ei tühistanud tellimust) ja pakub kompromissi (näiteks kohv termosest kaks päeva nädalas). Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 20, { final: 'plan' }),
+      exitTalk('051_t_say', 'Ütle pereliikmele 30 sekundiga kaks leket ja üks samm. Kasuta üht eitavat lauset: „Me ei …”.', ['Millised on kaks suurimat leket?', 'Mida te kohe teete?'], 'Kas õppija nimetab kaks leket ja ühe sammu ning kasutab eituses osasihitist (Me ei kasuta seda tellimust)?'),
+      selfCheck('051_t_self', ['Leidsin väljavõttest lekked ja järjestasin need põhjendusega.', 'Kasutasin täis- ja osasihitist õigesti (tühistasin tellimuse / ei tühistanud tellimust).', 'Leppisime kokku kolm konkreetset sammu ja arvutasime säästu.'], 'Lekked leitud', 'Ma oskan pere eelarvest lekked leida'),
+      tag(homeTask(homeLines(B.examWriting('051_t_mail', 'Kodus: ettepanek pereliikmele (umbes 140 sõna).', `Lõpeta tunni mustand kirjaks (130–150 sõna). Algust ei anta. Salvesta ka 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Kirjuta pereliikmele, korterikaaslasele või sõbrale, kellega jagad kulusid. Summad võivad olla väljamõeldud.',
+        points: ['mida sa kuu kuludes märkasid (tunni mustand, parandatud)', 'kolm leket ja umbes kui palju need kuus maksavad', 'mida pakud muuta: mida tühistate, mida ostate harvemini, palju panete palgapäeval kõrvale', 'kuidas te kuu lõpus kontrollite, kas plaan toimis'],
+        words: [130, 150],
+      }), 6)), { task: 'W04' }),
+      writingRubric('051_t_rubric', 'Hindamisjuhend: ettepanek pereliikmele (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Meil on palju kulud. Sa ostad liiga palju kohv. Me maksame tellimuse eest, aga ei vaata. Ma tühistasin tellimust. Pane raha kõrvale. Head aega!” Hinnang: ülesanne 2 (lekked on olemas, kuid summasid ja kontrolli plaani ei ole; „Sa ostad liiga palju” on etteheide, mitte ettepanek), ülesehitus 2 (järjekord on selge, lõike ja sidendeid ei ole), sõnavara 2 (puuduvad leke, püsimakse, reserv, palgapäev), grammatika 1 („palju kulud” → palju kulusid, „kohv” → kohvi, „tühistasin tellimust” → tellimuse). Kui õppija lisab summad, kompromissi ja kontrolli kuupäeva ning parandab sihitised, saab ta 9/12 (75 %).'),
+      retire('051_d_hook', CUT_HOOK),
+      retire('051_d_talk', CUT_HOOK),
+      retire('051_d_open', CUT_STATS),
+      retire('051_d_facts', CUT_STATS),
+      retire('051_t_statement', 'the family statement is now on the ranking card 051_t_rank (v5: one input per lesson, ≤ 5 blocks on Kasuta)'),
+      retire('051_t_help', CUT_OLDTASK),
+      retire('051_t_card', 'planning card: the plan is the in-class draft 051_p_draft (v6 G16)'),
+      retire('051_t_more', CUT_EXTRA),
+      retire('051_t_exit', CUT_DRILL),
+      retire('051_t_letter', CUT_OLDTASK),
+      retire('051_t_home', CUT_HOME),
+      retire('051_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-052': {
+    title: '„–70 % ainult täna!” Kas Black Friday on päriselt soodne?',
+    phases: grammar('Kordamine: avatud uks · B2: kehtiv pakkumine, ainult internetis müüdav toode, reedel alanud kampaania, enne allahindlust küsitud hind'),
+    format: 'game',
+    topic: 'money',
+    subtopic: 'sales',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest müügivõtetest, võrdlen paaris kahte pakkumist ja annan sõbrale põhjendatud soovituse ning kirjutan talle umbes 140-sõnalise sõnumi; kasutan kesksõnu täiendina.',
+    teacherPage: {
+      goal: 'Радио «Tarbija tund»: уловки скидок; причастие как определение; пазл из двух предложений; сообщение другу 140 слов с ответом однокурсника.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 предложений, черновик 3 предложения; пазл без скрытой информации.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, которые вы отметили в черновике или домашнем письме урока 051, и одной строкой говорит, что изменил. Вопрос для разговора, если время есть: «Что ты купил последний раз только потому, что была скидка?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (51)',
+        '5–25: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: прочитать вопросы и предсказать ответы (2 мин), радио дважды (9 мин), 10 вопросов, из них 3 на вывод (4 мин), схема «что говорит реклама — что я проверяю» (3 мин)',
+        '25–50: станция 3 — причастие одной строкой (B1), B2: -v, -tav, -nud, -tud с распространением; 10 предложений, придаточное → причастный оборот (8 строк); черновик сообщения другу (10 мин), обратная связь — словарь (причастия)',
+        '50–70: станция 4 — пазл: у каждого своя карточка предложения, обмен информацией без показа, общее решение; скрытая информация от «друга»',
+        '70–75: выход: 30 секунд — какое предложение советуешь и почему; самооценка; домашнее задание: сообщение 140 слов, отправить однокурснику, его ответ «две звезды и пожелание»',
+        'Kui aega jääb (75–90): ученик приносит реальную рекламу (скриншот) и находит в ней приём и причастие',
+      ],
+      sources: 'Радио «Tarbija tund» — учебный текст KeeleSepp (ведущая Margit и консультант Toomas вымышлены). Общая основа: правило ЕС (директива Omnibus, в Эстонии с 2022): рядом со скидкой показывают самую низкую цену за 30 дней до скидки; право отказа от интернет-покупки 14 дней (võlaõigusseadus); в магазине право возврата — по условиям магазина. Магазины на карточках — учебные.',
+      groups: 'Радио — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: партнёр A — карточка A, партнёр B — карточка B, карточки не показывать. В 1:1 карточка B у вас; вы же — друг со скрытой информацией.',
+      errors: [
+        '«kehtib pakkumine» как определение → «kehtiv pakkumine» (-v: что происходит сейчас).',
+        '«allahindatud jope» → «allahinnatud jope» (alla hindama → hinnatud, два n).',
+        '«küsitud enne allahindlust hind» → «enne allahindlust küsitud hind» (распространение стоит ПЕРЕД причастием).',
+        '«müüav toode» → «müüdav toode» (müüakse → müüdav).',
+      ],
+      notes: [
+        'Пазл (v6 §2 l, jigsaw): никто не видит обе карточки — ученик должен спросить, уточнить и пересказать. Ловушки: «varem 349 €» при самой низкой цене за 30 дней 189 € — настоящая скидка всего 10 €; «kampaaniatoodet tagastada ei saa» противоречит праву отказа 14 дней при покупке в интернете (это говорит Toomas в радио).',
+        'Слова на повтор (pettumus, soovitama, harjumus из модулей 8–9) есть в радио и в задании.',
+        'Сообщение другу (дома) отправляется однокурснику (data.peerReply): он отвечает «две звезды и пожелание» по критериям рубрики. В 1:1 — сообщение получает знакомый эстонец или вы как «друг», но с ответом по критериям.',
+      ],
+    },
+    discover: [
+      station(revision('052_d_revise', 'b1b2-051', 'Kirjuta ümber kolm lauset, mille õpetaja sinu kirjas pereliikmele märkis. Lisa üks rida: mida sa muutsid ja miks?'), 1, 5),
+      station(withReview(tag(B.vocab('052_d_vocab', 'Tunni sõnad.', ['allahindlus — скидка', 'soodushind — цена со скидкой', 'pakkumine — предложение (акция)', 'kehtima — действовать (о сроке)', 'kampaania — акция, кампания', 'ahvatlema — соблазнять', 'eksitav — вводящий в заблуждение', 'madalaim — самый низкий', 'ostukorv — корзина (в интернет-магазине)', 'tagastama — возвращать (товар)']), { topic: ['soodushind', 'eksitav', 'ostukorv', 'madalaim'] }), ['pettumus', 'soovitama', 'harjumus']), 2, 20),
+      teach(B.diagram('052_d_scheme', 'compare', { title: 'Skeem: mida reklaam ütleb — mida mina kontrollin?', instruction: 'Kuulates kirjuta paremale, mida Toomas soovitab kontrollida. Lisa üks oma näide.', left: 'Reklaam ütleb', right: 'Mina kontrollin', leftItems: '„Varem 200 €, nüüd 80 €!”\n„Pakkumine kehtib veel 10 minutit!”\n„Kuu aega tasuta!”\n„Osta kolm, maksa kahe eest!”\n„Tasuta kohaletoomine!”\n„Ainult täna!”', rightItems: 'madalaim hind 30 päeva jooksul\n…\n…\n…\n…\n…' }, 'half', 'g_notice'),
+        'Skeemi parem pool täidetakse kuulates (teisel korral). Sama skeemiga kontrollivad paarid jaamas 4 oma kaarte.'),
+      why(teach(tag(B.examListen('052_d_radio', 'Kuulamine: raadiosaade „Tarbija tund”.', 'Enne kuulamist loe küsimused ja ennusta vastused. Kuula kaks korda ja vali õige vastus.', 'choice', [
+        'Margit: Tere! Saates „Tarbija tund” räägime täna sooduspäevadest. Novembri lõpus on poed ja e-poed täis punaseid silte: miinus seitsekümmend protsenti, ainult täna, viimased tükid. Stuudios on tarbijanõustaja Toomas. Toomas, kas Black Friday on ostjale hea päev?',
+        'Toomas: Tere! See võib olla hea päev, kui sa tead, mida otsid. Kui ostad ainult sellepärast, et silt on punane, on see pigem müüja hea päev. Suur number püüab tähelepanu. Küsimus on, millest see protsent arvutatakse.',
+        'Margit: Mida sa selle all mõtled?',
+        'Toomas: Kujuta ette jopet, mille kõrval on kirjas: varem kakssada eurot, nüüd kaheksakümmend. Kõlab suurepäraselt. Aga kas keegi on seda jopet kunagi kahesaja euroga ostnud? Mõni pood tõstab hinna paar nädalat enne kampaaniat üles ja langetab selle siis suure allahindlusega tagasi. Seepärast on Euroopa Liidus reegel: soodushinna kõrval peab pood näitama madalaimat hinda, mis kehtis viimase kolmekümne päeva jooksul enne allahindlust.',
+        'Margit: Kuidas ostja seda kontrollib?',
+        'Toomas: Kõige lihtsam on vaadata hinda juba paar nädalat varem ja teha ekraanipilt. On ka hinnavõrdluse lehti, mis näitavad hinna ajalugu. Kui pood kirjutab, et varem oli hind kakssada, aga sa näed, et kuu aega tagasi maksis jope üheksakümmend, on allahindlus eksitav. Sellest võib teatada tarbijakaitsele.',
+        'Margit: Teine võte on kell, mis loeb sekundeid.',
+        'Toomas: Jah, ajasurve. Pakkumine kehtib veel kümme minutit. Ainult kaks toodet laos. Need laused tahavad, et sa ei mõtleks. Kiire otsus on müüjale hea, sest mõtlev ostja võib loobuda. Minu nõuanne on lihtne: pane toode ostukorvi ja jaluta üks ring. Kui sa tunni pärast ikka tahad, osta. Väga sageli on huvi selleks ajaks kadunud.',
+        'Margit: Aga kui pakkumine tõesti lõpeb?',
+        'Toomas: Siis lõpeb. Järgmine kampaania tuleb kindlasti. Pettumus jääb harvemini sellele, kes ei ostnud, kui sellele, kes ostis midagi, mida tal vaja ei olnud.',
+        'Margit: Paljud kuulajad kirjutavad tasuta prooviaegadest.',
+        'Toomas: Need on väga levinud. Saad kuu aega tasuta, aga kaardi andmed küsitakse kohe. Prooviaja lõpus muutub tellimus automaatselt tasuliseks. Soovitan panna prooviaja lõpu kohe telefoni kalendrisse ja lugeda tingimusi: mõnikord saab lepingu lõpetada alles aasta pärast.',
+        'Margit: Kas tasuta kohaletoomine on alati tasuta?',
+        'Toomas: Sageli ainult siis, kui ostukorvis on teatud summa eest kaupa. Siis lisavad inimesed korvi veel midagi, et saatmise eest mitte maksta, ja kulutavad lõpuks rohkem, kui saatmine oleks maksnud.',
+        'Margit: Kas osta kolm, maksa kahe eest on hea pakkumine?',
+        'Toomas: Ainult siis, kui kolmandat tõesti vaja on. Muidu tundub, et säästad, aga tegelikult kulutad rohkem. See on vana harjumus.',
+        'Margit: Ja kui ost ikkagi ei meeldi?',
+        'Toomas: Internetist ostes on sul üldjuhul neliteist päeva aega lepingust taganeda. Poes kohapeal see reegel ei kehti, siis sõltub kõik poe enda tingimustest. Seepärast küsi kassas: kas ja kui kaua saab kaupa tagastada?',
+        'Margit: Mida sa ise Black Fridayl teed?',
+        'Toomas: Ma teen nimekirja juba oktoobris. Kui seal on näiteks talvesaapad ja nende hind langeb, ostan. Kui nimekirjas pole midagi, siis ma lihtsalt ei vaata. Parim allahindlus on see, mida sa ei vajanud ja seetõttu ei ostnud.',
+        'Margit: Aitäh, Toomas!',
+      ], [
+        ['Millal on Black Friday tarbijanõustaja Toomase sõnul ostjale tõesti hea päev?', 'kui ostja teab, mida ta otsib', 'kui silt on punane', 'kui allahindlus on üle poole', 'kui poes on palju rahvast'],
+        ['Mida peab pood ELi reegli järgi soodushinna kõrval näitama?', 'madalaimat hinda viimase 30 päeva jooksul enne allahindlust', 'toote valmistamise hinda', 'teiste poodide hindu', 'järgmise kuu hinda'],
+        ['Kuidas soovitab Toomas varasemat hinda kontrollida?', 'vaadata hinda paar nädalat varem ja teha ekraanipilt', 'küsida müüjalt kassas', 'helistada tootjale', 'oodata järgmist kampaaniat'],
+        ['Mida soovitab Toomas teha, kui kell loeb pakkumise sekundeid?', 'panna toode ostukorvi ja jalutada üks ring', 'osta kohe enne aja lõppu', 'kirjutada poele kaebus', 'osta kaks toodet korraga'],
+        ['Mida soovitab Toomas teha siis, kui äpp või teenus pakub tasuta prooviaega?', 'panna prooviaja lõpp kohe kalendrisse', 'mitte kunagi kaardi andmeid anda', 'tellida kohe terveks aastaks', 'helistada pangale'],
+        ['Millal on pakkumine „osta kolm, maksa kahe eest” Toomase arvates ostjale kasulik?', 'kui kolmandat toodet on tõesti vaja', 'alati, sest kolmas on tasuta', 'ainult toidupoes', 'ainult e-poes'],
+        ['Mis kehtib Toomase sõnul siis, kui ostad asja poes kohapeal, mitte internetist?', 'tagastamine sõltub poe enda tingimustest', 'raha tagastatakse alati 14 päeva jooksul', 'kaupa ei tagastata kunagi', 'tagastada saab ainult jõulude ajal'],
+        ['Miks on ajasurve müüjale kasulik? Järelda.', 'mõtlev ostja võib ostust loobuda', 'pood saab varem kinni panna', 'kaup läheb muidu halvaks', 'seadus nõuab kiiret müüki'],
+        ['Mida tahab Toomas öelda lausega pettumusest? Järelda.', 'tarbetu ost toob rohkem kahetsust kui ära jäänud ost', 'kes ei osta, kahetseb alati', 'kampaaniad ei kordu kunagi', 'pettumus on kampaania osa'],
+        ['Milline on Toomase hoiak saate lõpus, kui ta räägib oma nimekirjast?', 'kõige rohkem säästab see, kes ostab nimekirja järgi', 'Black Friday tuleks keelata', 'oktoobris on kõik odavam', 'iga allahindlus on eksitav'],
+      ], 'g_listen'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, umbes 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: ennusta → võtmesõnad → kontrolli): õppija loeb küsimused, ennustab pliiatsiga ja kontrollib kuulates. Küsimused 8–10 on järeldusküsimused: nõua põhjendust kuuldust. Kordamise sõnad (pettumus, soovitama, harjumus) on saates. Saade on õppetekst, inimesed on välja mõeldud.'), [
+        'Toomas: „See võib olla hea päev, kui sa tead, mida otsid.”',
+        'Toomas: pood peab näitama „madalaimat hinda, mis kehtis viimase kolmekümne päeva jooksul enne allahindlust”.',
+        'Toomas: „vaadata hinda juba paar nädalat varem ja teha ekraanipilt”.',
+        'Toomas: „pane toode ostukorvi ja jaluta üks ring”.',
+        'Toomas: „panna prooviaja lõpu kohe telefoni kalendrisse”.',
+        'Toomas: „Ainult siis, kui kolmandat tõesti vaja on.”',
+        'Toomas: „Poes kohapeal see reegel ei kehti, siis sõltub kõik poe enda tingimustest.”',
+        'Järeldus: „Kiire otsus on müüjale hea, sest mõtlev ostja võib loobuda.”',
+        'Järeldus: pettumus jääb harvemini sellele, „kes ei ostnud”, kui sellele, kes ostis tarbetu asja.',
+        'Järeldus: „Parim allahindlus on see, mida sa ei vajanud ja seetõttu ei ostnud.”',
+      ]),
+    ],
+    practice: [
+      station(teach(B.notice('052_p_notice', 'Märka: kehtiv pakkumine, allahinnatud jope', [
+        'Saatest: pakkumine kehtib veel kümme minutit · hind, mis kehtis enne allahindlust · tellimus muutub automaatselt tasuliseks',
+        'Kordamine (B1): avatud uks, suletud pood — kesksõna on nagu omadussõna.',
+        'B2: **-v** — mis praegu toimub: pakkumine kehtib → **kehtiv** pakkumine · leping pikeneb → automaatselt **pikenev** leping',
+        'B2: **-tav** — mida saab või tuleb teha: toodet müüakse ainult internetis → ainult internetis **müüdav** toode · **tagastatav** kaup',
+        'B2: **-nud** — mis on juba juhtunud: kampaania algas reedel → reedel **alanud** kampaania · **aegunud** kupong',
+        'B2: **-tud** — mida keegi tegi: hinda alandati → **allahinnatud** jope · enne allahindlust **küsitud** hind',
+        'Laiend on kesksõna ees: automaatselt pikenev, enne allahindlust küsitud. Kesksõna käändub nagu omadussõna: kehtiva pakkumise, allahinnatud jopet. Vene keeles võib laiend olla ka järel — eesti keeles alati ees.',
+      ], 'full'), 'Kordamine ühe minutiga (avatud, suletud). Siis B2 samm: neli kesksõna ja laiend nende ees. Lase õppijal leida skeemist või saatest kolm kõrvallauset ja teha neist kesksõnafraas. L1 rida: vene keeles „цена, запрошенная до скидки” — eesti keeles „enne allahindlust küsitud hind”.'), 3, 25),
+      why(teach(tag(B.gaps('052_p_forms', 'Ostja märkmed Black Fridayst.', 'Kirjuta sulgudes olev tegusõna kesksõnana õiges vormis. Mõtle: kas see toimub, juhtus või tehti? Panka ei ole.', [
+        'Kas see on veel [kehtiv] pakkumine või lõppes see juba eile õhtul, kui ma poes käisin? (kehtima)',
+        'Lugesin tingimused hoolikalt läbi: leping on automaatselt [pikenev] ega lõpe kunagi ise. (pikenema)',
+        'Enne allahindlust [küsitud] hind oli tegelikult 90 eurot, mitte 200, nagu sildil kirjas. (küsima)',
+        '[Allahinnatud] jopel oli varrukal väike viga, mida ma poes kiirustades ei märganud. (alla hindama)',
+        'Ainult internetis [müüdav] toode jõuab pakiautomaati alles kahe nädala pärast. (müüma)',
+        'Reedel [alanud] kampaania kestab pühapäeva õhtuni ja siis tõusevad hinnad jälle. (algama)',
+        'Poe [lubatud] tasuta kohaletoomine ei kehtinud väikestele tellimustele. (lubama)',
+        'Kassas selgus, et [aegunud] kupongiga soodustust ei saa. (aeguma)',
+        'Ära usalda reklaamil [tiksuvat] kella, sest pärast selle lõppu tuleb sageli uus pakkumine. (tiksuma)',
+        'Iga [tagastatav] toode peab olema originaalpakendis ja sildid peavad olema alles. (tagastama)',
+      ], '', 'full', 'g_notice'), { task: 'G03' }),
+      'Pärast iga rida küsi: „Kas see toimub, juhtus või tehti seda?” Read 2 ja 9: -v; read 5 ja 10: -tav (müüakse → müüdav, tagastatakse → tagastatav); read 6 ja 8: -nud; read 3, 4 ja 7: -tud. Lisa küsimus: „Mis oli viimane allahinnatud asi, mille sa ostsid?”'), [
+        'Pakkumine kehtib praegu → -v: kehtiv.',
+        'Leping pikeneb ise → -v: pikenev.',
+        'Hinda küsiti enne → -tud: küsitud.',
+        'Jope hinda alandati → -tud: allahinnatud (kaks n-i).',
+        'Toodet müüakse → -tav: müüdav.',
+        'Kampaania algas → -nud: alanud.',
+        'Pood lubas → -tud: lubatud.',
+        'Kupong aegus → -nud: aegunud.',
+        'Kell tiksub praegu; osastav (usalda mida?) → tiksuvat.',
+        'Toodet tagastatakse → -tav: tagastatav.',
+      ]),
+      why(teach(tag(B.transformation('052_p_part', 'Kõrvallausest kesksõnafraas.', 'Tee kõrvallausest kesksõnafraas. Laiend jääb kesksõna ette, kesksõna käändub nagu omadussõna.', [
+        ['Pood reklaamib pakkumist, mis kehtib pühapäevani.', 'Pood reklaamib …', 'Pood reklaamib pühapäevani kehtivat pakkumist.'],
+        ['Lugesin lepingut, mis pikeneb automaatselt.', 'Lugesin …', 'Lugesin automaatselt pikenevat lepingut.'],
+        ['Hind, mida küsiti enne allahindlust, oli 90 eurot.', '… oli 90 eurot.', 'Enne allahindlust küsitud hind oli 90 eurot.'],
+        ['Tooted, mida müüakse ainult internetis, tulevad postiga.', '… tulevad postiga.', 'Ainult internetis müüdavad tooted tulevad postiga.'],
+        ['Kampaania, mis algas reedel, kestab kolm päeva.', '… kestab kolm päeva.', 'Reedel alanud kampaania kestab kolm päeva.'],
+        ['Ostsin jope, mille hinda alandati poole võrra.', 'Ostsin …', 'Ostsin poole võrra allahinnatud jope.'],
+        ['Prooviaeg, mis lõppes eile, muutus tasuliseks.', '… muutus tasuliseks.', 'Eile lõppenud prooviaeg muutus tasuliseks.'],
+        ['Kaup, mida saab tagastada 14 päeva jooksul, on parem valik.', '… on parem valik.', '14 päeva jooksul tagastatav kaup on parem valik.'],
+      ], 'full', 'g_notice'), { task: 'G05' }),
+      'Kesksõnafraas teeb sõnumi lühemaks ja ametlikumaks. Kontrolli, et laiend on ees (enne allahindlust küsitud, mitte küsitud enne allahindlust).'), [
+        'kehtib (praegu) → -v; reklaamib mida? → osastav: pühapäevani kehtivat.',
+        'pikeneb → -v; lugesin mida? → osastav: automaatselt pikenevat.',
+        'küsiti → -tud: enne allahindlust küsitud.',
+        'müüakse → -tav, mitmus: müüdavad.',
+        'algas → -nud: reedel alanud.',
+        'alandati → -tud; ostsin terve jope → täissihitis: poole võrra allahinnatud jope.',
+        'lõppes → -nud: eile lõppenud.',
+        'saab tagastada → -tav: tagastatav.',
+      ]),
+      draft('052_p_draft', 'sõnumi esimene lõik', 'Kirjuta sõbrale 5–7 lauset: milline pakkumine sind ahvatles ja mida sa märkasid? Kasuta kolme kesksõna. Õpetaja märgib kolm lauset.', 'Sõnavara (kesksõnad koos laiendiga)'),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('052_t_jigsaw', 'Kaks pakkumist: pusle paaris (8–10 minutit).', 'Loe ainult oma kaarti. Räägi partnerile oma pakkumisest kaarti näitamata. Koos otsustage, kumba sõbrale soovitada.',
+        'Kaart A — e-pood „Kodumasinaait”, Black Friday:\nTolmuimeja X5: „Varem 349 €, nüüd 179 € (−49 %)! Pakkumine kehtib veel 2 tundi.”\nVäike kiri: madalaim hind viimase 30 päeva jooksul 189 €. Kohaletoomine 9,90 €. Kampaaniatoodet tagastada ei saa, kui pakend on avatud. Garantii 2 aastat.\nAbikaart: Minu pakkumises on … · Väike kiri ütleb, et … · Kokku maksab see …\nLisaväljakutse: arvuta, kui suur on päris allahindlus.',
+        'Kaart B — tavapood „Linna Tehnika”, tavahind:\nSama tolmuimeja X5: 199 €. Allahindlust ei ole.\nVäike kiri: tasuta kohaletoomine; tagastamine 30 päeva jooksul; vana tolmuimeja viiakse tasuta ära; pood annab ühe aasta lisagarantiid (kokku 3 aastat).\nAbikaart: Minu poes … · Kuigi hind on …, saab ostja … · Mina soovitaksin …\nLisaväljakutse: leia oma kaardilt üks asi, mida on rahas raske mõõta.',
+        '', ''), 'jigsaw',
+      ['Minu pakkumises on …', 'Väike kiri ütleb, et …', 'Kokku maksab see …, seega soovitaksin …'],
+      'Arvutage päris allahindlus ja leidke tingimus, mis on seadusega vastuolus.', { task: 'S05' }),
+      'Pusle (v6 §2 l): kumbki näeb ainult oma kaarti; õppijad küsivad, täpsustavad ja annavad edasi. Sina oled sõber, kes tolmuimejat ostab. Varjatud info (ütle, kui paar on peaaegu otsustanud): „Ah jaa — mul on tolmuimejat vaja alles märtsis, kui ma kolin. Ja foorumis kirjutati, et „varem 349” hinda polnud selles poes kunagi.” Õppija peab reageerima: A „varem 349” on eksitav, päris allahindlus on 30 päeva madalaimast hinnast ainult 10 eurot; „tagastada ei saa” ei kehti netiostu puhul (14 päeva, raadio); kokku A 188,90 € ja B 199 € + lisagarantii ja tagastus; kui vaja on alles märtsis, ei pea Black Fridayl üldse ostma. Õnnestunud, kui paar vahetab info kaarti näitamata, kasutab vähemalt kolm kesksõna (kehtiv pakkumine, allahinnatud, tagastatav) ja annab põhjendatud soovituse koos kogukuluga. Abikaardi kasutamine märgi üles.'), 4, 20, { final: 'advise' }),
+      exitTalk('052_t_say', 'Ütle sõbrale 30 sekundiga, kumba pakkumist soovitad ja miks. Kasuta kaht kesksõna.', ['Kumba soovitad?', 'Mis on selle peamine põhjus?'], 'Kas õppija annab selge soovituse põhjusega ja kasutab kahte kesksõna (kehtiv, allahinnatud, tagastatav …)?'),
+      selfCheck('052_t_self', ['Vahetasin partneriga info kaarti näitamata ja leidsin väikesest kirjast nipi.', 'Kasutasin kesksõnu koos laiendiga (enne allahindlust küsitud hind, automaatselt pikenev leping).', 'Andsin sõbrale põhjendatud soovituse koos kogukuluga.'], 'Pakkumine läbi nähtud', 'Ma oskan müügivõtte ära tunda'),
+      teach(tag(homeTask(homeLines(peerReply(B.examWriting('052_t_msg', 'Kodus: sõnum sõbrale (umbes 140 sõna).', 'Lõpeta tunni mustand sõnumiks (130–150 sõna) ja salvesta 1-minutiline häälsõnum. Saada see kursusekaaslasele; ta vastab kahe tähe ja ühe sooviga. Harjuta → moodul 11.', 'sõnum', {
+        situation: 'Sõber kirjutas, et ostab Black Fridayl uue telefoni, sest „allahindlus on poole võrra”. Kirjuta talle sõnum; algust ei anta. Kursusekaaslane loeb sinu sõnumi ja vastab: kaks tugevat kohta ja üks soov (hindamisjuhendi järgi).',
+        points: ['milline pakkumine see on ja mis sind kahtlema pani', 'kaks müügivõtet ja kuidas neid kontrollida (kesksõnadega)', 'mida sa soovitad ja miks (kogukulu, tagastamine)', 'üks sinu enda ostureegel'],
+        words: [130, 150],
+      })), 6)), { task: 'W08' }), 'Üks-ühele: kursusekaaslase asemel saadab õppija sõnumi tuttavale eesti keele kõnelejale või sinule kui „sõbrale”; vastus on ikka kaks tugevat kohta ja üks soov hindamisjuhendi järgi. Rühmas: paarid vahetavad sõnumid järgmise tunni alguses.'),
+      writingRubric('052_t_rubric', 'Hindamisjuhend: sõnum sõbrale (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ära osta telefoni. Allahindlus on vale. Pood valetab. Varem hind oli väiksem. Osta hiljem. Kell reklaamis on halb. Tšau!” Hinnang: ülesanne 2 (nõuanne on olemas, kuid kontrollimise viisi ja oma ostureeglit ei ole), ülesehitus 2 (järjekord on selge, sidendeid peaaegu ei ole), sõnavara 2 („vale”, „halb” on üldised; puuduvad eksitav, madalaim hind, ajasurve), grammatika 1 (ühtegi kesksõna pole; „Varem hind oli” → Varem oli hind; käsud ilma põhjenduseta). Kui õppija kirjutab „enne allahindlust küsitud hind”, selgitab 30 päeva reegli ja lisab oma ostureegli, saab ta 9/12 (75 %).'),
+      retire('052_d_hook', CUT_HOOK),
+      retire('052_d_talk', CUT_HOOK),
+      retire('052_d_ads', 'v4 input (six short ads, 70 s): the lesson\'s one input is now the radio 052_d_radio (v5: one input, B2 listening 3–4 min)'),
+      retire('052_t_law', CUT_INPUT),
+      retire('052_t_check', CUT_INPUT),
+      retire('052_t_friend', CUT_OLDTASK),
+      retire('052_t_more', CUT_EXTRA),
+      retire('052_t_exit', CUT_DRILL),
+      retire('052_t_letter', CUT_OLDTASK),
+      retire('052_t_home', CUT_HOME),
+      retire('052_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-053': {
+    title: 'Netist tellitud jope ei sobi — kas raha tuleb tagasi?',
+    phases: grammar('Kordamine: tehakse, saadetakse · B2: raha tagastatakse, kaupa ei vahetata, kaup saadeti; paluksin, oleksin tänulik, kas saaksite'),
+    format: 'case',
+    topic: 'money',
+    subtopic: 'returns',
+    canDo: 'Ma loen e-poe tagastustingimusi, seletan naabrile lihtsas keeles, mida pood kirjutas ja mida ta peab tegema, ning kirjutan e-poele umbes 140-sõnalise taganemisteate; mõistan umbisikulisi tingimusi ja esitan nõude tingivas kõneviisis.',
+    teacherPage: {
+      goal: 'Условия возврата e-poe (стиль реального документа + TTJA); безличная форма и вежливое требование; посредничество; уведомление об отказе 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); условия — пункты 1–5 и вопросы 1–6; станция 3 — правило и 10 предложений, черновик 3 предложения; посредничество без скрытой информации.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, отмеченные в черновике или сообщении урока 052, и одной строкой говорит, что изменил. Вопрос, если время есть: «Ты когда-нибудь возвращал вещь, купленную в интернете? Что было трудно?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (52)',
+        '5–30: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: пробежать заголовки пунктов 1–7 (1 мин), найти нужный пункт (scan), прочитать (9 мин), 7 вопросов, из них 3 на вывод (8 мин), схема «вернутся ли деньги?» (4 мин)',
+        '30–52: станция 3 — безличная форма одной строкой (B1), B2: tagastatakse / ei vahetata / saadeti и вежливое требование; 10 предложений, «прямо → вежливо» (8 строк, проверяет учитель), черновик уведомления (10 мин), обратная связь — задание и регистр',
+        '52–70: станция 4 — посредничество: соседка получила письмо магазина и не понимает его; вы — соседка со скрытой информацией',
+        '70–75: выход: 30 секунд — три шага для соседки; самооценка; домашнее задание: уведомление 140 слов + проверка трёх вещей на странице TTJA, Harjuta',
+        'Kui aega jääb (75–90): ученик находит в условиях реального e-poe, которым пользуется, пункт о возврате и сравнивает с нашим текстом',
+      ],
+      sources: 'Условия «Põhjala Rõivas» — учебный текст KeeleSepp в стиле реального документа (магазин вымышлен). Общая основа: võlaõigusseadus — право отказа 14 дней с получения товара при покупке на расстоянии, возврат денег в течение 14 дней, расходы на обратную отправку по умолчанию несёт покупатель, продавец отвечает за недостаток 2 года; tarbijavaidluste komisjon при TTJA рассматривает споры бесплатно. Реальная страница: https://www.ttja.ee (автор её не открывал).',
+      groups: 'Условия — каждый сам, вопросы на вывод сравнивают в паре. Станция 4: один объясняет, другой — соседка с вашей карточкой; потом смена. В 1:1 соседка — вы.',
+      errors: [
+        '«Raha tagastakse» → «Raha tagastatakse» (tagastama → tagastatakse).',
+        '«Kaupa ei vahetatakse» → «Kaupa ei vahetata» (в отрицании безличной формы — -ta/-da без -kse).',
+        '«Ma palun, et te tagastate raha» в официальном письме → «Paluksin raha tagastada» (условное наклонение + da).',
+        '«Kas te saate mulle saata?» → «Kas te saaksite mulle … saata?» (вежливее — условное).',
+      ],
+      notes: [
+        'Посредничество (v6 §2 l, mediation): ученик объясняет официальный текст простыми словами человеку, который его не понял. Критерий — соседка понимает, что делать, а не пересказ всего письма.',
+        'Реальный документ (v6 §2 l): страница TTJA — с заголовком и URL в домашнем задании, задание из трёх пунктов; на лист она не копируется.',
+        'Слова на повтор (pöörduma, usaldusväärne, ettepanek из модулей 9–10) есть в тексте условий и в задании.',
+      ],
+    },
+    discover: [
+      station(revision('053_d_revise', 'b1b2-052', 'Paranda kolm märgitud lauset oma sõnumist sõbrale. Kirjuta iga lause uuesti ja ütle ühe reaga, mis oli viga.'), 1, 5),
+      station(withReview(tag(B.vocab('053_d_vocab', 'Tunni sõnad.', ['taganema (lepingust) — отказаться (от договора)', 'tagastama — возвращать', 'kättesaamine — получение', 'tingimused — условия', 'tagasisaatmine — обратная отправка', 'puudus — недостаток, дефект', 'nõue — требование, претензия', 'taganemisteade — уведомление об отказе', 'leping — договор', 'tõend — доказательство']), { topic: ['taganema', 'kättesaamine', 'tagasisaatmine', 'taganemisteade'] }), ['pöörduma', 'usaldusväärne', 'ettepanek']), 2, 25),
+      why(teach(tag(B.reading('053_d_terms', 'Loe e-poe tingimusi.', 'Vaata kõigepealt punktide pealkirju (1 minut). Siis leia vajalik punkt ja loe tähelepanelikult. Küsimustele 5–7 järelda.', 'E-pood „Põhjala Rõivas”: tagastamise ja kaebuste tingimused (väljavõte)', [
+        'Hea klient! Soovime olla usaldusväärne pood. Seepärast on siin lihtsas keeles kirjas, mida teha, kui tellitud kaup ei sobi või sellel on puudus. Loe tingimused läbi enne ostu, mitte alles siis, kui pakk on juba kodus. Kui midagi jääb segaseks, küsi klienditeenindusest: parem küsida kaks korda kui hiljem vaielda.',
+        '1. Kellele tingimused kehtivad. Need tingimused kehtivad tarbijale, see tähendab inimesele, kes ostab kaupa enda tarbeks, mitte ettevõtte jaoks. Ettevõtetele kehtivad eraldi tingimused.',
+        '2. Taganemisõigus (14 päeva). Tarbijal on õigus lepingust taganeda 14 päeva jooksul alates päevast, mil ta kauba kätte sai. Kui tellimus tuleb mitmes pakis, arvestatakse tähtaega viimase paki kättesaamisest. Taganemiseks saatke meile taganemisteade e-postiga või täitke tagastusvorm meie kodulehel. Põhjust ei pea nimetama. Ainult kauba tagasisaatmine ilma teateta ei ole veel taganemine.',
+        '3. Kauba seisukord. Kaupa võib proovida nii, nagu seda tehakse poes: jope võib selga panna ja jalanõusid võib proovida toas puhtal põrandal, aga sildid peavad olema alles. Kui kaupa on kantud, pestud või see on kahjustatud, võidakse tagastatavat summat vähendada. Hügieenitooteid, näiteks avatud pakendiga aluspesu, tagasi ei võeta.',
+        '4. Tagasisaatmine ja raha tagastamine. Kaup tuleb tagasi saata 14 päeva jooksul pärast taganemisteate saatmist. Tagasisaatmiseks võite kasutada meie tagastuskoodi, mille saadame pärast taganemisteadet e-postiga; see maksab 4,90 eurot ja summa arvestatakse tagastatavast rahast maha. Tagasisaatmise kulud kannab ostja, välja arvatud juhul, kui kaup on vigane või saadeti vale kaup. Raha, sealhulgas esialgne saatmistasu tavalise tarneviisi eest, tagastatakse 14 päeva jooksul pärast taganemisteate saamist. Pood võib raha tagastamisega oodata, kuni kaup on kohale jõudnud. Raha kantakse samale kontole, millelt makse tehti. Kinkekaarti pakutakse raha asemel ainult ostja nõusolekul.',
+        '5. Puudusega kaup. Kui kaubal on puudus, mis oli olemas juba ostes, vastutab pood kahe aasta jooksul. Puudusest teatage kahe kuu jooksul pärast selle avastamist ja lisage tellimuse number ning foto. Puuduseks ei loeta tavalist kulumist, näiteks kingatalla kulumist pärast pooleaastast kandmist. Kaebusele vastame 15 päeva jooksul. Esmalt pakume parandamist või asendamist; kui see ei ole võimalik, alandatakse hinda või tagastatakse raha.',
+        '6. Näide taganemisteatest. „Teatan, et taganen tellimuse nr 40518 lepingust. Kaup saabus 12. märtsil. Paluksin raha tagastada kontole, millelt makse tehti.” Kui teil on ettepanek, kuidas tingimusi selgemaks teha, kirjutage meile.',
+        '7. Kui me ei jõua kokkuleppele. Kui te ei ole meie vastusega rahul, võite pöörduda tarbijavaidluste komisjoni poole, mis tegutseb Tarbijakaitse ja Tehnilise Järelevalve Ameti juures. Komisjoni poole pöördumine on tarbijale tasuta.',
+        'Allikas: KeeleSepp õppetekst (pood on välja mõeldud). Päris allikas: Tarbijakaitse ja Tehnilise Järelevalve Amet, https://www.ttja.ee',
+      ].join('\n\n'), [
+        ['Millest arvestatakse 14 päeva, kui tellimus tuleb mitmes pakis?', 'viimase paki kättesaamisest'],
+        ['Mida peab ostja tegema, et lepingust taganeda?', 'saatma taganemisteate e-postiga või täitma tagastusvormi'],
+        ['Kes maksab tagasisaatmise kulud, kui kaup on korras?', 'ostja'],
+        ['Mida pakub pood esmalt, kui kaubal on puudus?', 'parandamist või asendamist'],
+        ['Miks ei piisa sellest, kui saadad jope lihtsalt tagasi? Järelda.', 'pood ei tea, et sa taganed; taganemiseks on vaja teadet, muidu võib tähtaeg mööduda'],
+        ['Mida vihjab punkt 3 inimesele, kes kandis jopet ühe õhtu peol? Järelda.', 'pood võib tagastada vähem raha, sest kaupa on kantud'],
+        ['Miks on punkt 7 ostjale oluline? Mida see kaudselt ütleb?', 'ostja ei pea vaidlust üksi pidama: komisjoni poole saab pöörduda tasuta'],
+      ]), { task: 'R19', voice: 'expert', harno: 'R2b' }), 'Lugemine, umbes 25 minutit koos sõnade ja skeemiga. Päris dokumendi stiilis tekst (v6 §2 l), kerge toega: punktid on pealkirjadega. Strateegia: kõigepealt silmitse pealkirju (1 minut), siis otsi küsimuse jaoks õige punkt (otsi), alles siis loe täpselt. Küsimused 5–7 on järeldusküsimused. Kordamise sõnad (pöörduma, usaldusväärne, ettepanek) on tekstis. Pood on välja mõeldud; seaduse põhimõtted on lihtsustatud.'), [
+        '2. punkt: „arvestatakse tähtaega viimase paki kättesaamisest”.',
+        '2. punkt: „saatke meile taganemisteade e-postiga või täitke tagastusvorm”.',
+        '4. punkt: „Tagasisaatmise kulud kannab ostja, välja arvatud juhul, kui kaup on vigane …”',
+        '5. punkt: „Esmalt pakume parandamist või asendamist.”',
+        'Järeldus 2. punktist: „Ainult kauba tagasisaatmine ilma teateta ei ole veel taganemine.”',
+        'Järeldus 3. punktist: „Kui kaupa on kantud … võidakse tagastatavat summat vähendada.”',
+        'Järeldus 7. punktist: komisjoni poole „pöördumine on tarbijale tasuta”.',
+      ]),
+      teach(B.diagram('053_d_scheme', 'flow', { title: 'Skeem: kas raha tuleb tagasi?', instruction: 'Kirjuta iga sammu juurde tingimuste punkti number (1–7). Lisa üks oma küsimus poele.', nodes: 'Ostsin internetist enda tarbeks? → taganemisõigus\nKas kauba kättesaamisest on alla 14 päeva? → saadan taganemisteate\nKaup on proovitud nagu poes, sildid alles? → raha täies ulatuses\nSaadan kauba 14 päeva jooksul tagasi → raha 14 päeva jooksul samale kontole\nPood ei vasta või keeldub? → tarbijavaidluste komisjon (tasuta)' }, 'full', 'g_read'),
+        'Skeem on otsustuspuu, mida õppija kasutab jaamas 4, kui seletab naabrile, mida teha.'),
+    ],
+    practice: [
+      station(teach(B.notice('053_p_notice', 'Märka: raha tagastatakse — paluksin raha tagastada', [
+        'Tingimustest: tähtaega arvestatakse · raha tagastatakse · hügieenitooteid tagasi ei võeta',
+        'Kordamine (B1): umbisikuline olevik — **-takse / -dakse**: tehakse, saadetakse.',
+        'B2, tingimustes on tegija varjus: pood tagastab raha → raha **tagastatakse** · tähtaega **arvestatakse** · eitus: kaupa ei **vahetata**, tagasi ei **võeta** · minevik: kaup **saadeti**, raha **kanti** üle',
+        'B2, viisakas nõue (tingiv): **paluksin** raha tagastada · **oleksin** tänulik, kui vastaksite · kas te **saaksite** … · **sooviksin** lepingust taganeda',
+        'Vene keeles kasutatakse sageli mitmuse 3. isikut („nad tagastavad”) — eesti ametlikus tekstis on umbisikuline: raha tagastatakse.',
+      ], 'full'), 'Kordamine ühe minutiga (tehakse, saadetakse). Siis B2 samm: umbisikuline eitus ja minevik ning tingiv nõue. Lase õppijal leida tingimustest neli umbisikulist vormi ja öelda, kes tegelikult tegija on (pood).'), 3, 22),
+      why(teach(tag(B.gaps('053_p_forms', 'Tingimused ja minu kiri.', 'Tingimus või viisakas nõue? Kirjuta sulgudes olev tegusõna õiges vormis. Panka ei ole.', [
+        'Raha [tagastatakse] 14 päeva jooksul pärast teate saamist. (tagastama)',
+        'Taganemise tähtaega [arvestatakse] kauba kättesaamise päevast, mitte tellimuse päevast. (arvestama)',
+        'Avatud pakendiga aluspesu ja muid hügieenitooteid tagasi ei [võeta]. (võtma)',
+        'Allahinnatud kaupa selles poes kahjuks teise suuruse vastu ei [vahetata]. (vahetama)',
+        'Tellitud sinise jope asemel [saadeti] mulle eelmisel nädalal punane jope. (saatma; minevik)',
+        'Raha [kanti] minu kontole alles kolme nädala pärast, kuigi lubati kahe nädalaga. (kandma; minevik)',
+        '[Paluksin] teil raha tagastada samale kontole. (paluma)',
+        'Ma [oleksin] tänulik, kui vastaksite nädala jooksul. (olema)',
+        'Kas te [saaksite] mulle tagastussildi e-postiga saata, et saaksin paki täna ära viia? (saama)',
+        'Ma [sooviksin] tellimuse nr 40518 lepingust taganeda, sest jope ei sobi mulle. (soovima)',
+      ], '', 'full', 'g_notice'), { task: 'G03' }),
+      'Pärast iga rida küsi: „Kes on tegija? Kas see on tingimus või palve?” Read 3–4: umbisikulise eituses lõppu -kse ei ole (ei võeta, ei vahetata). Read 7–10: tingiv kõneviis (-ksin, -ksite).'), [
+        'Tegija (pood) on varjus → umbisikuline olevik: tagastatakse.',
+        'Umbisikuline olevik: arvestatakse.',
+        'Umbisikuline eitus: ei võeta (lõpp -kse puudub).',
+        'Umbisikuline eitus: ei vahetata.',
+        'Umbisikuline minevik: saadeti.',
+        'Umbisikuline minevik: kanti.',
+        'Viisakas palve: tingiv, ma-isik: paluksin.',
+        'Oleksin tänulik — tingiv.',
+        'Viisakas küsimus: kas te saaksite (tingiv).',
+        'Viisakas soov: sooviksin (tingiv).',
+      ]),
+      why(teach(tag(openRewrite(B.transformation('053_p_polite', 'Otse või viisakalt?', 'Ütle sama mõte kirjas e-poele. Alusta antud sõnadega. Õpetaja kontrollib.', [
+        ['Andke mu raha kohe tagasi, ma ei taha seda jopet!', 'Paluksin …', 'Paluksin teil raha tagastada, sest jope ei sobi mulle.'],
+        ['Vastake mulle kohe, ma olen juba nädal aega oodanud!', 'Oleksin tänulik, kui …', 'Oleksin tänulik, kui vastaksite mulle nädala jooksul.'],
+        ['Saatke mulle tagastussilt, ma ei hakka ise postis käima.', 'Kas te saaksite …?', 'Kas te saaksite mulle tagastussildi e-postiga saata?'],
+        ['Ma tahan sellest lepingust kohe taganeda.', 'Sooviksin …', 'Sooviksin tellimuse nr 40518 lepingust taganeda.'],
+        ['Te panite pakki täiesti valet värvi jope.', 'Mulle saadeti …', 'Mulle saadeti tellitud sinise jope asemel punane jope.'],
+        ['Te ei vastanud mu eelmisele kirjale üldse.', 'Minu kirjale ei …', 'Minu kirjale ei ole kahjuks siiani vastatud.|Minu eelmisele kirjale ei ole vastatud.'],
+        ['Te võtsite mult raha kaks korda, see on vale.', 'Minu kontolt …', 'Minu kontolt võeti sama tellimuse eest raha kaks korda.'],
+        ['Kui te ei maksa, lähen kohtusse.', 'Kui raha ei …, pöördun …', 'Kui raha ei tagastata kahe nädala jooksul, pöördun tarbijavaidluste komisjoni poole.'],
+      ], 'full', 'g_notice')), { task: 'G05' }),
+      'Vaba ümbersõnastus: õpetaja kontrollib. Võtmes on üks hea variant; iga õige viisakas variant on õige.'), [
+        'Käsk → tingiv palve: paluksin + da-tegevusnimi.',
+        'Käsk → oleksin tänulik, kui + tingiv.',
+        'Käsk → viisakas küsimus: kas te saaksite.',
+        'Tahan → sooviksin (tingiv).',
+        'Süüdistus (te panite) → umbisikuline minevik: mulle saadeti.',
+        'Te ei vastanud → umbisikuline: ei ole vastatud.',
+        'Te võtsite → umbisikuline: võeti.',
+        'Ähvardus → umbisikuline eitus + pöördun … poole.',
+      ]),
+      draft('053_p_draft', 'taganemisteate algus', 'Kirjuta e-poele 5–7 lauset: mis tellitud, millal saabus, mis on probleem. Kasuta kaht umbisikulist vormi. Õpetaja märgib kolm lauset.', 'Ülesande täitmine ja register (ametlik toon, viisakas nõue)'),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('053_t_explain', 'Seleta naabrile: mida pood kirjutas? (6–8 minutit)', 'Naaber sai e-poelt kirja ega saa sellest aru. Seleta lihtsas eesti keeles, mida see tähendab ja mida ta peab tegema.',
+        'Sinu kaart.\nNaabri e-kiri poelt: „Lugupeetud klient! Teie tellimus nr 40518 vormistati 2. märtsil. Taganemisõigust arvestatakse tellimuse päevast, seetõttu on tähtaeg möödunud ja kaupa tagasi ei võeta. Soovi korral pakutakse kinkekaarti 80 % ulatuses.”\nSinu eesmärk: seleta lihtsalt kolm asja — mida pood väidab, mis on tingimuste järgi õige, mida naaber nüüd teeb.\nAbikaart: Pood kirjutab, et … · Tegelikult arvestatakse tähtaega … · Ma soovitaksin sul …\nLisaväljakutse: ütle naabrile ka, mida teha, kui pood ei vasta.\nLõpuks: mis sa arvad, kas e-poed peaksid tingimused lihtsamalt kirjutama? Kas sinu kodumaal on ostjal samad õigused?',
+        'Naabri kaart on õpetajal: millal pakk tegelikult kohale jõudis ja mida naaber kardab.', '', ''), 'mediation',
+      ['Pood kirjutab, et …', 'Tegelikult arvestatakse tähtaega …', 'Ma soovitaksin sul …'],
+      'Ütle naabrile ka, mida teha, kui pood ei vasta.', { task: 'S13' }),
+      'Vahendus (v6 §2 l). Sina oled naaber (eakas, eesti keel on igapäevane, ametlik keel raske). Ütle ainult seda, mida küsitakse. Takistused ükshaaval: 1) „Ma ei saa aru, mis on „vormistati” ja „80 % ulatuses”.” 2) „Võib-olla võtan kinkekaardi, siis on vähemalt midagi.” Varjatud info (ütle pärast teist takistust): „Pakk jõudis pakiautomaati alles 12. märtsil, täna on 20. Ja ma käisin saabastega üks kord õues — kas see on probleem?” Õppija peab reageerima: tähtaega arvestatakse kättesaamisest, mitte tellimuse päevast — 8 päeva, seega saab veel taganeda; kantud saabaste eest võib pood raha vähendada, aga ei tohi keelduda; kinkekaart ainult naabri nõusolekul, raha tuleb samale kontole. Õnnestunud, kui õppija seletab kolm asja lihtsate sõnadega, kasutab vähemalt kaks umbisikulist vormi (arvestatakse, tagastatakse) ja annab selged sammud (taganemisteade täna, tellimuse number ja kättesaamise kuupäev). Abikaardi kasutamine märgi üles.'), 4, 18, { final: 'explain' }),
+      exitTalk('053_t_say', 'Ütle naabrile 30 sekundiga kolm sammu, mida ta täna teeb. Kasuta üht umbisikulist vormi.', ['Mis on esimene samm?', 'Mida ta kirja kirjutab?', 'Mida ta teeb, kui pood ei vasta?'], 'Kas õppija annab kolm selget sammu lihtsas keeles ja kasutab umbisikulist vormi (arvestatakse, tagastatakse)?'),
+      selfCheck('053_t_self', ['Leidsin tingimustest õige punkti ja tähtaja.', 'Seletasin ametlikku keelt lihtsalt (arvestatakse, tagastatakse → pood peab …).', 'Andsin naabrile kolm selget sammu.'], 'Naaber teab, mida teha', 'Ma oskan oma õigusi netiostu puhul kasutada'),
+      tag(homeTask(homeLines(B.examWriting('053_t_claim', 'Kodus: taganemisteade e-poele (umbes 140 sõna).', `Lõpeta tunni mustand ametlikuks kirjaks (130–150 sõna). Algust ei anta. Salvesta ka 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Netist tellitud jope (või muu asi) ei sobi. Kirjuta e-poele enda või naabri nimel. Enne kirjutamist ava päris allikas — Tarbijakaitse ja Tehnilise Järelevalve Amet, https://www.ttja.ee — ja kontrolli kolme asja: mitu päeva on taganemiseks, kes maksab tagasisaatmise, kuhu pöörduda, kui pood ei vasta.',
+        points: ['mis tellitud, tellimuse number ja millal kaup saabus', 'et taganed lepingust ja miks tähtaeg ei ole möödunud', 'mida palud (raha samale kontole, tagastussilt) viisakas tingivas vormis', 'mis ajaks ootad vastust ja mida teed, kui vastust ei tule'],
+        words: [130, 150],
+      }), 6)), { task: 'W13' }),
+      writingRubric('053_t_rubric', 'Hindamisjuhend: taganemisteade (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Jope on halb. Ma tahan raha tagasi. Te pidite raha tagastama. Saatke kohe raha. Ma ootan. Kui raha ei tule, ma kirjutan internetti. Head aega!” Hinnang: ülesanne 1 (tellimuse numbrit ja kuupäeva ei ole, taganemist ei nimetata, toon on ähvardav), ülesehitus 2 (järjekord on selge, lõike ja sidendeid ei ole), sõnavara 2 (puuduvad taganema, kättesaamine, tagasisaatmine, tarbijavaidluste komisjon), grammatika 2 (käsud tingiva nõude asemel; „ma kirjutan” → kirjutan). Kui õppija lisab tellimuse andmed, kirjutab „Sooviksin lepingust taganeda … Paluksin raha tagastada …” ja nimetab komisjoni, saab ta 9/12 (75 %).'),
+      retire('053_d_hook', CUT_HOOK),
+      retire('053_d_vote', CUT_HOOK),
+      retire('053_d_talk', CUT_HOOK),
+      retire('053_d_radio', 'v4 input (a 97-s consumer radio): the lesson\'s one input is now the terms 053_d_terms (v5: one input, inputs alternate reading / listening)'),
+      retire('053_t_terms', CUT_INPUT),
+      retire('053_t_ask', CUT_INPUT),
+      retire('053_t_call', CUT_OLDTASK),
+      retire('053_t_more', CUT_EXTRA),
+      retire('053_t_exit', CUT_DRILL),
+      retire('053_t_letter', CUT_OLDTASK),
+      retire('053_t_home', CUT_HOME),
+      retire('053_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-054': {
+    title: 'Pesumasin läks katki: säästud, järelmaks või kiirlaen?',
+    phases: grammar('Kordamine: kuigi · B2: kuigi …, siiski; küll …, aga; olgugi et; isegi kui; ühest küljest …, teisest küljest; seevastu; samas'),
+    format: 'debate',
+    topic: 'money',
+    subtopic: 'credit',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest järelmaksust ja kiirlaenust, kaitsen väitlusel kaalutud seisukohta ja kirjutan ajalehele umbes 180-sõnalise arutluse; seon argumendi ja vastuargumendi möönvate sidenditega.',
+    teacherPage: {
+      goal: 'Радио «Rahakool»: рассрочка, быстрый кредит, общая стоимость; уступительные связки; дебаты со скрытой информацией; рассуждение 180 слов + медиадневник.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); радио — один раз и утверждения 1–7; станция 3 — правило и 10 предложений, черновик 3 предложения; дебаты без скрытой информации.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, отмеченные в черновике или уведомлении урока 053, и одной строкой говорит, что изменил. Вопрос, если время есть: «Что ты сделаешь, если завтра сломается стиральная машина?» (без настоящих сумм).',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (53)',
+        '5–25: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: подчеркнуть ключевые слова в утверждениях (2 мин), радио дважды (9 мин), 10 утверждений «верно / неверно», из них 3 на вывод (4 мин), формула «общая стоимость» (3 мин)',
+        '25–45: станция 3 — kuigi одной строкой (B1), B2: kuigi … siiski, küll … aga, olgugi et, isegi kui, ühest küljest … teisest küljest, seevastu, samas; 10 пропусков — ученик сам выбирает связку; 8 пар предложений → одно взвешенное; черновик первого абзаца рассуждения (10 мин), обратная связь — структура и связность',
+        '45–70: станция 4 — дебаты ≤ 4 минут с карточками ключевых слов, скрытая информация в середине, общее решение семьи',
+        '70–75: выход: 30 секунд — окончательная позиция с уступкой; самооценка; домашнее задание: рассуждение 180 слов, голосовое 1 мин, медиадневник, Harjuta',
+        'Kui aega jääb (75–90): ученик пишет «Minu viis rahareeglit» — пять правил модуля, каждое с одним «kuigi»',
+      ],
+      sources: 'Радио «Rahakool» — учебный текст KeeleSepp (ведущий Rein и консультант по долгам Merle вымышлены), без статистики. Общая основа: krediidi kulukuse määr (KKM) — годовая полная стоимость кредита, кредитор обязан её указывать (закон о кредиторах и кредитных посредниках); просрочка → viivis, запись в регистр платёжных нарушений мешает аренде и договорам; во многих самоуправлениях бесплатное võlanõustamine. Семья и суммы — учебные. Финансовых советов не давать.',
+      groups: 'Радио — каждый сам, выводы сравнивают в паре. Станция 4: пары «A» и «B» с карточками; потом смена сторон. В 1:1 вы берёте сторону, которую ученик не выбрал.',
+      errors: [
+        '«Kuigi järelmaks on mugav, aga maksad rohkem» → «Kuigi …, maksad (siiski) rohkem» (после kuigi aga не нужно — калька с «хотя …, но»).',
+        '«Kuigi kiirlaen on mugav, see maksab palju» → «…, maksab see palju» (после придаточного глагол сразу в начале главного).',
+        '«Ühelt küljelt» → «ühest küljest … teisest küljest» (или «ühelt poolt … teiselt poolt»).',
+        '«isegi kui» ≠ «kuigi»: isegi kui — условие, которое не меняет решения («даже если»).',
+      ],
+      notes: [
+        'Дебаты (v6 debate): ученик строит аргумент из ключевых слов сам, без готовых фраз; абикарта — только если застрял (отметьте, понадобилась ли).',
+        'Связь с модулем 10: занять у семьи — тоже заём; письменная договорённость (урок 047). Скрытая информация специально возвращает эту тему.',
+        'Медиадневник модуля (v6 G25, «Minu eesti keele võrgustik»): одна передача, канал или страница на эстонском о деньгах; три строки. Слова на повтор (kaaluma, seisukoht, laenama) есть в радио и в карточках.',
+      ],
+    },
+    discover: [
+      station(revision('054_d_revise', 'b1b2-053', 'Vaata oma taganemisteadet: õpetaja märkis kolm lauset. Kirjuta need õigesti ümber ja lisa rida, mida õppisid.'), 1, 5),
+      station(withReview(tag(B.vocab('054_d_vocab', 'Tunni sõnad.', ['järelmaks — рассрочка', 'kiirlaen — быстрый кредит', 'intress — процент', 'lepingutasu — плата за заключение договора', 'kuumakse — ежемесячный платёж', 'krediidi kulukuse määr — полная годовая стоимость кредита', 'kogukulu — общая стоимость', 'viivis — пеня', 'maksehäire — просрочка платежа (запись в реестре)', 'võlanõustaja — консультант по долгам']), { topic: ['järelmaks', 'kiirlaen', 'lepingutasu', 'kuumakse', 'krediidi kulukuse määr', 'kogukulu', 'viivis', 'maksehäire', 'võlanõustaja'] }), ['kaaluma', 'seisukoht', 'laenama']), 2, 20),
+      why(teach(tag(B.examListen('054_d_radio', 'Kuulamine: raadiosaade „Rahakool”.', 'Enne kuulamist joonista väidetes alla võtmesõnad. Kuula kaks korda: kas väide on õige või vale?', 'truefalse', [
+        'Rein: Tere! Saates „Rahakool” räägime täna ootamatutest kuludest. Kujutage ette: pesumasin läheb katki, uus maksab umbes viissada eurot ja säästud on väikesed. Poes pakutakse järelmaksu, telefonis ahvatleb kiirlaen. Stuudios on võlanõustaja Merle. Merle, kust alustada?',
+        'Merle: Tere! Kõigepealt hinga sügavalt ja ära otsusta poes viie minutiga. Ootamatu kulu tekitab paanikat ja paanikas tehakse kõige kallimaid otsuseid. Küsi endalt kolm küsimust: kas masinat saab parandada, kas sobiks kasutatud masin ja kui palju mul endal reservi on.',
+        'Rein: Oletame, et parandada ei saa. Mis on järelmaksul viga?',
+        'Merle: Järelmaksul ei pruugi olla midagi viga. Kui kuumakse on väike ja sissetulek kindel, võib see olla mõistlik lahendus. Aga järelmaks on laen. Lisaks intressile on sageli lepingutasu ja igakuine haldustasu. Seepärast ei tasu vaadata kuumakset, vaid kogukulu: kui palju maksad kokku kõigi kuude peale.',
+        'Rein: Kuidas seda võrrelda?',
+        'Merle: Selleks on krediidi kulukuse määr. See näitab laenu aastast hinda koos kõigi tasudega ja laenuandja peab selle pakkumises välja tooma. Mida suurem number, seda kallim laen. Kiirlaenu puhul on see number tavaliselt mitu korda suurem kui pangalaenul.',
+        'Rein: Kiirlaen on aga mugav. Raha tuleb kontole kümne minutiga.',
+        'Merle: Just see on oht. Kui raha saab nii kiiresti, ei jõua inimene kaaluda. Paljud võtavad kiirlaenu, et maksta ära eelmine laen, ja nii tekib ring, millest on raske välja tulla. Kui makse hilineb, lisandub viivis. Kui võlg jääb pikemaks ajaks maksmata, võib tekkida maksehäire. Siis on hiljem raske saada üürikorterit või isegi telefonilepingut.',
+        'Rein: Kuidas aru saada, et laenupakkumine on ohtlik?',
+        'Merle: Ohumärke on mitu. Kui reklaam lubab raha ilma küsimusteta, kui sinu sissetulekut ei kontrollita või kui sind kiirustatakse lepingut allkirjastama. Aus laenuandja küsib, kui palju sa teenid ja kui palju sul on juba kohustusi. See ei ole uudishimu, vaid vastutustundlik laenamine.',
+        'Rein: Mida sa siis soovitad?',
+        'Merle: Esimene variant on alati oma säästud, isegi kui need ei kata kogu summat. Teine on kasutatud või odavam masin. Kolmas on rääkida oma pangaga: väike laen pangast on sageli odavam kui kiirlaen. Mõnikord aitab ka pere. Aga ka perelt laenates tasub kokkulepe kirja panna, et hiljem ei tekiks pahandust.',
+        'Rein: Kuulaja küsib, kas võlaga inimene peaks häbenema abi küsida.',
+        'Merle: Kindlasti mitte. Häbi paneb inimesi vaikima, kuni võlg kasvab. Paljudes linnades ja valdades on tasuta võlanõustamine. Mida varem tuled, seda rohkem on võimalusi.',
+        'Rein: Kas laenamine on sinu seisukohast alati halb?',
+        'Merle: Ei. Kodulaen on enamasti mõistlik, sest korter jääb sulle. Probleem on laenuga, mis kulub ära enne, kui oled selle tagasi maksnud: reis, pidu, uus telefon iga aasta. Pesumasin on vahepeal: see on vajalik, aga see ei pea olema kõige kallim.',
+        'Rein: Üks lause lõpuks?',
+        'Merle: Reserv on parim laen: sa võtad selle iseendalt ja intressi ei maksa.',
+        'Rein: Aitäh, Merle!',
+      ], [
+        ['Merle soovitab teha otsuse kohe poes, et pakkumine ei kaoks.', false],
+        ['Enne ostu tasub kaaluda, kas masinat saab parandada või osta kasutatult.', true],
+        ['Merle sõnul on järelmaks alati halb lahendus.', false],
+        ['Järelmaksu puhul tuleb vaadata kogukulu, mitte ainult kuumakset.', true],
+        ['Krediidi kulukuse määr näitab laenu hinda koos kõigi tasudega.', true],
+        ['Kiirlaenu kulukuse määr on tavaliselt madalam kui pangalaenul.', false],
+        ['Maksehäire võib hiljem takistada üürikorteri leidmist.', true],
+        ['Järeldus: Merle arvates on kiire raha ohtlik, sest inimene ei jõua otsust kaaluda.', true],
+        ['Järeldus: Merle peab perelt laenamist nii turvaliseks, et kokkulepet pole vaja kirja panna.', false],
+        ['Järeldus: Merle hoiak on, et laen on mõistlik siis, kui ostetud asi jääb alles kauemaks kui laen.', true],
+      ], 'g_listen'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, umbes 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l): enne kuulamist joonib õppija väidetes alla võtmesõnad, kuulates kontrollib neid. Väited 8–10 on järeldused: nõua põhjendust kuuldust. Kordamise sõnad (kaaluma, seisukoht, laenama) on saates. Saade on õppetekst; isiklikku finantsnõu ei anta.'), [
+        'Vale: „ära otsusta poes viie minutiga”.',
+        'Õige: „kas masinat saab parandada, kas sobiks kasutatud masin”.',
+        'Vale: „Järelmaksul ei pruugi olla midagi viga.”',
+        'Õige: „ei tasu vaadata kuumakset, vaid kogukulu”.',
+        'Õige: „See näitab laenu aastast hinda koos kõigi tasudega.”',
+        'Vale: kiirlaenu puhul on see number „mitu korda suurem kui pangalaenul”.',
+        'Õige: maksehäire korral „on hiljem raske saada üürikorterit”.',
+        'Õige: „Kui raha saab nii kiiresti, ei jõua inimene kaaluda.”',
+        'Vale: „ka perelt laenates tasub kokkulepe kirja panna”.',
+        'Õige: kodulaen on mõistlik, „sest korter jääb sulle”; probleem on laen, mis „kulub ära enne, kui oled selle tagasi maksnud”.',
+      ]),
+      teach(B.diagram('054_d_scheme', 'formula', { title: 'Skeem: kuumakse ei ole veel kogukulu.', instruction: 'Kuulates täida read. Siis arvuta: kumb on kallim, 12 × 46 € või 500 € kohe?', nodes: 'Ostuhind | 500 €\n+ lepingutasu | …\n+ intress ja haldustasu kõigi kuude peale | …\n= kogukulu | kui palju maksad kokku\nVõrdle | säästud · kasutatud · pangalaen · järelmaks · kiirlaen' }, 'full', 'g_notice'),
+        'Valem näitab, miks väike kuumakse võib olla kallis: 12 × 46 € = 552 € (52 € rohkem kui kohe makstes). Täida koos pärast teist kuulamist.'),
+    ],
+    practice: [
+      station(teach(B.notice('054_p_notice', 'Märka: kuigi …, siiski · küll …, aga', [
+        'Saatest: järelmaksul ei pruugi olla midagi viga, aga järelmaks on laen · oma säästud, isegi kui need ei kata kogu summat',
+        'Kordamine (B1): **kuigi** + kõrvallause: Kuigi masin on kallis, ostan selle.',
+        'B2, möönmine: **kuigi** …, (**siiski**) … · **küll** …, **aga** … · **olgugi et** … (ametlikum kuigi) · **isegi kui** … (tingimus, mis otsust ei muuda)',
+        'B2, kaks poolt ja vastand: **ühest** küljest …, **teisest** küljest … · …, **seevastu** … · **samas** … (lisab teise vaate)',
+        'Sõnajärg: kõrvallause järel on pealauses tegusõna kohe alguses: Kuigi kiirlaen on mugav, maksab see palju.',
+        'Vene keeles öeldakse „хотя …, но …” — eesti keeles kuigi-lause järel aga-d ei ole: Kuigi …, (siiski) …',
+      ], 'full'), 'Kordamine ühe minutiga (kuigi). Siis B2 samm: kuus möönvat ja vastandavat sidendit ning sõnajärg. L1 rida: „Kuigi …, aga …” on vene keelest tulnud viga. Lase õppijal leida saatest kaks kohta, kus Merle annab vastasele poolele osaliselt õiguse.'), 3, 20),
+      why(teach(tag(B.gaps('054_p_forms', 'Foorum: mida teha katkise pesumasinaga?', 'Vali ise sobiv sidend või vorm ja kirjuta see lünka. Vihje ütleb mõtte, mitte sõna. Panka ei ole.', [
+        '[Kuigi] järelmaks tundub mugav, maksab ostja lõpuks rohkem. (möönmine lause alguses)',
+        'Kiirlaen on küll kiire, [aga] selle kulukuse määr on väga kõrge. (vastand)',
+        '[Ühest] küljest on uus masin säästlikum, teisest küljest on see kallis. (kaks poolt)',
+        'Ühest küljest maksan kohe kõik ära, [teisest] küljest jääb reserv tühjaks. (kaks poolt)',
+        'Pangalaen on sageli odavam, kiirlaen [seevastu] on väga kallis. (vastand, üks sõna)',
+        'Ostsime kasutatud masina, [olgugi et] uus oleks olnud vaiksem. (ametlik möönmine, kaks sõna)',
+        'Kuumakse on väike. [Samas] tuleb arvestada ka lepingutasuga. (teine vaade)',
+        'Ma ei võta kiirlaenu, [isegi kui] masin jääb kuuks ajaks ostmata. (tingimus, mis otsust ei muuda)',
+        'Kuigi säästud ei kata kogu summat, kasutan [siiski] kõigepealt neid. (rõhutab otsust)',
+        'Kuigi pood pakub järelmaksu, [maksan] ma pigem kohe. (maksma; sõnajärg)',
+      ], '', 'full', 'g_notice'), { task: 'G08' }),
+      'Vali ise: sidendit lauses ei anta, vihje ütleb ainult mõtte (v6 G15). Pärast iga rida küsi: „Kas see on möönmine, vastand või kaks poolt?” Rida 10: kõrvallause järel tegusõna kohe (maksan ma).'), [
+        'Möönmine lause alguses: kuigi; pealauses tegusõna kohe (maksab).',
+        'küll …, aga …: vastand.',
+        'Kaks poolt: ühest küljest …',
+        '… teisest küljest.',
+        'Vastand kahe asja vahel: seevastu.',
+        'Ametlik möönmine: olgugi et.',
+        'Teine vaade uues lauses: samas.',
+        'Tingimus, mis otsust ei muuda: isegi kui.',
+        'Otsus jääb vaatamata möönmisele: siiski.',
+        'kuigi-lause järel on tegusõna pealause alguses: maksan ma.',
+      ]),
+      why(teach(tag(B.transformation('054_p_concede', 'Kaks mõtet, üks kaalutud lause.', 'Seo kaks lauset üheks. Vali ise sidend: kuigi, küll … aga, olgugi et, isegi kui, seevastu või samas.', [
+        ['Järelmaks on mugav. Lõpuks maksad rohkem.', '…', 'Kuigi järelmaks on mugav, maksad lõpuks rohkem.|Järelmaks on küll mugav, aga lõpuks maksad rohkem.|Olgugi et järelmaks on mugav, maksad lõpuks rohkem.'],
+        ['Kasutatud masin on odav. Garantiid sellel ei ole.', '…', 'Kasutatud masin on küll odav, aga garantiid sellel ei ole.|Kuigi kasutatud masin on odav, ei ole sellel garantiid.|Kasutatud masin on odav, samas ei ole sellel garantiid.'],
+        ['Pangalaen on odavam. Kiirlaen on väga kallis.', '…', 'Pangalaen on odavam, kiirlaen seevastu on väga kallis.|Pangalaen on odavam, seevastu kiirlaen on väga kallis.|Pangalaen on küll odavam, aga kiirlaen on väga kallis.'],
+        ['Säästud ei kata kogu summat. Kasutan need ikka ära.', '…', 'Kuigi säästud ei kata kogu summat, kasutan need siiski ära.|Säästud küll ei kata kogu summat, aga kasutan need ära.|Olgugi et säästud ei kata kogu summat, kasutan need siiski ära.'],
+        ['Uus masin on kallis. Uus masin kulutab vähem elektrit.', '…', 'Ühest küljest on uus masin kallis, teisest küljest kulutab see vähem elektrit.|Uus masin on küll kallis, aga see kulutab vähem elektrit.|Kuigi uus masin on kallis, kulutab see vähem elektrit.'],
+        ['Raha tuleb kontole kümne minutiga. Kiirlaen on ohtlik.', '…', 'Kuigi raha tuleb kontole kümne minutiga, on kiirlaen ohtlik.|Raha tuleb küll kümne minutiga, aga kiirlaen on ohtlik.|Olgugi et raha tuleb kontole kümne minutiga, on kiirlaen ohtlik.'],
+        ['Pere võib aidata. Kokkulepe tuleb kirja panna.', '…', 'Pere võib küll aidata, aga kokkulepe tuleb kirja panna.|Kuigi pere võib aidata, tuleb kokkulepe kirja panna.|Pere võib aidata, samas tuleb kokkulepe kirja panna.'],
+        ['Masin jääb kuuks ajaks ostmata. Ma ei võta kiirlaenu.', '…', 'Isegi kui masin jääb kuuks ajaks ostmata, ei võta ma kiirlaenu.|Ma ei võta kiirlaenu, isegi kui masin jääb kuuks ajaks ostmata.|Kuigi masin jääb kuuks ajaks ostmata, ei võta ma kiirlaenu.'],
+      ], 'full', 'g_notice'), { task: 'W09' }),
+      'Iga rea võtmes on kolm head varianti; iga õige möönev või vastandav lause sobib. Kontrolli sõnajärge kõrvallause järel.'), [
+        'Möönmine: kuigi / küll … aga / olgugi et.',
+        'Möönmine või teine vaade: küll … aga, kuigi, samas.',
+        'Kahe asja vastand: seevastu.',
+        'Otsus vaatamata takistusele: kuigi …, siiski.',
+        'Kaks poolt: ühest küljest …, teisest küljest …',
+        'Möönmine: kuigi; pealauses tegusõna kohe (on kiirlaen).',
+        'Möönmine või teine vaade: küll … aga, samas.',
+        'Tingimus, mis otsust ei muuda: isegi kui.',
+      ]),
+      draft('054_p_draft', 'arutluse esimene lõik', 'Kirjuta 5–7 lauset: kas järelmaks on hea lahendus? Seisukoht, üks argument ja vastuargument. Õpetaja märgib kolm lauset.', 'Ülesehitus ja sidusus (seisukoht, argument, möönev sidend)'),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('054_t_debate', 'Väitlus märksõnakaartidega (kuni 4 minutit).', 'Ütle 30 sekundiga oma seisukoht. Siis vaielge kaartide ja näidetega. Lõpus leppige kokku, mida pere teeb.',
+        'Olukord: nelja inimesega pere pesumasin läks katki; uus maksab umbes 500 €, säästud on 200 €.\nKaart A (osta kohe, järelmaksuga): märksõnad — ehita neist ise argument ja too näide. 1) lapsed, pesu — ei saa oodata; 2) väike kuumakse — eelarve talub; 3) uus masin — garantii, säästlik.\nAbikaart: Kuigi …, on … siiski … · Ühest küljest …, teisest küljest …\nLisaväljakutse: vasta partneri kõige tugevamale argumendile, enne kui oma tood.',
+        'Olukord: sama pere, sama masin.\nKaart B (oota, säästa või osta kasutatud): märksõnad — 1) kogukulu — lepingutasu, intress; 2) kasutatud masin, remont; 3) reserv — järgmine ootamatu kulu.\nAbikaart: Küll …, aga … · …, seevastu … · Isegi kui …, ei …\nLisaväljakutse: paku kompromiss, mis võtab arvesse partneri muret.',
+        '', ''), 'debate',
+      ['Kuigi …, on … siiski …', 'Küll …, aga …', 'Isegi kui …, ei …'],
+      'Vasta partneri kõige tugevamale argumendile ja paku kompromiss.', { task: 'S17' }),
+      'Õpetaja võtab poole, mida õppija ei valinud. Kuula 30 sekundit vahele segamata, siis arutle. Varjatud info (ütle arutelu keskel): „Ah jaa — minu ema pakkus 300 eurot laenuks, aga ta tahab, et maksaksime selle tagasi kahe kuuga.” Õppija peab reageerima: kaaluma, kas kahe kuuga on realistlik (150 € kuus), kas kokkulepe pannakse kirja (moodul 10, tund 47) ja kas see on parem kui järelmaks. Õnnestunud, kui õppija ütleb seisukoha esimeses lauses, toob kaks argumenti näitega, kasutab vähemalt kolm möönvat või vastandavat sidendit õige sõnajärjega ja te jõuate kokkuleppele või ta nimetab selgelt, mis jäi lahti. Abikaardi kasutamine märgi üles.'), 4, 25, { final: 'decide' }),
+      exitTalk('054_t_say', 'Ütle 30 sekundiga oma lõplik seisukoht. Kasuta üht möönvat sidendit: kuigi, küll … aga või isegi kui.', ['Mida pere peaks tegema?', 'Mis on vastaspoole parim argument ja miks sa jääd ikka oma seisukohale?'], 'Kas seisukoht on esimeses lauses, kas õppija möönab vastaspoole argumenti (kuigi …, siiski …) ja kas sõnajärg on õige?'),
+      selfCheck('054_t_self', ['Sain raadiost aru kogukulust, kulukuse määrast ja kiirlaenu riskidest.', 'Sidusin argumendi ja vastuargumendi (kuigi … siiski, küll … aga, seevastu).', 'Kaitsesin seisukohta ja reageerisin uuele asjaolule.'], 'Väitlus peetud', 'Ma oskan enne laenu kogukulu kaaluda'),
+      tag(homeTask(homeLines(mediaLog(B.examWriting('054_t_argue', 'Kodus: arutlus ajalehele (umbes 180 sõna).', `Lõpeta tunni mustand arutluseks (170–190 sõna), salvesta 1-minutiline häälsõnum ja täida meediapäevik. ${HARJUTA}`, 'arutlus', {
+        situation: 'Kohalik ajaleht kogub lugejate arvamusi teemal „Kas järelmaks on hea lahendus, kui midagi läheb katki?”. Pealkirja ja algust ei anta. Minu eesti keele võrgustik (meediapäevik): vali üks eestikeelne saade, kanal või leht, kus räägitakse rahast — näiteks ERR uudiste majandusrubriik, https://www.err.ee. Kirjuta kolm rida: mida kuulasid või lugesid, üks uus sõna ja üks lause selle kohta.',
+        points: ['sinu seisukoht ja miks see teema on oluline', 'kaks argumenti näitega (kogukulu, risk, mugavus)', 'vastuargument ja sinu vastus sellele (kuigi …, siiski …)', 'kaalutud järeldus: millal järelmaks sobib ja millal mitte'],
+        words: [170, 190],
+      })), 6)), { task: 'W14' }),
+      writingRubric('054_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Järelmaks on halb. Kuigi see on mugav, aga maksad rohkem. Kiirlaen on ka halb. Minu sõber võttis kiirlaenu ja oli probleem. Ma arvan, et järelmaksu ei tohi võtta. Parem säästa.” Hinnang: ülesanne 2 (seisukoht ja näide on olemas, kuid kaalutud järeldust — millal sobib — ei ole), ülesehitus 2 (lõike ja vastuargumendile vastamist ei ole), sõnavara 2 („halb”, „probleem” korduvad; puuduvad kogukulu, lepingutasu, kulukuse määr), grammatika 1 („Kuigi …, aga …” on kalk; „Parem säästa” on lauseosa). Kui õppija parandab „Kuigi see on mugav, maksad lõpuks siiski rohkem”, lisab vastuargumendi ja järelduse, saab ta 9/12 (75 %).'),
+      retire('054_d_hook', CUT_HOOK),
+      retire('054_d_talk', CUT_HOOK),
+      retire('054_d_offers', 'v4 input (four offer cards): the lesson\'s one input is now the radio 054_d_radio (v5: one input, inputs alternate reading / listening)'),
+      retire('054_d_cost', CUT_INPUT),
+      retire('054_t_forum', CUT_INPUT),
+      retire('054_t_rules', 'planning card „Minu viis rahareeglit”: now the „Kui aega jääb” task in the teacher plan'),
+      retire('054_t_more', CUT_EXTRA),
+      retire('054_t_exit', CUT_DRILL),
+      retire('054_t_essay', CUT_OLDTASK),
+      retire('054_t_home', CUT_HOME),
+      retire('054_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-055': {
+    title: 'Kontroll 11 — raha ja tarbimine',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen eksami vormis umbes 500-sõnalist arvamusartiklit uute ja kasutatud asjade ostmisest ja lahendan selle ülesanded ning kirjutan kaks teksti: viie minutiga arvamuse samades tingimustes nagu mooduli alguses ja umbes 140-sõnalise kirja teenusepakkujale; Harno lävi on 60 %.',
+    teacherPage: {
+      goal: 'Контроль модуля 11 на одном листе, 45 минут: чтение (16 баллов) + письмо (18 баллов). Параллельная задача к холодной задаче урока 051, письмо поставщику услуги с аналитической рубрикой.',
+      core: [1], alt: 1,
+      short: 'Если времени мало: чтение (22 мин) в классе, письмо 2 — дома в тех же условиях (без словаря, 20 минут).',
+      hook: 'Почему чтение + письмо: контроль B2 чередует R + W и L + S (модуль 10 был L + S); холодная задача модуля письменная (051_d_cold), поэтому и параллельная задача письменная; деньги и права потребителя приходят к ученику как документы (условия, предложения, мелкий шрифт), а отвечает он письмом (претензия = Harno B2 W1).',
+      plan: [
+        '0–2: инструкция, баллы и пороги (Harno 60 %, KeeleSepp 70 % и 80 %, ни одна часть не 0)',
+        '2–24: чтение — статья ≈ 500 слов: часть 1 — 8 коротких ответов (1–3 слова), часть 2 — 8 вопросов с выбором, из них 3 на вывод',
+        '24–29: письмо 1 — параллельная задача: 5 минут, 5–7 предложений, новое утверждение (те же условия, что 051_d_cold)',
+        '29–45: письмо 2 — письмо поставщику услуги 130–150 слов, аналитическая рубрика 12 баллов',
+      ],
+      sources: 'Статья «Uus või kasutatud?» — учебный текст KeeleSepp (мнение автора), без точной статистики (раньше: Keskkonnaamet 2024, отчёт Uuskasutuskeskus 2023 — убраны). Правила: при покупке у частного лица не действуют 14 дней отказа и ответственность продавца 2 года (võlaõigusseadus).',
+      groups: 'Каждый сам, без словаря. Устная часть модуля проверяется в уроках (exit-задачи 051–054).',
+      errors: [
+        'Varasemast (≈ 20 %, v6 §2 f): часть 1 вопросы 2 и 8 и часть 2 вопрос 5 опираются на язык модулей 9–10 (reserv и kulu из урока 051, „edasi andma” и usaldus из модуля 10); письмо 1 оценивает связки kuigi / seetõttu (модули 7–9).',
+        'Сравнение с холодной задачей: положите рядом лист 051_d_cold и 055_t_cold и назовите ученику одно развитие и один следующий шаг.',
+      ],
+      notes: [
+        'Баллы: чтение 8 + 8 = 16; письмо 1 — 6 баллов по трём строкам 0/1/2; письмо 2 — 12 баллов (4 критерия × 0–3). Всего 34. Harno 60 % = 21, KeeleSepp 70 % = 24, 80 % = 28. Ни одна часть не может быть 0 баллов.',
+      ],
+    },
+    // Methodology v5 + v6 (2026-11-26): one sheet, 45 minutes, ≤ 10 blocks, READING + WRITING; points add up (v6 G20: R 16
+    // items = 16 points; W 6 + 12 = the rubrics' maxima), the no-zero rule is stated (G21), the reading is at least the
+    // lessons' level (≈ 500 words, 3 inference questions), the cold → parallel writing is the same task with a new
+    // statement. The v4 control (three sheets, 28 blocks, ≈ 167 min) stays hidden below.
+    discover: [
+      B.text('055_d_intro', 'Kontroll 11: lugemine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Lugemine (22 minutit): üks arvamusartikkel ja kaks ülesannet ilma sõnaraamatuta, 16 punkti. Kirjutamine (23 minutit): viie minutiga arvamus (6 punkti) ja kiri teenusepakkujale umbes 140 sõna (12 punkti) — kokku 18 punkti. Kokku 34 punkti. Harno: sooritatud alates 60 % (vähemalt 21 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (24 punkti), meie tunnistus alates 80 % (28 punkti) — see on sisemine lävi.'),
+      PART('055_d_rpart', 'R', { minutes: 22, points: 16, tasks: 2, note: 'Artikkel umbes 500 sõna: osa 1 lühivastused (8 punkti), osa 2 valikvastused (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      why(tag(B.reading('055_d_read', 'Lugemine: arvamusartikkel. Osa 1 (8 punkti).', 'Loe artiklit (umbes 9 minutit). Vasta osa 1 küsimustele 1–3 sõnaga. Sõnaraamatut ei kasutata.', 'Uus või kasutatud?', [
+        '(A) Veel paarkümmend aastat tagasi häbenesid paljud kasutatud riideid ja mööblit. Kasutatud asi oli vaesuse märk ja sellest ei räägitud sõpradele uhkusega. Täna on pilt teine: noored otsivad taaskasutuspoodidest vanu kvaliteetseid riideid, pered müüvad lapse väikeseks jäänud jope internetis edasi ja isegi suured kauplused avavad kasutatud kaupade nurki. Minu arvates ei ole see ainult mood, mis homme kaob, vaid targem viis raha ja asjadega ümber käia.',
+        '(B) Esimene põhjus on lihtne: kasutatud asi on odavam. Lapse talvekombinesoon, mida kantakse üks talv, maksab uuena palju, kasutatult aga vaid murdosa sellest. Ka mööbli, jalgrataste ja tööriistade puhul võib hinnavahe olla mitmekordne. Kuigi mõnikord tuleb asja parandada või puhastada, jääb rahakotti sageli rohkem, kui alguses arvad. Peres, kus lapsed kasvavad igal aastal riietest välja, on see vahe kuu eelarves kohe näha. Raha, mis nii üle jääb, võib minna reservi.',
+        '(C) Teine põhjus on keskkond. Iga asi, mida kasutatakse kauem, tähendab ühte uut toodet vähem, ja uue toote valmistamiseks kulub vett, energiat ja toorainet. Eriti kiiresti kuluvad odavad moeriided, mida kantakse vaid mõni kord. Suur osa riietest, mis prügikasti visatakse, oleks võinud kellelegi veel sobida. Seepärast tuleb tekstiil nüüd koguda eraldi, mitte panna tavalisse prügikasti.',
+        '(D) Kolmas põhjus on see, et taaskasutusel on juba hea võrgustik. Uuskasutuskeskustel ja heategevuspoodidel on poed paljudes linnades, kuhu saab asju tuua ja kust neid osta. Lisaks müüvad inimesed asju üksteisele internetiportaalides, kus kuulutuse saab üles panna mõne minutiga.',
+        '(E) Kasutatud asja ostmisel on siiski oma riskid. Kui ostad eraisikult, ei kehti tarbija neljateistkümnepäevane taganemisõigus ega müüja kaheaastane vastutus puuduste eest nagu poes. Seepärast kontrolli asja enne maksmist: lülita seade sisse, küsi ostutšekki ja garantiid, kui see on veel alles. Ära maksa ette tundmatule müüjale, kes kiirustab ja pakub hinda, mis tundub liiga hea, et olla tõsi. Kui müüja ei luba asja enne ostu vaadata, ei ole põhjust teda usaldada ja parem on loobuda. Kohtuge pigem päeval ja rahvarohkes kohas, mitte õhtul tühjas parklas.',
+        '(F) Mõni asi tasub siiski osta uuena. Turvatool, kiiver ja madrats peavad olema kindlasti terved ning nende ajalugu on raske kontrollida. Vana külmik või pesumasin võib kulutada nii palju elektrit, et odav ostuhind kaotab kiiresti mõtte. Siin aitab lihtne küsimus: kui palju see asi maksab kogu oma eluea jooksul, mitte ainult täna kassas? Mõnikord on uus ja säästlik seade pikas plaanis odavam kui kasutatud ja raiskav.',
+        '(G) Ma ei arva, et kõik peaksid edaspidi ostma ainult kasutatud asju. Kuid enne iga ostu tasub küsida kahte asja: kas mul on seda tõesti vaja ja kas keegi on selle juba teinud? Sageli on vastus teisele küsimusele „jah”. Siis säästame korraga nii raha kui ka loodust ja ostmine muutub teadlikuks otsuseks, mitte harjumuseks. Ja kui asja meil endal enam vaja ei lähe, võime selle omakorda edasi anda, nii et keegi teine ei pea uut ostma.',
+        'Allikas: KeeleSepp õppetekst (autori arvamus).',
+      ].join('\n\n'), [
+        ['1. Mille märk oli kasutatud asi varem?', 'vaesuse|vaesuse märk|vaesus'],
+        ['2. Kuhu võib minna raha, mis kasutatud asja ostes üle jääb?', 'reservi|reservi minna'],
+        ['3. Mida kulub uue toote valmistamiseks?', 'vett, energiat ja toorainet|vett, energiat, toorainet'],
+        ['4. Kus saab inimene oma asja teisele inimesele müüa?', 'internetiportaalides|internetis'],
+        ['5. Mis ei kehti, kui ostad eraisikult?', 'taganemisõigus|tarbija taganemisõigus|taganemisõigus ja vastutus'],
+        ['6. Kus soovitab autor müüjaga kohtuda?', 'rahvarohkes kohas|päeval rahvarohkes kohas'],
+        ['7. Milliseid kolme asja tasub osta uuena?', 'turvatool, kiiver ja madrats|turvatool, kiiver, madrats'],
+        ['8. Mida võid teha asjaga, mida sul enam vaja ei lähe?', 'edasi anda|anda edasi|edasi andma'],
+      ]), { task: 'R15', harno: 'R2b' }), [
+        '(A): „Kasutatud asi oli vaesuse märk.”',
+        '(B): „Raha, mis nii üle jääb, võib minna reservi.” (Varasemast: tund 51.)',
+        '(C): „kulub vett, energiat ja toorainet”.',
+        '(D): „müüvad inimesed asju üksteisele internetiportaalides”.',
+        '(E): „ei kehti tarbija neljateistkümnepäevane taganemisõigus”.',
+        '(E): „Kohtuge pigem päeval ja rahvarohkes kohas.”',
+        '(F): „Turvatool, kiiver ja madrats”.',
+        '(G): „võime selle omakorda edasi anda”. (Varasemast: edasi andma, moodul 10.)',
+      ]),
+      why(tag(B.choice('055_d_mc', 'Osa 2: vali õige vastus (8 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
+        ['Mis on lõigu A järgi viimastel aastatel muutunud?', 'kasutatud asju ei häbeneta enam', 'kasutatud asjad on kallimaks läinud', 'noored ei osta enam riideid', 'kauplused keelavad kasutatud kauba'],
+        ['Miks jääb lõigu B järgi rahakotti sageli rohkem, kui alguses arvad?', 'hinnavahe on suur ka siis, kui asja tuleb parandada', 'kasutatud asjal on alati garantii', 'kasutatud asja ei pea kunagi puhastama', 'pood maksab ostjale lisaks'],
+        ['Mida ütleb lõik C odavate moeriiete kohta?', 'neid kantakse vähe ja need kuluvad kiiresti', 'need on kõige keskkonnasõbralikumad', 'neid ei tohi edasi müüa', 'need on kallimad kui kasutatud riided'],
+        ['Miks soovitab autor eraisikult ostes asja enne maksmist kontrollida?', 'tarbija taganemisõigus ja müüja vastutus ei kehti', 'eraisik peab andma kaks aastat garantiid', 'eraisikult ei tohi seadmeid osta', 'eraisik peab raha 14 päeva jooksul tagastama'],
+        ['Mida peaks ostja tegema, kui müüja ei luba asja enne ostu vaadata?', 'ostust loobuma, sest müüjat ei ole põhjust usaldada', 'maksma kohe ette, et asi ei kaoks', 'pakkuma kõrgemat hinda', 'kohtuma õhtul parklas'],
+        ['Miks võib odav vana külmik lõpuks kalliks minna? Järelda.', 'see kulutab nii palju elektrit, et kogukulu kasvab', 'selle parandamine on keelatud', 'sellel on alati kahe aasta garantii', 'seda ei saa edasi müüa'],
+        ['Mida tahab autor öelda küsimusega „kas keegi on selle juba teinud?” Järelda.', 'enne uue ostmist tasub mõelda, kas sobiks kasutatud asi', 'kõik asjad on juba olemas ja uusi ei ole vaja', 'tootjad peaksid vähem tootma', 'ostja peaks ise asju valmistama'],
+        ['Millise mõttega nõustuks autor kõige tõenäolisemalt?', 'teadlik ostja kaalub nii raha, keskkonda kui ka turvalisust', 'kõik asjad tuleks osta kasutatult', 'kasutatud asjad on alati ohtlikud', 'uus asi on alati odavam kogu eluea jooksul'],
+      ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }), [
+        '(A): „Täna on pilt teine” — kasutatud asju ei häbeneta.',
+        '(B): „Kuigi mõnikord tuleb asja parandada …, jääb rahakotti sageli rohkem.”',
+        '(C): „odavad moeriided, mida kantakse vaid mõni kord”.',
+        '(E): „ei kehti tarbija … taganemisõigus ega müüja kaheaastane vastutus”.',
+        '(E): „ei ole põhjust teda usaldada ja parem on loobuda”. (Varasemast: usaldus, moodul 10.)',
+        'Järeldus (F) lõigust: „kulutada nii palju elektrit, et odav ostuhind kaotab kiiresti mõtte”.',
+        'Järeldus (G) lõigust: kui „keegi on selle juba teinud”, sobib kasutatud asi.',
+        'Järeldus kogu artiklist: raha (B), keskkond (C), turvalisus (E, F) — „ostmine muutub teadlikuks otsuseks”.',
+      ]),
+      PART('055_t_wpart', 'W', { minutes: 23, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): kolm rida 0–2 — samad tingimused nagu mooduli külmas alguses (tund 51). Kirjutamine 2 (umbes 18 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: lugemine … / 16 + kirjutamine … / 18 = … / 34.' }),
+      teach(tag(B.writing('055_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Kaardiga makstes kulutame rohkem kui sularahaga.” Sul on 5 minutit ja 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7], [], 0, 'g_use'), { task: 'W14', harno: 'W2b' }),
+        'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-051 (5 minutit, 5–7 lauset, fraase ega algust ei ole), uus väide samast teemast. Hinda kolme rea järgi 0–2 (hindamine all). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
+      B.rubric('055_t_rubric', 'Hindamine: kirjutamine 1 (6 punkti).', 'Iga rida 0–2 punkti.', ['Seisukoht esimeses lauses, põhjus ja näide (0–2).', 'Vastuargument ja vastus sellele (0–2).', 'Keel: sidendid (kuigi …, siiski; seetõttu) ja mooduli vormid (sihitis, kesksõna) (0–2).']),
+      tag(homeLines(B.examWriting('055_t_claim', 'Kirjutamine 2: kiri teenusepakkujale (umbes 140 sõna, 12 punkti).', 'Kirjuta 130–150 sõna. Pöördumist ja algust ei anta.', 'kiri', {
+        situation: 'Proovisid kuu aega tasuta keeleõppe äppi. Prooviaja lõpus tühistasid tellimuse, aga järgmisel kuul võeti sinu kontolt ikkagi 11,99 eurot ja leping pikenes automaatselt aastaks. Kirjuta teenusepakkuja klienditeenindusele.',
+        points: ['mis juhtus ja millal (tühistamine, makse)', 'miks makse ei ole sinu arvates õige (tingimused, tõend)', 'mida palud: raha tagasi ja lepingu lõpetamise kinnitus', 'mis ajaks ootad vastust ja mida teed, kui vastust ei tule'],
+        words: [130, 150],
+      }), 12), { task: 'W13', harno: 'W1' }),
+      writingRubric('055_t_wrubric', 'Hindamine: kiri (12 punkti).', 'Hinda kirja nelja kriteeriumi järgi (0–3). Mooduli keel on grammatika kriteeriumi osa: täis- ja osasihitis (tund 51: tühistasin tellimuse, ei tühistanud tellimust), kesksõna (52: automaatselt pikenev leping), umbisikuline ja tingiv nõue (53: raha võeti, paluksin), möönmine (54: kuigi …, siiski). Kontrolli tulemus = lugemine … / 16 + kirjutamine 1 … / 6 + kirjutamine 2 … / 12.'),
+      retire('055_d_how', CUT_CONTROL),
+      retire('055_d_vocab', CUT_CONTROL),
+      retire('055_d_para', 'statement and paragraph: part 1 is now the short answers of 055_d_read (v6 G20: a table is not counted as items, the R points must add up)'),
+      retire('055_d_cloze', CUT_CONTROL),
+      retire('055_d_bank', CUT_CONTROL),
+      retire('055_d_reply', CUT_CONTROL),
+    ],
+    practice: [
+      retire('055_p_how', CUT_CONTROL),
+      retire('055_p_kpart', CUT_CONTROL),
+      retire('055_p_fix', CUT_CONTROL),
+      retire('055_p_trans', CUT_CONTROL),
+      retire('055_p_lpart', CUT_CONTROL),
+      retire('055_p_notes', CUT_CONTROL),
+      retire('055_p_listen', CUT_CONTROL),
+      retire('055_p_tf', CUT_CONTROL),
+      retire('055_p_self', CUT_CONTROL),
+    ],
+    transfer: [
+      retire('055_t_situation', CUT_CONTROL),
+      retire('055_t_product', 'the module product is the letter 055_t_claim and the in-lesson exits 051–054 (v5 §5: one sheet, reading + writing)'),
+      retire('055_t_letter', CUT_CONTROL),
+      retire('055_t_essay', CUT_CONTROL),
+      retire('055_t_spart', CUT_CONTROL),
+      retire('055_t_present', CUT_CONTROL),
+      retire('055_t_debate', CUT_CONTROL),
+      retire('055_t_self', CUT_CONTROL),
+    ],
+  },
+}, {
+  'b1b2-051': 'LUGU R→W', 'b1b2-052': 'PROB L→S', 'b1b2-053': 'AVAS R→S', 'b1b2-054': 'KUUL L→W', 'b1b2-055': 'EKS',
+}));
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};

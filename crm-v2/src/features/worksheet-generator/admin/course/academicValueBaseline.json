@@ -97,6 +97,13 @@
     "b1b2-047|*|av-know",
     "b1b2-049|*|av-know"
   ],
+  "b1b2-module-11": [
+    "*|*|av-examiner",
+    "*|*|av-kasuta",
+    "*|*|av-opener",
+    "b1b2-052|*|av-know",
+    "b1b2-054|*|av-know"
+  ],
   "a2b1-module-13": [
     "*|*|av-opener"
   ]

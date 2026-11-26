@@ -5,17 +5,19 @@
 // from 051 to 054, the present-versus-future scale from 054 to 055 (files copied to the lesson folders, §7.1 rule 13).
 // Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by
 // KeeleSeppArt/import_art.py.
+// 2026-11-26 (v6): retargeted to the v6 blocks — 051 before the ranking card 051_t_rank, 052 before the scheme 052_d_scheme,
+// 053 before the home claim 053_t_claim, 054 before the cost formula 054_d_scheme; 055 stays before the control's task.
 export default [
   {
     id: "b1b2-051-kasuta-1",
-    phase: "transfer",
+    phase: "discover",
     format: "scene",
     cast: ["Anna", "Sofia"],
     // 2026-11-19 (v4): the first-apartment budget board, retargeted to finding a family's money leaks
     scene: "Kaks inimest vaatavad laua taga eelarvetahvlit. Hallid kaardid näitavad üüri, toitu, pesumasinat, lauda ja mängupuldiga ahvatlevat ostu; tahvlil jaguneb raha kolme veergu: püsikulud, ostud ja puutumata reserv. Üks inimene osutab tahvlile, teine mõtleb.",
     accent: "the three-column budget board",
     text: [],
-    place: "051_t_help",
+    place: "051_d_scheme",
     learningJob: "jagada kulud püsikuludeks, ostudeks ja reserviks ning leida kulu, mis on pigem soov või leke",
     alt: "Kaks inimest vaatavad eelarvetahvlit, kus raha jaguneb püsikuludeks, ostudeks ja reserviks.",
     caption: "Pilt 1. Püsikulud, ostud ja reserv: kuhu raha läheb?",
@@ -30,7 +32,7 @@ export default [
     scene: "Üks inimene hoiab käes kaubamärgita telefonireklaami, teine näitab analüüsitahvlit. Tahvlil on kolm võtet ilma sõnadeta: tunne (naeratus ja süda), ajasurve (kiire kell) ja teiste eeskuju (rahvahulk).",
     accent: "the advertising-technique analysis board",
     text: [],
-    place: "052_d_ads",
+    place: "052_d_scheme",
     learningJob: "tunda reklaamis ära tunde, ajasurve ja teiste eeskuju võte ning siduda see Black Friday pakkumistega",
     alt: "Üks inimene hoiab reklaami, teine näitab tahvlil kolme võtet: tunne, kell ja rahvahulk.",
     caption: "Pilt 1. Tunne, kell ja rahvahulk: kolm müügivõtet.",
@@ -38,18 +40,18 @@ export default [
   },
   {
     id: "b1b2-053-kasuta-1",
-    phase: "transfer",
+    phase: "discover",
     format: "scene",
     cast: ["Anna", "Liis"],
     // 2026-11-19 (v4): retargeted from a damaged sofa to a call with an e-shop's customer service
     scene: "Üks inimene räägib videokõnes klienditeenindajaga. Laual on kaup, ostudokument ja foto; kesksel kaardil on kolm seotud sammu: mis juhtus, mis on tõend ja mis on soovitud lahendus. Teenindaja osutab järgmisele sammule.",
     accent: "the three-step claim card",
     text: [],
-    place: "053_t_call",
-    learningJob: "esitada klienditeenindusele selge ja viisakas nõue: mis juhtus, mis on tõend ja mida palun",
+    place: "053_d_scheme",
+    learningJob: "kirjutada e-poele selge ja viisakas nõue: mis juhtus, mis on tõend ja mida palun",
     alt: "Inimene räägib videokõnes klienditeenindajaga; laual on kaup, ostudokument ja foto.",
     caption: "Pilt 1. Mis juhtus, mis on tõend ja mida ma palun?",
-    prompts: ["Mis on kesksel kaardil kolm sammu?", "Milline dokument on sinu kõnes kõige tähtsam tõend?", "Kuidas ütled teenindajale viisakalt, aga kindlalt, mida sa palud?"],
+    prompts: ["Mis on kesksel kaardil kolm sammu?", "Milline dokument on sinu kirjas kõige tähtsam tõend?", "Kuidas kirjutad poele viisakalt, aga kindlalt, mida sa palud?"],
   },
   {
     id: "b1b2-054-avasta-1",
@@ -60,7 +62,7 @@ export default [
     scene: "Kodumasinapoes seisab kolm kaubamärgita pesumasinat. Kaks inimest mõtlevad. Hallid sümbolid näitavad ostuhinda, garantiid, elektri- ja veekulu ning pesukogust; kesksel kaardil on eelarve ja kvaliteedi kaal.",
     accent: "the price-and-quality comparison card",
     text: [],
-    place: "054_d_offers",
+    place: "054_d_scheme",
     learningJob: "võrrelda ostu mitte ainult hinna, vaid ka garantii, kasutuskulu ja kogukulu järgi",
     alt: "Kaks inimest võrdlevad poes kolme pesumasinat; sümbolid näitavad hinda, garantiid ja kasutuskulu.",
     caption: "Pilt 1. Ostuhind ei ole veel kogukulu.",
@@ -75,7 +77,7 @@ export default [
     scene: "Kaks inimest seisavad kaalu kahel pool. Vasakul kaardil on rahakott (raha kohe), paremal kasvav sääst ja taim (tuleviku turvalisus); keskel on kaal, mis võrdleb praegust vajadust ja pikaajalist kasu.",
     accent: "the present-versus-future decision scale",
     text: [],
-    place: "055_t_debate",
+    place: "055_t_wpart",
     learningJob: "kaaluda raha kohe kasutamise ja säästmise plusse ning põhjendada oma seisukohta arutelus",
     alt: "Kaks inimest kaalu kahel pool: vasakul rahakott, paremal kasvav sääst.",
     caption: "Pilt 1. Kulutada täna või säästa homseks?",

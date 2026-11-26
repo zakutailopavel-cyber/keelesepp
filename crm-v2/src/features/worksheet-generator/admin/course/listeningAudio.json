@@ -3074,10 +3074,20 @@
     "seconds": 70.1,
     "hash": "4b20af7ee0f1b9313d170cab8a14c2fa71de6d47"
   },
+  "b1b2-052:052_d_radio": {
+    "src": "/audio/b1b2-052/052_d_radio.mp3",
+    "seconds": 226.9,
+    "hash": "4b084404daa4d007ab4bfc83e8df4a0f202a956d"
+  },
   "b1b2-053:053_d_radio": {
     "src": "/audio/b1b2-053/053_d_radio.mp3",
     "seconds": 97.4,
     "hash": "2e59d46d0563e98051e48ebdd5fccd2cb25db18b"
+  },
+  "b1b2-054:054_d_radio": {
+    "src": "/audio/b1b2-054/054_d_radio.mp3",
+    "seconds": 218.8,
+    "hash": "7da9fbf4c9f197cafd105def20657a8ca285b190"
   },
   "b1b2-055:055_p_listen": {
     "src": "/audio/b1b2-055/055_p_listen.mp3",
