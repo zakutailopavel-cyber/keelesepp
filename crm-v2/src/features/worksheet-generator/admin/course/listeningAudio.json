@@ -2476,8 +2476,8 @@
   },
   "a2b1-083:083_d_radio": {
     "src": "/audio/a2b1-083/083_d_radio.mp3",
-    "seconds": 133.6,
-    "hash": "824ba2448a2afe505625937280371ecad1ca90a0"
+    "seconds": 107.5,
+    "hash": "9b33ddfad2ff723ccbe1c7aa8cb275a8276b2af4"
   },
   "a2b1-083:083_p_ska": {
     "src": "/audio/a2b1-083/083_p_ska.mp3",
@@ -2493,6 +2493,11 @@
     "src": "/audio/a2b1-084/084_d_radio.mp3",
     "seconds": 115.9,
     "hash": "838ef91bd85371e5ed299e4d0f62833aee2b82b1"
+  },
+  "a2b1-084:084_d_voice": {
+    "src": "/audio/a2b1-084/084_d_voice.mp3",
+    "seconds": 110.4,
+    "hash": "d8420c0371cb2aaacb738666009ded007e1b8b10"
   },
   "a2b1-084:084_p_clips": {
     "src": "/audio/a2b1-084/084_p_clips.mp3",
