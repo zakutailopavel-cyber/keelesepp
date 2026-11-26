@@ -4878,7 +4878,7 @@ async function cashSummary({ actor }) {
   const who = cashActor(actor);
   if (!who.canSeeAll) throw httpError(403, "Kassa on ainult administraatorile ja raamatupidajale.");
   const [snap, everyone] = await Promise.all([db.collection("cashLedger").get(), cashPeopleAll()]);
-  const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const all = snap.docs.map(doc => cashCore.withOffBooks({ id: doc.id, ...doc.data() }));
   const balances = cashCore.cashBalances(all);
   const entries = all.sort((left, right) => String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
   const byUid = new Map(everyone.map(person => [person.uid, person]));
@@ -5035,6 +5035,77 @@ async function recordCashReceipt({ actor, values = {}, requestId }) {
   });
 }
 
+// „Sain sularaha” in „Minu kassa” (owner 2026-11-26; cash-core.js teacherReceiptEntry): any staff member records cash
+// they got from their own student (an admin: any student) or another payer — create, edit or cancel (void). The entry
+// is off the books (never linked to an invoice) and does not touch the lesson balance or the next invoice.
+//   create: { action: "create", requestId, studentId | payerName, amount, receivedAt, purpose, lessons, note }
+//   edit:   { action: "edit", entryId, ...the fields that change }      void: { action: "void", entryId, reason }
+async function teacherCashReceipt({ actor, values = {} }) {
+  const who = cashActor(actor);
+  const action = String(values.action || "create");
+  const nowIso = new Date().toISOString();
+  const studentIdOf = (value) => String(value || "").trim() || null;
+  if (action === "create") {
+    const id = cleanRequestId(values.requestId);
+    const ref = db.collection("cashLedger").doc(id);
+    return db.runTransaction(async transaction => {
+      const existing = await transaction.get(ref);
+      if (existing.exists) {
+        if (existing.data().createdBy?.uid !== who.uid) throw httpError(409, "Kirje on juba olemas.");
+        return { entry: cashCore.withOffBooks({ id, ...existing.data() }), idempotent: true };
+      }
+      const studentId = studentIdOf(values.studentId);
+      const studentSnap = studentId ? await transaction.get(db.collection("students").doc(studentId)) : null;
+      const entry = cashCore.teacherReceiptEntry({ actor: who, isAdmin: who.isAdmin, values, studentId, student: studentSnap?.exists ? studentSnap.data() : null, nowIso });
+      transaction.create(ref, { ...entry, requestId: id });
+      transaction.create(db.collection("financialAudit").doc(`cashbox_${id}`), {
+        entityType: "cash", entityId: id, action: "cash.teacher_receipt", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+        studentId: entry.studentId, payerName: entry.payerName, holderUid: entry.holderUid, purpose: entry.purpose, lessons: entry.lessons,
+        actor: actorSnapshot(actor), reason: entry.note || "Sularaha vastu võetud (Minu kassa)", createdAt: nowIso, requestId: id,
+      });
+      return { entry: cashCore.withOffBooks({ id, ...entry }), idempotent: false };
+    });
+  }
+  if (action !== "edit" && action !== "void") throw httpError(400, "Tundmatu toiming.");
+  const ref = db.collection("cashLedger").doc(String(values.entryId || "x"));
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists) throw httpError(404, "Kirjet ei leitud.");
+    const entry = snap.data();
+    if (action === "void" && entry.status === "void" && entry.source === "teacher") return { entryId: ref.id, idempotent: true };
+    // how much of it is still with the holder (pending and confirmed hand-overs take it), and a pending hand-over naming it
+    const own = entry.holderUid ? await readOwnCash(String(entry.holderUid), transaction) : [];
+    const position = cashCore.cashPosition(own, String(entry.holderUid || ""));
+    const inPendingHandover = own.some(item => item.type === "handover" && item.status === "pending" && (item.items || []).some(line => line && line.id === ref.id));
+    const refusal = cashCore.teacherReceiptChangeRefusal({ actor: who, isAdmin: who.isAdmin, entry, remainingCents: position.remaining[ref.id], inPendingHandover });
+    if (refusal) throw httpError(refusal === "Kirjet ei leitud." ? 404 : refusal === "See ei ole sinu kirje." ? 403 : 409, refusal);
+    if (action === "void") {
+      const reason = cleanText(values.reason) || "Kirje tühistatud";
+      transaction.set(ref, { status: "void", voidedAt: nowIso, voidedBy: actorSnapshot(actor), voidReason: reason }, { merge: true });
+      const round = Number(entry.revision) > 1 ? `_r${Number(entry.revision)}` : "";
+      transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}${round}`.slice(0, 150)), {
+        entityType: "cash", entityId: ref.id, action: "cash.voided", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+        source: "teacher", previous: { status: entry.status }, actor: actorSnapshot(actor), reason, createdAt: nowIso,
+      });
+      return { entryId: ref.id, idempotent: false };
+    }
+    const hasStudent = Object.prototype.hasOwnProperty.call(values, "studentId");
+    const studentId = hasStudent ? studentIdOf(values.studentId) : undefined;
+    const studentSnap = studentId && studentId !== (entry.studentId || null) ? await transaction.get(db.collection("students").doc(studentId)) : null;
+    const change = cashCore.teacherReceiptEditPatch({ actor: who, isAdmin: who.isAdmin, entry, values, studentId, student: studentSnap?.exists ? studentSnap.data() : null, nowIso });
+    if (!change) return { entry: cashCore.withOffBooks({ id: ref.id, ...entry }), idempotent: true };
+    transaction.set(ref, change.patch, { merge: true });
+    // the old values stay in the audit trail (financialAudit is append-only)
+    transaction.create(db.collection("financialAudit").doc(), {
+      entityType: "cash", entityId: ref.id, action: "cash.teacher_receipt_edited", amountCents: change.patch.amountCents ?? entry.amountCents,
+      amount: centsToAmount(change.patch.amountCents ?? entry.amountCents), previous: change.previous,
+      next: Object.fromEntries(Object.keys(change.previous).map(field => [field, change.patch[field]])), revision: change.patch.revision,
+      actor: actorSnapshot(actor), reason: cleanText(values.reason) || "Kirje parandatud", createdAt: nowIso,
+    });
+    return { entry: cashCore.withOffBooks({ id: ref.id, ...entry, ...change.patch }), idempotent: false };
+  });
+}
+
 async function recordCashHandover({ actor, values = {}, requestId }) {
   const id = cleanRequestId(requestId);
   const who = cashActor(actor);
@@ -5082,7 +5153,8 @@ async function allocateCashReceipt({ actor, receiptId, invoiceId }) {
   const receipt = snap.data();
   if (receipt.status === "void") throw httpError(409, "Kirje on tühistatud.");
   // owner 2026-11-10: cash a teacher took for a lesson does not go to the accountant — it never becomes an invoice payment
-  if (receipt.source === "lesson") throw httpError(409, "Tunni eest saadud sularaha ei seota arvega (see ei lähe raamatupidamisse).");
+  // owner 2026-11-26: the same for cash a teacher recorded in „Minu kassa” — cash-core OFF_BOOKS_SOURCES is the one list
+  if (cashCore.isOffBooks(receipt)) throw httpError(409, "Õpetaja saadud sularaha ei seota arvega (see ei lähe raamatupidamisse).");
   if (receipt.status === "allocated" && receipt.invoiceId !== String(invoiceId || "")) throw httpError(409, "Raha on juba teise arvega seotud.");
   const result = await recordInvoicePayment({
     actor, invoiceId, amount: centsToAmount(receipt.amountCents), paidAt: receipt.receivedAt, method: "cash", reference: "Sularaha",
@@ -11146,6 +11218,12 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     if (req.path === "/cash/handover/request") {
       const result = await requestCashHandover({ actor: await requireStaffUser(req), values: req.body, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    // „Sain sularaha” (owner 2026-11-26): own cash from own student / another payer; create, edit, void — checked inside
+    if (req.path === "/cash/teacher-receipt") {
+      const result = await teacherCashReceipt({ actor: await requireStaffUser(req), values: req.body || {} });
+      res.status(result.idempotent === false && String(req.body?.action || "create") === "create" ? 201 : 200).json(result);
       return;
     }
     if (req.path === "/cash/handover/answer") {

@@ -71,3 +71,20 @@
 .cash-receivers__title { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 1.05rem; }
 /* the app has no global warning badge tone (badge--warning is used in Kassa too): give it one here */
 .my-cash .badge--warning, .cash-page .badge--warning { background: var(--warning-soft); color: var(--warning-text); }
+
+/* „Sain sularaha” (owner 2026-11-26): the second button, the payer search, the teacher's own entry mark */
+.my-cash-summary__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.my-cash-own { display: inline-block; margin-right: 4px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--green-soft); color: var(--green-text); font-size: .72rem; font-weight: 700; line-height: 1.6; }
+.my-cash-dialog__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.my-cash-dialog__pair .field, .my-cash-dialog__form > .field { margin: 0; }
+.my-cash-dialog__void { margin-right: auto; }
+.my-cash-payer { position: relative; }
+.my-cash-payer__list { position: absolute; z-index: 5; top: 100%; left: 0; right: 0; display: grid; max-height: 260px; margin: 4px 0 0; padding: 4px; overflow: auto; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow); }
+.my-cash-payer__list li { display: grid; gap: 1px; min-height: 44px; padding: 7px 10px; border-radius: var(--radius-sm, 8px); cursor: pointer; }
+.my-cash-payer__list li small { color: var(--muted); font-size: .78rem; }
+.my-cash-payer__list li.is-active { background: var(--green-soft); }
+.my-cash-payer__list li.is-other { border-top: 1px solid var(--border-faint); }
+@media (max-width: 560px) {
+  .my-cash-summary__actions { width: 100%; flex-direction: column; }
+  .my-cash-summary__actions .button { width: 100%; }
+}

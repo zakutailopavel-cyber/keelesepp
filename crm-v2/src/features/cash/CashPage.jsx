@@ -8,7 +8,9 @@ import { financeApi } from '../../services/firebase/financeApi.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
-import { entryDate, entryLine, euro, heldByOthers, invoiceChoices, isLessonCash, lessonLine, openReceipts, STATUS_LABEL, todayIso } from './cashModel.js';
+import { entryDate, entryLine, euro, heldByOthers, invoiceChoices, isLessonCash, isOffBooksCash, isTeacherCash, lessonLine, openReceipts, STATUS_LABEL, todayIso } from './cashModel.js';
+import { lessonsLabel } from './myCashModel.js';
+import TeacherCashDialog from './TeacherCashDialog.jsx';
 import { amountCents, amountText } from './lessonCash.js';
 import { announceCashBoxChange } from '../../services/firebase/cashBox.js';
 import { HandoverDialog, MyCashSummary, PendingIncoming } from './MyCashParts.jsx';
@@ -36,6 +38,8 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [linking, setLinking] = useState(null);
+  // „Sain sularaha” entry of a teacher (owner 2026-11-26): the admin corrects or cancels it, also after the hand-over
+  const [editingCash, setEditingCash] = useState(null);
 
   const [summary, students, myBox] = state.data || [{ entries: [], balances: [], people: [] }, { items: [] }, null];
   const studentItems = useMemo(() => [...(students?.items || [])].sort((a, b) => String(a.name).localeCompare(String(b.name), 'et')), [students]);
@@ -82,7 +86,7 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
   const waiting = openReceipts(summary.entries);
 
   return (
-    <div className="cash-page">
+    <div className="page-content cash-page">
       {state.loading ? <p className="page-refreshing" role="status">Uuendan andmeid…</p> : null}
       <PageHeader eyebrow="Raha" title="Kassa" description={isAdmin ? 'Kelle käes on sularaha, mis on veel arvega sidumata ja kes kellele raha andis.' : 'Kelle käes on sularaha ja kes kellele raha andis (ainult vaatamiseks).'} />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
@@ -157,14 +161,15 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
             {summary.entries.map((entry) => (
               <div role="row" key={entry.id} className={`cash-row is-${entry.status}`}>
                 <span role="cell">{entryDate(entry)}</span>
-                <span role="cell">{entry.type === 'handover' ? <Badge tone="neutral">üle antud</Badge> : isLessonCash(entry) ? <Badge tone="info">tunni eest</Badge> : <Badge tone="info">saadud</Badge>}</span>
-                <span role="cell" className="cash-row__what"><strong>{entryLine(entry)}</strong>{entry.type === 'receipt' ? <small>{isLessonCash(entry) ? `${lessonLine(entry)} · ` : ''}käes: {entry.holderName || '—'}{entry.note ? ` · ${entry.note}` : ''}</small> : entry.note ? <small>{entry.note}</small> : null}</span>
+                <span role="cell">{entry.type === 'handover' ? <Badge tone="neutral">üle antud</Badge> : isLessonCash(entry) ? <Badge tone="info">tunni eest</Badge> : isTeacherCash(entry) ? <Badge tone="info">õpetaja märkis</Badge> : <Badge tone="info">saadud</Badge>}</span>
+                <span role="cell" className="cash-row__what"><strong>{entryLine(entry)}</strong>{entry.type === 'receipt' ? <small>{isLessonCash(entry) ? `${lessonLine(entry)} · ` : ''}{isTeacherCash(entry) && entry.purpose === 'lessons' && entry.lessons ? `${lessonsLabel(entry.lessons)} · ` : ''}käes: {entry.holderName || '—'}{entry.note ? ` · ${entry.note}` : ''}</small> : entry.note ? <small>{entry.note}</small> : null}</span>
                 <span role="cell" className="cash-row__sum">{euro(entry.amountCents)}</span>
-                <span role="cell">{isLessonCash(entry) && entry.status === 'open' ? (entry.invoicedBefore?.length
+                <span role="cell">{isTeacherCash(entry) && entry.status === 'open' ? <Badge tone="neutral" title="Õpetaja märkis ise „Minu kassas”. Arvega ei seota, tunnisaldot ega arvet ei muuda.">Raamatupidamisest väljas</Badge> : isLessonCash(entry) && entry.status === 'open' ? (entry.invoicedBefore?.length
                   ? <Badge tone="warning" title="Selle kuu arve oli juba tehtud; seda ei muudetud. Kuuarve tasaarveldus võtab tunni järgmiselt arvelt maha, „pärast toimunud tunde” arve puhul kontrolli käsitsi.">Makstud sularahas pärast arvet {entry.invoicedBefore.map((invoice) => invoice.num || invoice.id).join(', ')}</Badge>
                   : <Badge tone="neutral">Kuuarvelt maha</Badge>) : STATUS_LABEL[entry.status] ? <Badge tone={entry.status === 'open' || entry.status === 'pending' ? 'warning' : entry.status === 'rejected' ? 'danger' : entry.status === 'void' ? 'neutral' : 'success'}>{STATUS_LABEL[entry.status]}</Badge> : null}</span>
                 <span role="cell" className="cash-row__actions">
-                  {isAdmin && entry.type === 'receipt' && entry.status === 'open' && !isLessonCash(entry) ? <Button variant="secondary" onClick={() => setLinking(entry)}><Link2 size={15} /> Seo arvega</Button> : null}
+                  {isAdmin && entry.type === 'receipt' && entry.status === 'open' && !isOffBooksCash(entry) ? <Button variant="secondary" onClick={() => setLinking(entry)}><Link2 size={15} /> Seo arvega</Button> : null}
+                  {isAdmin && isTeacherCash(entry) && entry.status === 'open' ? <Button variant="secondary" aria-label="Paranda kirjet" title="Paranda või tühista kirje" onClick={() => setEditingCash(entry)}><Pencil size={15} /></Button> : null}
                   {isAdmin && isLessonCash(entry) && entry.status === 'open' ? <Button variant="secondary" aria-label="Paranda summa" title="Paranda summa" disabled={busy === `amount-${entry.id}`} onClick={() => fixAmount(entry)}><Pencil size={15} /></Button> : null}
                   {isAdmin && entry.status !== 'void' && !(entry.type === 'receipt' && entry.status === 'allocated') ? <Button variant="secondary" aria-label="Tühista kirje" title="Tühista kirje" disabled={busy === `void-${entry.id}`} onClick={() => voidEntry(entry)}><XCircle size={15} /></Button> : null}
                 </span>
@@ -174,6 +179,8 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
         ) : <EmptyState title="Kirjeid veel pole" description="Kui saad maksjalt sularaha, märgi see ülal." />}
       </Card>
 
+      {editingCash ? <TeacherCashDialog api={api} students={studentItems} entry={editingCash} onClose={() => setEditingCash(null)}
+        onDone={async (message) => { setEditingCash(null); setNotice(message || ''); setError(''); announceCashBoxChange(); await state.reload(); }} /> : null}
       {giving && myBox ? <HandoverDialog box={myBox} api={api} onClose={() => setGiving(false)} onDone={boxDone} /> : null}
       {linking ? <LinkInvoiceDialog receipt={linking} invoiceApi={invoiceApi} busy={busy === 'link'} onClose={() => setLinking(null)}
         onLink={async (invoiceId) => { if (await run('link', () => api.allocateCashReceipt(linking.id, invoiceId), 'Raha on arvega seotud ja arve makse kirjas.')) setLinking(null); }} /> : null}

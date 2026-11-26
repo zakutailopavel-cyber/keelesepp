@@ -24,7 +24,7 @@ export const navigation = [
   { to: '/kampaaniad', label: 'Kampaaniad', icon: Megaphone, roles: ACCESS.ADMIN, group: 'Suhtlus ja raha' },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
   { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
-  // „Minu kassa” (owner 2026-11-11): only for a teacher who ever had cash or has a hand-over to answer (AppShell `onlyWith`)
+  // „Minu kassa”: every teacher (AppShell `onlyWith`; since 2026-11-26 the teacher records cash there too); an admin has Kassa
   { to: '/kassa/minu', label: 'Minu kassa', icon: HandCoins, roles: ACCESS.STAFF, group: 'Suhtlus ja raha', onlyWith: 'myCash' },
 ];
 
