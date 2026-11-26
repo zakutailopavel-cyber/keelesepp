@@ -1,33 +1,103 @@
-// A2 course (A1 → A2 roadmap), module 8 „Teenused ja asjaajamine” (a2-036…040), level A2, in the final shape
-// (docs/COURSE_FINAL_SHAPE_A2.md, row m8: PROJ KIRJ RÄÄK LUGE; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
-// One storyline, one year before the B1 course (docs/COURSE_CAST.md): early December, Sofia (27) has lived in Tallinn for
-// two months (a room at Malle Pärn's in Mustamäe, Keelekool Sõna in the mornings: teacher Maret, administrator Ene,
-// classmates Lucía, Dmitri, Tom) and has errands to run before her first job interview next Monday: a bank account, an
-// ID card, a library card and a family doctor, a local SIM card. Minor characters: bank consultant Kristi Lepik (Linna
-// Pank, Akadeemia tee 12, tel 640 1022) and her colleague Ivo, the door guard (valvur) and clerk Heli at the service
-// office (teenindus), librarian Marju (Malle works at the library two days a week), registrar Merike at Mustamäe
-// perearstikeskus, the phone shop „Kõne” (customer service Kätlin, technician Ott), Aivar from the post office,
-// hairdresser Kerttu (salong „Lõige”). The pictures of the Kasuta sheets show a client and a clerk (art/visuals).
-//   036 PROJ R→W  the bank appointment — Soovin aega …, Kas … sobib?, Kas on võimalik varem / hiljem?, Kinnitan …;
-//                 days and times (kolmapäeval, pärast kella kahte); corner R5 (the bank's e-mail with 3-option gaps;
-//                 034 has W1); main: an e-mail to Kristi that moves the appointment (W04, 50–70 words).
-//   037 KIRJ L→W  rules at the service office — pean + ma-infinitive, võin / saan / ei tohi + da-infinitive and the
-//                 impersonal present (siin makstakse, uks avatakse); main and corner W2b: a 40–60-word description of
-//                 the school's new lounge with its rules for the school paper (W05), planned and edited.
-//   038 RÄÄK L→S  forms and instructions — the teie-imperative (täitke, kirjutage, märkige, ärge unustage); the library
-//                 card and the family doctor's registration; corner S2 (question card: one asks, one answers); main:
-//                 the registrar finds mistakes in the form (S10); home recording: the picture (S06).
-//   039 LUGE R→S  the phone shop and customer service — Mis küsimuses te helistate?, Palun oodake, Ma ühendan …,
-//                 Palun korrake, tähthaaval; corner R4 (a ~180-word text about the new SIM card); main: the call to
-//                 customer service (S04).
-//   040 EKS       the module check; its exam-form tasks carry their Harno A2 ids (R1, R4, R5, L3, W2a, W2b, S1).
-// Every teaching lesson: „Mäletad?” naming the previous lesson and one of modules 4–6, an in-lesson pair task, a home
-// recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2). The v3 file is in archive/v3/a2/module08.js.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 8 „Teenused ja asjaajamine” (a2-036…040), stage A2- (lessons 021–050).
+// Methodology v5 for A2 (docs/METHODOLOGY_A2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25), in the
+// pattern of A2 modules 5–7:
+//   - every teaching lesson: ≤ 14 blocks (≤ 5 / 4 / 5) in a 60-minute lesson; one input; one learning picture on the page of
+//     its task (art/visuals/a2-module-08.js); a 5-minute pronunciation corner (data.pronunciation: 036 välted — the strong
+//     partitive against the weak genitive, tundi / tunni, kahte / kahe; 037 intonatsioon — question, rule or ban; 038 the
+//     dictation of instructions + varjutamine; 039 vokaalid õ / ü / ä); the rule box („Märka”, bold forms, one „Vene keeles …
+//     — eesti keeles …” line) is produced by the Harjuta form task, whose hints are the dictionary form, a clock time or the
+//     other form of the pair (oodata → ootama), never the answer;
+//   - Kasuta in the standard order: (situation →) main task (data.taskType, data.support = „Abikaart”, data.stretch =
+//     „Lisaväljakutse”) → home task (homeTask, always „Harjuta → moodul 8”) → exit check (exitCheck: 30 s of speech after
+//     a speaking main task, one rewritten line after a writing main task) beside the self-check (three success criteria
+//     0–1–2 + one own sentence, data.evidence);
+//   - main-task types rotate and take the types modules 5–7 used only once: 036 survey (three people's free times → a
+//     booking message to the library), 037 project (a pair's guide „rules of our school” for a new learner, another pair
+//     answers: data.peerReply), 038 presentation (four steps to a family doctor, told to a new neighbour in the teie form),
+//     039 ranking — a decision (a phone package for three people under a budget);
+//   - spaced retrieval: every vocab block carries data.review (3 words from 3–15 lessons back, used again in the lesson);
+//   - real network: 036's home task is a real library's page (title + URL), 037's guide goes to a new learner and another
+//     pair answers it, 038's home task is the media log („Minu eesti keele võrgustik”, a real instruction page), 038's main
+//     addressee is a neighbour, 039's call has the module's HIDDEN INFORMATION card (G9);
+//   - Harno A2 exam corners spread over the module (COURSE_FINAL_SHAPE_A2.md, finalShape.js profile a2): 036 R5 (a letter
+//     with 3-option gaps), 037 W2b (the main task: a description with three prompts), 038 S2 (one asks, the other answers),
+//     039 R4 (the input, ≈ 120 words); the control tags R1, R4, L3, W2a, S2;
+//   - a teacher page per lesson (lesson.teacherPage); until the A2 sheet renders it, the same plan stands in the teacher
+//     note of the lesson's „Mäletad?” block.
+//   036 PROJ R→W  „Kas teile sobib kolmapäeval?” — a library's services page (reading). mulle / teile sobib, enne + partitive
+//                 (enne kella kümmet, enne lõunat), pärast + partitive (pärast kella kahte, pärast tööd), varem / hiljem; the
+//                 module's COLD TASK („Proovi kohe: broneeri aeg” without help, its parallel is the control's speaking 1);
+//                 the R5 corner; main: a survey — three people's free times against the library's week in the picture,
+//                 then a 25–40-word booking message (its parallel is the control's writing).
+//   037 KIRJ L→W  „Siin ei tohi süüa” — a guard explains the rules of a service office (listening). pean + ma (pean ootama,
+//                 ei pea tooma), võin / saan / tohin + da (võib oodata, saab maksta, ei tohi süüa); the infodesk pair task;
+//                 Kasuta opens with the office's signs in the picture (the rules → our school's rules, the plan of the
+//                 guide); main and W2b corner: a pair's 30–45-word guide for a new learner, answered by another pair.
+//   038 RÄÄK L→S  „Täitke vorm, palun” — a family doctor's registrar gives instructions (listening). The teie-imperative
+//                 (täitke, kirjutage, võtke, tulge, tooge, andke) and the ban (ärge unustage); the dictation of
+//                 instructions (5 sentences) + varjutamine; the S2 corner; main: a presentation — the four steps of the
+//                 picture told to a new neighbour; home: the media log with a real instruction page.
+//   039 LUGE R→S  „Klienditeenindus, tere!” — a phone company's notice of three packages (reading, the R4 corner). tahan /
+//                 soovin + da (tahan muuta, soovin lõpetada) against lähen / tulen / hakkan + ma (lähen küsima, tuleb
+//                 parandama, hakkan maksma); the call to customer service with HIDDEN INFORMATION and the e-mail to the firm —
+//                 the module's last teaching lesson: one speech and one text without ready phrases or a given opening (G9);
+//                 main: a decision — the pair chooses three packages for three people within 45 €, then orders them by
+//                 e-mail.
+//   040 EKS       Control 8 (one sheet, 9 blocks, 45 min): reading, listening, writing, speaking 10 points each; raw points,
+//                 the Harno scale (× 2), the thresholds named one way, „ükski osa ei tohi olla 0 punkti”; 4 of the 20 closed
+//                 items recycle modules 4–7 (teacher note „Varasemast”); writing parallel to 036's booking message, speaking 1
+//                 parallel to 036's cold task. 040 closes the first 40 lessons: A2_CURRICULUM_100.md makes every fifth lesson
+//                 a formative checkpoint and METHODOLOGY_A2_V5.md §5 keeps mock exams for 097, 099 and 100, so 040 is a
+//                 module control (no mock) whose result table also compares with the a2-001 placement diagnostic.
+// No lesson uses the continuing story's cast (G7). Dictation: one, in 038 (5 sentences). Texts are learning texts, the
+// people and places are invented (Rita, Olga, Rein, Piret, perearstikeskus Pärn, telefonifirma Kõne …); real pages are named
+// only by title and URL. The final-shape module (2026-10-29, one storyline with Sofia, Malle, Kristi, Ene …) is kept below as
+// OLD: every old block keeps its id and comes back hidden (retire), so learners' saved answers keep their key and Harjuta
+// still draws on the old form tasks.
+import { B, hide, tag, teach, withShapes } from '../blocks.js';
+import { exitCheck, homeTask } from '../stationBlocks.js';
 
 export const MODULE = { id: 'a2-module-08', course: 'a2', title: 'Teenused ja asjaajamine', level: 'A2', design: 'v2', template: 'v4' };
 
-export const LESSONS = withShapes({
+// one line for every block taken off the sheets by the v5 / v6 rewrite
+const V6_CUT = 'v5+v6 (2026-11-26): lehelt maha — tunni eelarve (60 min), üks sisend, loo tegelased mitte, uus tunni ülesanne';
+// a recording is heard twice (methodV5.js G6); in the control the player is locked
+const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// more fields on a block (v6 markers: taskType, support, stretch, review, pronunciation, peerReply, mediaLog, hiddenInfo)
+const v6 = (block, data) => ({ ...block, data: { ...block.data, ...data } });
+// the self-check of v6 (G24): the main task's three success criteria rated 0–1–2 and one own sentence as evidence
+const selfcheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, criteria, stamp, 'Kuidas mul läks?');
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0, 1 või 2. Kirjuta üks oma lause.', criteria, scale: [0, 1, 2], evidence: true } };
+};
+// a check is one sheet with its own label (no „Avasta” subtitle)
+const checkSheet = (label, subtitle) => ({ discover: { label, slot: 1, subtitle } });
+// the thresholds, named one way everywhere (METHODOLOGY_A2_V5.md §2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi, et eksamil oleks varu).';
+// the teacher's plan of a lesson, shown today in the teacher note of its first block (A2 sheets do not render
+// lesson.teacherPage yet; METHODOLOGY_V6.md §2 i)
+const planNote = (p) => [
+  `Õpetaja leht. Eesmärk: ${p.goal}`,
+  `Põhitee (60 min): ${p.core}`,
+  `Lühike tee (45 min): ${p.short}`,
+  `Alternatiiv: ${p.alt}`,
+  `Kui aega jääb: ${p.extra}`,
+  `Tüüpvead: ${p.errors.join(' · ')}`,
+].join('\n');
+// the old blocks the new lesson does not reuse come back hidden, in their old phase
+const PHASES = ['discover', 'practice', 'transfer'];
+function retire(old, lesson) {
+  const used = new Set(PHASES.flatMap((p) => (lesson[p] || []).map((b) => b.id)));
+  const out = { ...lesson };
+  PHASES.forEach((p) => { out[p] = [...(lesson[p] || []), ...(old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, V6_CUT))]; });
+  return out;
+}
+
+// ---------------------------------------------------------------- the final-shape module (2026-10-29, one storyline): every
+// block stays here with its id; the v6 lessons below take what they reuse and hide the rest (retire).
+const OLD = {
   'a2-036': {
     title: 'Aja broneerimine',
     canDo: 'Ma loen panga infot, broneerin telefonis aja, muudan seda ja kirjutan pangale 50–70-sõnalise e-kirja uue aja kohta.',
@@ -730,6 +800,460 @@ export const LESSONS = withShapes({
       B.selfcheck('040_t_self', ['Ma täidan vormi ilma abita.', 'Ma kirjutan e-kirja aja saamiseks.', 'Ma lahendan asja telefonis.', 'Ma räägin oma asjaajamisest.'], 'Moodul 8 on läbitud'),
     ],
   },
+};
+
+// ---------------------------------------------------------------- the v6 lessons
+const P036 = {
+  goal: 'õppija loeb teenuse infot (lahtiolekuajad, kestus, mida kaasa võtta), küsib ja ütleb, mis aeg sobib (mulle sobib, pärast kella kahte, enne lõunat, varem / hiljem), ja kirjutab kolme inimese vastuste põhjal broneerimise sõnumi.',
+  core: 'Mäletad? (3) → sõnad (4) → KÜLM ÜLESANNE „Proovi kohe: broneeri aeg” ilma abita, õpetaja paneb kirja 3 märget (4) → raamatukogu info (8) → Märka (4) → lüngad (5) → hääldusnurk: tundi / tunni (5) → eksaminurk R5: kiri lünkadega (8) → küsitlus kalendri järgi: mis aeg sobib kõigile? (6) → sõnum raamatukogule, kaaslane vastab (8) → väljumine: üks lause uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'Proovi kohe → raamatukogu info → Märka → lüngad → küsitlus kalendri järgi → sõnum → väljumine; eksaminurk ja hääldusnurk koju (Harjuta).',
+  alt: 'küsitluse kaartide asemel päris kalendrid: kaks-kolm õppijat vaatavad oma telefoni kalendrit ja leiavad aja, mis sobib kõigile; sõnum läheb päris raamatukogu e-posti aadressile alles pärast õpetaja kontrolli.',
+  extra: 'kuidas broneeritakse aega õppija kodumaal — kolm lauset: seal helistatakse / kirjutatakse …, aeg on tavaliselt …, mulle sobib rohkem ….',
+  errors: ['„pärast kella kaks” → pärast kella kahte (osastav)', '„enne kella kümme” → enne kella kümmet', '„mina sobib” (vene „мне подходит”) → mulle sobib', '„kas teie sobib?” → kas teile sobib?'],
+};
+const P037 = {
+  goal: 'õppija saab kuuldust aru asutuse reeglitest, ütleb, mida peab, võib ja ei tohi teha (pean ootama, võib oodata, ei tohi süüa), ja kirjutab paaris uuele õppijale 30–45-sõnalise juhendi, millele teine paar vastab.',
+  core: 'Mäletad? (3) → sõnad (4) → teeninduskeskuse valvur 2× (8) → Märka (4) → proovi: minu reeglid (4) → lüngad (5) → hääldusnurk: küsimus või reegel (5) → infoletis paaris (6) → sildid pildil ja meie kool: märksõnad (6) → eksaminurk W2b = põhiülesanne: juhend uuele õppijale, teine paar vastab (10) → väljumine: üks reegel uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'valvur → Märka → lüngad → sildid → juhend → väljumine; infolett ja hääldusnurk koju (Harjuta).',
+  alt: 'kooli asemel päris koht: paar kirjutab juhendi oma maja, spordiklubi või raamatukogu kohta; teine paar küsib ühe küsimuse.',
+  extra: 'reeglid õppija kodumaa asutuses — kolm lauset: seal peab …, seal võib …, seal ei tohi ….',
+  errors: ['„pean oodata” → pean ootama (pidama + ma)', '„võin ootama” → võin oodata (võima + da)', '„ei tohi sööma” → ei tohi süüa', '„mitte tohi” → ei tohi; „ei pea” = не обязательно, „ei tohi” = нельзя'],
+};
+const P038 = {
+  goal: 'õppija saab aru registraatori juhistest, moodustab teie-käsu ja keelu (täitke, kirjutage, võtke, tooge, ärge unustage) ja räägib pildi järgi uuele naabrile neli sammu, kuidas perearsti juurde registreerida.',
+  core: 'Mäletad? (3) → sõnad (4) → registraator 2× (8) → Märka (4) → proovi: sina oled registraator (4) → lüngad (5) → etteütlus ja varjutamine (6) → eksaminurk S2: üks küsib, teine vastab (6) → olukord (1) → juhend naabrile pildi järgi (8) → väljumine: 30 s (2) → kodutöö ja enesekontroll (3).',
+  short: 'registraator → Märka → lüngad → juhend naabrile → väljumine; etteütlus ja eksaminurk koju (Harjuta).',
+  alt: 'perearsti asemel teine päris asi: kuidas saada raamatukogu lugejakaart või ühiskaart — õppija räägib neli sammu teie-vormis ja naaber (õpetaja) küsib kaks küsimust.',
+  extra: 'õppija loeb ühe päris eestikeelse vormi (nt raamatukogu lugejakaardi taotlus) ja ütleb, mis lahtrid on kohustuslikud.',
+  errors: ['sina-vorm võõrale: „täida vorm” → täitke vorm (teie)', 'da-vorm käsu asemel: „võtta kaasa pass” → võtke kaasa pass', '„ärge unusta” → ärge unustage', 'tooma → tooge, tegema → tehke (sama mall: da-vorm tuua, teha)'],
+};
+const P039 = {
+  goal: 'õppija loeb telefonifirma teadet (eksaminurk R4), eristab da- ja ma-vormi (tahan muuta, lähen küsima, tuleb parandama), lahendab klienditeeninduses varjatud infoga probleemi ilma valmis lauseteta ja valib kaaslasega kolmele inimesele paketi.',
+  core: 'Mäletad? (3) → sõnad (4) → eksaminurk R4: telefonifirma teade (9) → Märka (4) → proovi paaris: probleem ja nõu (5) → lüngad (5) → hääldusnurk: õ, ü, ä (5) → kõne klienditeenindusse VARJATUD INFOGA (7) → otsus: kolm paketti, 45 eurot (8) → e-kiri firmale ilma antud alguseta: telli paketid (7) → väljumine: 30 s (2) → kodutöö ja enesekontroll (3).',
+  short: 'teade → Märka → lüngad → kõne klienditeenindusse → otsus pildi järgi → väljumine; e-kiri ja hääldusnurk koju (Harjuta).',
+  alt: 'pakettide asemel päris firma: paar vaatab ühe päris Eesti telefonifirma hinnakirja telefonis ja valib endale paketi; õpetaja küsib „miks?”.',
+  extra: 'õppija ütleb, mis pakett tal praegu on, mis see maksab ja mida ta tahab muuta — kolm lauset ma- või da-vormiga.',
+  errors: ['„tahan muutma” → tahan muuta (tahtma + da)', '„lähen küsida” → lähen küsima (minema + ma)', '„tehnik tuleb parandada” → tuleb parandama', '„hakkan maksta” → hakkan maksma'],
+};
+const P040 = {
+  goal: 'kontroll 8 ja kursuse esimese 40 tunni kokkuvõte: neli oskust 10 punkti, toorpunktid, Harno skaala ja lävendid; võrdlus kontrolliga 7 ja lähtediagnostikaga (tund 1).',
+  core: 'kuidas punkte loetakse (2) → lugemine 1–2 (14) → kuulamine 1–2 (10) → kirjutamine (9) → rääkimine üks-ühele (5) → tulemus ja võrdlus (5).',
+  short: 'kui aega on 35 minutit: lugemine, kuulamine ja kirjutamine tunnis, rääkimine järgmise tunni alguses (5 min).',
+  alt: 'rühmas: rääkimine paaris (üks teenindaja, teine klient; siis vahetus), õpetaja hindab kahte õppijat korraga sama juhendi järgi.',
+  extra: 'õppija vaatab tabelit (tund 1 → kontroll 8) ja kirjutab kaks lauset: milles ta on 40 tunniga kasvanud ja mida ta Harjutas kordab.',
+  errors: ['kuulamisel kirjutatakse terve lause — piisab 1–2 sõnast', 'kirjutamisel puudub üks neljast punktist', 'rääkimisel „pärast kella kaks” → pärast kella kahte, „mina sobib” → mulle sobib'],
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 036 reading: what time suits you (project lesson)
+  'a2-036': retire(OLD['a2-036'], {
+    title: 'Kas teile sobib kolmapäeval?',
+    canDo: 'Ma loen raamatukogu infot, küsin, mis aeg sobib, ja kirjutan broneerimise sõnumi.',
+    teacherPage: P036,
+    discover: [
+      teach(B.review('036_d_review', [['Mida sa ütled infoletis, kui ost on katki?', 'a2-034'], ['Mis kell on sinu lähim pood lahti?', 'a2-024'], 'Kus sa käid asju ajamas: pangas, postkontoris, raamatukogus?']), planNote(P036)),
+      tag(v6(B.vocab('036_d_vocab', 'Tunni sõnad.', ['broneerima — бронировать', 'aeg — время, приём', 'vaba — свободный', 'kinni — занят, закрыт', 'varem — раньше', 'hiljem — позже', 'enne — до, перед', 'pärast — после', 'kalender — календарь', 'kinnitama — подтверждать']),
+        { review: ['tasuta', 'lahti', 'pank'] }), { topic: ['broneerima', 'kinnitama', 'lugejakaart', 'lugejakaardi', 'lugejakaardiks', 'teenused', 'ekskursioon', 'arvutiabi', 'rühmatuba', 'raamatukoguhoidja', 'teenus', 'lugejatele', 'e-post', 'e-posti'] }),
+      teach(tag(B.speaking('036_d_cold', 'Proovi kohe: broneeri aeg.', 'Helista õpetajale ja broneeri aeg. Ilma abita.', [
+        'Mida sa soovid? Millal?',
+        'Kas see aeg sobib? Kui ei, mis aeg sobib?',
+        'Mida on vaja kaasa võtta?',
+      ], [45, 60]), { task: 'S01', level: 3 }),
+      'MOODULI KÜLM ÜLESANNE (2–3 min, enne lugemist ja reeglit): õpetaja on raamatukoguhoidja, õpilane broneerib ilma abita arvutiabi aja. Õpetaja pakub esimesena aega, mis ei sobi (teisipäeval kell kümme), ega aita ega paranda. Pane kirja kolm märget: kas õpilane ütleb aja õiges vormis (kolmapäeval, pärast kella kahte, enne lõunat), kas ta küsib teist aega (Kas on võimalik hiljem?), kas ta kordab aja lõpus üle ja on viisakas. Kontrolli 8 rääkimise 1. osa on selle paralleel (juuksur, samad kriteeriumid) — võrdle.'),
+      teach(tag(B.reading('036_d_lib', 'Raamatukogu info.', 'Loe infot. Vasta ühe-kolme sõnaga.', 'Linnaosa raamatukogu: meie teenused',
+        'Linnaosa raamatukogu on lahti esmaspäevast reedeni kella kümnest seitsmeni ja laupäeval kella kümnest kolmeni. Pühapäeval on raamatukogu kinni.\n\nLugejakaart on tasuta. Võta kaasa ID-kaart või pass.\n\nArvutiabi: raamatukoguhoidja aitab sind arvutiga, näiteks kui pank on kinni ja sa tahad maksta arvet internetis. Aeg kestab pool tundi. Arvutiabi on teisipäeval ja neljapäeval enne kella kahte.\n\nRühmatuba: seal saab kuni kuus inimest koos õppida kaks tundi. Tuba on vaba iga päev pärast kella kolme.\n\nEkskursioon uutele lugejatele on reedel kell neli. See on ka tasuta.\n\nAega saab broneerida telefonil 600 1234 või e-posti teel. Kui aeg sulle ei sobi, palun helista üks päev varem.',
+        [['Mis päeval on raamatukogu kinni?', 'pühapäeval'], ['Kui palju maksab lugejakaart?', 'see on tasuta|tasuta|null eurot'], ['Mida on vaja lugejakaardiks kaasa võtta?', 'ID-kaart või pass|ID-kaart|pass'], ['Kui kaua kestab arvutiabi?', 'pool tundi|30 minutit'], ['Mis päevadel on arvutiabi?', 'teisipäeval ja neljapäeval|teisipäeval|neljapäeval'], ['Mitu inimest saab rühmatoas õppida?', 'kuni kuus|kuus|6'], ['Millal on rühmatuba vaba?', 'pärast kella kolme|pärast kolme'], ['Millal on ekskursioon?', 'reedel kell neli|reedel|kell neli'], ['Millal tuleb helistada, kui aeg ei sobi?', 'üks päev varem|päev varem']]), { task: 'R15' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Silmitse: mis teenused siin on? Siis otsi päeva ja kellaaega.” Üks-ühele: õpilane joonib alla kõik ajad (enne kella kahte, pärast kella kolme, üks päev varem) — Märka-kastis teeb ta nendest reegli. Vanad sõnad: tasuta, lahti, pank.'),
+      B.notice('036_d_notice', 'Märka: pärast kella kahte', [
+        'Kellele sobib? **mulle sobib**, **teile sobib**, talle ei sobi',
+        'enne + osastav: **enne kella kümmet**, **enne lõunat**',
+        'pärast + osastav: **pärast kella kahte**, **pärast tööd**',
+        'Kas on võimalik **varem**? **hiljem**?',
+        'Lõpus kinnita: Hästi, kolmapäeval pärast kella kahte.',
+        'Vene keeles „после двух” — eesti keeles pärast kella kahte (osastav).',
+      ], 'half'),
+    ],
+    practice: [
+      half(tag(B.gaps('036_p_gaps', 'Mis aeg sobib?', 'Vaata sulge ja kirjuta sobiv vorm.', [
+        'Kas [teile] sobib kolmapäeval? (teie)',
+        '[Mulle] sobib reedel. (mina)',
+        'Ma saan tulla enne [kella] [kümmet]. (kell 10)',
+        'Ma tulen pärast [tööd]. (töö)',
+        'Kell kümme on mulle liiga vara. Kas saab [hiljem]? (hilja)',
+        'Kell viis on liiga hilja. Kas saab [varem]? (vara)',
+      ], '', 'half'), { task: 'G08' })),
+      teach(tag(v6(B.choice('036_p_pron', 'Hääldusnurk: tundi või tunni?', 'Kuula sõna, vali õige. Siis ütle lause kaasa.', [
+        ['Sõna 1', 'tundi', 'tunni'],
+        ['Sõna 2', 'kahe', 'kahte'],
+        ['Sõna 3', 'kümne', 'kümmet'],
+      ], 'half', 'g_listen'), { pronunciation: 'välted' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Ütle igast reast võtmes oleva sõna (tundi, kahe, kümne); õpilane valib. Selgita: osastav on pikk ja tugev (pärast tundi, pärast kella kahte, enne kella kümmet), omastav lühike ja nõrk (tunni aja pärast, kahe inimese jaoks, kümne minuti pärast). Siis varjutamine: loe „Mulle sobib neljapäeval pärast kella kahte.”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: topelttäht (mm, nn) on päriselt pikem, mitte ainult tugevam.'),
+      teach(tag(B.cloze('036_p_mail', 'Eksaminurk: kiri sõbrale.', 'Loe kirja. Vali igasse lünka sobiv sõna.', 'Tere, Olga!', [
+        'Eile käisin {*raamatukogus|raamatukogu|raamatukogule} ja tegin endale lugejakaardi. See on tasuta! Raamatukoguhoidja oli väga sõbralik.',
+        '',
+        'Seal on ka arvutiabi. Ma broneerisin {*aja|aeg|ajal} neljapäevaks. Kell kümme oli kinni, aga kell üksteist {*sobis|sobib|sobima} mulle hästi.',
+        '',
+        'Reedel on raamatukogus ekskursioon uutele {*lugejatele|lugejad|lugeja}. Kas sa tuled ka? See algab kell neli, nii et saad tulla pärast {*tööd|töö|tööga}.',
+        '',
+        'Kui reede sulle ei sobi, {*kirjuta|kirjutama|kirjutad} mulle. Ma helistan raamatukokku ja küsin teist {*aega|aeg|aja}. Raamatukogu on lahti ka {*laupäeval|laupäev|laupäevani}.',
+        '',
+        'Kallistan, Rita',
+      ]), { harno: 'R5', level: 3 }),
+      'Eksaminurk nagu Harno A2 lugemise 5. osas: isiklik kiri (≈ 80 sõna) ja 8 lünka, igas kolm valikut; 8 min, ilma abita. Siis kontroll: miks just see vorm? Õpilane ütleb reegli (pärast + osastav: pärast tööd; millal? laupäeval).'),
+    ],
+    transfer: [
+      teach({ ...tag(B.table('036_t_cal', 'Küsitlus: mis aeg sobib kõigile?', 'Küsi kahelt. Vaata kalendrit. Kirjuta, mis aeg sobib.', 'Kes?, Mis päev sobib?, Mis kell sobib?, Mis ei sobi?', [
+        'Mina |  |  | ',
+        'Inimene 2 |  |  | ',
+        'Inimene 3 |  |  | ',
+        'Rühmatuba (pilt): vaba |  |  | ',
+        'Meie aeg |  |  | ',
+      ]), { task: 'S09', level: 3, fluency: true }), inLesson: true },
+      'Küsitlus kalendri järgi (6 min). Olukord: rühm (kolm inimest) tahab raamatukogu rühmatuba kaheks tunniks. Õpilane küsib kahelt täislausega (Mis päeval sulle sobib? Kas pärast kella nelja sobib?), kirjutab vastused märksõnadena, vaatab pildilt, millal tuba on vaba, ja leiab aja, mis sobib kõigile. Rühmas vastavad kaaslased oma päris aja järgi. Üks-ühele: õpetaja vastab kahe kaardi järgi — Rein: esmaspäeval ei saa, kolmapäeval ja reedel sobib alles pärast kella nelja (pärast tööd); õpetaja ise: esmaspäev või kolmapäev sobib, reedel mitte. Kalender pildil: rühmatuba 15–17 esmaspäeval vaba, teisipäeval kinni, kolmapäeval vaba, neljapäeval kinni, reedel vaba (arvutiabi ja ekskursioon on teised teenused). Võti üks-ühele: kõigile sobib kolmapäeval pärast kella nelja. Paranda ainult aega (pärast kella nelja) ja sõna mulle / teile.'),
+      teach(tag(v6(B.examWriting('036_t_mail', 'Sõnum raamatukogule: meie aeg.', 'Kirjuta küsitluse järgi raamatukogule 25–40 sõna.', 'teade', {
+        situation: 'Rühm (kolm inimest) tahab rühmatuba kaheks tunniks. Kaaslane on raamatukoguhoidja ja vastab.',
+        points: ['kes te olete ja mida soovite', 'mis päeval ja mis kell teile sobib', 'mis aeg ei sobi', 'üks küsimus (nt mida kaasa võtta)'],
+        words: [25, 40],
+      }), {
+        lines: 4, taskType: 'survey', realAddressee: 'raamatukogu (rühma broneering)',
+        support: ['Tere! Meie rühm soovib …', 'Meile sobib … pärast kella …', '… ei sobi, sest …'],
+        stretch: 'Paku ka teine aeg, kui see aeg on kinni.',
+      }), { task: 'W02', main: true, level: 4 }),
+      'Kirjutamine tunnis, 8 min, küsitluse järgi (kõigile sobiv aeg). Siis vastab kaaslane raamatukoguhoidjana ühe lausega (Kolmapäeval kell neli on tuba vaba. / Kahjuks on kinni, kas kell viis sobib?). Üks-ühele: õpetaja vastab. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: teine aeg. Kontrolli 8 kirjutamine on selle paralleel (aja muutmine perearstikeskuses, samad neli punkti).'),
+      homeTask(teach(tag(B.speaking('036_t_home', 'Kodus: minu raamatukogu.', 'Vaata päris raamatukogu lehte. Salvesta 45 sekundit. Siis Harjuta → moodul 8.', [
+        'Keskraamatukogu (https://www.keskraamatukogu.ee) või sinu raamatukogu: millal lahti, millal sulle sobib?',
+      ], [45, 60]), { task: 'S15' }),
+      'Seosülesanne: õppija avab ise ühe päris raamatukogu lehe (lehte sisse ei kopeerita) ja salvestab 45–60 s: lahtiolekuajad ja mis aeg talle sobib (pärast tööd, enne lõunat). Harjuta → moodul 8: sõnad ja aeg (10 min). Järgmise tunni „Mäletad?” küsib seda.')),
+      half(exitCheck(tag(v6(B.writing('036_t_exit', 'Väljumine: parem lause.', 'Kirjuta üks lause sõnumist uuesti, kaaslase vastuse järgi.', [1, 2]), { lines: 2 }), { task: 'W10', level: 3 }))),
+      half(teach(selfcheck('036_t_self', ['Loen infost aja.', 'Ütlen: pärast kella kahte.', 'Kirjutan, mis aeg sobib.'], 'Tund 36 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas tema kui raamatukoguhoidja sai sõnumist kõigest aru. Õpilane kirjutab ühe lause (Meile sobib …) tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 037 listening: must, may, must not
+  'a2-037': retire(OLD['a2-037'], {
+    title: 'Siin ei tohi süüa',
+    canDo: 'Ma saan kuuldust aru asutuse reeglitest ja kirjutan uuele õppijale juhendi: mida peab, võib ja ei tohi.',
+    teacherPage: P037,
+    discover: [
+      teach(B.review('037_d_review', [['Mis aeg sulle sobib: enne või pärast tööd?', 'a2-036'], ['Kuidas sa maksad poes: kaardiga või sularahas?', 'a2-029'], 'Mis reeglid on sinu töökohas või koolis?']), planNote(P037)),
+      tag(v6(B.vocab('037_d_vocab', 'Tunni sõnad.', ['silt — табличка, знак', 'pidama — быть должным', 'võima — мочь, можно', 'tohtima — сметь, разрешено', 'lubatud — разрешено', 'ootama — ждать', 'dokument — документ', 'number — номер', 'ekraan — экран', 'foto — фото']),
+        { review: ['järjekord', 'maksma', 'kassa'] }), { topic: ['teeninduskeskus', 'reegel', 'reeglid', 'keelatud', 'järjekorranumbri', 'järjekorranumber', 'ooteruum', 'ooteruumis', 'tohtima', 'pildistama', 'pildistada', 'valvur', 'juhend', 'valjusti', 'lauda'] }),
+      twice(teach(tag(B.listening('037_d_guard', 'Teeninduskeskuses.', 'Kuula valvurit kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Klient: Tere! Ma tulin ID-kaarti tegema. Kuhu ma pean minema?',
+        'Valvur: Tere! Kõigepealt peate võtma järjekorranumbri. Automaat on ukse kõrval.',
+        'Klient: Kas järjekord on pikk? Kas ma pean kaua ootama?',
+        'Valvur: Täna on palju inimesi. Te võite oodata umbes pool tundi.',
+        'Klient: Kas ma võin vahepeal kohvi juua?',
+        'Valvur: Kohvi võite juua kohvikus. Ooteruumis ei tohi süüa ega juua.',
+        'Klient: Selge. Kas ma saan maksta sularahas?',
+        'Valvur: Ei, siin saab maksta ainult kaardiga. Kassat meil ei ole.',
+        'Klient: Kas ma pean foto kaasa tooma?',
+        'Valvur: Ei pea. Foto teeme siin ja see on tasuta.',
+        'Valvur: Ooteruumis ei tohi telefoniga valjusti rääkida. Kui teie number tuleb ekraanile, peate minema lauda neli.',
+      ], ['Kõigepealt peab võtma [järjekorranumbri|numbri].', 'Täna võib oodata umbes [pool tundi|30 minutit].', 'Ooteruumis ei tohi [süüa] ega juua.', 'Teeninduses saab maksta ainult [kaardiga].', 'Foto teeb teenindus ise ja see on [tasuta].', 'Kui number tuleb ekraanile, peab minema lauda [neli|4].'], 'g_listen'), { task: 'L04' }),
+      'Kuulamisstrateegia (enne esimest kuulamist): „Ennusta: mida teeninduses peab tegema? Loe laused enne läbi.” Esimesel korral kirjutab õpilane ainult kindlad vastused, teisel korral ülejäänud. Siis küsi: mida ei tohi teha? (süüa, juua, valjusti rääkida). Vanad sõnad: järjekord, maksma, kassa.')),
+      B.notice('037_d_notice', 'Märka: pean ootama, võin oodata', [
+        'pidama + ma: **pean ootama**, **pead võtma**',
+        'võima, saama, tohtima + da: **võin oodata**, **saab maksta**',
+        'Keeld: **ei tohi süüa**, **ei tohi rääkida** · pole vaja: **ei pea tooma**',
+        'Vene keeles „должен ждать” ja „можно ждать” (üks vorm) — eesti keeles pean ootama, aga võin oodata.',
+      ], 'half'),
+      half(teach(tag(B.speaking('037_d_mine', 'Proovi: minu reeglid.', 'Ütle kolm reeglit oma tööst või koolist.', [
+        'Mida sa pead seal tegema?',
+        'Mida sa seal võid või saad teha?',
+        'Mida seal ei tohi teha?',
+      ], [60, 75]), { task: 'S02', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti: õpilane ütleb kolm reeglit oma elust (Tööl pean kell kaheksa alustama. Lõunal võin süüa köögis. Koolis ei tohi tunnis telefoniga rääkida.). Õpetaja kordab õiget vormi, kui õpilane ütleb pean oodata või võin ootama.')),
+    ],
+    practice: [
+      half(tag(B.gaps('037_p_gaps', 'Pean, võin, ei tohi.', 'Kirjuta tegusõna õiges vormis.', [
+        'Kõigepealt pead [võtma] järjekorranumbri. (võtta)',
+        'Ooteruumis võib [oodata]. (ootama)',
+        'Siin ei tohi [süüa]. (sööma)',
+        'Kas ma saan [maksta] kaardiga? (maksma)',
+        'Ma pean homme uuesti [tulema]. (tulla)',
+        'Telefoniga ei tohi valjusti [rääkida]. (rääkima)',
+        'Fotot ei pea kaasa [tooma]. (tuua)',
+        'Kas siin [tohib] pildistada? (tohtima)',
+      ], '', 'half'), { task: 'G03' })),
+      teach(tag(v6(B.choice('037_p_pron', 'Hääldusnurk: küsimus või reegel?', 'Kuula lauset. Vali: küsimus või reegel. Siis korda.', [
+        ['Lause 1', 'küsimus', 'reegel'],
+        ['Lause 2', 'reegel', 'küsimus'],
+        ['Lause 3', 'küsimus', 'reegel'],
+        ['Lause 4', 'reegel', 'küsimus'],
+      ], 'half', 'g_listen'), { pronunciation: 'intonatsioon' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Loe: 1 „Kas siin tohib süüa?” 2 „Siin ei tohi süüa.” 3 „Kas ma pean ootama?” 4 „Te võite oodata.” Õpilane valib, siis kordab iga lause kaks korda (varjutamine). Eesti küsimus Kas …? läheb lõpus alla — küsimuse teeb sõna kas, mitte hääl üles nagu vene keeles. Keelus on rõhk sõnal tohi: „Siin ei TOHI süüa.” Rõhk on alati sõna esimesel silbil (ootama, oodata).'),
+      teach(tag(B.rolecards('037_p_info', 'Infoletis.', 'A küsib, B vastab reeglite järgi. Siis vahetage.',
+        'Sa tahad teha uue passi. Küsi: kas pead võtma numbri, kas võid oodata kohvikus, kas saad maksta sularahas, kas pead foto kaasa tooma?',
+        'Sa oled teenindaja. Reeglid: number on vaja; kohvikus võib oodata, number tuleb ka telefoni; maksta saab ainult kaardiga; foto teeme siin, see on tasuta.',
+        [], []), { task: 'S10', level: 3, fluency: true }),
+      'Üks-ühele: õpetaja on teenindaja ja vastab kaardi järgi; teisel korral kiiremini ja õpilane on teenindaja (õpetaja küsib). Paranda ainult pean + ma ja võin / saan / tohin + da.'),
+    ],
+    transfer: [
+      teach(tag(B.speaking('037_t_signs', 'Sildid: mida siin tohib?', 'Vaata silte. Ütle: mida peab, võib, ei tohi?', [
+        'Sildid 1–2: mida siin peab tegema?',
+        'Sildid 3–4: mida siin võib või saab teha?',
+        'Sildid 5–6: mida siin ei tohi teha?',
+        'Ja meie koolis: üks reegel, mis on sama, ja üks, mis on teine?',
+      ], [60, 75]), { task: 'S06', level: 3 }),
+      'Enne kirjutamist (6 min, plaani asemel): pildil on teeninduskeskuse kuus silti, sõnad algvormis (number, ekraan, wifi tasuta, kaart, söök, telefon valjusti). Õpilane teeb ise lause modaalverbiga. Võti: 1 = Kõigepealt peab võtma numbri. 2 = Peab ootama, kuni number tuleb ekraanile. 3 = Wifi võib kasutada tasuta. 4 = Maksta saab ainult kaardiga. 5 = Siin ei tohi süüa. 6 = Telefoniga ei tohi valjusti rääkida. 4. küsimus viib juhendini: paar ütleb, mis reeglid on koolis samad ja mis teised, ja paneb need märksõnadena kirja. Paranda ainult ma / da (pean ootama, võib oodata).'),
+      teach(tag(v6(B.examWriting('037_t_text', 'Juhend uuele õppijale.', 'Kirjuta paaris 30–45 sõna: meie kooli reeglid.', 'kirjeldus', {
+        situation: 'Rühma tuleb uus õppija. Juhend läheb seinale; teine paar loeb ja küsib ühe küsimuse.',
+        points: ['mida peab tegema (nt kui tuled hiljaks)', 'mida võib või saab teha (nt köök, raamatud)', 'mida ei tohi teha', 'kelle käest küsida'],
+        words: [30, 45],
+      }), {
+        lines: 4, taskType: 'project', peerReply: true, realAddressee: 'uus õppija ja rühma kaaslased (juhend seinal)',
+        support: ['Meie koolis peab …', 'Köögis võib …', 'Tunnis ei tohi …'],
+        stretch: 'Lisa üks reegel, mida koolis veel ei ole, aga mis on vaja.',
+      }), { harno: 'W2b', task: 'W05', main: true, level: 4 }),
+      'Eksaminurk nagu Harno A2 kirjutamise 2. osas (kirjeldus kolme küsimuse järgi, ≥ 30 sõna) — siin on see ka tunni põhiülesanne. Kirjutamine paaris, 10 min. Siis teise paari vastus (mooduli kaaslase vahetus): lehed liiguvad, teine paar loeb ja kirjutab alla ühe küsimuse (Kas köögis võib ka süüa?) või „kaks tärni ja üks soov” (kas kõik neli punkti on olemas? kas pean + ma, võin + da on õiged?). Üks-ühele: õpetaja on teine paar. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: uus reegel.'),
+      homeTask(teach(tag(B.speaking('037_t_home', 'Kodus: reeglid minu majas.', 'Salvesta 45 sekundit: reeglid sinu majas või töökohas. Siis Harjuta → moodul 8.', [
+        'Mida seal peab tegema? Mida võib? Mida ei tohi?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune salvestus: kolm reeglit oma majast, töökohast või spordiklubist, igaühes pean / võin / ei tohi. Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 8: pean + ma, võin + da (10 min).')),
+      half(exitCheck(tag(v6(B.writing('037_t_exit', 'Väljumine: parem reegel.', 'Kirjuta üks reegel uuesti, teise paari küsimuse järgi.', [1, 2]), { lines: 2 }), { task: 'W10', level: 3 }))),
+      half(teach(selfcheck('037_t_self', ['Saan aru: peab, võib.', 'Kirjutan: pean ootama.', 'Uus õppija saab aru.'], 'Tund 37 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas uus õppija saaks juhendist aru. Õpilane kirjutab ühe reegli tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 038 listening: the teie-imperative at the family doctor's
+  'a2-038': retire(OLD['a2-038'], {
+    title: 'Täitke vorm, palun',
+    canDo: 'Ma saan kuuldust aru registraatori juhistest ja räägin uuele naabrile sammhaaval, mida teha.',
+    teacherPage: P038,
+    discover: [
+      teach(B.review('038_d_review', [['Mida peab teeninduskeskuses kõigepealt tegema?', 'a2-037'], ['Mida sa ütled, kui arvel on viga?', 'a2-029'], 'Kas sa oled Eestis mõne vormi täitnud? Mis vormi?']), planNote(P038)),
+      tag(v6(B.vocab('038_d_vocab', 'Tunni sõnad.', ['vorm — бланк, форма', 'täitma — заполнять', 'allkiri — подпись', 'andmed — данные', 'perearst — семейный врач', 'registreerima — регистрировать', 'isikukood — личный код', 'aadress — адрес', 'valima — выбирать', 'alla kirjutama — подписать']),
+        { review: ['muutma', 'viga', 'kuni'] }), { topic: ['perearst', 'perearstikeskus', 'perearstikeskuses', 'registraator', 'registreerima', 'registreerida', 'isikukood', 'trükitähed', 'trükitähtedega', 'kohustuslik', 'allkiri', 'allkirja', 'registratuur', 'registratuuri', 'juhend', 'doktor'] }),
+      twice(teach(tag(B.listening('038_d_listen', 'Perearstikeskuses.', 'Kuula registraatorit kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Registraator: Tere! Perearstikeskus, kuidas saan aidata?',
+        'Klient: Tere! Ma kolisin Tallinna ja tahan siin perearsti juurde registreerida.',
+        'Registraator: Selge. Palun täitke see vorm. Kirjutage trükitähtedega.',
+        'Klient: Mida ma pean kirjutama?',
+        'Registraator: Kirjutage oma nimi, isikukood, aadress ja telefon. E-post ei ole kohustuslik.',
+        'Registraator: Valige ka arst: doktor Tamm või doktor Kask.',
+        'Klient: Kas andmeid saab hiljem muuta?',
+        'Registraator: Jah, kuni reedeni saab andmeid muuta.',
+        'Klient: Oi, ma tegin vea. Aadress on vale.',
+        'Registraator: Pole hullu, see on väike viga. Võtke uus vorm.',
+        'Registraator: Kirjutage alla ja andke vorm mulle tagasi. Ja ärge unustage allkirja!',
+      ], ['Klient tahab registreerida [perearsti] juurde.', 'Vormi tuleb kirjutada [trükitähtedega].', 'Vormis ei ole kohustuslik [e-post].', 'Arsti saab valida: doktor Tamm või doktor [Kask].', 'Andmeid saab muuta kuni [reedeni].', 'Kliendi vormis on vale [aadress].', 'Lõpus ei tohi unustada [allkirja].'], 'g_listen'), { task: 'L03' }),
+      'Kuulamisstrateegia: „Kuula märksõnu: mida kirjutada? mida valida? mida mitte unustada?” Esimesel korral kirjutab õpilane ainult kindlad vastused, teisel korral ülejäänud. Siis loe stsenaariumist kõik käsud (täitke, kirjutage, valige, võtke, andke, ärge unustage) — need on Märka-kasti näited. Vanad sõnad: muutma, viga, kuni.')),
+      B.notice('038_d_notice', 'Märka: täitke vorm, palun', [
+        'Teie, palun: **täitke**, **kirjutage**, **võtke**, **tulge**',
+        'da-vormist: kirjutada → **kirjutage**, võtta → **võtke**, täita → täitke',
+        'Keeld: **ärge unustage**, **ärge tulge** hiljaks',
+        'Sina: võta, täida! → teie: võtke, täitke! (viisakas)',
+        'Vene keeles „заполните” — eesti keeles täitke (lõpus -ke või -ge).',
+      ], 'half'),
+      half(teach(tag(B.speaking('038_d_try', 'Proovi: sina oled registraator.', 'Ütle kliendile kolm juhist. Kasuta teie-vormi.', [
+        'Mida klient peab vormi kirjutama?',
+        'Mida ta peab kaasa võtma?',
+        'Mida ta ei tohi unustada?',
+      ], [45, 60]), { task: 'S02', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti: õpilane on registraator, õpetaja klient. Võti: Kirjutage nimi ja isikukood trükitähtedega. Võtke kaasa ID-kaart. Ärge unustage allkirja! Õpetaja kordab õiget vormi, kui õpilane ütleb sina-vormi (kirjuta → kirjutage).')),
+    ],
+    practice: [
+      half(tag(B.gaps('038_p_gaps', 'Teie, palun!', 'Kirjuta käsk teie-vormis.', [
+        'Palun [täitke] see vorm. (täitma)',
+        '[Kirjutage] trükitähtedega. (kirjutama)',
+        '[Võtke] kaasa pass. (võtma)',
+        'Palun [tulge] kell kümme. (tulema)',
+        '[Andke] vorm mulle tagasi. (andma)',
+        '[Tooge] homme ka foto. (tooma)',
+        '[Ärge] [unustage] allkirja! (ära unusta)',
+        '[Valige] endale arst. (valima)',
+      ], '', 'half'), { task: 'G05' })),
+      teach(half(v6(tag(B.dictation('038_p_dict', 'Etteütlus ja varjutamine: juhised.', 'Kuula, räägi kaasa ja kirjuta lause.', [
+        'Palun täitke see vorm.',
+        'Kirjutage oma nimi trükitähtedega.',
+        'Isikukood on kohustuslik.',
+        'Võtke kaasa ID-kaart.',
+        'Ärge unustage allkirja.',
+      ], 5), { task: 'L08' }), { pronunciation: 'varjutamine' })),
+      'Hääldusnurk + etteütlus, 6 min. Enne: varjutamine — loe registraatori kaks lauset („Palun täitke see vorm. Kirjutage trükitähtedega.”), õpilane räägib kohe kaasa, kaks korda; rõhk on esimesel silbil (täitke, kirjutage). Siis loe iga etteütluse lause kaks korda; õpilane kordab valjusti ja kirjutab. Kontrolli: täitke (tk), võtke (tk), trükitähtedega, isikukood.'),
+      teach(tag(B.rolecards('038_p_card', 'Eksaminurk: küsi ja vasta.', 'A küsib kaardi järgi, B vastab. Siis vahetage.',
+        'Küsi B-lt perearstikeskuse kohta: kus see on? · millal on lahti? · kuidas registreerida? · mida kaasa võtta? · kas see maksab?',
+        'Küsi A-lt raamatukogu kohta: kus see on? · millal on lahti? · kuidas saada lugejakaart? · mida kaasa võtta? · kas see maksab?',
+        [], []), { harno: 'S2', task: 'S05', level: 3 }),
+      'Eksaminurk nagu Harno A2 rääkimise 2. osas: märksõnakaart, üks küsib täislausega, teine vastab; siis vahetus. 6 min. Õpilane vastab oma linna päris info järgi või mõtleb välja. Üks-ühele: õpetaja vastab kõigepealt (perearstikeskus Kase tänaval, E–R 8–16, vorm registratuuris, ID-kaart, tasuta), siis küsib tema. Hinda nagu eksamil: kas küsimused on täislaused (Kus see asub? Millal see on lahti?).'),
+    ],
+    transfer: [
+      B.text('038_t_sit', 'Olukord: uus naaber', 'Sinu majja kolis uus naaber. Ta on sinust vanem ja ei tea, kuidas Eestis perearsti juurde registreerida. Vaata pilti: neli sammu. Räägi talle lihtsalt ja selgelt. Ütle talle „teie”.'),
+      teach(tag(v6(B.speaking('038_t_steps', 'Juhend naabrile: neli sammu.', 'Vaata pilti. Seleta naabrile 45–60 sekundiga, mida teha.', [
+        'Sammud 1–4: mida naaber peab tegema? Kasuta teie-vormi.',
+        'Naaber küsib: Kas see maksab? Millal ma vastuse saan?',
+      ], [45, 75]), {
+        taskType: 'presentation', realAddressee: 'uus naaber, kes ei tea, kuidas perearsti valida',
+        support: ['Kõigepealt minge …', 'Siis täitke …', 'Ärge unustage …'],
+        stretch: 'Naaber ei saa keskusesse minna: seleta, kuidas seda teha internetis.',
+      }), { task: 'S13', main: true, level: 4 }),
+      'Esitlus pildi järgi, 8 min: õpilane räägib neli sammu teie-vormis, siis küsib naaber (õpetaja) kaks küsimust. Pildi võti: 1 vali arst (dr Tamm või dr Kask) → Valige arst. 2 täida vorm trükitähtedega: nimi, isikukood, aadress, telefon → Täitke vorm trükitähtedega. 3 kirjuta alla → Kirjutage alla, ärge unustage allkirja. 4 anna vorm registratuuri → Andke vorm registratuuri; vastus tuleb SMS-iga kahe nädala jooksul, see on tasuta. Üks-ühele: õpetaja on naaber ja küsib uuesti, kui õpilane ütleb sina-vormi. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: internetis.'),
+      homeTask(teach(v6(tag(B.examWriting('038_t_home', 'Kodus: minu eesti keele võrgustik.', 'Loe üht päris juhendit. Kirjuta 25–40 sõna. Harjuta → moodul 8.', 'teade', {
+        situation: 'Leia üks päris eestikeelne juhend, nt „Perearsti valimine” portaalis eesti.ee (https://www.eesti.ee) või oma perearstikeskuse lehel. Kirjuta oma meediapäevikusse.',
+        points: ['mis lehte sa lugesid', 'üks uus sõna sellelt lehelt', 'üks juhis teie-vormis (nt Täitke …)', 'kas juhend oli lihtne või raske ja miks'],
+        words: [25, 40],
+      }), { task: 'W12' }), { mediaLog: true }),
+      'Meediapäevik „Minu eesti keele võrgustik” (mooduli kirje): õppija avab ise ühe päris eestikeelse juhendi (lehte sisse ei kopeerita) ja kirjutab neli punkti, ühe juhise teie-vormis. Järgmisel tunnil loeb ta oma uue sõna ette. Harjuta → moodul 8: teie-käsk (10 min).')),
+      half(exitCheck(tag(B.speaking('038_t_exit', 'Väljumine: juhend lühidalt.', 'Ütle 30 sekundiga uuesti: neli sammu naabrile.', [
+        'Mida naaber peab tegema? Teie-vormis.',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('038_t_self', ['Saan aru registraatori juhistest.', 'Ütlen: täitke, võtke, ärge unustage.', 'Naaber saab minust aru.'], 'Tund 38 on läbitud'), 'Üks-ühele: õpetaja ütleb, kas „naaber” sai kõigest aru; õpilane hindab kolme rida ja kirjutab ühe juhise teie-vormis tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 039 reading: customer service (the module's last teaching lesson)
+  'a2-039': retire(OLD['a2-039'], {
+    title: 'Klienditeenindus, tere!',
+    canDo: 'Ma loen telefonifirma teadet, räägin klienditeenindusega ilma valmis lauseteta ja valin kaaslasega paketi.',
+    teacherPage: P039,
+    discover: [
+      teach(B.review('039_d_review', [['Mida naaber peab perearsti juures tegema? Ütle teie-vormis.', 'a2-038'], ['Kui palju sa maksad kuus telefoni eest?', 'a2-029'], 'Kas sa helistad vahel klienditeenindusse? Miks?']), planNote(P039)),
+      tag(v6(B.vocab('039_d_vocab', 'Tunni sõnad.', ['pakett — пакет услуг', 'leping — договор', 'klient — клиент', 'kõne — звонок', 'lõpetama — заканчивать', 'kuus — в месяц', 'internet — интернет', 'firma — фирма', 'minut — минута', 'teade — объявление']),
+        { review: ['hind', 'arve', 'kokku'] }), { topic: ['pakett', 'paketti', 'paketid', 'leping', 'lepingu', 'klienditeenindus', 'klienditeenindusse', 'piiramatu', 'piiramatud', 'tehnik', 'kehtima', 'kliendinumber', 'GB', 'telefonifirma', 'Mini', 'Pere', 'Hea'] }),
+      teach(tag(B.reading('039_d_info', 'Eksaminurk: telefonifirma teade.', 'Loe teadet. Vasta küsimustele ühe-kolme sõnaga.', 'Telefonifirma Kõne: uued paketid',
+        'Head kliendid! Alates 1. jaanuarist on meil kolm uut paketti.\n\nPakett Mini maksab 5 eurot kuus. Sellega saab helistada 100 minutit ja internetti on 5 GB.\n\nPakett Hea maksab 12 eurot kuus. Kõned on piiramatud ja internetti on 30 GB.\n\nPakett Pere on kolmele inimesele. Igaühel on piiramatud kõned ja 50 GB internetti. Kolm inimest maksavad kokku 25 eurot kuus.\n\nKui soovid paketti muuta, helista klienditeenindusse 1500 või tule meie poodi. Paketti saab muuta üks kord kuus. Uus hind hakkab kehtima järgmise kuu esimesest päevast.\n\nArve saadame iga kuu viiendal päeval e-posti. Kui arvel on viga, kirjuta meile kahe nädala jooksul.\n\nKlienditeenindus on avatud iga päev kella kaheksast kaheksani.',
+        [['Kui palju maksab pakett Mini kuus?', '5 eurot|viis eurot'], ['Mis paketis on kõned piiramatud ja hind 12 eurot?', 'Hea|pakett Hea'], ['Mitmele inimesele on pakett Pere?', 'kolmele|kolmele inimesele|3'], ['Kuhu helistada, kui soovid paketti muuta?', 'klienditeenindusse|numbril 1500|1500'], ['Mitu korda kuus saab paketti muuta?', 'üks kord|üks|1'], ['Mis päeval tuleb arve?', 'viiendal päeval|kuu viiendal päeval|viiendal'], ['Mille jooksul tuleb arve veast kirjutada?', 'kahe nädala jooksul|kahe nädala'], ['Mis kellast on klienditeenindus avatud?', 'kaheksast|kella kaheksast|8-st']]), { harno: 'R4', task: 'R13' }),
+      'Eksaminurk nagu Harno A2 lugemise 4. osas (≈ 120-sõnaline tekst; eksamil 150 sõna ja valikvastused), 9 min ilma abita. Lugemisstrateegia: „Loe küsimused enne läbi, siis otsi tekstist numbrid.” Kontroll: õpilane näitab tekstis sõna, mis aitas. Vanad sõnad: hind, arve, kokku.'),
+      B.notice('039_d_notice', 'Märka: tahan muuta, lähen küsima', [
+        'Mida teha? (da): **tahan muuta**, **soovin lõpetada**',
+        'Kuhu? Mida tegema? (ma): **lähen küsima**, tehnik **tuleb parandama**',
+        'Hakkan ka + ma: **hakkan maksma**',
+        'Tund 37: pean + ma (pean ootama), võin + da (võin oodata)',
+        'Vene keeles „хочу узнать” ja „пойду узнать” (üks vorm) — eesti keeles tahan teada, aga lähen küsima.',
+      ], 'half'),
+      teach(tag(B.rolecards('039_d_try', 'Proovi: mida sa teed?', 'A ütleb probleemi, B annab nõu. Siis vahetage.',
+        'Sinu probleemid: 1) internet ei tööta kaks päeva; 2) arve on 30 eurot, aga pakett maksab 12; 3) pakett on sulle liiga kallis. Ütle B-le üks probleem korraga ja ütle, mida sa tahad.',
+        'Kuula A probleemi. Ütle, mida A peab tegema või kuhu minema. Siis ütle, mida sina teed, kui sul on sama probleem.',
+        [], []), { task: 'S11', level: 3 }),
+      'Juhendatud kasutus, ilma valmis fraasideta (mooduli viimane tund): õpilane ütleb igale probleemile kaks lauset, üks da- ja üks ma-vormiga. Võti nt: 1 = Ma tahan teada, miks internet ei tööta. Ma lähen poodi küsima. 2 = Ma tahan arvet kontrollida. Ma hakkan helistama klienditeenindusse. 3 = Ma soovin paketti muuta. Kui õpilane ütleb ainult ühe lause, küsi: „Ja siis?” Teisel korral vahetage: õpetaja ütleb probleemi, õpilane annab nõu (Te peate helistama … / Minge poodi küsima).'),
+    ],
+    practice: [
+      half(tag(B.gaps('039_p_gaps', 'Ma või da?', 'Ma või da? Kirjuta sobiv vorm.', [
+        'Ma tahan oma paketti [muuta]. (muutma)',
+        'Ma soovin lepingu [lõpetada]. (lõpetama)',
+        'Homme lähen poodi [küsima]. (küsida)',
+        'Tehnik tuleb neljapäeval internetti [parandama]. (parandada)',
+        'Uue paketi eest hakkan [maksma] 12 eurot kuus. (maksta)',
+        'Kas te saate arve e-posti [saata]? (saatma)',
+        'Ma tulin poodi uut telefoni [vaatama]. (vaadata)',
+        'Mulle ei meeldi telefoniga kaua [oodata]. (ootama)',
+      ], '', 'half'), { task: 'G02' })),
+      teach(tag(v6(B.choice('039_p_pron', 'Hääldusnurk: õ, ü, ä.', 'Kuula ja vali õige sõna. Siis räägi kaasa.', [
+        ['Sõna 1', 'kõik', 'kiik'],
+        ['Sõna 2', 'sõda', 'süda'],
+        ['Sõna 3', 'kära', 'kera'],
+        ['Sõna 4', 'võib', 'viib'],
+      ], 'half', 'g_listen'), { pronunciation: 'vokaalid' }), { task: 'L01' }),
+      'Hääldusnurk, 5 min. Ütle igast reast võtmes oleva sõna (kõik, sõda, kära, võib); õpilane valib. Näita suu kuju: õ — huuled laiad, keel taga; ü — huuled ümarad nagu u, keel ees nagu i; ä — suu lahti. Siis varjutamine: loe „Ma tahan oma paketti muuta. Kas te saate mind aidata?”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: õ ei ole „ы”, ü ei ole „ю”, ä on lahtisem kui „э”.'),
+      teach(v6(tag(B.rolecards('039_p_call', 'Kõne klienditeenindusse.', 'A helistab, B on teenindaja. Lahendage probleem ilma valmis lauseteta.',
+        'Sinu kodus ei tööta internet juba kolm päeva. Sinu pakett maksab 12 eurot, aga sel kuul on arve 30 eurot. Arve number on A-1234. Helista ja lahenda mõlemad asjad.',
+        'Sa oled klienditeenindaja. Küsi nime ja kliendinumbrit või arve numbrit. Kuula probleemi ja paku lahendus.',
+        [], []), { task: 'S04', level: 4, fluency: true }), { hiddenInfo: true }),
+      'Üks-ühele, ilma valmis fraasideta: õpetaja on teenindaja. Varjatud info (ütle alles kõne ajal): 1) tehnik saab tulla alles neljapäeval kella kümnest kaheni ja klient peab siis kodus olema — kui see ei sobi, peab klient ise küsima teist aega; 2) arvel on viga, 18 eurot tuleb tagasi järgmisel arvel, aga ainult siis, kui klient ütleb arve numbri (A-1234). Kui õpilane ei küsi, millal raha tagasi tuleb, ära ütle seda ise. Teisel korral vahetage: õpilane on teenindaja.'),
+    ],
+    transfer: [
+      teach(tag(v6(B.rolecards('039_t_pick', 'Otsus: kolm paketti.', 'Vaata pilti. Valige koos igale inimesele pakett.',
+        'Sina räägid vanaemast ja õpilasest: mida nad teevad telefoniga ja mis pakett neile sobib? Pere maksab kokku kuni 45 eurot kuus.',
+        'Sina räägid perest (ema, isa, poeg): mida nad teevad telefoniga? Siis arvutage koos: kas 45 eurost piisab?',
+        [], []), {
+        taskType: 'ranking',
+        support: ['vanaema · helistab palju · Mini või Hea?', 'õpilane · videod · palju GB', 'kokku · 45 € · sobib / liiga kallis'],
+        stretch: 'Hinnad tõusevad 2 eurot: kas teie otsus muutub?',
+      }), { task: 'S03', main: true, level: 4 }),
+      'Otsus paaris, 8 min, pildi järgi (kolm inimest ja kolm paketti). Abikaart on märksõnad, mitte laused (mooduli viimane tund). Võimalik lahendus: vanaema helistab iga päev pool tundi → Mini (100 minutit) ei piisa → Hea 12 €; õpilane vaatab palju videoid → Hea 12 €; pere → Pere 25 €; kokku 49 € — liiga kallis. Siis peab paar otsustama: vanaemale Mini (5 €) ja ta helistab vähem või õpilane võtab Mini; nt 5 + 12 + 25 = 42 €. Õige on iga põhjendatud otsus kuni 45 euroni. Üks-ühele: õpetaja on B ja tahab alguses kõigile kõige paremat paketti; õpilane arvutab ja põhjendab. Lisaväljakutse: hinnad + 2 €.'),
+      teach(tag(B.examWriting('039_t_order', 'E-kiri firmale: meie paketid.', 'Kirjuta firmale Kõne 25–40 sõna. Ilma antud alguseta.', 'teade', {
+        situation: 'Te valisite kolm paketti. Nüüd kirjuta telefonifirma Kõne klienditeenindusele ja telli need.',
+        points: ['mis paketid te soovite ja kellele', 'millest alates', 'mis on teie küsimus (nt arve, leping)', 'sinu nimi ja telefon'],
+        words: [25, 40],
+      }), { task: 'W08', level: 3 }),
+      'Mooduli viimane tund: kiri ilma antud alguse ja valmis lauseteta, 8 min, otsuse järgi. Kontrolli: kas kõik neli punkti on olemas, kas da / ma on õige (soovin tellida, hakkame maksma), kas kuupäev ja hind on õiged (alates esimesest jaanuarist, 42 eurot kuus). Kui aega ei jää, on see kodune kiri (Harjuta → moodul 8).'),
+      homeTask(teach(tag(B.speaking('039_t_home', 'Kodus: minu telefon ja internet.', 'Salvesta 45 sekundit: kas sinu pakett sobib? Siis Harjuta → moodul 8.', [
+        'Mis pakett sul on, mis see maksab ja mida sa tahad muuta?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune salvestus ilma valmis fraasideta: oma telefon või internet (või välja mõeldud). Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 8: ma- ja da-vorm (10 min); kirjuta oma üks viga Harjutas „Minu vead” alla õigesti.')),
+      half(exitCheck(tag(B.speaking('039_t_exit', 'Väljumine: meie otsus.', 'Ütle 30 sekundiga: mis paketid te valisite ja miks?', [
+        'Kellele mis pakett ja miks? Kui palju see kokku maksab?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('039_t_self', ['Leian teatest hinna ja reegli.', 'Räägin teenindajaga ilma abita.', 'Valime paketid ja põhjendame.'], 'Moodul 8: teenused ja asjaajamine'), 'Üks-ühele: õpilane hindab kolme rida, õpetaja ütleb oma hinde; õpilane kirjutab ühe lause oma otsusest tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 040 control 8: one sheet, four skills (the first 40 lessons)
+  'a2-040': retire(OLD['a2-040'], {
+    title: 'Kontroll 8 — teenused ja asjaajamine',
+    assessment: true,
+    phases: checkSheet('Kontroll', 'Lugemine, kuulamine, kirjutamine ja rääkimine, igaüks 10 punkti (45 min)'),
+    canDo: 'Ma näitan ilma abita, et loen teenuste teateid, saan aru teeninduse kõnedest, kirjutan aja muutmise kirja ja broneerin aega; ma tean oma punkte ja lävendeid.',
+    teacherPage: P040,
+    discover: [
+      teach(B.text('040_d_situation', 'Kontroll 8: kuidas punkte loetakse', `Kontrollis on neli osa, igas 10 punkti, kokku 40. Töötad 45 minutit ilma abita. Harno A2 eksamil on igas osas 20 punkti: korruta oma punktid kahega. ${THRESHOLDS} Kontroll 8 lõpetab kursuse esimesed 40 tundi: lõpus võrdled tulemust kontrolliga 7 (tund 35) ja lähtediagnostikaga (tund 1).`), planNote(P040)),
+      teach(tag(B.choice('040_p_polite', 'Lugemine 1. Mida öelda?', 'Mida sa ütled? Vali sobiv lause. (5 punkti)', [
+        ['Pakutud aeg ei sobi sulle.', 'Kas on võimalik tulla hiljem?', 'Aitäh, see aeg sobib mulle.', 'Ma tulen kindlasti.'],
+        ['Sa ei saanud teenindaja numbrist aru.', 'Palun korrake.', 'Palun oodake.', 'Palun täitke.'],
+        ['Teenindaja ütleb: „Palun võtke järjekorranumber.”', 'Kust ma numbri saan?', 'Head isu!', 'Mul on kiire, head aega.'],
+        ['Sa tahad teada, kas ooteruumis võib süüa.', 'Kas siin tohib süüa?', 'Kas siin peab sööma?', 'Kas te sööte siin?'],
+        ['Kampsun on sulle liiga väike.', 'Kas teil on suuremat?', 'Kas teil on väiksemat?', 'Kas see on odavam?'],
+      ], 'full', 'g_read'), { harno: 'R1', task: 'R01' }),
+      'Varasemast: 5. küsimus (suuremat) on moodulist 7. Iga õige vastus 1 punkt.'),
+      teach(tag(B.reading('040_d_read', 'Lugemine 2. Perearstikeskuse teade.', 'Loe teadet. Vasta ühe-kolme sõnaga. (5 punkti)', 'Perearstikeskus Pärn: uued reeglid',
+        'Alates jaanuarist on perearstikeskus Pärn uues majas, Kase tänav 3, esimesel korrusel. Me oleme avatud esmaspäevast reedeni kella kaheksast neljani.\n\nArsti juurde peate aja broneerima. Aega saab broneerida telefonil 655 4433 või meie kodulehel. Aeg arsti juures on tavaliselt kakskümmend minutit. Kui aeg ei sobi, palun muutke seda vähemalt üks päev varem. Kui te ei saa tulla, helistage meile kindlasti. Ilma ajata võite tulla ainult kiire probleemiga, kella kaheksast üheksani.\n\nUued patsiendid, palun täitke registratuuris vorm. Võtke kaasa ID-kaart või pass. Lastele on vaja ka ema või isa allkirja. Kui teil on küsimusi, aitab registraator teid hea meelega.\n\nOoteruumis ei tohi telefoniga valjusti rääkida. Kohvi saab juua teisel korrusel kohvikus.\n\nMaja ees on parkla. Seal võib tasuta parkida üks tund. Buss number 12 peatub maja kõrval. Tere tulemast!',
+        [['Mis korrusel on perearstikeskus?', 'esimesel|esimesel korrusel'], ['Mis kellani on keskus avatud?', 'neljani|kella neljani|16-ni'], ['Millal tuleb aega muuta?', 'üks päev varem|päev varem|vähemalt üks päev varem'], ['Mida peavad uued patsiendid täitma?', 'vormi|vormi registratuuris'], ['Kui kaua võib maja ees tasuta parkida?', 'üks tund|ühe tunni|tund']]), { task: 'R15', harno: 'R4' }),
+      'Varasemast: 1. küsimus (mis korrusel) on moodulist 4, 2. küsimus (mis kellani) moodulist 5. Harno-pikkune tekst (≈ 125 sõna). Iga õige vastus 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'),
+      twice(teach(tag(B.listening('040_p_listen', 'Kuulamine 1. Häälsõnum.', 'Kuula häälsõnumit kaks korda. Kirjuta lünka üks-kaks sõna. (5 punkti)', [
+        'Piret: Tere! Siin on Piret juuksurisalongist Täpp.',
+        'Piret: Teie aeg on homme, kolmapäeval, kell kümme.',
+        'Piret: Kahjuks olen ma homme hommikul haige.',
+        'Piret: Kas teile sobib neljapäeval pärast kella kahte, näiteks kell pool kolm?',
+        'Piret: Või reedel enne lõunat, kell üksteist.',
+        'Piret: Palun helistage mulle tagasi täna kella kuueni.',
+        'Piret: Minu number on viis viis üks kaks, kolm neli viis kuus. Vabandust ja aitäh!',
+      ], ['Vana aeg on kolmapäeval kell [kümme|10].', 'Juuksur on homme [haige].', 'Uus aeg neljapäeval on kell [pool kolm|14.30].', 'Reedel saab tulla enne [lõunat].', 'Tagasi tuleb helistada täna kella [kuueni|18-ni].'], 'g_listen'), { task: 'L03', harno: 'L3' }),
+      'Mooduli 8 aeg (tund 36). Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      twice(teach(tag(B.listening('040_p_listen2', 'Kuulamine 2. Kõne klienditeenindusse.', 'Kuula kõnet kaks korda. Kirjuta lünka üks-kaks sõna. (5 punkti)', [
+        'Teenindaja: Klienditeenindus, tere! Kuidas saan aidata?',
+        'Olga: Tere! Minu arvel on viga. Arve on kakskümmend eurot, aga minu pakett maksab kümme.',
+        'Teenindaja: Palun öelge oma nimi ja kliendinumber.',
+        'Olga: Olga Ivanova, kliendinumber neli kaks seitse üheksa.',
+        'Teenindaja: Aitäh. Jah, arvel on viga. Raha tuleb tagasi järgmisel arvel.',
+        'Olga: Hästi. Ja ma tahan oma paketti muuta. Ma vajan rohkem internetti.',
+        'Teenindaja: Pakett Hea maksab kaksteist eurot kuus. Uus pakett hakkab kehtima esimesel jaanuaril.',
+        'Olga: Sobib. Aitäh!',
+      ], ['Arve on [kakskümmend|20] eurot.', 'Kliendi pakett maksab [kümme|10] eurot.', 'Raha tuleb tagasi järgmisel [arvel].', 'Klient vajab rohkem [internetti].', 'Uus pakett maksab [kaksteist|12] eurot kuus.'], 'g_listen'), { task: 'L03', harno: 'L3' }),
+      'Varasemast: 1. lünk (arve summa — viga arvel) on moodulist 6. Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      teach(tag(B.examWriting('040_t_write', 'Kirjutamine. Uus aeg.', 'Kirjuta perearstikeskusele 25–40 sõna. (10 punkti)', 'teade', {
+        situation: 'Sul on reedel kell üheksa aeg perearsti juurde. Reedel sa ei saa: sul on tööl koosolek. Kirjuta perearstikeskusele e-kiri.',
+        points: ['kes sa oled ja mis aeg sul on', 'miks see aeg ei sobi', 'mis päeval ja mis kell sulle sobib', 'üks küsimus (nt mida kaasa võtta)'],
+        words: [25, 40],
+      }), { task: 'W04', harno: 'W2a' }),
+      'Üks-ühele: õpilane kirjutab üksi, ilma abita ja ilma antud alguseta. See on tunni 36 põhiülesande („Sõnum raamatukogule: meie aeg”) paralleel: samad neli punkti, uus asutus. Hinda allpool oleva juhendi järgi (kirjutamise viis rida).'),
+      teach(tag(B.speaking('040_t_say', 'Rääkimine. Aeg telefonis ja minu asjad.', 'Broneeri õpetajalt aeg ja vasta kahele küsimusele. (10 punkti)', [
+        '1. osa: broneeri juuksuri juurde aeg (mis päeval, mis kell, mis ei sobi, kinnita aeg).',
+        '2. osa: mis reeglid on sinu majas või töökohas?',
+        '2. osa: kuidas sa maksad arveid: internetis, poes või pangas? Miks?',
+      ], [45, 75]), { task: 'S04', harno: 'S2' }),
+      'Üks-ühele: õpetaja on juuksur, siis eksamineerija. 1. osa on tunni 36 külma ülesande („Proovi kohe: broneeri aeg”) paralleel — teine teenus, samad kolm märget (aeg õiges vormis, küsib teist aega, kinnitab ja on viisakas); esimene pakutud aeg ei sobi. Võrdle oma märkmetega. Ära aita. Hinda allpool oleva juhendi järgi.'),
+      teach(B.table('040_t_score', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja paneb igale reale 0, 1 või 2 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja keskus saab kõigest aru; 1 = alla 25 sõna või osa on segane; 0 = tekstist ei saa aru. | ',
+        'Kirjutamine, vormid: 2 = päev, kellaaeg (pärast kella kahte) ja mulle / teile sobib peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vormidest ei saa aru. | ',
+        'Kirjutamine, sõnavara: 2 = teenuse ja aja sõnad õiged; 1 = mõni sõna puudub või on vale; 0 = sõnu on väga vähe. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, broneerimine: 2 = ütleb, mida soovib, küsib teist aega ja kinnitab; 1 = üks-kaks asja; 0 = broneerimist ei ole. | ',
+        'Rääkimine, vormid: 2 = pärast kella kahte, mulle sobib, pean / võin peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = raske aru saada. | ',
+        'Rääkimine, vastused: 2 = kaks vastust täislausega ja detailiga; 1 = üks vastus või ainult sõnad; 0 = ei vasta. | ',
+        'Rääkimine, sõnavara: 2 = teenuse, aja ja raha sõnad õiged; 1 = mõni sõna puudub; 0 = sõnu on väga vähe. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10). Lugemine 5 + 5 küsimust ja kuulamine 5 + 5 lünka, iga õige vastus 1 punkt — kokku 10 + 10 + 10 + 10 = 40.'),
+      teach(B.table('040_t_result', 'Minu tulemus: tunnid 1–40.', 'Kirjuta punktid ja võrdle. Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 7 (%), Tund 1 (%), Mida harjutada?', [
+        'Lugemine |  |  |  |  | ',
+        'Kuulamine |  |  |  |  | ',
+        'Kirjutamine |  |  |  |  | ',
+        'Rääkimine |  |  |  |  | ',
+        'Kokku (/40) |  |  |  |  | ',
+      ]), 'Õpetajale: Harno järgi sooritatud = kokku ≥ 24/40 (60 %) ja ükski osa ei ole 0. KeeleSepa sisemine lävi: eksamiks valmis ≥ 28/40 (70 %), sertifikaat ≥ 32/40 (80 %). Tund 1 (%) = lähtediagnostika (a2-001) sama osa protsent — nii näeb õppija oma 40 tunni kasvu. Kui osa on alla 6/10, anna üks parandusülesanne: lugemine → Harjuta „Lugemine” (moodul 8), kuulamine → tunni 37 või 38 salvestis uuesti ilma tekstita, kirjutamine → sama kiri parandatult, rääkimine → uus salvestus „Minu aeg juuksuri juures”. Varasemast (moodulid 4–7) on 4 küsimust 20-st (20 %): lugemine 1.5, lugemine 2.1 ja 2.2, kuulamine 2.1.'),
+    ],
+  }),
 }, {
   'a2-036': 'PROJ R→W', 'a2-037': 'KIRJ L→W', 'a2-038': 'RÄÄK L→S', 'a2-039': 'LUGE R→S', 'a2-040': 'EKS',
 });
