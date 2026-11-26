@@ -15,15 +15,11 @@ import { withSheetLanguage } from './sheetLanguage.js';
 import { COURSE_NAMES, ENGLISH_COURSE_NAME } from '../../../curriculum/courseNames.js';
 import { STATIONS_DESIGN, teacherPage } from './stations.js';
 import STRICT_V5 from './strictModulesV5.json' with { type: 'json' };
-import STRICT_V6 from './strictModulesV6.json' with { type: 'json' };
 
 // methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md): the B1 / B2 modules listed in strictModulesV5.json are
 // checked by gates G1–G13 (methodV5.js); their sheets carry `meta.methodV5`, so the older sheet norms that v5 replaces
 // (40–55 min per sheet, 6–18 / 5–9 blocks, ≥ 25 min of closed drills, quality.js / depth.js) are not applied to them
 export const isMethodV5 = (mod) => (STRICT_V5[mod?.MODULE?.course] || []).includes(mod?.MODULE?.id);
-// methodology v6 (docs/METHODOLOGY_V6.md, strictModulesV6.json): its sheets carry `meta.methodV6`, so the v4 exit rule
-// (2–3 closed items, stations.js st-exit) yields to v6 §2 a: the exit is a short performance (G14 in methodV6.js)
-export const isMethodV6 = (mod) => (STRICT_V6[mod?.MODULE?.course] || []).includes(mod?.MODULE?.id);
 // a block removed from the lesson by a rewrite is hidden, not deleted (`hidden: true`, blocks.js hide()): its id and the
 // learners' answers stay, but it is on no sheet, in no gate and in no count
 export const visibleBlocks = (blocks = []) => blocks.filter((b) => !b?.hidden);
@@ -200,8 +196,6 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(design ? { design } : {}),
       // methodology v5 (strictModulesV5.json): the lesson budget replaces the sheet-minute and drill-minute norms
       ...(isMethodV5(mod) ? { methodV5: true } : {}),
-      // methodology v6 (strictModulesV6.json): the exit check is a performance of the can-do, not 2–3 form items
-      ...(isMethodV6(mod) ? { methodV6: true } : {}),
       // the sheet's language (default Estonian): Estonian-only checks (EKI word lists) skip other languages
       ...(mod.MODULE.language ? { language: mod.MODULE.language } : {}),
       // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape

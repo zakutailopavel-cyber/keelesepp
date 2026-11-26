@@ -57,14 +57,6 @@ describe('design v4 task-based station gates', () => {
     expect(codes(lessonStationProblems('x', sheets(lesson({ extra: true }))))).toContain('st-stations');
   });
 
-  it('methodology v6 (meta.methodV6): the exit may be a short performance without scored items; elsewhere it still needs 2–3', () => {
-    const l = lesson();
-    const speak = exitCheck(purpose(B.speaking('x_t_exit', 'Väljumine: 30 sekundit', 'Ütle 30 sekundiga, mis ilm homme tuleb.', ['Mis ilm homme tuleb?'], [20, 40]), P));
-    const v6 = { ...l, transfer: l.transfer.map((b) => (b.id === 'x_t_exit' ? speak : b)) };
-    expect(codes(lessonStationProblems('x', sheets(v6, { format: 'facts', methodV6: true })))).toEqual([]);
-    expect(codes(lessonStationProblems('x', sheets(v6)))).toContain('st-exit');
-  });
-
   it('wants the exit check and the self-check', () => {
     expect(codes(lessonStationProblems('x', sheets(lesson({ exit: false }))))).toContain('st-exit');
   });
