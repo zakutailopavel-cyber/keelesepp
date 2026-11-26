@@ -439,6 +439,11 @@
     "seconds": 70.1,
     "hash": "efcfc4a208a132d1211b6a258ac3b2ebdf18a415"
   },
+  "a2-032:032_d_radio": {
+    "src": "/audio/a2-032/032_d_radio.mp3",
+    "seconds": 60.6,
+    "hash": "c67f00e966370fb50e2c49b9b330941a249db68b"
+  },
   "a2-032:032_p_till": {
     "src": "/audio/a2-032/032_p_till.mp3",
     "seconds": 37.1,
@@ -459,6 +464,11 @@
     "seconds": 42.7,
     "hash": "dec72ba7a0badbe36229478e2e6ad03df4e41011"
   },
+  "a2-033:033_d_shop": {
+    "src": "/audio/a2-033/033_d_shop.mp3",
+    "seconds": 64,
+    "hash": "c5288b4a8794c3fed23eb63a2b9deea04f1079a3"
+  },
   "a2-033:033_p_radio": {
     "src": "/audio/a2-033/033_p_radio.mp3",
     "seconds": 156,
@@ -476,13 +486,13 @@
   },
   "a2-035:035_p_listen": {
     "src": "/audio/a2-035/035_p_listen.mp3",
-    "seconds": 30.9,
-    "hash": "8304ebb26c0dcb1e68c6e98bf3b25cb501e6e5dc"
+    "seconds": 32,
+    "hash": "5aeb6070be0dc4de348df916decdc15ab20a17c7"
   },
   "a2-035:035_p_listen2": {
     "src": "/audio/a2-035/035_p_listen2.mp3",
-    "seconds": 33.1,
-    "hash": "acf9750374cd79075265f832336ebe41b8d73a8d"
+    "seconds": 40.2,
+    "hash": "b7563cb3a8a8f57c7616200ce6c8fc1eb5d49446"
   },
   "a2-035:035_t_listen": {
     "src": "/audio/a2-035/035_t_listen.mp3",

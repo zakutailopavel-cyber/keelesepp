@@ -9,8 +9,9 @@ describe('Kordamisleht — a review sheet from the course tasks', () => {
 
   // a2b1-080, not a2b1-020 / … / a2b1-070: B1 modules 4 (016–020), 6 (026–030), 8 (036–040), 10 (046–050), 12 (056–060)
   // and 14 (066–070) are methodology v5 / v6 modules — lean lessons whose drills went to Harjuta (hidden blocks), so a
-  // review of their five lessons is ≈ 22–26 min (docs/PROJECT_STATE.md 2026-11-25 / 2026-11-26)
-  it.each(['a2-005', 'a2-033', 'a2b1-080', 'b1b2-045', 'est-c1-010'])('%s: 40–50 min of the last five lessons, no constructor error', (lessonId) => {
+  // review of their five lessons is ≈ 22–26 min (docs/PROJECT_STATE.md 2026-11-25 / 2026-11-26); a2-043, not a2-033:
+  // A2 module 7 (031–035) is a v5 + v6 module too (2026-11-26)
+  it.each(['a2-005', 'a2-043', 'a2b1-080', 'b1b2-045', 'est-c1-010'])('%s: 40–50 min of the last five lessons, no constructor error', (lessonId) => {
     const doc = buildReviewSheet(entries, lessonId);
     const n = Number(lessonId.match(/(\d+)$/)[1]);
     const lessons = doc.meta.review.lessons.map((id) => Number(id.match(/(\d+)$/)[1]));
