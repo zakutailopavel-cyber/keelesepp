@@ -48,8 +48,6 @@ const V6_CUT = 'v5+v6 (2026-11-26): lehelt maha — tunni eelarve (60 min), üks
 const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
 // a block beside another one on the page (two columns)
 const half = (block) => ({ ...block, width: 'half', span: 6 });
-// a block that starts a new page of the sheet (the page above would otherwise end with a cut task)
-const brk = (block) => ({ ...block, pageBreakBefore: true });
 // more fields on a block (v6 markers: taskType, support, stretch, review, pronunciation, peerReply, mediaLog, hiddenInfo)
 const v6 = (block, data) => ({ ...block, data: { ...block.data, ...data } });
 // the self-check of v6 (G24): the main task's three success criteria rated 0–1–2 and one own sentence as evidence
