@@ -205,8 +205,8 @@ export const taskIdOf = (block) => block?.tag?.task || defaultTaskId(block);
 // the cognitive level 1–4: the tag, else the catalogue's level
 export const taskLevelOf = (block) => Number(block?.tag?.level) || TASK_CATALOGUE[taskIdOf(block)]?.level || null;
 export const harnoOf = (block) => block?.tag?.harno || null;
-// a review block („Mäletad?”, B.review)
-export const isReview = (block) => Boolean(block?.data?.review);
+// a review block („Mäletad?”, B.review — always a tip; `review` on a vocab block is the v6 list of old words, methodV6.js G18)
+export const isReview = (block) => block?.type === 'tip' && Boolean(block?.data?.review);
 // a task for the variety rules (§8): a known block that is not text, tip, vocab, … and not a review
 export const isFinalShapeTask = (block) => Boolean(block) && !NON_TASK_TYPES.has(block.type) && !isReview(block) && Boolean(taskIdOf(block));
 
