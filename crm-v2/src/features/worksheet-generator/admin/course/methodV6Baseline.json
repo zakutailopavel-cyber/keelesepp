@@ -413,7 +413,11 @@
     "total": 0,
     "byGate": {}
   },
-  "a2-module-06": {
+  "a2b1-module-14": {
+    "total": 0,
+    "byGate": {}
+  },
+  "a2b1-module-15": {
     "total": 0,
     "byGate": {}
   },
@@ -422,6 +426,10 @@
     "byGate": {}
   },
   "b1b2-module-13": {
+    "total": 0,
+    "byGate": {}
+  },
+  "a2-module-06": {
     "total": 0,
     "byGate": {}
   }
