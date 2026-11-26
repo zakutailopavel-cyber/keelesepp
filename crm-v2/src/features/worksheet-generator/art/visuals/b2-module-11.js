@@ -77,7 +77,7 @@ export default [
     scene: "Kaks inimest seisavad kaalu kahel pool. Vasakul kaardil on rahakott (raha kohe), paremal kasvav sääst ja taim (tuleviku turvalisus); keskel on kaal, mis võrdleb praegust vajadust ja pikaajalist kasu.",
     accent: "the present-versus-future decision scale",
     text: [],
-    place: "055_t_wpart",
+    place: "055_t_claim",
     learningJob: "kaaluda raha kohe kasutamise ja säästmise plusse ning põhjendada oma seisukohta arutelus",
     alt: "Kaks inimest kaalu kahel pool: vasakul rahakott, paremal kasvav sääst.",
     caption: "Pilt 1. Kulutada täna või säästa homseks?",
