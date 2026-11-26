@@ -126,5 +126,12 @@
     "*|*|av-opener",
     "b1b2-062|*|av-know",
     "b1b2-064|*|av-know"
+  ],
+  "b1b2-module-14": [
+    "*|*|av-examiner",
+    "*|*|av-kasuta",
+    "*|*|av-opener",
+    "b1b2-067|*|av-know",
+    "b1b2-069|*|av-know"
   ]
 }

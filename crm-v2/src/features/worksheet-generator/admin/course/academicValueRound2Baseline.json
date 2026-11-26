@@ -105,15 +105,13 @@
   "*|*|av-kasuta2",
   "b1b2-086|*|av-boltedon"
  ],
- "course:b2": [
-  "*|*|av-thinkvary",
-  "*|*|av-thinkvary",
-  "b1b2-056|discover|av-fact-dup"
- ],
  "b1b2-module-12": [
   "*|*|av-kasuta2"
  ],
  "b1b2-module-13": [
+  "*|*|av-kasuta2"
+ ],
+ "b1b2-module-14": [
   "*|*|av-kasuta2"
  ]
 }

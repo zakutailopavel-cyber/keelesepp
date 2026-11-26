@@ -429,6 +429,35 @@
   "b1b2-064|discover|V2",
   "b1b2-065|discover|V7"
  ],
+ "b1b2-module-14": [
+  "*|*|V14-known",
+  "*|*|V3-min-S02",
+  "*|*|V3-min-S17",
+  "*|*|V3-skill-L",
+  "*|*|V4-id-G13",
+  "*|*|V4-id-W11",
+  "*|*|V4-max-G02",
+  "*|*|V4-max-G13",
+  "*|*|V4-max-W10",
+  "*|*|V4-max-W11",
+  "*|*|V4-type-writing",
+  "b1b2-066|discover|V7",
+  "b1b2-066|practice|V2",
+  "b1b2-066|transfer|V7",
+  "b1b2-067|*|V12-washback",
+  "b1b2-067|*|V9-thin-g_listen",
+  "b1b2-067|practice|V2",
+  "b1b2-068|discover|V2",
+  "b1b2-068|practice|V2",
+  "b1b2-068|transfer|V7",
+  "b1b2-068|transfer|V9-cando-skill",
+  "b1b2-069|*|V12-washback",
+  "b1b2-069|*|V9-thin-g_listen",
+  "b1b2-069|discover|V2",
+  "b1b2-069|practice|V2",
+  "b1b2-070|discover|V7",
+  "b1b2-070|discover|V7"
+ ],
  "b1b2-module-17": [
   "*|*|V14-topic",
   "*|*|V3-skill-L",
@@ -513,7 +542,6 @@
   "b1b2-088|practice|V2"
  ],
  "course": [
-  "*|*|V5-course-LUGU",
   "*|*|V6-corner-L1",
   "*|*|V6-corner-R1",
   "*|*|V6-corner-R4",
