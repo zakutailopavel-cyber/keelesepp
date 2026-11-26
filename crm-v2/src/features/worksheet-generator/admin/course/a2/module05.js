@@ -922,12 +922,11 @@ export const LESSONS = withShapes({
         stretch: 'Juhata teed ilma kaardita ja ütle, mitu minutit see jalgsi võtab.',
       }), { task: 'S05', main: true, level: 4 }),
       'Üks-ühele: õpetaja on B. Lõpus võrdlete kaarte: kas kõik kuus kohta on õigel kohal? Kaart A: apteek ristmiku ja valgusfoori vahel paremal, pank silla taga vasakul, kino kiriku kõrval. Kaart B: postkontor peatuse vastas, ujula pargi kõrval, raamatukogu kiriku vastas. Abikaart: kolm lausealgust, kui õpilane jääb vait (märgi kasutamine). Lisaväljakutse: juhatab ilma kaardita.'),
-      homeTask(teach(v6(B.planning('022_t_home', 'Kodus: minu eesti keele võrgustik.', 'Vaata üht eestikeelset lehte. Kirjuta kolm rida. Harjuta → moodul 5.', [
-        'Mida sa vaatasid? (nt „Tallinna ühistransport” https://transport.tallinn.ee või oma linna bussiliinide leht)',
-        'Üks uus sõna sellelt lehelt:',
-        'Üks lause sellest: mis buss või tramm sõidab sinu kodu lähedalt?',
-        'Kas sa soovitad seda lehte kaaslasele? Miks?',
-      ], 5), { mediaLog: true }),
+      homeTask(teach(v6(tag(B.examWriting('022_t_home', 'Kodus: minu eesti keele võrgustik.', 'Vaata üht eestikeelset lehte. Kirjuta 25–40 sõna. Harjuta → moodul 5.', 'teade', {
+        situation: 'Vaata üht päris eestikeelset lehte, nt „Tallinna ühistransport” (https://transport.tallinn.ee) või oma linna bussiliinide lehte. Kirjuta oma meediapäevikusse.',
+        points: ['mida sa vaatasid', 'üks uus sõna sellelt lehelt', 'mis buss või tramm sõidab sinu kodu lähedalt', 'kas sa soovitad seda lehte kaaslasele ja miks'],
+        words: [25, 40],
+      }), { task: 'W02' }), { mediaLog: true }),
       'Meediapäevik „Minu eesti keele võrgustik” (mooduli kirje): õppija valib ühe päris eestikeelse lehe või saate ja kirjutab kolm rida. Järgmisel tunnil loeb ta oma lause ette. Harjuta → moodul 5: sõnad ja vormid (10 min).')),
       half(exitCheck(tag(B.speaking('022_t_exit', 'Väljumine: juhata teed.', 'Juhata 30 sekundiga koolist bussipeatuseni. Siis veel kord, kiiremini.', [
         'Kust ta alustab ja kuhu läheb?',
