@@ -1,0 +1,66 @@
+// Visual briefs of a2b1 module 14; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
+// Methodology v6 rewrite (2026-11-26): one learning visual per teaching lesson, each directly above the main task that
+// uses it (`place`) so the picture and its task share a page — 066 a six-frame picture story for the written story,
+// 067 a survey card of six experiences, 068 an empty two-lane exhibition timeline for the jigsaw, 069 the four parts of a
+// story with their connectors for the story-evening talk. Line drawings the content agent made from hand-written SVG (not
+// generated) as working pictures in the palette of TEXTBOOK_ART_BIBLE.md §2 (black line, white, one lime accent,
+// pale-lime blob, grey); Codex may redraw them from the same briefs. No people of the continuing story; the earlier
+// version of module 14 had no registered visuals.
+export default [
+  {
+    id: 'a2b1-066-kasuta-1',
+    phase: 'transfer',
+    format: 'diagram',
+    cast: [],
+    scene: 'Laimirohelise päisega „RÕDU ÜHE NÄDALAVAHETUSEGA” heleroheline laigu peal. Kuus valget kaadrit kahes reas, igaühel number, päev ja kellaaeg ning allkiri: 1 Reede 18.00 — vana rõdu, piire hall, kaks plaati katki („Vana rõdu: värv maas”); 2 Laupäev 9.00 — värvipurk ja kuus plaati („Poes: värv ja uued plaadid”); 3 Laupäev 14.00 — hall pilv ja vihmapiisad rõdu kohal („Vihm! Töö jääb pooleli.”); 4 Pühapäev 8.00 — telk ja inimene („Naaber toob telgi ja aitab.”); 5 Pühapäev 17.00 — terve valge rõdu, värvi lainejooned („Rõdu on valmis, värv kuivab.”); 6 Pühapäev 19.00 — rõdu ja kaks laimirohelist tassi („Mis edasi? Lõpeta ise.”).',
+    accent: 'the header and the two cups of the last frame',
+    text: ['RÕDU ÜHE NÄDALAVAHETUSEGA', '1 · Reede 18.00', '2 · Laupäev 9.00', '3 · Laupäev 14.00', '4 · Pühapäev 8.00', '5 · Pühapäev 17.00', '6 · Pühapäev 19.00', 'Vana rõdu: värv maas', 'Poes: värv ja uued plaadid', 'Vihm! Töö jääb pooleli.', 'Naaber toob telgi ja aitab.', 'Rõdu on valmis, värv kuivab.', 'Mis edasi? Lõpeta ise.'],
+    learningJob: 'kirjutada piltide järgi 80–100-sõnaline lugu, mis näitab, mis jäi pooleli ja mis sai lõpuni tehtud: värvis piirde ära, pani plaadid valmis, ei teinud tööd laupäeval valmis; lõpu mõtleb õppija ise välja',
+    place: '066_t_tale',
+    alt: 'Rõdu ühe nädalavahetusega, kuus pilti. Reedel kell 18 on vana rõdu: värv on maas ja kaks plaati katki. Laupäeval kell 9 poes: värvipurk ja uued plaadid. Laupäeval kell 14 sajab vihma ja töö jääb pooleli. Pühapäeval kell 8 toob naaber telgi ja aitab. Pühapäeval kell 17 on rõdu valmis ja värv kuivab. Pühapäeval kell 19 on rõdul kaks tassi: mis edasi, lõpeta ise.',
+    caption: 'Rõdu ühe nädalavahetusega.',
+    prompts: ['Mis juhtus igal pildil?', 'Mis jäi laupäeval pooleli ja miks?', 'Kuidas lugu sinu arvates lõpeb?'],
+  },
+  {
+    id: 'a2b1-067-kasuta-1',
+    phase: 'transfer',
+    format: 'diagram',
+    cast: [],
+    scene: 'Laimirohelise päisega „KAS SA OLED KUNAGI …?” heleroheline laigu peal. Kuus valget kaarti kahes reas, igaühel joonistatud ikoon, paks allkiri, kaks märkeruutu „jah” ja „ei” ning rida „Millal? ……”: langevari („langevarjuga hüpanud”); jääauk ja pea („talisuplust proovinud”); kolm lainejoont ja tähed („virmalisi näinud”); mikrofon laval („laval laulnud”); läbikriipsutatud telefon („nädal ilma telefonita elanud”); leivapäts („ise leiba küpsetanud”).',
+    accent: 'the header',
+    text: ['KAS SA OLED KUNAGI …?', 'langevarjuga hüpanud', 'talisuplust proovinud', 'virmalisi näinud', 'laval laulnud', 'nädal ilma telefonita elanud', 'ise leiba küpsetanud', 'jah', 'ei', 'Millal? ……'],
+    learningJob: 'küsitleda paarilist täisminevikus (Kas sa oled kunagi … hüpanud?) ja kirjutada vastuse juurde lihtminevikus, millal see oli (2019. aastal proovisin)',
+    place: '067_t_survey',
+    alt: 'Küsitluse kaart „Kas sa oled kunagi …?” kuue kogemusega: langevarjuga hüpanud, talisuplust proovinud, virmalisi näinud, laval laulnud, nädal ilma telefonita elanud, ise leiba küpsetanud. Iga kogemuse juures on ruudud jah ja ei ning rida „Millal?”.',
+    caption: 'Kas sa oled kunagi …?',
+    prompts: ['Mida sina oled neist teinud?', 'Mida sa ei ole kunagi teinud, aga tahaksid?', 'Millal see oli ja kuidas oli?'],
+  },
+  {
+    id: 'a2b1-068-kasuta-1',
+    phase: 'transfer',
+    format: 'diagram',
+    cast: [],
+    scene: 'Laimirohelise päisega „KAKS ELU, ÜKS EESTI · näituse plakat” heleroheline laigu peal. Suur valge plakat: ülal aastad 1950, 1970, 1990, 2010, täna ja hallid vertikaaljooned. Kaks horisontaalset rida: „Leida A” viie valge punktiga (u 1952, 1968, 1975, 1990, 2012) ja „Andrei B” nelja valge punktiga (u 1985, 2003, 2015, 2024); iga punkti kohal tühi kast küsimärgiga. All rida „Kolm sarnasust: 1 ……… 2 ……… 3 ………”.',
+    accent: 'the header',
+    text: ['KAKS ELU, ÜKS EESTI · näituse plakat', '1950', '1970', '1990', '2010', 'täna', 'Leida', 'A', 'Andrei', 'B', '?', 'Kolm sarnasust: 1 ……… 2 ……… 3 ………'],
+    learningJob: 'täita jigsaw-vestluses ühine ajajoon: jutustada oma inimese elust aja järgi (1975. aastal abiellus ta, selleks ajaks oli ta juba töötanud, nüüd on ta elanud …) ja küsida paariliselt teise inimese aastaid',
+    place: '068_t_poster',
+    alt: 'Näituse plakat „Kaks elu, üks Eesti”: aastate telg 1950-st tänaseni ja kaks rida, Leida (A) viie ja Andrei (B) nelja punktiga; iga punkti kohal on tühi kast küsimärgiga. All rida kolmele sarnasusele.',
+    caption: 'Kaks elu, üks Eesti.',
+    prompts: ['Mis juhtus sinu inimese elus igal aastal?', 'Mida pead paariliselt küsima, et kastid täita?', 'Mis on kahes elus sarnane?'],
+  },
+  {
+    id: 'a2b1-069-kasuta-1',
+    phase: 'transfer',
+    format: 'diagram',
+    cast: [],
+    scene: 'Laimirohelise päisega „LOO NELI OSA” heleroheline laigu peal. Neli valget kaarti noolte vahel: „SÜNDMUS” (hall buss, „mis, kus, millal?”), „TUNNE” (mure nägu, „mida ma tundsin?”), „PÕHJUS” (suur küsimärk, „miks?”), „JÄRELDUS” (laimiroheline lambipirn, „millest aru sain?”). Noolte all paksus kirjas sidesõnad „kõigepealt · siis”, „äkki”, „sest · kuigi”, viimase kaardi all „lõpuks”. All valge riba „Minu lugu: See juhtus … aastal, kui …” ja „Äkki … · Mul oli … , sest … · Sel päeval sain aru, et …”.',
+    accent: 'the header and the light bulb (the conclusion)',
+    text: ['LOO NELI OSA', 'SÜNDMUS', 'TUNNE', 'PÕHJUS', 'JÄRELDUS', 'mis, kus, millal?', 'mida ma tundsin?', 'miks?', 'millest aru sain?', 'kõigepealt · siis', 'äkki', 'sest · kuigi', 'lõpuks', 'Minu lugu: See juhtus … aastal, kui …', 'Äkki … · Mul oli … , sest … · Sel päeval sain aru, et …'],
+    learningJob: 'jutustada lugude õhtul 2–3 minutit oma lugu neljas osas ja siduda osad sidesõnadega, tegusõna pärast neid teisel kohal (Äkki sain aru …, Lõpuks koputasin …)',
+    place: '069_t_talk',
+    alt: 'Loo neli osa: sündmus (buss; mis, kus, millal), tunne (mure nägu; mida ma tundsin), põhjus (küsimärk; miks), järeldus (lambipirn; millest aru sain). Noolte all sidesõnad kõigepealt, siis, äkki, sest, kuigi ja lõpuks. All: Minu lugu — See juhtus … aastal, kui … Äkki … Mul oli …, sest … Sel päeval sain aru, et …',
+    caption: 'Loo neli osa.',
+    prompts: ['Mis on sinu loo sündmus?', 'Mida sa tundsid ja miks?', 'Millest sa sel päeval aru said?'],
+  },
+];
