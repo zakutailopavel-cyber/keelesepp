@@ -402,7 +402,7 @@ export const LESSONS = withShapes({
     title: 'Kuidas me tähistame?',
     canDo: 'Ma loen pere sõnumeid ja teksti võidupühast ja jaanipäevast, avaldan arvamust, lepin perega kokku, kus ja kuidas suurt pidu tähistada, ning tutvustan oma kodumaa püha.',
     discover: [
-      B.review('088_d_review', [['Mis oli Igori jutus pööre ja kuidas lugu lõppes?', 'a2b1-087'], ['Mis tingimusel võib Oskar juulis jalgpallilaagrisse minna?', 'a2b1-073'], 'Milline püha on sinu peres kõige tähtsam?']),
+      B.review('088_d_review', [['Mis oli Igori jutus pööre ja kuidas lugu lõppes?', 'a2b1-087'], ['Millise plaani A ja plaani B te naabrite laupäevaks valisite?', 'a2b1-073'], 'Milline püha on sinu peres kõige tähtsam?']),
       B.text('088_d_hook', 'Suur uudis', 'Esmaspäeva õhtul, 15. mail tuli pere grupivestlusse suur uudis: Jaanist saab augustist Kase kooli köögijuhataja. Kõik tahavad tähistada, aga igaühel on oma mõte, kus, millal ja kuidas. Jaanipäevani on veel viis nädalat, aga suvised pidupäevad lepitakse Eestis kokku aegsasti. Täna loed pere sõnumeid, saad teada, kuidas Eesti suve suurimaid pühi tähistatakse, ja lepid perega kokku suure peo.'),
       tag(B.reading('088_d_chat', 'Pere grupivestlus.', 'Loe pere sõnumeid. Vasta küsimustele oma sõnadega; viimasele küsimusele vasta oma arvamusega.', 'Grupp „Metsad ja sugulased”', [
         'Jaan: Suur uudis! Direktor Aivar kutsus mind täna enda juurde. Kase kooli köök tehakse suvel suuremaks, sest sügisest söövad meie sööklas ka naaberlasteaia lapsed. Augustist olen ma köögijuhataja ja minu alluvuses on kaks uut kokka!',

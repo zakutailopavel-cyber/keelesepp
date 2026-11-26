@@ -64,7 +64,7 @@ export const LESSONS = withShapes({
     title: 'Minu arvates…: telefon lapsele?',
     canDo: 'Ma räägin oma arvamusest laste telefonide ja ekraaniaja kohta, põhjendan seda ja lepin lastevanemate koosolekul kokku klassi ühise seisukoha.',
     discover: [
-      B.review('076_d_review', [['Mida pidi Sofia mentorprogrammi esimesele kohtumisele kaasa võtma?', 'a2b1-074'], ['Mida Valgevase majade elanikud oma hoovi jaoks kokku leppisid?', 'a2b1-059'], 'Mis teema peale vaidleb sinu pere või sinu töökoht kõige sagedamini?']),
+      B.review('076_d_review', [['Mis on sinu tegevusplaani esimene samm ja mis ajaks?', 'a2b1-074'], ['Mida Valgevase majade elanikud oma hoovi jaoks kokku leppisid?', 'a2b1-059'], 'Mis teema peale vaidleb sinu pere või sinu töökoht kõige sagedamini?']),
       B.topicOpener('076_d_open', 'Teema avaleht: meedia ja uudised Eestis', [
         'Eesti avalik-õiguslik ringhääling on Eesti Rahvusringhääling (ERR). See loodi 1. juunil 2007, kui ühendati Eesti Raadio ja Eesti Televisioon. ERR-il on kolm telekanalit: ETV, ETV2 ja venekeelne ETV+, mis alustas 28. septembril 2015. Raadiokanaleid on viis: Vikerraadio, Raadio 2, Klassikaraadio, venekeelne Raadio 4 ja mitmekeelne Raadio Tallinn. ERR-i uudisteportaalis saab uudiseid lugeda eesti, vene ja inglise keeles.',
         'Rahvusringhäälingu seaduse järgi peavad ERR-i saated vastama kõigi rahvastikurühmade, ka vähemuste infovajadusele. ERR-i rahastatakse peamiselt riigieelarvest ja seaduse järgi ta üldjuhul reklaami ei edasta. Suuremad erameedia väljaanded on näiteks Postimees, Delfi ja Õhtuleht.',

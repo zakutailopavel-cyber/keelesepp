@@ -1,67 +1,132 @@
-// B1 course (A2 → B1 roadmap), module 15 „Tulevik, plaanid ja eesmärgid” (a2b1-071…075), stage B1 → stage 4
-// „exam-ready” (docs/COURSE_FINAL_SHAPE_B1.md §6.1). Final shape (how: docs/FINAL_SHAPE_AUTHORING.md). One storyline in
-// November and December 2027, after the story evening of module 14: everybody makes plans for 2028. Tuul Logistika starts
-// the mentor programme „Järgmine samm” (personnel head Eha Org; applications by Friday 10 December, mentors announced on
-// 17 December, meetings once a month from January to June), Sofia decides to take the B1 exam in May, Viktor wants to
-// ride round Lake Peipsi for his 65th birthday, Oskar wants to go to a football camp in Pärnu in July. The goal, said on
-// the first sheet: at the end the learner makes his or her own action plan (goal, reasons, steps with deadlines, plan B),
-// agrees on the first steps with a mentor, records the plan and writes it down; then the module exam in full B1 form.
-//   071 LUGE R→S  „Järgmine samm” — the office newsletter on the mentor programme; B1 grammar: ways to express the future
-//                 (olevik + time word, hakkama + ma, kavatsema / plaanima + da, saama / muutuma + -ks; grammarPlan
-//                 'future'); sort, rewrite for the future, a survey of three, 4-3-2; meaning of future sentences, Sofia's
-//                 e-mail to Maret (cloze), the consultation at Keelekool Sõna by ear, verbs and cases, notices in the
-//                 office and the language school, info gap on Sofia's spring; Kasuta: Eksaminurk R4 = Keelekool Sõna's
-//                 letter on the spring exam course, the agreement with Olena on a group and a weekly plan (main, S03),
-//                 the learner's own goal recorded at home, the reply to the school (W08).
-//   072 LUGU R→W  „Olgu peale!” — Viktor's plan told at Sunday lunch (predict, cliffhanger: who rides with him?); B1
-//                 grammar of the module (METHODOLOGY_STANDARD §7): möönev kõneviis for recognition (sõitku, mingu, olgu
-//                 peale, ärgu …-gu = las …); rule table, translation of „пусть …”, retold twice, 8-min writing; the next
-//                 Sunday by ear (the companion and the route), the family chat, word order with las / olgu, Oskar's
-//                 errors, word formation, an opinion; Kasuta: three plans for the ride (profiles), the plan chosen
-//                 (ranking, S12), a plan of one's own recorded at home, Eksaminurk W2a = the story „Olgu peale!” (main).
-//   073 KUUL L→W  „Kui…, siis…” — coach Raivo on the camp (numbers), Eksaminurk L2 = the radio talk on plan B (time coach
-//                 Katrin Sild, „kui–siis” plans); kui-clauses (grammarPlan 'if-clauses'): joining, real or unreal (sort),
-//                 topic questions twice; Raivo's letter (forms), Oskar and Jaan by ear, summer offers (R1), the right form,
-//                 relaying to Kadri, „Mida sa teeksid, kui…?” (S14); Kasuta: Raivo's voicemail → notes, the call to the
-//                 club, plan A and B recorded at home, plan, the letter to Viktor (main, W04).
-//   074 PROJ L→S  „Minu tegevusplaan” — the module product. Eha Org in the firm's podcast (true / false), the jussive in
-//                 the programme's rules (recognition again), rules rewritten with peab / võib / ei tohi, the
-//                 application questionnaire (W01), introducing oneself to a mentor three times; crossword, Eha's voice
-//                 message → what to do, the guide (true / false / not stated), Markus's errors, a note to the mentor,
-//                 Eksaminurk S1a = topic questions „Tulevik ja plaanid”; Kasuta: Sofia's draft plan (application), the
-//                 first meeting with the mentor — the first steps agreed (main, S03), the learner's plan recorded at home,
-//                 the plan written and edited (W10).
-//   075 EKS       Module exam in full Harno B1 form (§6.1 stage 4, timed): R1, R2, R3a, R4 (33 p) · L1, L2, L3b, L4 (30 p)
-//                 · W1b, W2b (20 p) · S0, S1a, S1b, S2 (20 p); warm-up sheet with New Year's Eve at Viktor's farm.
-// §6.2 row 15 is LUGE R→S · KUUL L→W · LUGU R→W · PROJ L→S; lessons 2 and 3 are swapped (allowed by §6.2): the module's B1
-// grammar item, the jussive, comes in 072 (grammarPlan.js), so 072 is the LUGU lesson (§4.1 rule 6) and 073 the KUUL lesson
-// with the kui-clauses. Cast (docs/COURSE_CAST.md): Eha Org, Maret, Krista, Olena, coach Raivo, Ülo, time coach Katrin Sild
-// and radio host Ülle come from earlier modules; Viktor's birthday on 2 July, the 2028 mentor programme, the camp, the
-// prices and all dates of the story are fictional. Real: Lake Peipsi is Estonia's largest lake; the Narva river leaves the
-// lake at Vasknarva; the Onion Route (Sibulatee) runs along the western shore through the Old Believers' villages; the red
-// sandstone bank at Kallaste; Värska in Setomaa; the psychologist Peter Gollwitzer's research on if–then plans (1990s).
-// Earlier versions: archive/v3/b1/module15.js, archive/v1/b1/module15.js.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE §13): topic „ühiskond” (secondary
-// „haridus”, „majandus”) — the future and society: e-state, elections, the future of work — around the module's grammar
-// line (ways to express the future, the jussive, kui-clauses, the action plan). Topic opener 071_d_open (digital signature,
-// X-tee, all state services online since December 2024, e-voting since 2005 and in 2023 / 2027, the population projection
-// 2024–2085, OSKA on jobs); non-cast texts 071_p_forecast (Statistikaamet's population projection, read for future forms;
-// replaces the notice board 071_p_board), 072_p_forum (a forum on big plans after 60, sentence insertion with jussive
-// and las forms), 073_p_evote (how e-voting works, read for kui-clauses; replaces the ads task 073_p_camps), 074_d_oska (OSKA:
-// work and skills in the next decade); „Kas teadsid?” 072_p_know (retirement age tied to life expectancy), 073_p_know
-// (who may vote; the 2025 constitutional change, stated neutrally), 074_p_know (digital signature, X-tee, e-residency).
-// Opinion: 071_d_future (Estonia in 20 years; replaces the 4-3-2 071_d_432), 072_p_opinion widened, 073_p_would with two
-// society questions, examiner set 075_d_warm (own instruction). One retelling left (074_d_meet); record-at-home only
-// 073_t_rec and 074_t_rec (071_t_goal and 072_t_circle are done in class). Sources: the PR „B1 module 15: academic
-// value round 1”.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 15 „Tulevik, plaanid ja eesmärgid” (a2b1-071…075), stage B1- (lessons 061–080).
+// Written to methodology v6 (docs/METHODOLOGY_V6.md; strictModulesV6.json) on top of v5 „lesson budget”
+// (docs/METHODOLOGY_B1_B2_V5.md; strictModulesV5.json), the second B1 module after module 14 and in its pattern: one real
+// outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a lesson, 4 stations whose minutes differ in every
+// lesson (G17), the control one sheet (7 blocks, 3 pages, ≈ 45 min). v6 in the content, not only in the fields:
+//   • the exit is a short performance in the main task's skill (G14): a 30-s voicemail to the course (071), one rewritten
+//     line of the message to the neighbour (072), 30 s on plan A and plan B (073), the first step of the plan rewritten
+//     after the mentor's remark (074);
+//   • the form task makes the learner produce the rule box's bold forms, and no hint gives the answer away (G15): 071 a
+//     letter to a language school with a phrase bank, 072 the garden rules in plain words with a phrase bank whose two
+//     extra parts are jussive forms (the lesson's Harno R4 corner), 073 a hiking club's notice with kui-clause halves (one
+//     extra has the wrong word order), 074 one learner's action plan with time phrases — all in the R4 shape;
+//   • ONE exam corner a lesson (final shape V12), chosen to give back what the one-sheet controls took from the course
+//     (finalShapeBaseline „course”): 071 L2 (a radio round-up), 072 R4, 073 L2 (a radio talk), 074 L1 (seven voice
+//     messages) — V6-total-L1 and V6-total-L2 reach 10 again; R4 keeps its four corners;
+//   • the main tasks rotate and use types module 14 did not (G17): 071 phone (an information-gap call with hidden
+//     information), 072 mediation (the garden rules explained to a new neighbour in plain words), 073 ranking (the
+//     neighbours' Saturday: plan A and plan B under conditions, hidden information, Harno S1b), 074 project (the
+//     learner's own action plan over the module: cold task 071 → plan B 073 → questionnaire, draft and plan 074); debate
+//     is left out on purpose — arguing for and against is a Harno B2 task (review 2026-11-25, 078_t_text); each main task
+//     has an „Abikaart” (support) and a „Lisaväljakutse” (stretch), visible in the card or as the starter words;
+//   • a counted second attempt where it pays (v5 „the task again, changed”): 071 a second call after the plan changed,
+//     074 the plan agreed with a mentor (the S1b agreement); 072's spoken mediation (the neighbour's two new questions)
+//     and 073's media log are recorded at home — Kasuta holds 5 blocks and v4 asks for the home voice + homework card;
+//   • a 5-min pronunciation corner every lesson (G23): intonation of phone questions (071), välted pargi – parki (072),
+//     õ / ä / ö / ü jäi – jõi, läks – lõks (073), shadowing the plan phrases (074);
+//   • every vocabulary block brings back three words of lessons 058–069 that the lesson uses again (G18); every home task
+//     names „Harjuta → moodul 15”;
+//   • instructions ≤ 25 words with a purpose line of 6–8 plain words (G22; stations.js still wants a purpose line);
+//   • the real network (G25): 071's home task is a real document (Harno's level-exam page https://harno.ee/…), 073's the
+//     media log „Minu eesti keele võrgustik” (ERR Vikerraadio), 074's plan goes to a classmate (peer reply).
+//   071 infogap „Mida sa järgmisel aastal teed?” — the module's COLD TASK first (2–3 min of speech without help: six
+//               examiner questions on one's own plans, Harno S1a form, scored with the four criteria of control 075); ONE
+//               input: a radio round-up „Uus aasta, uued võimalused” (≈ 2 min, 7 items = the Harno L2 corner); the future
+//               without a future tense (olevik + time word, hakkama + ma, kavatsema + da, muutuma + -ks, a deadline
+//               -ks); outcome: a call to a course with an ad (picture) and the employee's card, the teacher holding
+//               hidden information, then a second call when the plan changed.
+//   072 facts   „Mida see reegel tähendab?” — ONE text: a community garden's rules for the new season written with the
+//               jussive (hoolitsegu, kastku, pangu, ärgu segagu); the jussive is recognised, the learner says it with
+//               peab / võib / ei tohi / ei pea / las + olevik; outcome: mediation — a message to a new neighbour who
+//               did not understand the rules (four questions in the picture); at home his two more questions by voice.
+//   073 case    „Kui sajab, siis …” — a radio talk „Plaan B” (new recording, 8 multiple-choice items = the Harno L2
+//               corner); real and unreal kui-clauses, the verb first after the kui-clause, juhul kui; outcome: the
+//               neighbours' Saturday — plan A and plan B from an idea card with a constraint (12 people, 200 euros, a
+//               neighbour in a wheelchair) and hidden information (the forecast, the bus price), in the Harno S1b shape.
+//   074 project „Minu tegevusplaan” — the module product: an application questionnaire (the W1a shape, written fast,
+//               recalling the goal of 071 and the plan B of 073), seven participants' voice messages about their plans —
+//               which plan lacks a time, a plan B or a supporter (the Harno L1 corner) —, alates … -st, kuni … -ni,
+//               hiljemalt … -ks, igal …, selleks, et, kui … siis; outcome: the plan written (80–100 words) with the
+//               template in the picture, agreed with a mentor (an S1b agreement), sent to a classmate.
+//   075 EKS     Control 15 (one sheet, 7 blocks, 2 pages, SPEAKING + LISTENING; module 14 was reading + writing):
+//               listening 16 p (eight short recordings = L1, a radio talk ≈ 2 min = L2, 8 items each; 3 items from
+//               modules 13–14 ≈ 20 %), speaking 20 p — S1 the PARALLEL of 071's cold task (six examiner
+//               questions, the same length and four criteria), S1b an agreement with plan A and plan B —, one rubric
+//               with four criteria (no „pausideta”, G12); „ükski osa ei tohi olla 0 punkti”; 36 points.
+// No story characters: the people of the texts are made up and appear in one lesson only. No dictation. Texts are adapted
+// to the level, facts need not be real (owner 2026-11-25). The previous version (final shape + academic value round 1, the
+// continuing story of 2027–2028: the mentor programme of Tuul Logistika, Sofia's exam, Viktor's ride round Lake Peipsi,
+// Oskar's football camp …) is kept below as OLD: every block of it that is not on a sheet any more is retired (hidden, id
+// and learners' answers kept, practice/engine/extract.js still builds Harjuta items from its form tasks); a block on a
+// sheet with a reused id has the same type.
+// B1 grammar (METHODOLOGY_STANDARD §7, grammarPlan.js): ways to express the future (071, 'future'), the jussive for
+// recognition with las (072), kui-clauses real and unreal (073, 'if-clauses'), the language of a plan: time phrases and
+// purpose (074).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
-// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+// the examiner's set with its own instruction (kept for the OLD lessons)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-15', course: 'b1', title: 'Tulevik, plaanid ja eesmärgid', level: 'B1', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-15', course: 'b1', title: 'Tulevik, plaanid ja eesmärgid', level: 'B1', design: 'v3-stations', template: 'v4' };
 
-export const LESSONS = withShapes({
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// one line for every block taken off the sheets by the rewrite
+const V6_CUT = 'v6 (2026-11-26): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V6_DRILL = 'v6 (2026-11-26): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+const V6_EXAM = 'v6 (2026-11-26): täispikk mooduli eksam asendati ühe lehe kontrolliga; proovieksamid on 080 / 089 / 090';
+// a recording in a lesson: heard twice (G6); in the control the play count is locked
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a control's task beside its partner task (half the page width)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// a writing form of n ruled lines
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// v6 §2 i (G24): the main task's „Abikaart” (2–3 sentence starters) and „Lisaväljakutse” (one line); a speaking task shows
+// both in its tip box, so the learner sees them on the sheet (the fold-out card is UI work for later)
+const aid = (block, support, stretch, taskType) => {
+  const data = { ...block.data, support, stretch, taskType };
+  if (block.type === 'speaking') Object.assign(data, { tipTitle: 'Abikaart (kui vaja):', tipText: [...support, `Lisaväljakutse: ${stretch}`].join('\n') });
+  return { ...block, data };
+};
+// the same two lines printed at the end of a card's situation (an agreement card or a writing task card)
+const aidLines = (support, stretch) => `Abikaart (kui vaja): ${support.join(' · ')}\nLisaväljakutse: ${stretch}`;
+// v6 §2 l (G23): the 5-min pronunciation corner — `focus` välted | vokaalid | varjutamine | intonatsioon
+const pron = (block, focus) => ({ ...block, data: { ...block.data, pronunciation: focus } });
+// v6 §2 f (G18): three words of lessons 3–15 back that this lesson's input uses again
+const review = (block, words) => ({ ...block, data: { ...block.data, review: words } });
+// v6 §2 i (G24): the self-check rates the task's three success criteria 0–1–2 and quotes one own sentence as evidence
+const selfCheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, [...criteria.map((c) => `${c} (0 – 1 – 2)`), 'Minu lause tõendiks: …'], stamp, 'Ma oskan …');
+  return purpose({ ...b, data: { ...b.data, instruction: 'Hinda iga punkti: 0, 1 või 2. Kirjuta üks oma lause tõendiks.', criteria, evidence: true } }, 'Näed, mida oskad ja mida veel harjutada.');
+};
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+// v6 §2 k (G25): „Minu eesti keele võrgustik” — the learner's media log with a real source (title + https URL, G13)
+const networkLog = (block, source) => ({ ...block, data: { ...block.data, mediaLog: true, realAddressee: source } });
+// v6 §2 k (G13): a real document with light support — the link task opens a real page (title + https URL)
+const realSource = (block, source) => ({ ...block, data: { ...block.data, realAddressee: source } });
+// v6 §2 k (G25): one peer exchange a module — the product goes to a classmate, who answers against the success criteria
+const peer = (block) => ({ ...block, data: { ...block.data, peerReply: true } });
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the control's speaking rubric: Harno's four criteria × 0–5, the descriptors at B1 (no „pausideta”, G12)
+const SPEAKING_B1 = [
+  { name: 'Ülesanne ja suhtlus: vastused põhjendatud; plaan A, plaan B ja ühine otsus', max: 5 },
+  { name: 'Sidusus: sest, aga, kui … siis; pausid ei sega kuulajat', max: 5 },
+  { name: 'Sõnavara: plaani, aja ja tingimuse sõnad sobivad olukorraga', max: 5 },
+  { name: 'Grammatika ja hääldus: tulevik, kui-lause; vead ei sega mõistmist', max: 5 },
+];
+
+// ======================================================================== the previous version (final shape + academic value round 1)
+// Kept for its ids: the blocks that are not on the v6 sheets are retired from here (lesson() below).
+const OLD = {
   'a2b1-071': {
     title: 'Järgmine samm: plaanid uueks aastaks',
     canDo: 'Ma loen teateid ja kursuse infot tuleviku plaanide kohta ning lepin kaaslasega kokku, mida, millal ja kui tihti me järgmisel aastal teeme.',
@@ -1113,6 +1178,675 @@ export const LESSONS = withShapes({
       B.selfcheck('075_t_self', ['Ma saan aru kuulutustest, artiklitest, teadetest ja intervjuudest tuleviku ja plaanide kohta.', 'Ma räägin tulevikust, teen kui-lauseid ja saan aru vormidest olgu, tehku, mingu.', 'Ma kirjutan kutse ja isikliku kirja oma plaanidest.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 15 eksam tehtud'),
     ],
   },
+};
+
+
+// The blocks of OLD that are off the sheets are retired (hidden) in their old phase: their ids and the learners' answers
+// stay. A new block that reuses an old id keeps the old block's type.
+const PHASES = ['discover', 'practice', 'transfer'];
+const DRILLS = new Set(['categorize', 'match', 'manymatch', 'wordorder', 'crossword', 'transformation', 'errorfix', 'translation', 'wordforms', 'choice', 'formtext', 'cloze', 'gaps']);
+const reasonFor = (lessonId, b) => (OLD[lessonId].assessment ? V6_EXAM : DRILLS.has(b.type) || b.data?.review ? V6_DRILL : V6_CUT);
+function lesson(lessonId, spec) {
+  const old = OLD[lessonId];
+  if (!old) throw new Error(`moodul 15: vana tund ${lessonId} puudub`);
+  const oldById = Object.fromEntries(PHASES.flatMap((p) => old[p] || []).map((b) => [b.id, b]));
+  const used = new Set(PHASES.flatMap((p) => (spec[p] || []).map((b) => b.id)));
+  PHASES.flatMap((p) => spec[p] || []).forEach((b) => {
+    if (oldById[b.id] && oldById[b.id].type !== b.type) throw new Error(`moodul 15: ${b.id} on vanas tunnis ${oldById[b.id].type}, uues ${b.type}`);
+  });
+  const out = { ...spec };
+  PHASES.forEach((p) => {
+    const retired = (old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, reasonFor(lessonId, b)));
+    if ((spec[p] || []).length || retired.length) out[p] = [...(spec[p] || []), ...retired];
+  });
+  return out;
+}
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 071 infogap: plans for the new year, a call to a course
+  'a2b1-071': lesson('a2b1-071', {
+    title: 'Mida sa järgmisel aastal teed?',
+    phases: grammar('Keel: Kursus algab jaanuaris · hakkan käima · kavatsen teha · muutub lihtsamaks · reedeks'),
+    format: 'infogap',
+    topic: 'learning',
+    canDo: 'Ma räägin oma plaanidest järgmiseks aastaks (aeg + olevik, hakkama + ma, kavatsema + da, tähtaeg -ks) ja helistan kursusele, et küsida infot ja kokku leppida, millal ma alustan.',
+    teacherPage: {
+      goal: 'Ученик говорит о планах на год (olevik + время, hakkama + ma, kavatsema + da, muutuma + -ks, срок -ks) и звонит на курс: узнаёт условия и договаривается о старте.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодная задача: 2 минуты речи без помощи) → радиопередача «Uus aasta, uued võimalused» (2 раза, 7 вопросов = Harno L2), в паре 6 строк «что будет» → пункт 4: звонок на курс по объявлению, у учителя скрытая информация; выход — голосовое 30 секунд. Пункт 3 (правило, письмо с банком, Hääldusnurk) — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 15: ученик 2 минуты без помощи отвечает на 6 вопросов о своих планах (форма Harno S1a). Не помогайте и не исправляйте. Оцените потом по 4 критериям контроля 75 (по 0–5) и сохраните: контроль 75 (rääkimine 1) — параллельная задача того же вида и длины.',
+      plan: [
+        '0–10: пункт 1 — холодная задача: 2–3 минуты речи без помощи (6 вопросов), учитель только слушает и записывает',
+        '10–25: пункт 2 — слова (2 мин, три старых слова: kogemus, võimalik, soovitama), стратегия «прочитай вопросы и угадай», радиопередача 2 раза (≈ 2 мин), 7 вопросов с тремя ответами (Harno L2); в паре 6 строк «что будет»',
+        '25–47: пункт 3 — заметить → правило (будущее без будущего времени: olevik + время, hakkama + ma, kavatsema + da, muutuma + -ks, срок -ks; L1) → письмо в языковую школу, 8 частей из банка (как Harno R4) → Hääldusnurk: интонация вопроса по телефону 5 мин → 6–8 своих предложений',
+        '47–72: пункт 4 — звонок на курс по объявлению (картинка), роли A и B, потом смена; учитель держит скрытую информацию; второй звонок «план изменился» без карточки; выход — голосовое 30 секунд',
+        '72–77: самооценка 0–1–2, домашнее задание (настоящая страница Harno, Harjuta → moodul 15)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, чем его план изменился после звонка',
+        '77–90: запас',
+      ],
+      sources: 'Радиопередача (пункт 2), письмо (банк фраз) и объявление о курсах — учебные, школы и люди выдуманы; проверять не нужно (владелец 2026-11-25). Домашнее задание — настоящая страница Harno (https://harno.ee/eesti-keele-tasemeeksamid), ответы ученик находит сам.',
+      groups: 'Пункт 2 в паре: A пишет строки 1–3, B — 4–6, потом читают друг другу. Пункт 4 в паре: A звонит, B — работник курса по своей карточке, потом смена. Один на один: вы — работник курса со скрытой информацией.',
+      errors: [
+        '«Ma hakkan õppida» вместо «Ma hakkan õppima» (hakkama + ma-vorm) и «Ma kavatsen õppima» вместо «Ma kavatsen õppida» (kavatsema + da-vorm).',
+        '«Ma saan õppima» или «Ma olen õppima» по образцу «я буду учиться» — по-эстонски: Ma hakkan õppima / Jaanuarist õpin.',
+        '«Jaanuaris kursus algab» вместо «Jaanuaris algab kursus» (глагол на втором месте после времени).',
+        '«reedel» вместо «reedeks», когда речь о сроке (mis ajaks? → -ks).',
+      ],
+      notes: [
+        'Холодная задача и 075 rääkimine 1 — пара «до / после»: та же форма (6 вопросов экзаменатора, 2–3 минуты, без помощи), те же 4 критерия по 0–5. Сохраните баллы в карточке ученика.',
+        'Abikaart и Lisaväljakutse — последние строки карточки звонящего (A). Отметьте, пользовался ли ученик подсказками. Обратная связь, 1 цель: hakkama + ma / kavatsema + da.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('071_d_cold', 'Külm start: minu järgmine aasta', 'Vasta 2–3 minutit ilma abita ja ilma märkmeteta. Õpetaja küsib, sina räägid.', [
+        'Mida sa järgmisel aastal kindlasti teha tahad?',
+        'Miks on see sulle tähtis?',
+        'Mida sa juba jaanuaris teed?',
+        'Mis saab siis, kui see plaan ei õnnestu?',
+        'Mis sa arvad: kas uue aasta plaanid aitavad või tekitavad stressi? Miks?',
+        'Kas inimesed, keda sa tunned, teevad uueks aastaks plaane? Milliseid?',
+      ], [120, 180]), 'Tunnis 75 võrdled seda uue vastusega.'), { task: 'S02', fluency: true, level: 4 }),
+      'Külm ülesanne (mooduli 15 algus, ilma toeta, Harno B1 rääkimise 1a vorm: eksamineerija küsimused). Ära aita, ära paranda, ära anna sõnu. Pärast tundi hinda sama nelja kriteeriumiga nagu kontrollis 75 (ülesande täitmine, sidusus, sõnavara, grammatika ja hääldus; igaüks 0–5) ja kirjuta õpilase kaardile kolm märget: 1) mitu lauset ja kas on põhjus (sest …); 2) tuleviku vormid (hakkan …, kavatsen …, jaanuaris algab …); 3) kas ta ütleb plaani B (kui …, siis …). Kontrollis 75 (rääkimine 1) on paralleelne uus ülesanne: sama vorm, pikkus ja hindamine — võrdle.'), 1, 10),
+      station(review(tag(B.vocab('071_d_vocab', 'Tunni sõnad.', ['tulevik — будущее', 'eesmärk — цель', 'kavatsema — намереваться (kavatsen teha)', 'hakkama — начинать (hakkan käima)', 'tähtaeg — срок (reedeks: к пятнице)', 'registreeruma — регистрироваться', 'soodustus — скидка', 'algaja — начинающий', 'vaba koht — свободное место', 'järjekord — очередь, лист ожидания', 'kohapeal — на месте, очно', 'veebis — онлайн'], '2'), { topic: ['registreeruma', 'soodustus'] }), ['kogemus', 'võimalik', 'soovitama']), 2, 15),
+      teach(tag(purpose(B.table('071_d_plan', 'Paaris: mis juhtub uuel aastal?', 'Pärast teist kuulamist kirjutage igast võimalusest üks terve lause: mis juhtub ja millal.', 'Võimalus, Mis juhtub? Millal? (terve lause)', [
+        '1 rahvaülikool | ',
+        '2 keelekool | ',
+        '3 raamatukogu | ',
+        '4 ujula | ',
+        '5 tööandja | ',
+        '6 linnaosa | ',
+      ], 'g_read'), 'Need laused aitavad sul hiljem helistada.'), { task: 'L10' }),
+      'Paarid kirjutavad pärast teist kuulamist 6 minutit: A read 1–3, B read 4–6, siis loevad teineteisele. Kontrolli, et lauses on aeg ja olevik (Jaanuaris algab …) või hakkama + ma (Keelekohvik hakkab toimuma …). Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Millal?”.'),
+      tag(purpose(why(ownText(twice(B.examListen('071_d_radio', 'Eksaminurk: raadiosaade „Uus aasta, uued võimalused” (Harno B1 kuulamine 2)', 'Vaata küsimusi ja arva vastused. Siis kuula saadet kaks korda ja märgi õige vastus.', 'choice', [
+        'Tere hommikust! Detsember on käes ja paljud mõtlevad juba uuele aastale. Paljud ütlevad igal aastal, et hakkavad midagi uut õppima, aga ei tea, kust alustada. Täna räägin, milliseid võimalusi meie linn järgmisel aastal pakub.',
+        'Kõigepealt kursused. Rahvaülikool alustab jaanuaris uute kursustega: keraamika, puutöö ja fotograafia. Tunnid hakkavad toimuma õhtuti kella kuuest. Varasemat kogemust ei ole vaja. Kes registreerub kahekümnendaks detsembriks, saab kümme protsenti soodustust.',
+        'Ka eesti keele õppijatele on head uudised. Keelekool Kompass alustab kolmeteistkümnendal jaanuaril kevadise B1 kursusega. Hommikurühm on juba täis, aga õhturühmas on veel paar vaba kohta. Kui see on teile võimalik, helistage kooli juba sel nädalal.',
+        'Kes tahab eesti keelt rääkida ilma tunnita, võib minna raamatukokku. Alates veebruarist hakkab seal igal teisipäeval kell viis toimuma keelekohvik. Osalemine on tasuta, aga ruumis on ainult viisteist kohta, nii et pange end ette kirja.',
+        'Ka liikumiseks on uusi võimalusi. Linna ujula soovitab algajatele pühapäevast ujumiskursust kell kümme. Kursus kestab kaks kuud ja maksab kuuskümmend eurot. Kui te ei ole kunagi ujunud, ärge kartke: kursusel on ainult kaheksa inimest ja treener aitab igaüht.',
+        'Kas te teate, et paljud tööandjad maksavad töötaja kursuse eest? Küsige oma personaliosakonnast, sest soovist tuleb tavaliselt teada anda jaanuari lõpuks. Eelmisel aastal kasutas seda võimalust iga neljas töötaja.',
+        'Ja lõpuks: linnaosa ootab elanike ideid. Kui teil on mõte, kuidas meie linnaosa paremaks muuta, saatke see veebis märtsi lõpuni. Parim idee tehakse valmis juba suvel.',
+        'Minu nõuanne on lihtne: valige üks asi, pange kalendrisse kuupäev ja alustage. Head uut aastat!',
+      ], [
+        ['Millest räägib saatejuht selles detsembrikuu hommikuses raadiosaates?', 'linna võimalustest uuel aastal', 'jõulupühade kommetest', 'eelmise aasta sündmustest'],
+        ['Mis kuupäevaks tuleb rahvaülikooli kursusele registreeruda, et saada soodustust?', '20. detsembriks', 'jaanuari alguseks', '13. jaanuariks'],
+        ['Mis on keelekooli kevadisel B1 kursusel veel vaba?', 'paar kohta õhturühmas', 'kohad hommikurühmas', 'ainult veebikursus'],
+        ['Miks peab raamatukogu keelekohvikusse end ette kirja panema?', 'kohti on vähe', 'osalemine maksab', 'kohvik on ainult lugejatele'],
+        ['Mida soovitab linna ujula neile, kes alles alustavad?', 'pühapäevast ujumiskursust', 'hommikust jooksmist', 'kahenädalast laagrit'],
+        ['Kust saab töötaja teada, kas tööandja maksab tema kursuse eest?', 'personaliosakonnast', 'raamatukogust', 'keelekoolist'],
+        ['Mida soovitab saatejuht kuulajatele saate lõpus teha?', 'valida üks asi ja alustada', 'proovida kõike korraga', 'oodata kevadeni'],
+      ]))), [
+        'Algus: „Täna räägin, milliseid võimalusi meie linn järgmisel aastal pakub.”',
+        'Rahvaülikool: „Kes registreerub kahekümnendaks detsembriks, saab … soodustust.”',
+        'Keelekool: „Hommikurühm on juba täis, aga õhturühmas on veel paar vaba kohta.”',
+        'Raamatukogu: „ruumis on ainult viisteist kohta” = kohti on vähe.',
+        'Ujula: „soovitab algajatele pühapäevast ujumiskursust”.',
+        'Tööandja: „Küsige oma personaliosakonnast”.',
+        'Lõpp: „valige üks asi ja alustage”.',
+      ]), 'Kuuled, milliseid võimalusi uus aasta pakub.'), { harno: 'L2', task: 'L06', voice: 'news' }),
+    ],
+    practice: [
+      station(B.notice('071_d_notice', 'Märka: kuidas räägime tulevikust?', [
+        'Saatest: Rahvaülikool **algab** jaanuaris. · Keelekohvik **hakkab** toimuma … · Tunnid hakkavad toimuma õhtuti.',
+        'Eesti keeles ei ole eraldi tulevikuvormi. Tulevikku näitab aeg + olevik: Jaanuaris **algab** kursus. Homme helistan kooli.',
+        'Uus tegevus algab ja kestab: hakkama + ma-vorm — Ma hakkan kursusel **käima**. · Plaan: kavatsema / plaanima + da-vorm — Ma **kavatsen** eksami **teha**.',
+        'Muutus: muutuma + -ks — Kuulamine **muutub** **lihtsamaks**. · Tähtaeg (mis ajaks?): **reedeks**, jaanuari lõpuks, **20. detsembriks**.',
+        'Vene keeles „я буду учиться” — eesti keeles ilma olema-ta: Ma hakkan õppima. Jaanuarist õpin.',
+      ], 'full'), 3, 22),
+      tag(purpose(why(B.gaps('071_p_letter', 'Kiri keelekoolile.', 'Loe kirja. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
+        'Tere! Ma olen eesti keelt õppinud kaks aastat ja [kavatsen mais teha B1 eksami].',
+        'Seepärast tahan [jaanuarist hakata kursusel käima].',
+        'Teie kodulehel on kirjas, et kevadine kursus [algab 13. jaanuaril].',
+        'Kahjuks töötan hommikuti, nii et [mulle sobib ainult õhturühm].',
+        'Kui kohti on veel, [registreerun kohe täna].',
+        'Kodulehel on ka kirjas, et kursuse eest tuleb maksta [20. detsembriks].',
+        'Ma loodan, et kevadeks [muutub kuulamine mulle lihtsamaks].',
+        'Palun [andke mulle reedeks teada], kas mul on koht. Tervitades, Irina',
+      ], ['kavatsen mais teha B1 eksami', 'jaanuarist hakata kursusel käima', 'algab 13. jaanuaril', 'mulle sobib ainult õhturühm', 'registreerun kohe täna', '20. detsembriks', 'muutub kuulamine mulle lihtsamaks', 'andke mulle reedeks teada', 'käisin eelmisel aastal kursusel', 'kursus lõppes juba detsembris'], 'full', 'g_notice'), [
+        'kaks aastat õppinud ja … → plaan: kavatsen + da-vorm (teha).',
+        'tahan + da-vorm: hakata; hakkama + ma-vorm: käima.',
+        'kursus + mis juhtub tulevikus → olevik: algab.',
+        'töötan hommikuti, nii et … → mis sobib: õhturühm.',
+        'Kui kohti on … → mis ma siis teen: registreerun (olevik = tulevik).',
+        'tuleb maksta mis ajaks? → 20. detsembriks.',
+        'kevadeks … → muutus: muutub lihtsamaks.',
+        'Palun … → viisakas palve tähtajaga: andke reedeks teada.',
+      ]), 'Need vormid aitavad sul kohe helistada.'), { task: 'G03' }),
+      teach(pron(B.tip('071_p_pron', 'Hääldusnurk: küsimus telefonis (5 min)', [
+        'Kuula õpetajat. Kas hääl tõuseb või langeb lõpus? Ütle järele.',
+        'Kas kursus algab jaanuaris? (kas-küsimus: hääl langeb)',
+        'Kursus algab jaanuaris? (ilma sõnata „kas”: hääl tõuseb — imestus)',
+        'Mis kell tunnid algavad? · Kui palju kursus maksab? (küsisõna: hääl langeb)',
+        'Ütle koos õpetajaga: „Tere, mul oleks üks küsimus kevadise kursuse kohta.”',
+      ], 'full'), 'intonatsioon'),
+      'Hääldusnurk (≈ 5 min), intonatsioon. Eesti keeles langeb hääl lõpus nii kas-küsimuses kui ka küsisõnaga küsimuses; ainult küsimus ilma sõnata „kas” („Kursus algab jaanuaris?”) tõuseb ja näitab imestust või kontrolli. Vene keele mõjul tõuseb hääl tihti ka kas-küsimuse lõpus — loe mõlemad variandid ette, õpilane ütleb, kumb kõlab eesti keeles loomulikult, ja kordab. Viimane rida: ütle koos (varjutamine), siis üksi.'),
+      tag(purpose(rows(B.writing('071_p_sent', 'Minu aasta kuude kaupa.', 'Kirjuta 8 minutit järjest, ära peatu: sinu järgmine aasta. Igas lauses on aeg või tähtaeg: jaanuaris, märtsiks …', [8, 12]), 22), 'Neid lauseid kasutad kohe oma telefonikõnes.'), { task: 'G07', fluency: true }),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(B.phoneCards('071_t_call', 'Telefonikõne: koht kevadisel kursusel', 'Vaata kuulutust. A helistab kursusele ja lepib kokku koha, B on kooli töötaja. Siis vahetage.',
+        'Sa tahad uuel aastal alustada ühe kursusega kuulutuselt.',
+        ['Helistaja (A)', [
+          'Eesmärk: koht kursusel jaanuarist või veebruarist.',
+          'Piirang: hommikuti töötad, raha kuni 150 €.',
+          'Uuri: algus, päevad, hind, makse tähtaeg. Lõpus korda kokkulepe üle.',
+          'Abi: Mul oleks küsimus … · Ma kavatsen … · Lisaväljakutse: mis saab, kui puudud?',
+        ]], ['Kooli töötaja (B)', [
+          'Info on kuulutusel.',
+          'Õhturühm (T ja N kell 18) on täis.',
+          'Vaba koht: laupäevarühm veebruarist, kell 10–12, 160 €.',
+          'Sina küsid: nimi, telefon, kogemus.',
+        ]], [180, 300]), ['Tere, mul oleks küsimus … kursuse kohta.', 'Ma kavatsen … / Mulle sobib ainult …', 'Kas ma sain õigesti aru, et kursus algab …?'], 'uuri, mis saab, kui sa ühest tunnist puudud.', 'phone'), 'Lepid päris kõnes kokku, millal alustad.'), { task: 'S04', main: true, level: 4 }),
+      'Telefonikõne (nagu Harno B1 rääkimise 2. osa, ≈ 15 min). Paaris: A helistab kuulutuse järgi, B vastab oma kaardi järgi, siis vahetavad (B valib teise kursuse). Varjatud info: üks-ühele oled sina B ja tead kolme asja, mida kaardil ei ole — ütle need ainult küsimise peale: 1) veebruari laupäevarühm maksab 160 eurot, aga kes maksab 20. detsembriks, saab 10 % soodustust (144 eurot); 2) puudutud tunni saab järele teha veebis neljapäeva õhtul; 3) õhturühma võib panna ootejärjekorda — kui keegi loobub, helistatakse. Takistused: 1) alguses ütle, et jaanuari rühmad on täis — õpilane peab küsima teist võimalust; 2) ütle hind ilma soodustuseta — õpilane peab küsima, kas on soodustust. Edukriteeriumid (sama mis enesekontrollis): 1) küsib vähemalt nelja asja (algus, päevad, hind, tähtaeg); 2) ütleb oma plaani ja piirangu tuleviku vormiga (kavatsen …, hakkan …, mulle sobib ainult …); 3) kordab lõpus kokkuleppe ja tähtaja üle. Abikaart ja lisaväljakutse on kaardi A viimastel ridadel; märgi, kas õpilane neid kasutas.'), 4, 25, { final: 'negotiate' }),
+      teach(tag(purpose(B.speaking('071_t_again', 'Teine kõne: plaan muutus', 'Helista samale koolile tagasi, leht kinni: sinu plaan muutus. Ütle, mis muutus, ja lepi kokku uus võimalus.', [
+        'Kes sa oled ja millest te eile rääkisite?',
+        'Mis sinu plaanis muutus ja miks?',
+        'Mis aeg või rühm sulle nüüd sobib ja mis ajaks pead vastama?',
+      ], [120, 180]), 'Proovid kõnet ilma kaardi ja abita.'), { task: 'S04' }),
+      'Teine katse (v5 kordus muutusega, ≈ 5 min): leht kinni, ilma kaardita. Üks-ühele: sina oled jälle kooli töötaja; õpilane ütleb, et ta sai tööl uue graafiku (nüüd on vabad hommikud). Paku hommikurühma ootejärjekorda või veebirühma. Märgi üks tuleviku vorm, mille õpilane pärast ise parandab.'),
+      teach(exitCheck(tag(purpose(B.speaking('071_t_exit', 'Väljumine: häälsõnum 30 sekundiga', 'Jäta kursusele 30-sekundiline häälsõnum: kes sa oled, mida te kokku leppisite ja millal sa alustad.', ['Kes sa oled ja mis kursus see on?', 'Mida te kokku leppisite ja mis ajaks?'], [20, 40]), 'Näitad, et oskad oma plaani lühidalt öelda.'), { task: 'S02', level: 3 })),
+      'Väljumine (v6, 30 s, ilma kaardita). Õnnestunud, kui on vähemalt kaks tuleviku vormi (Veebruaris alustan …, hakkan käima …), üks tähtaeg -ks (reedeks, 20. detsembriks) ja sõnum on lühike ja selge.'),
+      selfCheck('071_t_self', ['Ma räägin tulevikust: aeg + olevik, hakkan + ma, kavatsen + da.', 'Ma küsin telefonis vajaliku info ja ütlen oma piirangu.', 'Ma kordan lõpus kokkuleppe ja tähtaja üle.'], 'Plaan paigas'),
+      teach(tag(homeTask(purpose(realSource(rows(B.writing('071_t_home', 'Päris leht: Harno tasemeeksam', 'Ava https://harno.ee/eesti-keele-tasemeeksamid. Kirjuta: järgmise B1 eksami aeg, registreerimise tähtaeg, mida kaasa võtta. Lisa häälsõnum (1 min). Harjuta → moodul 15.', [3, 4]), 4), 'Harno (päris leht)'), 'Leiad päris info oma eksamiplaani jaoks.')), { task: 'W08' }),
+      'Seosülesanne, päris dokument kerge toega (v6 §2 k). Õpilane avab lehe ise; Harno leht muutub, seepärast ära anna vastuseid ette. Kui õpilane B1 eksamit ei plaani, otsib ta sama lehelt A2 või B2 eksami. Järgmise tunni alguses ütleb ta 30 sekundiga, mida leidis. Harjuta: tunni sõnad ja tuleviku vormid (hakkan + ma, kavatsen + da, -ks).'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 072 facts: rules in the jussive, explained in plain words
+  'a2b1-072': lesson('a2b1-072', {
+    title: 'Mida see reegel tähendab?',
+    phases: grammar('Keel: hoolitsegu = peab hoolitsema · ärgu segagu = ei tohi segada · Las koer jääb aia taha'),
+    format: 'facts',
+    topic: 'neighbours',
+    canDo: 'Ma loen reegleid, kus on möönev kõneviis (hoolitsegu, pangu, ärgu segagu), ja kirjutan naabrile lihtsalt, mida need tähendavad: peab, võib, ei tohi, ei pea, las.',
+    teacherPage: {
+      goal: 'Ученик понимает правила с möönev kõneviis (hoolitsegu, ärgu segagu) и объясняет их соседу просто: peab, võib, ei tohi, ei pea, las + olevik (медиация).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → текст «Kase tänava kogukonnaaed: kord uueks hooajaks» (≈ 230 слов), 8 коротких ответов → пункт 4: сообщение новому соседу 70–90 слов простыми словами (картинка: его 4 вопроса); выход — одно исправленное предложение. Пункт 3 (правило, Eksaminurk R4, Hääldusnurk) — дома в «Harjuta».',
+      hook: '«Mida sa Harno lehelt leidsid?» (домашнее задание урока 71) и без записей «Mida on sinu majas keelatud teha?» (урок 61: keelama, lubama). Сначала отвечаете вы.',
+      plan: [
+        '0–6: пункт 1 — два вопроса повторения (урок 71 и урок 61), без записей',
+        '6–26: пункт 2 — слова (три старых: keelama, lubama, segama), стратегия «сначала заголовки», текст ≈ 230 слов, 8 коротких ответов (1–4 слова), в паре 6 строк «обязанность, разрешение или запрет»',
+        '26–46: пункт 3 — заметить → правило (-ku / -gu узнаём, говорим peab / võib / ei tohi / ei pea, las + olevik; L1: пусть он придёт = las ta tuleb) → Eksaminurk R4: записка соседки, 8 частей из банка (два лишних — формы -ku / -gu) → Hääldusnurk: välted pargi – parki 5 мин',
+        '46–70: пункт 4 — медиация: сообщение Игорю 70–90 слов в классе (15 мин), партнёр (Игорь) подчёркивает одно предложение и задаёт один вопрос устно; выход — исправленное предложение',
+        '70–75: самооценка 0–1–2, домашнее задание (сообщение начисто; запись 1–2 мин: ответы на два новых вопроса Игоря и одно правило своего дома, Harjuta → moodul 15)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик пишет 3 правила для своего подъезда в форме -ku / -gu и сразу «переводит» их простыми словами',
+        '75–90: запас',
+      ],
+      sources: 'Текст правил, записка соседки и картинка с вопросами Игоря — учебные, сад и люди выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4: каждый пишет сам, партнёр — Игорь: читает сообщение, подчёркивает одно непонятное предложение и задаёт два вопроса. Один на один: вы — Игорь.',
+      errors: [
+        '«Las ta tulla» или «Las ta tulema» вместо «Las ta tuleb» (las + olevik).',
+        '«Sa ei tohi kasta» вместо «Sa ei pea iga päev kastma» — ei tohi = нельзя, ei pea = не обязательно.',
+        '«Sa pead hoolitsegu» — форма -ku / -gu не ставится после peab: «Sa pead hoolitsema».',
+        '«Tohib» вместо «võib» в утверждении: по-эстонски «Sa võid tulla», «tohib» — чаще в вопросе и отрицании (Kas tohib? Ei tohi).',
+      ],
+      notes: [
+        'Сообщение Игорю — продукт урока: ответы на 4 вопроса с картинки, только простые формы (peab, võib, ei tohi, ei pea, las), никаких форм -ku / -gu. Это медиация (v6 §2 l): ученик не копирует текст, а объясняет.',
+        'Abikaart и Lisaväljakutse — последние строки карточки задания. Обратная связь, 1 цель: ei tohi (нельзя) vs ei pea (не надо).',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('072_d_warm', 'Mida sa mäletad?', 'Vasta kahele küsimusele paaris, märkmeid vaatamata. Siis küsi sina.', [
+        'Mida sa Harno lehelt leidsid? Millal on järgmine eksam?',
+        'Mida on sinu majas või töö juures keelatud teha? Kes seda keelas?',
+        'Mis sa arvad: miks on majas reeglid vajalikud?',
+      ], [120, 180]), 'Kordad eelmiste tundide sõnu ilma lehte vaatamata.'), { task: 'S01', fluency: true }),
+      'Kordamine kahest kaugusest (tund 71 ja tund 61), ilma lehte vaatamata. Üks-ühele: vasta kõigepealt ise (2–3 lauset), siis õpilane; ära paranda, märgi üks vorm (on keelatud, ei tohi, lubas).'), 1, 6),
+      review(tag(B.vocab('072_d_vocab', 'Tunni sõnad.', ['reegel — правило', 'kord — порядок (aia kord)', 'hooaeg — сезон', 'peenar — грядка', 'tööriist — инструмент', 'kastma — поливать', 'umbrohi — сорняк', 'prügi — мусор', 'osaleja — участник', 'las — пусть (las ta tuleb)', 'olgu peale — ладно, пусть так', 'lihtsalt — просто (простыми словами)'], '2'), { topic: ['peenar', 'umbrohi', 'kompost', 'kastma', 'kogukonnaaed', 'soovija', 'hooldama', 'kuur', 'tünn'] }), ['keelama', 'lubama', 'segama']),
+      station(teach(tag(purpose(why(ownText(B.reading('072_d_story', 'Aia kord.', 'Loe kõigepealt pealkirjad. Siis loe teksti ja vasta lühidalt, 1–4 sõnaga.', 'Kase tänava kogukonnaaed: kord uueks hooajaks', [
+        'Kase tänava kogukonnaaed alustab uut hooaega 1. aprillil. Aias on 24 peenart ja neid saavad kasutada kõik tänava elanikud. Et kõigil oleks aias hea, kehtib järgmine kord. Uue hooaja plaane arutame aiaseltsi koosolekul 20. märtsil raamatukogus.',
+        '',
+        '**Peenar.** Peenra soovija saatku avaldus 15. märtsiks aiaseltsi e-posti aadressile. Üks pere saab ühe peenra. Iga osaleja hoolitsegu oma peenra eest ise: kastku seda, kui ilm on kuiv, ja võtku umbrohi õigel ajal välja. Kui peenar on kuu aega hooldamata, antakse see järgmisele soovijale.',
+        '',
+        '**Tööriistad ja vesi.** Tööriistad on kuuris ja neid võivad kasutada kõik. Pärast tööd pangu igaüks need kohe kuuri tagasi. Katkisest tööriistast andku igaüks kohe aiaseltsile teada. Vett võtke tünnist; kraanivett kasutagu ainult siis, kui tünn on tühi.',
+        '',
+        '**Prügi.** Taimede jäägid pangu igaüks komposti, muu prügi viigu ise koju. Liha ega kala komposti ärgu pangu keegi.',
+        '',
+        '**Lapsed ja loomad.** Lapsed on aias oodatud, aga nad olgu koos täiskasvanuga. Koerad on aias keelatud. Las koer jääb aia taha, seal on selleks konks.',
+        '',
+        '**Vaikus.** Aias on lubatud töötada iga päev kella 8-st 21-ni. Õhtul ärgu keegi segagu naabreid valju muusikaga.',
+        '',
+        'Kui keegi ei saa mõnel nädalal aias käia, andku ta sellest naabrile või aiaseltsile teada. Olgu peale, kui midagi ununeb: aed on meie kõigi oma ja koos saame hakkama.',
+      ], [
+        ['Mis kuupäevaks tuleb peenra avaldus saata?', '15. märtsiks'],
+        ['Mitu peenart saab üks pere?', 'ühe|ühe peenra|üks'],
+        ['Mis juhtub peenraga, mida kuu aega ei hooldata?', 'see antakse järgmisele|antakse järgmisele soovijale'],
+        ['Millal võib võtta kraanivett?', 'kui tünn on tühi'],
+        ['Mida ei tohi komposti panna?', 'liha ega kala|liha ja kala'],
+        ['Kellega koos võivad lapsed aias olla?', 'täiskasvanuga|koos täiskasvanuga'],
+        ['Mis kellani võib aias töötada?', 'kella 21-ni|21-ni|kella üheksani'],
+        ['Mida tuleb teha, kui ei saa aias käia?', 'anda teada|teatada naabrile või aiaseltsile'],
+      ])), [
+        'Peenar: „saatku avaldus 15. märtsiks” = peab saatma 15. märtsiks.',
+        'Peenar: „Üks pere saab ühe peenra.”',
+        'Peenar: „Kui peenar on kuu aega hooldamata, antakse see järgmisele soovijale.”',
+        'Tööriistad ja vesi: „kraanivett kasutagu ainult siis, kui tünn on tühi”.',
+        'Prügi: „Liha ega kala komposti ärgu pangu keegi.” = ei tohi panna.',
+        'Lapsed: „nad olgu koos täiskasvanuga”.',
+        'Vaikus: „kella 8-st 21-ni”.',
+        'Viimane lõik: „andku ta sellest … teada” = peab teada andma.',
+      ]), 'Loed reegleid, mida hiljem naabrile selgitad.'), { task: 'R13', voice: 'article' }),
+      'Lugemine (≈ 15 min). Strateegia: kõigepealt loe ainult paksus kirjas pealkirjad (viis teemat) ja arva, mida igas osas nõutakse; siis loe tervikuna. Vastus 1–4 sõnaga; õigekirjaviga punkti ei võta. Kontrolli küsimusi 1, 5 ja 8: õpilane ütleb vormi -ku / -gu tähenduse oma sõnadega (saatku = peab saatma, ärgu pangu = ei tohi panna). Üks-ühele: pärast küsi „Mis reegel on sinu arvates kõige rangem? Miks?”.'), 2, 20),
+      teach(tag(purpose(B.table('072_d_find', 'Paaris: kohustus, luba või keeld?', 'Kirjutage tekstist igasse ritta üks terve lause: kas see on kohustus, luba või keeld?', 'Mis?, Mida aia kord ütleb? (terve lause)', [
+        'peenra avaldus | ',
+        'kastmine | ',
+        'tööriistad | ',
+        'kraanivesi | ',
+        'lapsed | ',
+        'koerad | ',
+      ], 'g_read'), 'Nii märkad, mida vorm -ku / -gu tähendab.'), { task: 'G02' }),
+      'Paarid kirjutavad 6 minutit: A read 1–3, B read 4–6, siis loevad teineteisele. Esialgu võib vastus olla oma sõnadega; reegel tuleb Harjuta lehel. Kontrolli tähendust: saatku = kohustus, võivad kasutada = luba, on keelatud = keeld. Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Kas see on kohustus või luba?”.'),
+    ],
+    practice: [
+      station(B.notice('072_d_notice', 'Märka: hoolitsegu, pangu, ärgu segagu', [
+        'Tekstist: Iga osaleja hoolitsegu oma peenra eest. · Lapsed olgu koos täiskasvanuga. · Õhtul ärgu keegi segagu naabreid.',
+        'See on möönev kõneviis (-ku / -gu): nii kirjutatakse reegleid ja korraldusi. Ise sa seda rääkides peaaegu ei kasuta — aga pead aru saama.',
+        'Lihtsalt: hoolitsegu = **peab** hoolitsema · kastku = **tuleb** kasta · võivad kasutada = **võib** · ärgu segagu = **ei tohi** segada · pole kohustus = **ei pea** käima',
+        'Rääkides: **las** + olevik — **Las** koer **jääb** aia taha. · olgu peale = hea küll, ma olen nõus.',
+        'Vene keeles „пусть он придёт” — eesti keeles: las ta tuleb (mitte „las ta tulla”).',
+      ], 'full'), 3, 20),
+      tag(purpose(why(B.gaps('072_p_plain', 'Eksaminurk: naabri kiri lihtsas keeles (Harno B1 lugemine 4)', 'Naaber kirjutas aia reeglid lihtsalt üles. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
+        'Tere, Tamara! Aia reeglid on tegelikult lihtsad. Peenra avalduse [pead saatma 15. märtsiks] aiaseltsile.',
+        'Kui ilm on kuiv, [pead oma peenart ise kastma].',
+        'Tööriistu [võib võtta igaüks], aga pärast tööd pane need kuuri tagasi.',
+        'Liha ja kala [ei tohi komposti panna], muu taimne prügi küll.',
+        'Koera aeda tuua ei saa, aga [las ta jääb aia taha], seal on konks.',
+        'Iga päev [ei pea sa aias käima], aga anna teada, kui oled kaua ära.',
+        'Lapsed võivad aeda tulla, [kui nad on koos täiskasvanuga].',
+        'Kui sul on küsimusi, [tuleb kirjutada aiaseltsile]. Kohtumiseni aias! Rita',
+      ], ['pead saatma 15. märtsiks', 'pead oma peenart ise kastma', 'võib võtta igaüks', 'ei tohi komposti panna', 'las ta jääb aia taha', 'ei pea sa aias käima', 'kui nad on koos täiskasvanuga', 'tuleb kirjutada aiaseltsile', 'kastku seda iga päev', 'tulgu koer kaasa'], 'full', 'g_notice'), [
+        '„saatku avaldus 15. märtsiks” → pead saatma (pead + ma-vorm).',
+        '„kastku seda” → pead kastma (mitte: kastku).',
+        '„võivad kasutada kõik” → võib võtta igaüks.',
+        '„ärgu pangu keegi” → ei tohi panna.',
+        '„Las koer jääb aia taha” → las + olevik.',
+        'pole kohustus → ei pea käima.',
+        '„nad olgu koos täiskasvanuga” → kui nad on koos täiskasvanuga.',
+        'kohustus + da-vorm → tuleb kirjutada (mitte: tulgu).',
+      ]), 'Need laused aitavad sul reegleid selgitada.'), { harno: 'R4', task: 'R05' }),
+      teach(pron(B.tip('072_p_pron', 'Hääldusnurk: välted (5 min)', [
+        'Kuula paari, ütle, kumba kuulsid, ja korda. Pikkus muudab vormi:',
+        'pargi – parki (Auto on pargi ees. – Lähme parki.)',
+        'koti – kotti (koti sees – pane kotti)',
+        'kapi – kappi (kapi uks – pane kappi)',
+        'sada – saada – saaada (kolm pikkust)',
+        'Ütle koos õpetajaga: „Las koer jääb aia taha, seal on selleks konks.”',
+      ], 'full'), 'välted'),
+      'Hääldusnurk (≈ 5 min). Loe iga paar aeglaselt: pargi – parki, koti – kotti, kapi – kappi (teine ja kolmas välde; omastav ja osastav või sisseütlev). Õpilane ütleb, kumba kuulis (1 või 2), ja kordab. Rida 5: kolm väldet. Viimane rida: varjutamine — loe lause, õpilane ütleb samal ajal, siis üksi. Märgi üks sõna, kus pikkus oli vale; see läheb kodutöösse.'),
+      teach(tag(purpose(rows(B.writing('072_p_sent', 'Minu maja reeglid.', 'Kirjuta 8 minutit järjest: oma maja või töökoha reeglid lihtsalt — pead …, võid …, ei tohi …, ei pea …, las …', [8, 12]), 27), 'Need laused aitavad sul naabrile kirjutada.'), { task: 'G05', fluency: true }),
+      'Kirjutamine tunnis (≈ 7 min), vahenduse ettevalmistus: õpilane kirjutab oma maja või töökoha päris reeglid lihtsate vormidega. Kontrolli kahte asja: pead + ma-vorm (pead koristama), ei tohi + da-vorm (ei tohi suitsetada); ei pea = pole vaja. Üks-ühele: õpilane ütleb reegli enne suuliselt, siis kirjutab.'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(rows(B.examWriting('072_t_med', 'Vahendus: selgita naabrile aia korda', 'Naaber ei saanud aia korrast aru. Kirjuta talle lihtsalt 70–90 sõna: vasta kõigile neljale küsimusele pildilt.', 'vastus', {
+        situation: `Igor kolis tänavale hiljuti ega saa aru vormidest -ku / -gu. Vasta tema neljale küsimusele pildil.\n${aidLines(['Sa pead … / Sa võid … / Sa ei tohi …'], 'kõige tähtsam reegel ja miks.')}`,
+        words: [70, 90],
+      }), 6), ['Igor, aia kord on lihtne: …', 'Sa pead … / Sa võid … / Sa ei tohi …', 'Iga päev ei pea …, aga …'], 'lisa üks reegel, mis on sinu arvates kõige tähtsam, ja ütle, miks.', 'mediation'), 'Sinu sõnum aitab uuel naabril aias alustada.'), { task: 'W12', main: true, level: 4 }),
+      'Vahendus (v6 §2 l, ≈ 15 min kirjutamist tunnis). Õpilane ei kopeeri teksti, vaid ütleb reegli lihtsamalt: saatku avaldus 15. märtsiks → Sa pead avalduse saatma 15. märtsiks. Edukriteeriumid (sama mis enesekontrollis): 1) kõik neli küsimust on vastatud; 2) ainult lihtsad vormid (peab, võib, ei tohi, ei pea, las + olevik), mitte -ku / -gu; 3) sõnum on naabrile sõbralik (pöördumine, lõpp). Abikaart ja lisaväljakutse on ülesande kaardi lõpus; märgi, kas õpilane kasutas abikaarti. Pärast kirjutamist joonib paariline (Igor) või sina alla ÜHE lause, mis on raske või vale — see on väljumise ülesanne.'), 4, 24, { final: 'explain' }),
+      teach(exitCheck(tag(purpose(rows(B.writing('072_t_exit', 'Väljumine: üks parem lause', 'Õpetaja või Igor joonis su sõnumis ühe lause alla. Kirjuta see lihtsamalt ja õigemini.', [1, 2]), 5), 'Näitad, et oskad oma lauset ise parandada.'), { task: 'G06', level: 3 })),
+      'Väljumine (v6, ≈ 3 min): üks rida tootest, ümber kirjutatud tagasiside järgi. Õnnestunud, kui parandatud lauses on lihtne vorm õigesti (pead + ma, võid + da, ei tohi + da, ei pea + ma, las + olevik) ja Igor saab sellest aru.'),
+      selfCheck('072_t_self', ['Ma saan aru reeglist, kus on vorm -ku / -gu.', 'Ma ütlen reegli lihtsalt: peab, võib, ei tohi, ei pea, las.', 'Minu sõnumis on vastus kõigile neljale küsimusele.'], 'Reeglid selged'),
+      teach(tag(homeTask(purpose(B.speaking('072_t_home', 'Kodus: Igor küsib veel', 'Salvesta 1–2 minutit: vasta Igori kahele küsimusele ja selgita üht oma maja reeglit lihtsalt.', [
+        'Kas ma võin oma lastega pühapäeva õhtul kell üheksa aias olla?',
+        'Mida ma pean tegema, kui ma lähen kaheks nädalaks puhkusele?',
+        'Üks reegel sinu majast: mida tuleb teha ja mida ei tohi?',
+      ], [90, 150]), 'Selgitad sama reeglit nüüd ka suuliselt.')), { task: 'S13' }),
+      'Kodune salvestus (1–2 min): vahendus kirjalikust suuliseks. Õpilane vastab Igori kahele küsimusele aia korra järgi (küsimus 1: kell 21-ni on lubatud, lapsed koos täiskasvanuga; küsimus 2: anda aiaseltsile või naabrile teada) ja selgitab üht oma maja reeglit. Järgmise tunni alguses kuulab õpetaja salvestuse ja märgib ühe ei tohi / ei pea vea.'),
+      homeTask(B.phrasebank('072_t_homework', [['Kodutöö', ['1. Kirjuta sõnum Igorile märkuste järgi puhtalt (70–90 sõna).', '2. Salvesta oma vastus Igorile (ülesanne üleval).', '3. Harjuta → moodul 15: peab, võib, ei tohi, ei pea (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 073 case: plan A and plan B (kui-clauses, a decision)
+  'a2b1-073': lesson('a2b1-073', {
+    title: 'Kui sajab, siis …: plaan A ja plaan B',
+    phases: grammar('Keel: Kui sajab, jääme koju · Kui buss jääb ära, sõidame rongiga · Kui mul oleks aega, sõidaksin … · juhul kui'),
+    format: 'case',
+    topic: 'freetime',
+    canDo: 'Ma saan aru raadiojutust, kuidas plaani B teha, ja lepin paarilisega kokku plaani A ja plaani B kui-lausetega (Kui sajab, läheme …; Kui meil oleks raha, sõidaksime …).',
+    teacherPage: {
+      goal: 'Ученик понимает радиорассказ о плане B и договаривается с партнёром о плане A и плане B условными предложениями (Kui sajab, läheme …; Kui oleks raha, sõidaksime …).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → радиопередача «Plaan B» (2 раза, 8 вопросов = Harno L2), в паре 5 строк «если …, то …» → пункт 4: суббота соседей — план A и план B по карточке идей (как Harno S1b), у учителя скрытая информация; выход — 30 секунд. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mida sa eelmises tunnis naabrile selgitasid?» (урок 72), без записей «Kuidas jõudsite viimati koosolekul kompromissini?» (урок 64) и вопрос мнения о плане B. Сначала отвечаете вы.',
+      plan: [
+        '0–7: пункт 1 — два вопроса повторения (урок 72 и урок 64) и вопрос мнения «нужен ли план B»',
+        '7–22: пункт 2 — слова (три старых: kompromiss, tagajärg, ettepanek), стратегия «прочитай вопросы и угадай», передача 2 раза (≈ 2 мин), 8 вопросов с тремя ответами; в паре 5 строк «если …, то …»',
+        '22–45: пункт 3 — заметить → правило (kui + olevik → глагол главного предложения сразу; kui + tingiv в обеих частях; juhul kui; L1: если будет дождь = kui sajab) → объявление клуба, 8 частей из банка (как Harno R4) → Hääldusnurk õ / ä / ö / ü 5 мин → 6 своих kui-предложений',
+        '45–70: пункт 4 — суббота соседей по карточке идей: план A, план B и условие смены плана; скрытая информация у учителя; выход — 30 секунд',
+        '70–75: самооценка 0–1–2, домашнее задание (план A и B письменно, дневник медиа «Minu eesti keele võrgustik» голосом, Harjuta → moodul 15)',
+        'Kui aega jääb (10 мин, только в плане учителя): «Mida sa teeksid, kui …?» — три нереальных условия, ученик отвечает tingiv kõneviis',
+        '75–90: запас',
+      ],
+      sources: 'Радиопередача (пункт 2), объявление клуба (R4) и карточка идей — учебные, люди и цены выдуманы; проверять не нужно (владелец 2026-11-25). Домашнее задание — настоящий сайт ERR Vikerraadio (https://vikerraadio.err.ee).',
+      groups: 'Пункт 4 в паре: оба — соседи с разными желаниями, учитель вмешивается со скрытой информацией. Один на один: вы — сосед, который хочет другого (см. заметку у карточки).',
+      errors: [
+        '«Kui sajab, me jääme koju» вместо «Kui sajab, jääme me koju» / «Kui sajab, (siis) jääme koju» (после kui-предложения глагол сразу).',
+        '«Kui sajab homme, …» — нормально, но «Kui saab sadama» по образцу «если будет дождь» — неправильно: kui + olevik.',
+        '«Kui mul on aega, ma sõidaksin» — смешаны реальное и нереальное: Kui mul oleks aega, sõidaksin.',
+        '«Juhul kui» с tingiv: «Juhul kui buss jääks ära» — в объявлении естественнее «Juhul kui buss jääb ära».',
+      ],
+      notes: [
+        'Решение — продукт урока: план A, план B и условие (Kui …, siis …), минимум три kui-предложения, ответ на скрытую информацию. Harno B1 rääkimine 1b: задание выполнено, только если пара договорилась.',
+        'Abikaart и Lisaväljakutse — последние строки карточки. Обратная связь, 1 цель: глагол сразу после kui-предложения.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('073_d_warm', 'Mida sa mäletad?', 'Räägi paarilisele igast küsimusest paar lauset. Ära vaata vihikusse.', [
+        'Mida sa eelmises tunnis naabrile aia korrast selgitasid?',
+        'Kuidas jõudsite viimati koosolekul või kodus kompromissini?',
+        'Mis sa arvad: kas plaan B on alati vajalik? Miks?',
+      ], [120, 180]), 'Kordad sõnu ja vorme mälu järgi, lehte vaatamata.'), { task: 'S11', fluency: true }),
+      'Kordamine kahest kaugusest (tund 72 ja tund 64), ilma lehte vaatamata. Üks-ühele: vasta kõigepealt ise (2–3 lauset), siis õpilane; ära paranda, märgi üks vorm (ei tohi, ei pea, leppisime kokku).'), 1, 7),
+      review(tag(B.vocab('073_d_vocab', 'Tunni sõnad.', ['tingimus — условие', 'juhul kui — в случае если', 'väljasõit — поездка, выезд', 'õnnestuma — удаваться', 'ära jääma — отменяться', 'võimalus — возможность', 'ette mõtlema — продумать заранее', 'vihmane — дождливый', 'kummikud — резиновые сапоги', 'rada — тропа', 'ratastool — инвалидная коляска', 'eelarve — бюджет'], '2'), { topic: ['väljasõit', 'kummikud', 'ratastool'] }), ['kompromiss', 'tagajärg', 'ettepanek']),
+      teach(tag(purpose(B.table('073_d_rule', 'Paaris: kui …, siis …', 'Pärast teist kuulamist kirjutage igasse ritta terve kui-lause: mis juhtub ja mida siis teha.', 'Mis juhtub?, Mida siis teha? (terve kui-lause)', [
+        'vihm | ',
+        'buss jääb ära | ',
+        'keegi jääb haigeks | ',
+        'inimestel on eri soovid | ',
+        'plaan B on liiga kallis | ',
+      ], 'g_read'), 'Need laused näitavad, kuidas kui-lause käib.'), { task: 'L04' }),
+      'Paarid kirjutavad pärast teist kuulamist 5 minutit. Kontrolli, et pärast kui-lauset tuleb kohe tegusõna (Kui sajab, läheme …) ja et rida 3 on õpilase oma lahendus (saates seda ei öeldud). Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Ja kui see ka ei õnnestu?”.'),
+      station(tag(purpose(why(ownText(twice(B.examListen('073_d_radio', 'Eksaminurk: raadiosaade „Plaan B” (Harno B1 kuulamine 2)', 'Loe enne küsimused ja arva vastus. Kuula kaks korda, siis vali üks vastus kolmest.', 'choice', [
+        'Tere, kuulajad! Täna räägime plaanidest, mis ei lähe nii, nagu me tahame. Kevad on käes ja paljud plaanivad väljasõitu: klassiga, töökaaslastega või naabritega. Aga ilm on Eestis muutlik ja plaan võib kergesti ära jääda.',
+        'Hea plaan algab küsimusest: mis võib valesti minna? Võtke paber ja kirjutage üles kolm asja: ilm, transport ja inimesed. Mõelge, mis on nende tagajärg. Kui sajab, kas matk on ikka mõnus? Kui buss jääb ära, kuidas te kohale jõuate? Kui keegi jääb haigeks, kas plaan muutub? Näiteks mai lõpus võib ilm olla väga erinev: üks päev on kakskümmend kraadi sooja, teine päev sajab terve päeva.',
+        'Siis tehke iga probleemi jaoks üks kui-lause. Kui sajab, läheme rabasse ikkagi, aga võtame kummikud. Kui buss jääb ära, sõidame rongiga. Psühholoogide uuringud näitavad, et inimesed, kes kirjutavad oma plaani kui-lausetena, teevad plaanitud asjad palju sagedamini ära.',
+        'Kui inimestel on erinevad soovid, ärge vaielge tund aega. Tehke kaks ettepanekut ja leidke kompromiss: plaan A ühele, plaan B teisele. Tähtis on ka see, et kõik teavad plaani B juba enne väljasõitu, mitte alles bussipeatuses.',
+        'Ja veel: ärge tehke plaani B liiga keeruliseks. Kui plaan B on kallim ja raskem kui plaan A, ei taha keegi seda. Plaani B jaoks ei pea alati raha juurde panema: muuseumid on sageli tasuta, park on lähedal ja grillida saab ka maja hoovis. Kõige parem on, kui plaanil B on oma tähtaeg: näiteks reede õhtul vaatame ilmateadet ja otsustame.',
+        'Lõpuks üks lugu minu enda elust. Eelmisel kevadel pidime minema klassiga Lahemaale, aga hommikul selgus, et buss ei tule. Meil oli plaan B valmis: kõik võtsid rattad ja me sõitsime mere äärde. Lapsed ütlesid hiljem, et see oli kogu aasta parim päev. Kui mul oleks rohkem aega, teeksin iga väljasõidu jaoks plaani B. Head planeerimist!',
+      ], [
+        ['Millest räägitakse selles kevadises raadiosaates „Plaan B”?', 'kuidas teha plaan, mis töötab ka siis, kui midagi läheb valesti', 'kuidas osta odavaid reisipileteid', 'kus on Eestis kõige ilusam loodus'],
+        ['Mida soovitab saatejuht plaani tegemisel teha kõige esimesena?', 'üles kirjutada, mis võib valesti minna', 'helistada bussifirmasse', 'vaadata ilmateadet'],
+        ['Mida tuleb saatejuhi sõnul iga võimaliku probleemi jaoks teha?', 'teha üks kui-lause', 'leida uus kuupäev', 'küsida kõigilt arvamust'],
+        ['Mida näitavad psühholoogide uuringud kui-lausetega plaanide kohta?', 'kui-lausetega plaanid täidetakse sagedamini', 'plaan B on alati kallim', 'inimesed ei armasta planeerida'],
+        ['Mida soovitab saatejuht teha, kui inimestel on erinevad soovid?', 'teha kaks ettepanekut ja leida kompromiss', 'hääletada kohe bussis', 'lasta juhil üksi otsustada'],
+        ['Milline ei tohiks saatejuhi arvates plaan B kindlasti olla?', 'kallim ja raskem kui plaan A', 'lihtsam kui plaan A', 'tuntud enne väljasõitu'],
+        ['Mida soovitab saatejuht teha reede õhtul enne väljasõitu?', 'vaadata ilmateadet ja otsustada', 'osta kõigile piletid', 'pakkida kotid valmis'],
+        ['Mis juhtus eelmisel kevadel saatejuhi klassi väljasõiduga?', 'buss ei tulnud ja nad sõitsid ratastega', 'kõik jäid haigeks', 'vihma tõttu jäi kõik ära'],
+      ]))), [
+        'Saade: „Täna räägime plaanidest, mis ei lähe nii, nagu me tahame.”',
+        'Saade: „Hea plaan algab küsimusest: mis võib valesti minna? … kirjutage üles kolm asja”.',
+        'Saade: „tehke iga probleemi jaoks üks kui-lause”.',
+        'Saade: „teevad plaanitud asjad palju sagedamini ära”.',
+        'Saade: „Tehke kaks ettepanekut ja leidke kompromiss”.',
+        'Saade: „Kui plaan B on kallim ja raskem kui plaan A, ei taha keegi seda.”',
+        'Saade: „reede õhtul vaatame ilmateadet ja otsustame”.',
+        'Saade: „buss ei tule … kõik võtsid rattad ja me sõitsime mere äärde”.',
+      ]), 'Kuuled, kuidas head plaani B tehakse.'), { harno: 'L2', task: 'L02', voice: 'news' }), 2, 15),
+    ],
+    practice: [
+      station(B.notice('073_d_notice', 'Märka: kui …, siis …', [
+        'Saatest: **Kui** sajab, **läheme** rabasse ikkagi. · **Kui** buss jääb ära, **sõidame** rongiga.',
+        'Päris võimalus: kui + olevik, pealause tegusõna kohe alguses: **Kui** sajab, (siis) **jääme** koju. (mitte: Kui sajab, me jääme …)',
+        'Unistus või vähe tõenäoline: kui + tingiv kõneviis mõlemas osas: Kui mul **oleks** aega, teeksin … · Kui meil **oleks** raha, **sõidaksime** …',
+        '**Juhul kui** = kui (ametlikum, teadetes): Juhul kui buss jääb ära, saate raha tagasi.',
+        'Vene keeles „если будет дождь” (tulevik) — eesti keeles olevik: Kui sajab, …',
+      ], 'full'), 3, 23),
+      tag(purpose(why(B.gaps('073_p_join', 'Matkaklubi teade: kui …, siis …', 'Teatest on välja võetud kaheksa lauseosa. Kirjuta igasse lünka sobiv osa; kaks jääb üle.', [
+        'Head matkasõbrad! Laupäeval, 16. mail läheme rabamatkale, [kui ilm on vähegi ilus].',
+        'Kui hommikul sajab tugevat vihma, [jääme Tallinnasse ja läheme muuseumi].',
+        'Juhul kui buss jääb ära, [sõidame rongiga Tapale].',
+        '[Kui sul ei ole matkasaapaid], võta kaasa kummikud.',
+        'Kui sa jääd haigeks, [anna sellest reedeks teada].',
+        'Kui grupp on väsinud, [läheme lühemat rada pidi].',
+        '[Kui meil oleks rohkem aega], jääksime ööseks telkima.',
+        'Aga [kui sul oleks sügisel aega], kas tuleksid jälle?',
+      ], ['kui ilm on vähegi ilus', 'jääme Tallinnasse ja läheme muuseumi', 'sõidame rongiga Tapale', 'Kui sul ei ole matkasaapaid', 'anna sellest reedeks teada', 'läheme lühemat rada pidi', 'Kui meil oleks rohkem aega', 'kui sul oleks sügisel aega', 'kui sajab, me jääme koju', 'kuigi ilm oli eile halb'], 'full', 'g_notice'), [
+        'mis tingimusel läheme? → kui + olevik: kui ilm on ilus.',
+        'Kui sajab, … → tegusõna kohe: jääme.',
+        'Juhul kui …, → tegusõna kohe: sõidame.',
+        'võta kaasa kummikud → mis tingimusel? kui sul ei ole saapaid.',
+        'Kui jääd haigeks, … → käsk: anna teada.',
+        'Kui grupp on väsinud, → tegusõna kohe: läheme.',
+        'jääksime (tingiv) → ka kui-lauses tingiv: kui meil oleks.',
+        'tuleksid (tingiv) → kui sul oleks.',
+      ]), 'Need laused aitavad sul plaani B teha.'), { task: 'W09' }),
+      teach(pron(B.tip('073_p_pron', 'Hääldusnurk: õ, ä, ö, ü (5 min)', [
+        'Kuula paari, ütle, kumba kuulsid, ja korda mõlemat. Üks täht muudab sõna:',
+        'jäi – jõi · läks – lõks · tuli – tüli · sõit – süit',
+        'Sõnad tunnist: õnnestuma, võimalus, väljasõit, ööseks, üksi, jääme',
+        'Ütle koos õpetajaga: „Kui buss jääb ära, sõidame rongiga.”',
+      ], 'full'), 'vokaalid'),
+      'Hääldusnurk (≈ 5 min). Loe paar, õpilane ütleb, kumba sõna kuulis (1 või 2), siis kordab mõlemat; tähendused: jäi (остался) – jõi (выпил), läks (ушёл) – lõks (ловушка), tuli (пришёл / огонь) – tüli (ссора), sõit (поездка) – süit (сюита). Rida 3: tunni sõnad, jälgi õ ja ö. Viimane rida: varjutamine. Märgi üks täht, mis jäi valeks; see läheb kodutöösse.'),
+      teach(tag(purpose(rows(B.writing('073_p_sent', 'Minu kui-laused.', 'Kirjuta 8 minutit järjest, ära peatu: kui-laused sinu järgmisest väljasõidust, pooled päris, pooled unistused.', [8, 12]), 22), 'Neid lauseid kasutad kohe kokkuleppes paarilisega.'), { task: 'G05', fluency: true }),
+      'Kirjutamine tunnis (≈ 7 min). Kontrolli kahte asja: päris võimalus — tegusõna kohe pärast kui-lauset (Kui sajab, jääme …); unistus — tingiv kõneviis mõlemas osas (Kui oleks raha, sõidaksime …). Üks-ühele: õpilane loeb kolm lauset ette, sina küsid iga kohta „Kui tõenäoline see on?”.'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(B.ideaCard('073_t_decide', 'Kokkulepe: naabrite laupäev, plaan A ja plaan B', 'Vaata pilti. Leppige kokku üks plaan A ja üks plaan B. Iga plaani juurde öelge: kui …, siis …',
+        `Maja naabrid tahavad mai lõpus ühe laupäeva koos veeta. Inimesi on 12, nende seas kaks väikest last ja üks naaber ratastoolis. Eelarve on 200 eurot.\n${aidLines(['Kui ilm on ilus, siis …', 'Kui sajab, … — mis sa arvad?', 'Ma ei ole nõus, sest … Mis oleks, kui …?'], 'leidke ka plaan C juhuks, kui raha jääb puudu.')}`,
+        ['matk rabas (buss 1 tund)', 'piknik linna pargis', 'paadisõit järvel (150 €)', 'muuseumipäev (tasuta)', 'grillipidu maja hoovis', 'rattasõit mere äärde'],
+        'plaan A, plaan B ja mis tingimusel te plaani vahetate', [180, 300]), ['Kui ilm on ilus, siis …', 'Kui sajab, … — mis sa arvad?', 'Ma ei ole nõus, sest … Mis oleks, kui …?'], 'leidke ka plaan C juhuks, kui raha jääb puudu.', 'ranking'), 'Teie ühine otsus läheb maja teadetetahvlile.'), { task: 'S03', main: true, level: 4 }),
+      'Kokkulepe (nagu Harno B1 rääkimise 1b osa, ≈ 15 min). Paaris: A tahab väljasõitu linnast välja, B tahab jääda lähedale; nad peavad jõudma ÜHE plaani A ja ÜHE plaani B juurde ning ütlema tingimuse (Kui …, siis …). Varjatud info: ainult õpetaja kaardil, ütle siis, kui paar on peaaegu otsustanud: 1) ilmateade lubab laupäevaks 70 % vihma; 2) buss rabasse maksab 12 inimesele 180 eurot; 3) naaber ratastoolis ei saa minna paati ega rabarajale. Takistused: kui paar valib raba või paadi, ütle 3); kui plaan maksab üle 200 euro, ütle 2). Edukriteeriumid (sama mis enesekontrollis): 1) on plaan A ja plaan B ning tingimus; 2) vähemalt kolm kui-lauset, tegusõna kohe pärast kui-lauset; 3) arvestab varjatud infoga ja jõuab kokkuleppele. Abikaart ja lisaväljakutse on kaardi olukorra lõpus; märgi, kas õpilane kasutas abikaarti. Üks-ühele: sina oled naaber, kes tahab teist plaani.'), 4, 25, { final: 'decide' }),
+      teach(exitCheck(tag(purpose(B.speaking('073_t_exit', 'Väljumine: 30 sekundit', 'Ütle 30 sekundiga oma plaan A ja plaan B ning mis tingimusel plaan muutub.', ['Mis on plaan A?', 'Mis on plaan B ja millal see kehtib?'], [20, 40]), 'Näitad, et oskad plaani lühidalt kokku võtta.'), { task: 'S16', level: 3 })),
+      'Väljumine (v6, 30 s, ilma kaardita). Õnnestunud, kui on vähemalt kaks kui-lauset õige sõnajärjega (Kui sajab, läheme …) ja selge tingimus, millal plaan B kehtib.'),
+      selfCheck('073_t_self', ['Ma saan raadiojutust aru, kuidas plaani B teha.', 'Ma teen kui-lauseid ja panen tegusõna pärast kui-lauset kohe.', 'Me jõudsime plaani A ja plaani B kokkuleppele.'], 'Plaan B valmis'),
+      teach(tag(homeTask(purpose(networkLog(B.speaking('073_t_home', 'Minu eesti keele võrgustik', 'Vali üks saade: https://vikerraadio.err.ee. Kuula ja salvesta 1 minut: mis saade, üks uus sõna, mida teada said.', [
+        'Mis saade see on ja millal see tuleb?',
+        'Üks uus sõna saatest: mida see tähendab?',
+        'Mida sa saatest teada said? Kas kuulad seda edasi?',
+      ], [45, 75]), 'ERR Vikerraadio (päris saated)'), 'Leiad eesti keeles saate, mida kuulata.')), { task: 'S15' }),
+      'Meediapäevik „Minu eesti keele võrgustik” (v6 §2 k) ja mooduli seosülesanne. Õpilane avab lehe ise; kui ta ei leia, soovita saadete nimekirja ja valida üks lühike (10–30 min) saade, mis tuleb igal nädalal. Tunnis 74 kirjutab ta selle oma tegevusplaani (igal …). Järgmise tunni alguses ütleb ta ühe uue sõna saatest.'),
+      homeTask(B.phrasebank('073_t_homework', [['Kodutöö', ['1. Kirjuta oma plaan A ja plaan B: 4–6 kui-lauset.', '2. Salvesta 1 minut saatest (ülesanne üleval).', '3. Harjuta → moodul 15: kui-lause sõnajärg (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 074 project: my action plan (the module product)
+  'a2b1-074': lesson('a2b1-074', {
+    title: 'Minu tegevusplaan',
+    phases: grammar('Keel: alates jaanuarist · kuni juunini · hiljemalt märtsiks · igal teisipäeval · selleks, et … · kui … ei õnnestu, siis …'),
+    format: 'project',
+    topic: 'work',
+    canDo: 'Ma kirjutan oma tegevusplaani (eesmärk, põhjus, sammud tähtaegadega, plaan B) 80–100 sõnaga ja lepin paarilisega kokku kolm esimest sammu.',
+    teacherPage: {
+      goal: 'Ученик пишет свой план действий 80–100 слов (цель, причина, шаги со сроками, план B: alates, kuni, hiljemalt, igal, selleks et, kui … siis) и договаривается с наставником о первых шагах.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (анкета программы, 10 ответов) → семь голосовых сообщений участников о планах (2 раза, 7 вопросов = Harno L1) → пункт 4: план по шаблону (картинка) 80–100 слов, договорённость с наставником ; выход — первый шаг, исправленный после замечания. Пункт 3 (правило, план с банком, Hääldusnurk, черновик) — дома в «Harjuta».',
+      hook: 'Анкета (пункт 1) — это повторение с двух расстояний: цель из холодной задачи урока 71 и план B из урока 73. Ученик отвечает полными предложениями; на «Miks?» — с причиной.',
+      plan: [
+        '0–10: пункт 1 — анкета программы «Järgmine samm» (10 вопросов, форма Harno W1a, быстро — беглость): цель из урока 71, план B из урока 73',
+        '10–25: пункт 2 — слова (три старых: keskenduma, järeldus, kokkuvõte), стратегия «прочитай вопросы и угадай», семь сообщений 2 раза (≈ 2 мин), 7 вопросов (Harno L1): чей план хороший, чего в плане не хватает',
+        '25–45: пункт 3 — заметить → правило (alates + -st, kuni + -ni, hiljemalt + -ks, igal + день, selleks, et; kui … ei õnnestu, siis; L1: с января до июня) → план одного ученика, 8 частей из банка (как Harno R4) → Hääldusnurk: повторить фразы плана вместе → черновик своего плана',
+        '45–70: пункт 4 — план 80–100 слов по шаблону (15 мин), потом договорённость с наставником: три первых шага и сроки (как Harno S1b); выход — первый шаг, исправленный по замечанию',
+        '70–75: самооценка 0–1–2, домашнее задание (план однокурснику: две звезды и одно пожелание; Harjuta → moodul 15)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает план за 1 минуту, учитель-наставник задаёт вопрос «А что, если …?»',
+        '75–90: запас',
+      ],
+      sources: 'Голосовые сообщения (пункт 2), план ученика (банк фраз) и шаблон плана на картинке — учебные, люди выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4: каждый пишет свой план; потом пары — один «наставник», другой показывает план, потом смена. Один на один: вы — наставник (см. заметку у карточки). Домашний план идёт другому ученику того же уровня (с согласия обоих), учитель передаёт.',
+      errors: [
+        '«alates jaanuar», «kuni juuni» вместо «alates jaanuarist», «kuni juunini» (-st и -ni).',
+        '«hiljemalt märtsis» вместо «hiljemalt märtsiks», когда это срок (mis ajaks?).',
+        '«iga teisipäeval» вместо «igal teisipäeval» (iga → igal вместе с -l).',
+        '«selleks, et ma õppida» вместо «selleks, et ma õpin / õpiksin» (после et — полное предложение).',
+      ],
+      notes: [
+        'План — продукт модуля: пять частей шаблона (цель и срок, зачем, шаги со сроками, план B, кто помогает), 80–100 слов, минимум три выражения времени. Связан с уроками 71 (цель) и 73 (план B).',
+        'Abikaart — слова-начала у задания (Minu eesmärk on …, Selleks, et …, Alates …, Kui …, siis …); Lisaväljakutse — в заметке и в поле задания. Обратная связь, 1 цель: -st / -ni / -ks в выражениях времени.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.table('074_d_apply', 'Kandideeri programmi „Järgmine samm”', 'Täida küsimustik kiiresti, ilma pikalt mõtlemata. Vasta terve lausega; kus küsitakse „Miks?”, põhjenda.', 'Küsimus, Minu vastus (terve lause)', [
+        '1. Mis on sinu eesmärk kuueks kuuks? | ',
+        '2. Miks on see sulle tähtis? | ',
+        '3. Mida oled selleks juba teinud? | ',
+        '4. Mis on esimene samm ja mis ajaks? | ',
+        '5. Mitu tundi nädalas saad sellele anda? | ',
+        '6. Mis võib sind takistada? Miks? | ',
+        '7. Mida teed, kui plaan ei õnnestu? | ',
+        '8. Millist mentorit soovid? Miks? | ',
+        '9. Kas kohtud meelsamini veebis või kohapeal? Miks? | ',
+        '10. Kuidas tead juunis, et oled kohal? | ',
+      ], 'g_read'), 'Küsimustik on sinu plaani esimene samm.'), { task: 'W01', fluency: true }),
+      'Programm „Järgmine samm” algab jaanuaris: iga osaleja saab mentori kuueks kuuks. Küsimustik (Harno B1 kirjutamise 1a vorm, 10 vastust, ≈ 10 min, sujuvus: kirjuta kiiresti). Kordamine kahest kaugusest: eesmärk tunnist 71 (külm start), plaan B tunnist 73. Hinda: iga vastus on terve lause; „Miks?” küsimustes on põhjus (sest …, et …). Vastused on õpilase plaani toormaterjal Kasuta lehel. Üks-ühele: õpilane kirjutab, sina loed vastused ja küsid ühe „Miks?”.'), 1, 10),
+      station(review(tag(B.vocab('074_d_vocab', 'Tunni sõnad.', ['tegevusplaan — план действий', 'samm — шаг', 'takistus — препятствие', 'harjumus — привычка', 'mõõtma — измерять', 'edu — успех', 'alates — начиная с (alates jaanuarist)', 'kuni — до (kuni juunini)', 'hiljemalt — не позднее (hiljemalt märtsiks)', 'järjest — подряд', 'raskus — трудность', 'toetaja — тот, кто поддерживает'], '2'), { topic: ['tegevusplaan', 'tagasilöök', 'toetaja'] }), ['keskenduma', 'järeldus', 'kokkuvõte']), 2, 15),
+      tag(purpose(why(ownText(twice(B.examListen('074_d_clips', 'Eksaminurk: seitse häälsõnumit plaanist (Harno B1 kuulamine 1)', 'Programmi osalejad räägivad oma plaanist. Kuula iga sõnumit kaks korda ja vali õige vastus.', 'choice', [
+        'Esimene sõnum. Tere, siin Aleksei. Minu eesmärk on mais teha B1 eksam. Alates jaanuarist käin kursusel kaks korda nädalas ja proovieksami teen hiljemalt märtsiks. Kursuse eest maksab tööandja. Kui ma mõnest tunnist puudun, teen selle veebis järele.',
+        'Teine sõnum. Siin Kati. Ma tahan uuel aastal rohkem liikuda. Ma ei tea veel täpselt, millal ja kus, aga kindlasti hakkan midagi tegema. Võib-olla ujumine, võib-olla jooga, eks näis! Kedagi, kes mind aitaks, mul praegu ei ole.',
+        'Kolmas sõnum. Tere, Jüri siin. Ma kavatsen avada oma väikese töökoja. Selleks, et raha jätkuks, teen eelarve hiljemalt veebruari lõpuks. Minu vend on ettevõtja, tema aitab mind nõuga. Esimesed kliendid tahan leida juba mais.',
+        'Neljas sõnum. Siin Merike. Igal teisipäeval ja neljapäeval kell seitse lähen ujuma. Kui ujula on suletud, lähen hoopis jooksma. Eesmärk on juuniks ujuda üks kilomeeter järjest.',
+        'Viies sõnum. Tere, siin Tõnu. Sellel aastal tahan õppida kolm uut keelt, leida uue töö ja ehitada maja. Ühele asjale keskenduda ei taha, sest mulle meeldib, kui elus on palju tegemist. Vaatame, mis välja tuleb.',
+        'Kuues sõnum. Siin Olga. Minu eesmärk on lugeda aasta jooksul kaksteist eestikeelset raamatut, üks raamat kuus. Iga kuu lõpus räägin raamatust oma mentorile. Kui mõni raamat on liiga raske, võtan lihtsama.',
+        'Seitsmes sõnum. Pille siin. Ma õpin raamatupidamist, sest sügisel tahan oma firmas uuel kohal alustada. Kursus kestab jaanuarist juunini, esimese eksami teen hiljemalt aprilliks. Kui see ei õnnestu, teen selle juunis uuesti.',
+      ], [
+        ['Mida teeb Aleksei siis, kui ta mõnest tunnist puudub?', 'teeb tunni veebis järele', 'jätab kursuse pooleli', 'küsib õpetajalt raha tagasi'],
+        ['Mis on Kati plaanis veel puudu, et see oleks hea plaan?', 'aeg ja koht', 'eesmärk', 'soov midagi teha'],
+        ['Kes aitab Jürit tema töökoja plaaniga nõu andes?', 'tema vend', 'tema mentor', 'pank'],
+        ['Mida teeb Merike siis, kui ujula on suletud?', 'läheb jooksma', 'jääb koju', 'ujub järgmisel päeval'],
+        ['Mis on Tõnu uue aasta plaaniga valesti?', 'ta tahab liiga palju korraga', 'tal ei ole ühtegi eesmärki', 'ta alustab liiga hilja'],
+        ['Kui tihti räägib Olga oma lugemisest mentoriga?', 'kord kuus', 'kord nädalas', 'kord aastas'],
+        ['Miks on Pille otsustanud sel aastal raamatupidamist õppida?', 'ta tahab sügisel uuel kohal alustada', 'ta tahab firmast lahkuda', 'kursus on tasuta'],
+      ]))), [
+        'Esimene sõnum: „Kui ma mõnest tunnist puudun, teen selle veebis järele.” (plaan B)',
+        'Teine sõnum: „Ma ei tea veel täpselt, millal ja kus” — aeg ja koht puuduvad.',
+        'Kolmas sõnum: „Minu vend … aitab mind nõuga.” (toetaja)',
+        'Neljas sõnum: „Kui ujula on suletud, lähen hoopis jooksma.”',
+        'Viies sõnum: kolm keelt, uus töö ja maja korraga; „Ühele asjale keskenduda ei taha”.',
+        'Kuues sõnum: „Iga kuu lõpus räägin … oma mentorile.”',
+        'Seitsmes sõnum: „sest sügisel tahan … uuel kohal alustada” (põhjus).',
+      ]), 'Kuuled, mis teeb ühe plaani heaks.'), { harno: 'L1', task: 'L01', voice: 'interview' }),
+    ],
+    practice: [
+      station(B.notice('074_d_notice', 'Märka: plaani keel', [
+        'Sõnumitest: proovieksami teen **hiljemalt märtsiks** · **Igal teisipäeval** ja neljapäeval lähen ujuma.',
+        'Aeg: **alates jaanuarist** (-st) · **kuni juunini** (-ni) · tähtaeg **hiljemalt märtsiks** (-ks) · **igal teisipäeval**, iga nädal',
+        'Miks?: **selleks, et** + terve lause — Kuulan raadiot, selleks, et kuulamine muutuks lihtsamaks.',
+        'Plaan B: **kui** see ei õnnestu, **siis** … — Kui üks nädal ei õnnestu, siis teen tunni veebis järele.',
+        'Vene keeles „с января до июня” — eesti keeles kaks lõppu: jaanuarist juunini (-st … -ni).',
+      ], 'full'), 3, 20),
+      tag(purpose(why(B.gaps('074_p_text', 'Ühe õppija plaan.', 'Loe plaani. Vali pangast igasse lünka sobiv osa. Kahte osa ei ole vaja.', [
+        'Minu tegevusplaan. Eesmärk: [mais tahan teha B1 eksami].',
+        'Põhjus: sügisel algab uus töö ja [selleks, et seal hakkama saada], on keel vajalik.',
+        'Sammud: [alates jaanuarist] käin keelekursusel kaks korda nädalas.',
+        '[Igal teisipäeval] kuulan pool tundi raadiot ja kirjutan üles kolm uut sõna.',
+        'Proovieksami teen [hiljemalt märtsiks], et näha, mis on veel raske.',
+        'Kursus kestab [kuni juunini], aga eksam on juba mais.',
+        'Plaan B: [kui ma mõnel nädalal kursusele ei jõua], teen tunni veebis järele.',
+        'Kui eksam ei õnnestu, [siis teen selle sügisel uuesti]. Juunis teen kokkuvõtte ja kirjutan oma järeldused mentorile. Natalja',
+      ], ['mais tahan teha B1 eksami', 'selleks, et seal hakkama saada', 'alates jaanuarist', 'Igal teisipäeval', 'hiljemalt märtsiks', 'kuni juunini', 'kui ma mõnel nädalal kursusele ei jõua', 'siis teen selle sügisel uuesti', 'eelmisel aastal käisin kursusel', 'kuigi eksam on tasuta'], 'full', 'g_notice'), [
+        'Eesmärk: mis ja millal → mais tahan teha eksami.',
+        'Miks keel on vajalik? → selleks, et + lause.',
+        'millest alates? → alates jaanuarist (-st).',
+        'kui tihti? → igal teisipäeval.',
+        'mis ajaks? → hiljemalt märtsiks (-ks).',
+        'mis ajani? → kuni juunini (-ni).',
+        'Plaan B: mis juhul? → kui … ei jõua.',
+        'Kui …, → siis + tegusõna: siis teen.',
+      ]), 'Sama ülesehitusega kirjutad kohe oma plaani.'), { task: 'R16' }),
+      teach(pron(B.tip('074_p_pron', 'Hääldusnurk: ütle koos (5 min)', [
+        'Kuula lauset ja ütle seda koos õpetajaga, siis üksi. Märgi sõna, mis oli raske:',
+        '„Hea eesmärk on selline, mida saab mõõta.”',
+        '„Alates jaanuarist kuni juunini, igal teisipäeval kell seitse.”',
+        '„Kui üks nädal ei õnnestu, ära jäta kõike pooleli.”',
+        '„Juunis tee kokkuvõte ja kirjuta üles oma järeldus.”',
+      ], 'full'), 'varjutamine'),
+      'Hääldusnurk (≈ 5 min), varjutamine: loe lause loomulikus tempos, õpilane ütleb samal ajal; siis üksi. Jälgi pikki häälikuid (eesmärk, mõõta, kokkuvõte, õnnestu) ja rõhku esimesel silbil (alates, igal, hiljemalt). Rasked sõnad lähevad kodutöösse.'),
+      teach(tag(purpose(B.planning('074_p_draft', 'Minu plaani mustand.', 'Kirjuta igasse ritta märksõnad oma plaanist. Kasuta küsimustiku vastuseid.', [
+        'Eesmärk: mis ja mis ajaks?',
+        'Miks? (selleks, et …)',
+        'Sammud ja tähtajad (alates …, hiljemalt …, igal …)',
+        'Plaan B (kui …, siis …)',
+        'Kes aitab ja kuidas ma tean, et olen kohal?',
+      ], 8), 'Mustandi järgi kirjutad kohe puhta plaani.'), { task: 'W11' }),
+      'Mustand on märksõnad, mitte tekst. Kontrolli, et igas reas on midagi ja rida 3 on vähemalt kahe ajaväljendiga (alates jaanuarist, hiljemalt märtsiks).'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(rows(B.writing('074_t_plan', 'Projekt: minu tegevusplaan', 'Vaata plaani malli pildil. Kirjuta oma tegevusplaan puhtalt, 80–100 sõna: viis osa, tähtajad ja plaan B.', [10, 12], ['Minu eesmärk on …', 'Selleks, et …', 'Alates …', 'Kui …, siis …'], 0), 12),
+        ['Minu eesmärk on … (mis ajaks?)', 'Alates … / hiljemalt … / igal …', 'Kui … ei õnnestu, siis …'], 'lisa üks lause selle kohta, kuidas sa juunis kokkuvõtte teed.', 'project'), 'Plaan läheb sinu mentorile ja kaaslasele.'), { task: 'W10', main: true, level: 4 }),
+      'Projekt (mooduli toode, ≈ 15 min kirjutamist tunnis). Õpilane kirjutab mustandi ja küsimustiku järgi puhta plaani; seitse sõnumit näitasid, mida heast plaanist puudu võib jääda (aeg, plaan B, toetaja, liiga palju korraga). Edukriteeriumid (sama mis enesekontrollis): 1) viis osa: eesmärk ja tähtaeg, põhjus, sammud, plaan B, toetaja; 2) vähemalt kolm ajaväljendit õiges vormis (alates …-st, kuni …-ni, hiljemalt …-ks, igal …); 3) plaan B kui-lausega. Abikaart: lausealgused on ülesande juures sõnadena; märgi, kas õpilane neid kasutas. Lisaväljakutse tugevale: üks lause selle kohta, kuidas ta juunis kokkuvõtte teeb (järeldus). Pärast kirjutamist joonib mentor (paariline või sina) alla esimese sammu lause, kui sellel puudub tähtaeg või see on liiga suur — see on väljumise ülesanne.'), 4, 25, { final: 'plan' }),
+      teach(tag(purpose(B.ideaCard('074_t_meet', 'Kokkulepe mentoriga: kolm esimest sammu', 'Paariline on sinu mentor. Näita oma plaani. Leppige kokku kolm esimest sammu ja nende tähtajad.',
+        'Mentoril on aega kohtuda kord kuus üks tund. Esimesed kolm kuud on kõige raskemad: siis jäävad paljud plaanid pooleli. Mis sa arvad, kumb aitab rohkem: mentor või sõber? Miks?',
+        ['sõnum mentorile kord nädalas', 'igal teisipäeval kindel aeg', 'üks väike samm korraga', 'kalender telefonis'],
+        'kolm esimest sammu, nende tähtajad ja kuidas te teineteisele teada annate', [180, 300]), 'Mentor aitab sul plaani teoks teha.'), { task: 'S03', level: 4 }),
+      'Kokkulepe (nagu Harno B1 rääkimise 1b osa, ≈ 8 min, mõlemad rollid). Mentor (paariline või sina) ütleb kaks korda vastu: 1) „See samm on liiga suur — mis on esimene väike samm?”; 2) „Jaanuaris on mul kaks nädalat tööreis — kuidas me siis suhtleme?”. Õnnestunud, kui lõpus on kolm sammu tähtaegadega (hiljemalt …-ks) ja üks kokkulepe, kuidas teada anda. Kokkulepe on tehtud ainult siis, kui mõlemad on nõus.'),
+      teach(exitCheck(tag(purpose(rows(B.writing('074_t_exit', 'Väljumine: minu esimene samm', 'Kirjuta mentori märkuse järgi oma esimene samm parandatult: mis, mis ajaks ja mida teed, kui see ei õnnestu.', [1, 2]), 4), 'Näitad, et su plaanil on selge algus.'), { task: 'G06', level: 3 })),
+      'Väljumine (v6, ≈ 3 min): üks rida tootest, ümber kirjutatud mentori märkuse järgi. Õnnestunud, kui samm on väike ja konkreetne, tähtaeg on -ks-vormis (hiljemalt jaanuari lõpuks) ja on kui-lause.'),
+      selfCheck('074_t_self', ['Minu plaanis on viis osa: eesmärk, põhjus, sammud, plaan B, toetaja.', 'Ma kasutan ajaväljendeid: alates …-st, kuni …-ni, hiljemalt …-ks, igal …', 'Ma lepin mentoriga kokku kolm esimest sammu.'], 'Plaan kirjas'),
+      teach(tag(homeTask(purpose(peer(rows(B.writing('074_t_home', 'Minu plaan kaaslasele', 'Saada plaan ja häälsõnum (1 min) kaaslasele. Vasta tema plaanile: kaks tähte, üks soov, üks küsimus. Harjuta → moodul 15.', [3, 5]), 5)), 'Sinu plaani loeb nüüd päris lugeja.')), { task: 'W02' }),
+      'Kaaslase vastus (v6 §2 k): plaan läheb teisele sama taseme õppijale (mõlema nõusolekul; õpetaja vahendab), kes vastab „kaks tähte ja üks soov” edukriteeriumide järgi (viis osa, ajaväljendid, plaan B). Õpilane vastab omakorda tema plaanile. Kui paarilist ei ole, vastab õpetaja — siis ütle, et järgmisel korral on lugeja päris inimene. Harjuta: tunni sõnad ja ajaväljendid (-st, -ni, -ks), üks parandatud viga → „Minu vead”.'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 075 control: listening + speaking, one sheet
+  'a2b1-075': lesson('a2b1-075', {
+    title: 'Kontroll 15: tulevik, plaanid ja eesmärgid',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma saan aru lühikestest teadetest ja raadiojutust plaanide kohta, räägin ilma abita oma plaanist ja lepin kaaslasega kokku plaani A ja plaani B.',
+    discover: [
+      B.examPart('075_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 20, tasks: 2, target: 60, note: `Mooduli 15 kontroll: rääkimine ja kuulamine, umbes 45 minutit. ${THRESHOLDS}` }),
+      teach(half(tag(B.speaking('075_t_s1', 'Rääkimine 1. Minu uus oskus.', 'Räägi 2–3 minutit ilma abita ja ilma märkmeteta. Õpetaja küsib, sina räägid.', [
+        'Millise uue oskuse sa tahaksid järgmise kolme aasta jooksul õppida?',
+        'Miks just selle?',
+        'Mida sa selleks esimesena teed ja mis ajaks?',
+        'Mida sa teed, kui midagi läheb teisiti?',
+        'Mis sa arvad: kas täiskasvanul on raskem uut asja õppida kui lapsel? Miks?',
+        'Kes sinu tuttavatest on hiljuti midagi uut õppinud? Mida?',
+      ], [120, 180]), { harno: 'S1a', level: 4 })),
+      'Paralleelne uus ülesanne (tunni 71 külm start): sama vorm (kuus eksamineerija küsimust, kaks neist arvamuse kohta), sama pikkus (2–3 min), ilma abita, sama hindamine (neli kriteeriumi); teema on teine. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset ja põhjus; tuleviku vormid; plaan B kui-lausega) ja võrdle tunni 71 märkmetega.'),
+      teach(half(tag(B.ideaCard('075_t_s1b', 'Rääkimine 2. Kokkulepe: kursuse lõpupidu.', 'Õpetaja või paariline on sinu kaaslane kursusel. Arutage umbes 4 minutit ja leppige kokku plaan A ja plaan B.',
+        'Teie keelekursus lõpeb juunis. Rühmas on 10 inimest, raha on 100 eurot. Pidu peab olema kolmapäeva või reede õhtul.',
+        ['piknik pargis', 'restoran (15 € inimesele)', 'keelekohvik koolis', 'paadisõit (120 €)'],
+        'mis, millal ja kus, mis on plaan B ja kuidas raha kasutate', [180, 300]), { harno: 'S1b', task: 'S03' })),
+      'Kokkulepe nagu Harno B1 rääkimise 1b osas (≈ 4 min). Õpetaja on kaaslane ja ütleb kaks korda vastu: 1) „Reede õhtul ma ei saa, mul on töö.”; 2) kui plaan maksab üle 100 euro: „Nii palju raha meil ei ole.” Ülesanne on täidetud ainult siis, kui lõpus on ühine plaan A ja plaan B koos tingimusega (Kui sajab, …).'),
+      teach(half({ ...B.rubricSpeaking('075_t_rs', 'Hindamine: rääkimine (20 punkti, mõlemad ülesanded kokku).'), data: { ...B.rubricSpeaking('075_t_rs').data, title: 'Hindamine: rääkimine (20 punkti, mõlemad ülesanded kokku).', instruction: 'Neli kriteeriumi, igaüks 0–5 punkti.', criteria: SPEAKING_B1 } }),
+      'Hinda pärast mõlemat ülesannet koos (Harno B1 rääkimise neli kriteeriumi, B1 kirjeldustega). Piiripealne näide (10/20): vastab kõigile küsimustele, aga põhjendused on lühikesed (3), mõtted seotud sõnadega sest ja aga (2), sõnavara kordub (2), tuleviku vormid enamasti õiged, kui-lause sõnajärg vale (3). Kokkulepe ilma plaanita B = ülesande täitmine kuni 2. Kokku 36 punkti (kuulamine 16, rääkimine 20): 60 % ≈ 21,6, 70 % ≈ 25,2, 80 % ≈ 28,8. Harno tingimus: kui kuulamine või rääkimine on 0 punkti, ei ole kontroll sooritatud. Kirjuta õpilase kaardile rääkimise 1 ja tunni 71 külma stardi võrdlus (kolm märget). Kui osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (kuulamine → tunnid 71, 73 ja 74, rääkimine → tunnid 71 ja 73). Lugemist ja kirjutamist selles kontrollis ei ole: neid mõõtis moodul 14 (070) ja tundide eksaminurk R4 (072).'),
+      B.examPart('075_p_lpart', 'L', { part: 'Kuulamine', minutes: 20, points: 16, tasks: 2, target: 60, note: 'Iga salvestus kõlab kaks korda. Harno teine tingimus: ükski osa ei tohi olla 0 punkti.' }),
+      teach(tag(why(ownText(locked(B.examListen('075_p_l1', 'Kuulamine 1. Lühikesed teated.', 'Kuula teateid kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
+        'Esimene teade. Tähelepanu, reisijad! Alates esmaspäevast hakkab buss number viis sõitma teist teed pidi, sest Pargi tänaval algab remont. Remont kestab kuni augusti lõpuni.',
+        'Teine teade. Tere, siin spordikeskus. Teie soovitud joogarühm on kahjuks täis. Kui soovite, paneme teid ootejärjekorda. Teine võimalus on neljapäevane rühm kell kaheksa õhtul.',
+        'Kolmas teade. Ilmateade nädalavahetuseks. Laupäeval on päikeseline ja soe, aga pühapäeval hakkab sadama ja tuul muutub tugevaks. Kui plaanite matka, minge laupäeval.',
+        'Neljas teade. Kallis Mart, siin vanaema. Ma kavatsen järgmisel nädalal teile külla tulla. Kui see teile ei sobi, helista mulle hiljemalt reedeks. Muidu tulen pühapäeval kell kaks.',
+        'Viies teade. Linnaraamatukogu teatab: alates jaanuarist on raamatukogu laupäeviti avatud kella kümnest neljani. Pühapäeviti on raamatukogu edaspidi suletud.',
+        'Kuues teade. Head kolleegid! Juhul kui jõulupidu jääb lume tõttu ära, saadame teile kolmapäeval sõnumi. Siis toimub pidu jaanuari teisel reedel.',
+        'Seitsmes teade. Naabrid räägivad, et maja ette olevat järgmisel kuul tulemas uus mänguväljak. Tegelikult ei ole linnaosa sellest veel midagi otsustanud.',
+        'Kaheksas teade. Raadiosaates „Esimest korda” küsime täna: mida te ei ole kunagi proovinud, aga tahaksite proovida? Helistage stuudiosse! Parim lugu saab kaks teatripiletit.',
+      ], [
+        ['Miks hakkab buss number viis esmaspäevast sõitma teist teed pidi?', 'tänaval algab remont', 'peatus suletakse', 'buss sõidab ainult hommikuti'],
+        ['Mida pakub spordikeskus, kui joogarühm on juba täis?', 'ootejärjekorda või neljapäevast rühma', 'raha tagasi', 'tasuta proovitundi'],
+        ['Millal on ilmateate järgi parem matkama minna?', 'laupäeval', 'pühapäeval', 'mõlemal päeval'],
+        ['Mis ajaks peab Mart vanaemale helistama, kui külaskäik ei sobi?', 'reedeks', 'pühapäevaks', 'järgmiseks kuuks'],
+        ['Mis muutub linnaraamatukogu lahtiolekuaegades alates jaanuarist?', 'see on laupäeviti avatud', 'see on pühapäeviti avatud', 'see suletakse remondiks'],
+        ['Millal toimub jõulupidu, kui see lume tõttu ära jääb?', 'jaanuari teisel reedel', 'kolmapäeval', 'järgmisel detsembril'],
+        ['Mida on linnaosa uue mänguväljaku kohta tegelikult otsustanud?', 'veel mitte midagi', 'et see on juba valmis', 'et see tuleb järgmisel kuul'],
+        ['Millest peavad kuulajad rääkima, kui nad stuudiosse helistavad?', 'mida nad ei ole kunagi proovinud', 'oma eilsest päevast', 'oma lemmikteatrist'],
+      ]))), [
+        'Esimene teade: „sest Pargi tänaval algab remont”.',
+        'Teine teade: „paneme teid ootejärjekorda. Teine võimalus on neljapäevane rühm”.',
+        'Kolmas teade: „Kui plaanite matka, minge laupäeval.”',
+        'Neljas teade: „helista mulle hiljemalt reedeks” (tähtaeg -ks).',
+        'Viies teade: „alates jaanuarist on raamatukogu laupäeviti avatud”.',
+        'Kuues teade: „Juhul kui … jääb ära, … toimub pidu jaanuari teisel reedel.”',
+        'Seitsmes teade: „olevat” = nii räägitakse; „Tegelikult ei ole … otsustanud” (moodul 13).',
+        'Kaheksas teade: „mida te ei ole kunagi proovinud” (täisminevik, moodul 14).',
+      ]), { harno: 'L1', task: 'L01' }),
+      'Kuulamine 1 (8 p, ≈ 8 min, Harno L1 vorm). Varasemast (≈ 20 % kuulamisest): teade 7 (kaudne kõneviis olevat ja „tegelikult”, moodul 13) ja teade 8 (täisminevik ei ole kunagi proovinud, moodul 14). Iga õige vastus 1 p.'),
+      teach(half(tag(why(ownText(locked(B.examListen('075_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuula raadiolugu kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
+        'Tere õhtust! Igal detsembril annavad paljud inimesed endale uue aasta lubaduse: hakkan sporti tegema, hakkan raha koguma, õpin uue keele. Aga uuringute järgi on veebruariks suurem osa lubadustest juba unustatud. Täna räägime sellest, miks lubadused ei pea ja mida teha teisiti.',
+        'Esimene põhjus on see, et lubadus on liiga suur. Kes pole kunagi jooksnud, ei jookse jaanuaris kohe kümme kilomeetrit. Parem on alustada väikese sammuga: kaks korda nädalas pool tundi kõndimist.',
+        'Teine põhjus: lubadusel ei ole aega ega kohta. „Hakkan sporti tegema” ei ütle, millal ja kus. „Igal esmaspäeval ja neljapäeval kell seitse lähen pärast tööd ujulasse” — see on juba plaan. Pange see kalendrisse nagu tähtis kohtumine.',
+        'Kolmas põhjus: me ei mõtle ette, mis võib segada. Kui tööl on kiire või sajab vihma, jääb trenn ära. Seepärast kirjutage kohe üles oma plaan B: kui sajab, teen trenni kodus.',
+        'Neljas põhjus on üksindus. Kes räägib oma plaanist sõbrale, peab seda sagedamini kinni. Sõber võib küsida: „Noh, kuidas läheb?” — ja see aitab rohkem, kui arvate.',
+        'Viies põhjus: me unustame end kiita. Kui olete kuu aega oma plaani järgi elanud, tähistage seda väikese asjaga, näiteks uue raamatu või hea õhtusöögiga. Väike rõõm annab jõudu edasi minna. Ja kui üks nädal läheb halvasti, ärge jätke kõike pooleli: alustage järgmisel esmaspäeval uuesti.',
+        'Mina olen proovinud mitu korda hommikuti joosta ja alati loobunud. Eelmisel aastal leidsin endale jooksukaaslase. Alguses oli raske, sest hommikul tahtsin magada, aga sõber ootas mind maja ees. Nüüd jookseme koos juba kümnendat kuud. Nii et minu soovitus on lihtne: üks väike lubadus, selge aeg, plaan B ja üks sõber. Head uut aastat!',
+      ], [
+        ['Millest räägitakse selles raadioloos uue aasta lubaduste kohta?', 'miks lubadused tihti ei õnnestu', 'kuidas uut aastat tähistada', 'kus on kõige parem trenni teha'],
+        ['Mis juhtub uuringute järgi veebruariks paljude uue aasta lubadustega?', 'need on unustatud', 'need on täidetud', 'need muutuvad suuremaks'],
+        ['Kuidas soovitab saatejuht alustada, kui inimene pole kunagi jooksnud?', 'väikese sammuga', 'kõige raskema asjaga', 'kohe kümne kilomeetriga'],
+        ['Mis puudub saatejuhi arvates lubadusest „Hakkan sporti tegema”?', 'aeg ja koht', 'põhjus', 'sõber'],
+        ['Mida soovitab saatejuht kohe paberile üles kirjutada?', 'plaani B', 'kõik oma lubadused', 'trenni hinna'],
+        ['Miks tasub saatejuhi sõnul oma plaanist sõbrale rääkida?', 'siis peab plaani sagedamini kinni', 'siis ei pea ise midagi tegema', 'sõber teeb plaani valmis'],
+        ['Mida on saatejuht ise mitu korda proovinud ja pooleli jätnud?', 'hommikuti joosta', 'ujumas käia', 'raha koguda'],
+        ['Mis aitas saatejuhti lõpuks oma plaani kinni pidada?', 'jooksukaaslane', 'uus töö', 'kallis treener'],
+      ]))), [
+        'Raadiolugu: „Miks?” — kogu lugu räägib, miks lubadused ei õnnestu.',
+        'Raadiolugu: „veebruariks on suurem osa lubadustest juba unustatud”.',
+        'Raadiolugu: „Parem on alustada väikese sammuga”.',
+        'Raadiolugu: „ei ütle, millal ja kus” = aeg ja koht.',
+        'Raadiolugu: „kirjutage kohe üles oma plaan B”.',
+        'Raadiolugu: „Kes räägib oma plaanist sõbrale, peab seda sagedamini kinni.”',
+        'Raadiolugu: „Mina olen proovinud mitu korda hommikuti joosta” (täisminevik, moodul 14).',
+        'Raadiolugu: „leidsin endale jooksukaaslase”.',
+      ]), { harno: 'L2', task: 'L02' })),
+      'Kuulamine 2 (8 p, ≈ 10 min, Harno L2 vorm, monoloog ≈ 2 min). Varasemast: küsimus 7 (täisminevik kogemuse kohta, moodul 14). Iga õige vastus 1 p.'),
+    ],
+  }),
 }, {
-  'a2b1-071': 'LUGE R→S', 'a2b1-072': 'LUGU R→W', 'a2b1-073': 'KUUL L→W', 'a2b1-074': 'PROJ L→S', 'a2b1-075': 'EKS',
+  'a2b1-071': 'KUUL L→S', 'a2b1-072': 'LUGE R→W', 'a2b1-073': 'PROB L→S', 'a2b1-074': 'PROJ L→W', 'a2b1-075': 'EKS',
 });
