@@ -1,65 +1,103 @@
-// B1 course (A2 → B1 roadmap), module 14 „Minevik, kogemused ja jutustamine” (a2b1-066…070), stage B1. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md; how: docs/FINAL_SHAPE_AUTHORING.md). One storyline in September and October 2027, after
-// the summer of module 13: Oskar's class at Kase kool (class teacher Kristel Saar) collects family stories for the class
-// book „Meie pere lood” and prepares the school's story evening (lugude õhtu) on Thursday 14 October 2027 — an exhibition
-// of family timelines in the hall, a „living library” in the school library, family stories on stage. The goal, said on
-// the first sheet: at the end the learner tells a story of his or her own in four parts, agrees on the evening's
-// programme with another parent (Harno S1b) and does the module exam in full B1 form.
-//   066 LUGU R→W  „Kuidas saun valmis sai” — Viktor's story of the sauna he built with his father in 1988 (predict, then
-//                 read; cliffhanger: the stove is not ready the night before the father's 50th birthday); B1 grammar of the
-//                 module (METHODOLOGY_STANDARD §7): completion with ära / läbi / valmis and the total object (luges raamatu
-//                 läbi, sõi kringli ära, tegi ahju valmis; ei lugenud raamatut läbi); retold twice, 8-min writing; process →
-//                 completed, the end of the story by ear (who did what when), Eksaminurk R2 (an article on the sauna in
-//                 Estonian life), collocations, Oskar's note errors, info gap on 1988; Kasuta: Oskar's draft for the class
-//                 book (phrase bank), three stories chosen for the book (ranking), the learner's own story recorded at home,
-//                 the story „Ühe ööga valmis” (main, W05).
-//   067 AVAS L→S  „Kas sa oled kunagi…?” — täisminevik for experience vs lihtminevik for a fixed time (spiral, grammarPlan
-//                 'perfect'): try first, Oskar's video call with Helgi, rule, 4-3-2, a survey of three; try again (Sofia's
-//                 blog), the parents' chat, ten living books by ear, translation, „Mida sa teeksid?” (S14);
-//                 Kasuta: the librarian Triin's voicemail → notes, Eksaminurk S2 = the call to Triin (main), the book's
-//                 introduction recorded at home, the living library questionnaire.
-//   068 KUUL L→W  „Ajajoon näitusele” — Helgi's life in years by ear, the radio show „Minu lugu” on life stories, time
-//                 words with the verb second, the three pasts, completion again; an old photo three times; tense choice,
-//                 Eksaminurk L3a (how Viktor became a bicycle mender), Helgi's biography (cloze), word formation, the
-//                 exhibition notices, explaining grandmother's life to Mia; Kasuta: three family timelines, the poster agreed,
-//                 the learner's own timeline recorded at home, plan, the letter to Helgi (main, W04).
-//   069 RÄÄK R→S  „Lugude õhtu” — the school newsletter (true / false / not stated), a story in four parts (event, feeling,
-//                 reason, conclusion) and the three pasts in a story, opinions three times, Kristel's message made formal;
-//                 Sofia's story (paragraph functions), Kristel's announcement → what to do, errors in the parents' drafts, a
-//                 note to Kristel, the wrong kringel at the bakery, topic questions twice; Kasuta: the programme draft and
-//                 rules (application), Eksaminurk S1b = the programme agreed with Rasmus's father (main), the learner's story
-//                 recorded at home, the invitation to Viktor.
-//   070 EKS       Module exam in full Harno B1 form (§6.1 stage 3): R1, R2, R3b, R4 (33 p, 50 min) · L1, L2, L3a, L4 (30 p)
-//                 · W1b, W2a (20 p) · S0, S1a, S1b, S2 (20 p); warm-up sheet with the story evening itself.
-// B1 grammar (METHODOLOGY_STANDARD §7, grammarPlan.js): completion with ära / läbi / valmis (introduced in the LUGU lesson
-// 066, used again in 068 and 069), täisminevik (067, spiral of the A2 item), the three pasts in narration (068, 069; the
-// pluperfect from module 10). §6.2 row 14 is used as written: LUGU R→W · AVAS L→S · KUUL L→W · RÄÄK R→S · EKS; the LUGU
-// lesson brings in the module's new grammar item (§4.1 rule 6). Cast (docs/COURSE_CAST.md): Kristel Saar (Oskar's class
-// teacher, grew up on Saaremaa), librarian Triin, Rasmus's father Tõnu, Viktor's neighbour Ülo (helped with the stove in
-// 1988), radio guest Leili Kask (life stories, host Ülle), the living books of 067 and the families of 069 are fictional;
-// Kase kool, the sauna, the factory near Tapa and all dates of the families are fictional. Real: the Võro smoke sauna
-// tradition on UNESCO's intangible heritage list (2014), the Estonian Literary Museum in Tartu collects life stories, the
-// Human Library began in Denmark in 2000, the Baltic Way on 23 August 1989. Earlier versions: archive/v3/b1/module14.js,
-// archive/v1/b1/module14.js.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE §13): topic „ajalugu” (secondary
-// „kultuur”, „suhted”) — history through life stories, around the module's grammar line (completion, täisminevik, the three
-// pasts). Topic opener 066_d_open (1918, 1940–1944, the 1941 and 1949 deportations, 1944 refugees, Soviet-time migration and
-// the 1934 / 1989 censuses, the night song festivals, the Baltic Way, 20.8.1991, the kroon 1992, NATO and EU 2004, the euro
-// 2011, Vabamu); „Kas teadsid?” 066_p_know (the night song festivals and „Eestimaa laul” 1988), 068_p_know (the 1992
-// money reform); non-cast texts 067_d_museum (Vabamu and its founder's life, read for täisminevik) and 069_p_memory (a
-// sentence-insertion life story in four parts of a nurse who came to Tallinn from Pskov in 1979: the night of 20–21 August
-// 1991; replaces the ads task 069_p_help; the story is invented for learning, the dates are real). Opinion: 067_d_gen
-// (generations; replaces the 4-3-2 067_d_432), examiner set 069_p_topic. One retelling left (068_d_photo); record-at-home only
-// 068_t_rec and 069_t_rec (066_t_circle and 067_t_try are done in class). Sources: the PR „B1 module 14: academic value
-// round 1”.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 14 „Minevik, kogemused ja jutustamine” (a2b1-066…070), stage B1- (lessons 061–080).
+// The first module written to methodology v6 (docs/METHODOLOGY_V6.md, 2026-11-26; strictModulesV6.json) on top of v5
+// „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md; strictModulesV5.json) and the v4 station engine of modules 1–13: one real
+// outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a lesson, 4 stations of ≈ 67–70 min whose minutes
+// differ in every lesson (G17), the control one sheet (≤ 10 blocks, ≈ 45 min). v6 in the content, not only in the fields:
+//   • the exit check is a short performance of the can-do in the main task's skill (G14): one rewritten line of the story
+//     (066), 30 s of speech (067–069) — no form items;
+//   • the form task makes the learner produce the rule box's bold forms, and its hints never give the answer (G15): 066
+//     the learner chooses ära / läbi / valmis from a meaning cue and builds the total object, 067 täisminevik or
+//     lihtminevik from the dictionary form, 068 the three pasts from a bank (Harno R3b), 069 the connector from a bank;
+//   • the main tasks rotate (G17): 066 narrative (a picture story, W2a), 067 survey („Kas sa oled kunagi …?”), 068 jigsaw
+//     (two life stories, an information gap with hidden information), 069 presentation (a story at a story evening);
+//     each has an „Abikaart” (support) and a „Lisaväljakutse” (stretch) — on the sheet in the speaking tasks' tip box,
+//     on the writing task as its starter words; the self-check rates three success criteria 0–1–2 with one own
+//     sentence as evidence (G24);
+//   • a 5-min pronunciation corner every lesson (G23): välted (066: kapi – kappi, koogi – kooki, the case of the lesson's
+//     object), vowels õ / ä / ö / ü (067), shadowing (068), intonation and pauses of a story (069);
+//   • every vocabulary block brings back three words of lessons 053–064 that the input uses (G18); every home task names
+//     „Harjuta → moodul 14”; 069 sends one corrected error to Harjuta „Minu vead”;
+//   • instructions ≤ 25 words with a purpose line of 6–8 plain words (G22; stations.js still wants a purpose line);
+//   • the real network (G25): 067's home task is the module's link task and media log („Minu eesti keele võrgustik”,
+//     ERR Jupiter https://jupiter.err.ee), 069's story gets a peer reply („kaks tähte ja üks soov”).
+//   066 case    „Kuidas see valmis sai?” — the module's COLD TASK first (a 10-min story of ~80–100 words without help,
+//               scored later with the W2 rubric) — ONE text, a reader's story „Maja, mis sai valmis ühe suvega” (≈ 250
+//               words), completion ära / läbi / valmis + total object; outcome: a picture story „Rõdu ühe
+//               nädalavahetusega” (80–100 words) with the visual of six frames.
+//   067 game    „Kas sa oled kunagi …?” — a podcast „Esimest korda” (new recording, two guests, 9 true / false = the Harno
+//               L4 corner), täisminevik for an experience vs lihtminevik for a fixed time; outcome: the learner's own
+//               survey with a picture of six experiences, the pair decides what to try next; home: the link task.
+//   068 infogap „Kaks elu, üks ajajoon” — ONE reading of two life stories (A Leida, B Andrei; ≈ 260 words), the three
+//               pasts and the verb second after a time word, the Harno R3b corner (a letter with a word bank) as the
+//               form task; outcome: a jigsaw — each tells his or her person, the partner fills the joint timeline, the
+//               teacher's card holds HIDDEN information (two facts that are not in text B).
+//   069 project „Üks päev, mida ma ei unusta” — a story told at a library story evening (new recording, 8 gaps = the
+//               Harno L3a corner), a story in four parts and its connectors (kõigepealt, siis, äkki, sest, seepärast,
+//               kuigi, lõpuks); outcome: a 2–3-min story with a photo for the story evening, a peer's two stars and a wish.
+//   070 EKS     Control 14 (one sheet, 9 blocks, reading + writing; module 13 was reading + listening + speaking): reading
+//               16 p (a life story with short answers, a letter with a word bank, 3 items from module 13), writing 20 p —
+//               W1 a mediation (explain a museum notice to a neighbour, rubricW1), W2 the PARALLEL of 066's cold task (the
+//               same genre, length and W2 rubric) —; „ükski osa ei tohi olla 0 punkti”; thresholds named one way.
+// No story characters: the people of the texts are made up and appear in one lesson only. No dictation. Texts are adapted
+// to the level, facts need not be real (owner 2026-11-25). The previous version (final shape + academic value round 1, the
+// continuing story of Kase kool's story evening: Oskar, Helgi, Viktor, Kristel …) is kept below as OLD: every block of it
+// that is not on a sheet any more is retired (hidden, id and learners' answers kept, practice/engine/extract.js still
+// builds Harjuta items from its form tasks); a block on a sheet with a reused id has the same type.
+// B1 grammar (METHODOLOGY_STANDARD §7, grammarPlan.js): completion with ära / läbi / valmis (066, 'completion'),
+// täisminevik (067, 'perfect'), the three pasts and the verb second after a time word (068), narrative connectors (069).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
-// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+// the examiner's set with its own instruction (kept for the OLD lessons)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-14', course: 'b1', title: 'Minevik, kogemused ja jutustamine', level: 'B1', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-14', course: 'b1', title: 'Minevik, kogemused ja jutustamine', level: 'B1', design: 'v3-stations', template: 'v4' };
 
-export const LESSONS = withShapes({
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// one line for every block taken off the sheets by the rewrite
+const V6_CUT = 'v6 (2026-11-26): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V6_DRILL = 'v6 (2026-11-26): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+const V6_EXAM = 'v6 (2026-11-26): täispikk mooduli eksam asendati ühe lehe kontrolliga; proovieksamid on 080 / 089 / 090';
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a writing form of n ruled lines
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// a face-to-face pair card on the phone-card layout: two role cards A and B side by side
+const cards = (block) => ({ ...block, data: { ...block.data, cardA: { ...block.data.cardA, label: 'Kaart A' }, cardB: { ...block.data.cardB, label: 'Kaart B' } } });
+// v6 §2 i (G24): the main task's „Abikaart” (2–3 sentence starters) and „Lisaväljakutse” (one line); a speaking task shows
+// both in its tip box, so the learner sees them on the sheet (the fold-out card is UI work for later)
+const aid = (block, support, stretch, taskType) => {
+  const data = { ...block.data, support, stretch, taskType };
+  if (block.type === 'speaking') Object.assign(data, { tipTitle: 'Abikaart (kui vaja):', tipText: [...support, `Lisaväljakutse: ${stretch}`].join('\n') });
+  return { ...block, data };
+};
+// v6 §2 l (G23): the 5-min pronunciation corner — `focus` välted | vokaalid | varjutamine | intonatsioon
+const pron = (block, focus) => ({ ...block, data: { ...block.data, pronunciation: focus } });
+// v6 §2 f (G18): three words of lessons 3–15 back that this lesson's input uses again
+const review = (block, words) => ({ ...block, data: { ...block.data, review: words } });
+// v6 §2 i (G24): the self-check rates the task's three success criteria 0–1–2 and quotes one own sentence as evidence
+const selfCheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, [...criteria.map((c) => `${c} (0 – 1 – 2)`), 'Minu lause tõendiks: …'], stamp, 'Ma oskan …');
+  return purpose({ ...b, data: { ...b.data, instruction: 'Hinda iga punkti: 0, 1 või 2. Kirjuta üks oma lause tõendiks.', criteria, evidence: true } }, 'Näed, mida oskad ja mida veel harjutada.');
+};
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+// v6 §2 k (G25): „Minu eesti keele võrgustik” — the learner's media log with a real source (title + https URL, G13)
+const networkLog = (block, source) => ({ ...block, data: { ...block.data, mediaLog: true, realAddressee: source } });
+// v6 §2 k (G25): one peer exchange a module — the product goes to a classmate, who answers against the success criteria
+const peer = (block) => ({ ...block, data: { ...block.data, peerReply: true } });
+const NO_RECORDING = 'Kui salvestada ei saa, jutusta see järgmise tunni alguses õpetajale.';
+
+// ======================================================================== the previous version (final shape + academic value round 1)
+// Kept for its ids: the blocks that are not on the v6 sheets are retired from here (lesson() below).
+const OLD = {
   'a2b1-066': {
     title: 'Kuidas saun valmis sai',
     canDo: 'Ma loen pere lugu, saan aru, mis sai valmis ja mis jäi pooleli, ning kirjutan umbes 100-sõnalise jutu sellest, kuidas midagi viimasel hetkel valmis sai.',
@@ -1096,6 +1134,713 @@ export const LESSONS = withShapes({
       B.selfcheck('070_t_self', ['Ma saan aru kuulutustest, artiklitest, teadetest ja intervjuudest mineviku ja mälestuste kohta.', 'Ma kasutan õigesti ära, läbi ja valmis ning liht-, täis- ja enneminevikku.', 'Ma kirjutan teate ja jutu etteantud pealkirjaga.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 14 eksam tehtud'),
     ],
   },
+};
+
+// The blocks of OLD that are off the sheets are retired (hidden) in their old phase: their ids and the learners' answers
+// stay. A new block that reuses an old id keeps the old block's type.
+const PHASES = ['discover', 'practice', 'transfer'];
+const DRILLS = new Set(['categorize', 'match', 'manymatch', 'wordorder', 'crossword', 'transformation', 'errorfix', 'translation', 'wordforms', 'choice', 'formtext', 'cloze', 'gaps']);
+const reasonFor = (lessonId, b) => (OLD[lessonId].assessment ? V6_EXAM : DRILLS.has(b.type) || b.data?.review ? V6_DRILL : V6_CUT);
+function lesson(lessonId, spec) {
+  const old = OLD[lessonId];
+  if (!old) throw new Error(`moodul 14: vana tund ${lessonId} puudub`);
+  const oldById = Object.fromEntries(PHASES.flatMap((p) => old[p] || []).map((b) => [b.id, b]));
+  const used = new Set(PHASES.flatMap((p) => (spec[p] || []).map((b) => b.id)));
+  PHASES.flatMap((p) => spec[p] || []).forEach((b) => {
+    if (oldById[b.id] && oldById[b.id].type !== b.type) throw new Error(`moodul 14: ${b.id} on vanas tunnis ${oldById[b.id].type}, uues ${b.type}`);
+  });
+  const out = { ...spec };
+  PHASES.forEach((p) => {
+    const retired = (old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, reasonFor(lessonId, b)));
+    if ((spec[p] || []).length || retired.length) out[p] = [...(spec[p] || []), ...retired];
+  });
+  return out;
+}
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 066 case: something finished (ära / läbi / valmis)
+  'a2b1-066': lesson('a2b1-066', {
+    title: 'Kuidas see valmis sai?',
+    phases: grammar('Keel: parandasime katuse ära · lugesin juhendi läbi · tegi kapi valmis · ei teinud sauna valmis'),
+    format: 'case',
+    topic: 'home',
+    canDo: 'Ma kirjutan umbes 100-sõnalise loo sellest, kuidas midagi lõpuks valmis sai: mis juhtus, mis jäi pooleli ja mis sai lõpuni tehtud (ära, läbi, valmis).',
+    teacherPage: {
+      goal: 'Ученик пишет рассказ ~100 слов о том, как что-то было доделано: ära / läbi / valmis + полный объект (tegi kapi valmis), отрицание с партитивом (ei teinud sauna valmis).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодная задача: 10 минут, ~80–100 слов без помощи) → текст «Maja, mis sai valmis ühe suvega» и 8 вопросов, в паре 6 строк «что доделано, что нет» → пункт 4: рассказ по картинкам «Rõdu ühe nädalavahetusega», выход — одно исправленное предложение. Пункт 3 (правило, 8 преобразований, Hääldusnurk) — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 14: ученик 10 минут без помощи пишет ~80–100 слов «Üks päev, mida ma hästi mäletan». Не помогайте. Оцените потом по рубрике W2 (4 критерия × 0–3) и сохраните: контроль 70 (W2) — параллельная задача того же жанра и длины. Повторение без записей устно (1 мин): одна вежливая просьба (урок 62) и один слух с olevat (урок 63).',
+      plan: [
+        '0–10: пункт 1 — холодная задача: 10 минут письма без помощи (~80–100 слов), учитель молчит; повторение устно 1 мин (уроки 62–63)',
+        '10–25: пункт 2 — слова (2 мин, три старых слова: remont, tellima, kokkulepe), стратегия «смотри на заголовок и угадай», текст читательницы (≈ 250 слов), 8 вопросов (один на вывод), в паре 6 строк «доделано / не доделано»',
+        '25–45: пункт 3 — заметить → правило (ära / läbi / valmis + täissihitis, eitus + osastav; L1: прочитал ≠ läbi) → 8 преобразований по смыслу (ученик сам выбирает частицу) → Hääldusnurk 5 мин (kapi – kappi, koogi – kooki: долгота показывает падеж) → 6–8 своих предложений',
+        '45–67: пункт 4 — рассказ по картинкам (6 кадров) 80–100 слов, 15 мин; учитель (или партнёр) подчёркивает одно предложение для исправления; выход — это предложение исправлено (3 мин)',
+        '67–72: самооценка 0–1–2 с одним своим предложением, домашнее задание (рассказ начисто + голосовое 1 мин, Harjuta → moodul 14)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает о своём холодном тексте устно — что он теперь написал бы иначе',
+        '72–90: запас',
+      ],
+      sources: 'Текст (пункт 2) и картинки «Rõdu ühe nädalavahetusega» — учебные, люди и дом выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 2 в паре: A пишет строки 1–3, B — 4–6, потом читают друг другу. Пункт 4: каждый пишет сам, партнёр подчёркивает одно предложение. Один на один вы — читатель, который подчёркивает.',
+      errors: [
+        '«Ma lugesin juhendit läbi» вместо «Ma lugesin juhendi läbi» (läbi / ära / valmis → полный объект).',
+        '«Me ei teinud sauna valmis» верно, но «Me ei teinud kapi valmis» — ошибка: в отрицании партитив (kappi).',
+        '«Ma tegin valmis» без объекта, когда объект нужен: «Ma tegin kapi valmis».',
+        '«valmisid», «valmiseks» — valmis не изменяется.',
+      ],
+      notes: [
+        'Холодная задача и 070 W2 — пара «до / после»: тот же жанр (своя история), та же длина, та же рубрика W2. Сохраните баллы в карточке ученика.',
+        'Abikaart и Lisaväljakutse: начала предложений стоят у задания как слова-подсказки (Reede õhtul, Kõigepealt, Äkki, Lõpuks sai … valmis); сильному ученику — „Lisaväljakutse: lisa üks lause enneminevikus (selleks ajaks oli … juba …)”. Отметьте, пользовался ли ученик подсказками.',
+        'Обратная связь, 1 цель: полный объект после ära / läbi / valmis. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(rows(B.writing('066_d_write', 'Külm start: üks päev', 'Kirjuta 10 minutit ilma abita (~80–100 sõna): üks päev, mida hästi mäletad — mis juhtus ja kuidas lõppes.', [9, 12]), 16), 'Tunnis 70 kirjutad uuesti sarnase loo.'), { task: 'W05', level: 4 }),
+      'Külm ülesanne (mooduli 14 algus, ilma toeta, Harno B1 kirjutamise 2a vorm). Ära aita, ära paranda, ära anna sõnu. Pärast tundi hinda W2 juhendiga (sisu, ülesehitus ja sidusus, sõnavara, grammatika; igaüks 0–3) ja kirjuta õpilase kaardile kolm märget: 1) mitu lauset ja kas on algus–keskpaik–lõpp; 2) sidesõnad (kõigepealt, siis, äkki, sest, lõpuks); 3) minevikuvormid ja lõpetatus (tegin … valmis, lugesin … läbi). Kontrollis 70 (kirjutamine 2) on paralleelne uus ülesanne: sama žanr, pikkus ja juhend — võrdle.'), 1, 10),
+      review(tag(B.vocab('066_d_vocab', 'Tunni sõnad.', ['valmis — готов (tegi valmis: доделал)', 'ära — с глаголом: до конца (sõi ära: съел)', 'läbi — с глаголом: до конца (luges läbi: прочитал)', 'pooleli — недоделанный', 'lõpuni — до конца', 'katus — крыша', 'ahi — печь', 'aken — окно', 'värvima — красить', 'meister — мастер', 'naerma — смеяться', 'hakkama saama — справиться'], '2'), { topic: ['pooleli', 'hakkama'] }), ['remont', 'tellima', 'kokkulepe']),
+      station(tag(purpose(ownText(B.reading('066_d_story', 'Lugejalugu.', 'Vaata pealkirja ja arva, mis juhtus. Siis loe ja vasta kahele küsimusele.', 'Maja, mis sai valmis ühe suvega', [
+        'Kui me eelmisel kevadel Viljandi lähedal vana talumaja ostsime, ütlesid sõbrad, et oleme hulluks läinud. Majas ei olnud sooja vett, katus lasi vett läbi ja kaks akent olid katki. Aga meil oli plaan ja üks suvi aega.',
+        '',
+        'Kõigepealt tegime kokkuleppe: igal nädalal saab üks asi lõpuni valmis. Esimesel nädalal parandasime katuse ära. Teisel nädalal tellisime uued aknad ja mu mees pani need ise ette. Mina värvisin samal ajal toa seinad ära. Kolmandal nädalal tegime köögi valmis: uus põrand, uus laud ja vana kapp, mille vanaema meile andis. Õhtuti lugesime ehitusraamatud läbi, sest me ei olnud kunagi varem nii suurt remonti teinud.',
+        '',
+        'Kõige raskem oli ahi. Vana ahi oli pooleldi katki ja ükski meister ei tahtnud seda parandada. Lõpuks leidsime naabrikülast vanema mehe, kes oli terve elu ahjusid teinud. Ta tuli kolmeks päevaks, tegi ahju valmis ja sõi iga päev terve koogi ära. Raha ta võtta ei tahtnud.',
+        '',
+        'Augusti lõpus oli peaaegu kõik tehtud. Ainult saun jäi pooleli: me ei teinud sauna valmis, sest raha sai otsa. Aga see ei olnud enam tähtis. Septembri esimesel laupäeval kutsusime kõik sõbrad ja naabrid külla. Need, kes olid kevadel naernud, istusid nüüd meie laua taga ja küsisid: „Kuidas te sellega ühe suvega hakkama saite?”',
+        '',
+        'Meie vastus on lihtne: ära tee kõike korraga. Tee üks asi lõpuni ja alles siis alusta järgmisega.',
+      ], [
+        ['Kas sinu ennustus pealkirja järgi oli õige? Mis oli teisiti?', ''],
+        ['Mis sa arvad: miks ei olnud pooleli saun enam tähtis?', ''],
+      ])), 'Loed, kuidas teised oma maja valmis said.'), { task: 'R13', voice: 'article' }), 2, 15),
+      teach(tag(purpose(why(B.choice('066_d_choice', 'Eksaminurk: lugejalugu (Harno B1 lugemine 2)', 'Vali igale küsimusele kolmest vastusest üks. Vastus on tekstis teiste sõnadega.', [
+        ['Mida arvasid sõbrad sellest, et pere ostis vana talumaja?', 'et see on päris hullumeelne plaan', 'et see on väga hea äri', 'et maja on perele liiga väike'],
+        ['Mida otsustas pere kohe töö alguses?', 'teha igal nädalal üks asi lõpuni', 'teha kõik tööd korraga ühe kuuga', 'tellida kõikideks töödeks meistrid'],
+        ['Miks lugesid nad õhtuti ehitusraamatuid?', 'neil ei olnud nii suure remondi kogemust', 'nad tahtsid ise ehitusraamatu kirjutada', 'õhtuti ei olnud neil midagi muud teha'],
+        ['Kuidas sai vana ahi lõpuks valmis?', 'naaberküla vanem mees tegi selle valmis', 'pere tegi selle ise raamatu järgi valmis', 'vana ahju asemel osteti poest uus'],
+        ['Miks jäi saun sel suvel pooleli?', 'perel sai raha otsa', 'meister ei tulnud õigel ajal', 'suvi oli liiga külm ja vihmane'],
+        ['Mida soovitab kirjutaja teistele lugejatele?', 'teha üks asi korraga lõpuni', 'osta vana maja asemel uus maja', 'paluda alati sõpradelt ja naabritelt abi'],
+      ], 'full', 'g_read'), [
+        'Esimene lõik: „ütlesid sõbrad, et oleme hulluks läinud” = hullumeelne plaan.',
+        'Teine lõik: „igal nädalal saab üks asi lõpuni valmis”.',
+        'Teine lõik: „me ei olnud kunagi varem nii suurt remonti teinud”.',
+        'Kolmas lõik: „leidsime naabrikülast vanema mehe … tegi ahju valmis”.',
+        'Neljas lõik: „me ei teinud sauna valmis, sest raha sai otsa”.',
+        'Viimane lõik: „Tee üks asi lõpuni ja alles siis alusta järgmisega.”',
+      ]), 'Harjutad eksami vormis, kuidas lugu mõista.'), { harno: 'R2', task: 'R02' }),
+      'Eksaminurk (Harno B1 lugemine 2, artikkel + kolm valikut, ≈ 8 min). Eksamil on 200–300-sõnaline tekst ja kuus küsimust. Strateegia: 1) loe küsimus ja otsi tekstist koht; 2) õige vastus ütleb sama teiste sõnadega (hulluks läinud → hullumeelne); 3) vale vastus kasutab sageli teksti sõna (meister, raamat), aga mõte on vale. Pärast põhjendab õpilane kahte vastust tekstiga.'),
+      teach(tag(purpose(B.table('066_d_find', 'Paaris: mis sai valmis?', 'Kirjutage tekstist igasse ritta terve lause: mis sai lõpuni tehtud ja mis mitte.', 'Mis?, Mis juhtus? (terve lause)', [
+        'katus | ',
+        'aknad | ',
+        'toa seinad | ',
+        'ehitusraamatud | ',
+        'vana ahi | ',
+        'saun | ',
+        'köök | ',
+        'sõprade küsimus septembris | ',
+      ], 'g_read'), 'Need laused kasutad hiljem oma loos.'), { task: 'R10' }),
+      'Paarid kirjutavad 6 minutit: A read 1–3, B read 4–6, siis loevad teineteisele. Kontrolli, et lauses on tegusõna + ära / läbi / valmis ja täissihitis (parandasid katuse ära, lugesid raamatud läbi, tegi ahju valmis) ja et saun on eituses (ei teinud sauna valmis). Üks-ühele: õpilane kirjutab, sina loed ühe rea valesti („Nad lugesid raamatuid läbi”) ja õpilane parandab.'),
+    ],
+    practice: [
+      station(B.notice('066_d_notice', 'Märka: kas tegevus sai lõpuni?', [
+        'Tekstist: parandasime **katuse** **ära** · lugesime raamatud **läbi** · tegi ahju **valmis** · värvisin **seinad** ära',
+        'Lõpuni tehtud: tegusõna + ära / läbi / valmis + täissihitis: kapp → kapi, tuba → toa, seinad (mitmus) → seinad',
+        'Pooleli (protsess): Ma lugesin raamatut. → Lõpuni: Ma lugesin raamatu läbi.',
+        'Eitus + osastav: Me **ei teinud** sauna valmis. Ma ei lugenud raamatut läbi. · valmis ei muutu: mitte „valmisid”',
+        'Vene keeles näitab lõppu tegusõna (читал → прочитал) — eesti keeles ära / läbi / valmis ja täissihitis.',
+      ], 'full'), 3, 20),
+      tag(purpose(why(B.transformation('066_p_done', 'Kas sai valmis?', 'Tegevus sai lõpuni. Kirjuta lause uuesti ära, läbi või valmis abil.', [
+        ['Eile õhtul lugesin uue pesumasina juhendit.', 'nüüd on juhend loetud', 'Eile õhtul lugesin uue pesumasina juhendi läbi.|Eile õhtul lugesin pesumasina juhendi läbi.'],
+        ['Laupäeval värvis isa köögi seinu.', 'nüüd on seinad värvitud', 'Laupäeval värvis isa köögi seinad ära.|Laupäeval värvis isa köögi seinad valmis.'],
+        ['Naaber ehitas kogu nädala uut kappi.', 'nüüd on kapp valmis', 'Naaber ehitas kogu nädala uue kapi valmis.|Naaber ehitas uue kapi valmis.|Naaber tegi uue kapi valmis.'],
+        ['Suvel parandasime vana maja katust.', 'nüüd on katus korras', 'Suvel parandasime vana maja katuse ära.|Suvel parandasime vana maja katuse valmis.'],
+        ['Sünnipäeval sõid lapsed suurt kooki.', 'kooki ei ole enam', 'Sünnipäeval sõid lapsed suure koogi ära.'],
+        ['Pühapäeva hommikul koristasin oma tuba.', 'nüüd on tuba puhas', 'Pühapäeva hommikul koristasin oma toa ära.'],
+        ['Õhtul kirjutas õpilane eesti keele kirjandit.', 'nüüd on kirjand valmis', 'Õhtul kirjutas õpilane eesti keele kirjandi valmis.|Õhtul kirjutas õpilane eesti keele kirjandi ära.'],
+        ['Augustis tegime vannitoa remondi valmis.', 'eitus: remont on veel pooleli', 'Augustis me ei teinud vannitoa remonti valmis.|Augustis ei teinud me vannitoa remonti valmis.|Me ei teinud augustis vannitoa remonti valmis.'],
+      ]), [
+        'loetud lõpuni → läbi + täissihitis: juhendi.',
+        'värvitud → ära + mitmuse täissihitis: seinad.',
+        'valmis → valmis + täissihitis: kapi.',
+        'korras → ära + täissihitis: katuse.',
+        'sõid kõik → ära + täissihitis: koogi.',
+        'puhas → ära + täissihitis: toa.',
+        'valmis → valmis + täissihitis: kirjandi.',
+        'eitus → osastav: remonti.',
+      ]), 'Kaheksa lauset näitavad, kas reegel on käes.'), { task: 'G05' }),
+      teach(pron(B.tip('066_p_pron', 'Hääldusnurk: välted (5 min)', [
+        'Kuula õpetajat, ütle, kumba kuulsid, ja korda. Pikkus näitab, kas töö sai valmis:',
+        'Naaber ehitas kapi valmis. – Naaber ehitas kappi.',
+        'Lapsed sõid koogi ära. – Lapsed sõid kooki.',
+        'Ma lugesin raamatu läbi. – Ma lugesin raamatut.',
+        'sada – saada – saaada (kolm pikkust)',
+        'Ütle koos õpetajaga: „Ta tuli kolmeks päevaks, tegi ahju valmis ja sõi iga päev terve koogi ära.”',
+      ], 'full'), 'välted'),
+      'Hääldusnurk (≈ 5 min). Loe iga paar aeglaselt: kapi – kappi, koogi – kooki (teine ja kolmas välde). Õpilane ütleb, kumba kuulis, ja kordab. Rida 4: sada – saada – saaada (kolm väldet). Viimane rida: varjutamine — loe lause, õpilane ütleb samal ajal sinuga (ilma pausita), siis üksi. Märgi üks sõna, kus pikkus oli vale; see läheb kodutöösse.'),
+      tag(purpose(rows(B.writing('066_p_sent', 'Kirjuta terved laused.', 'Kirjuta 6–8 lauset oma kodust või tööst: mis sai valmis, mis jäi pooleli ja miks.', [6, 8]), 26), 'Need laused aitavad sul hiljem lugu kirjutada.'), { task: 'G05' }),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(rows(B.writing('066_t_tale', 'Lugu piltide järgi: „Rõdu ühe nädalavahetusega”', 'Vaata pilte. Kirjuta 80–100 sõna: mis juhtus, mis jäi pooleli, kuidas kõik valmis sai.', [10, 12], ['Reede õhtul', 'Kõigepealt', 'Äkki', 'Lõpuks sai … valmis'], 0), 12),
+        ['Reede õhtul otsustasime …', 'Kõigepealt … , aga äkki …', 'Lõpuks sai … valmis, sest …'], 'lisa üks lause enneminevikus: selleks ajaks oli … juba …', 'narrative'), 'Sinu lugu ilmub maja kodulehe rubriigis.'), { task: 'W06', main: true, level: 4 }),
+      'Põhiülesanne (Harno B1 kirjutamise 2a moodi, jutt piltide järgi, ≈ 15 min). Pildid: reede 18.00 vana rõdu ja plaan; laupäev 9.00 pood (värv, plaadid); laupäev 14.00 vihm — töö jääb pooleli; pühapäev 8.00 naaber toob telgi ja aitab; pühapäev 17.00 rõdu valmis, värv kuivab; pühapäev 19.00 tee rõdul. Edukriteeriumid (sama mis enesekontrollis): 1) algus, keskpaik ja lõpp; 2) vähemalt kolm lõpetatud tegevust (ära / läbi / valmis + täissihitis); 3) üks asi, mis jäi pooleli, ja põhjus. Abikaart: lausealgused on ülesande juures sõnadena; märgi, kas õpilane neid kasutas. Lisaväljakutse tugevale: üks lause enneminevikus. Pärast kirjutamist joonid alla ÜHE lause, mida tuleb parandada (vorm või lõpetatus) — see on väljumise ülesanne.'), 4, 22, { final: 'explain' }),
+      teach(exitCheck(tag(purpose(rows(B.writing('066_t_exit', 'Väljumine: üks parem lause', 'Õpetaja joonis su loos ühe lause alla. Kirjuta see parandatult uuesti.', [1, 2]), 5), 'Näitad, et oskad oma lauset ise parandada.'), { task: 'G06', level: 3 })),
+      'Väljumine (v6, ≈ 3 min): üks rida tootest, ümber kirjutatud tagasiside järgi. Õnnestunud, kui parandatud lauses on lõpetatus õige (tegusõna + ära / läbi / valmis + täissihitis või eitus + osastav) ja lause on loos loogiline. Kui lause on juba õige, palu tal lisada üks lause, mis jäi pooleli.'),
+      selfCheck('066_t_self', ['Minu loos on algus, keskpaik ja lõpp.', 'Ma näitan, mis sai valmis: ära, läbi, valmis + täissihitis.', 'Ma ütlen, mis jäi pooleli ja miks.'], 'Lugu valmis'),
+      teach(tag(homeTask(purpose(B.speaking('066_t_rec', 'Teine katse: jutusta oma lugu', 'Tunnis paaris, kodus salvesta 1–2 minutit: jutusta oma lugu ilma tekstita.', [
+        'Mis juhtus ja millal?',
+        'Mis jäi pooleli ja miks?',
+        'Kuidas kõik lõpuks valmis sai?',
+      ], [120, 180]), 'Nüüd jutustad loo suuliselt ja ilma tekstita.')), { task: 'S15', fluency: true }),
+      'Tunnis: paariline kuulab ja küsib ühe küsimuse, millele loos vastust ei olnud. Üks-ühele: sina oled kuulaja. Ära paranda kõne ajal; märgi üks lõpetatuse vorm, mille õpilane pärast ise parandab. Kodus salvestab õpilane sama loo ilma tekstita.'),
+      homeTask(B.phrasebank('066_t_homework', [['Kodutöö', ['1. Kirjuta lugu õpetaja märkuste järgi puhtalt (80–100 sõna).', '2. Salvesta oma teine katse (ülesanne üleval).', '3. Harjuta → moodul 14: sõnad ja vormid (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 067 game: experiences (täisminevik vs lihtminevik)
+  'a2b1-067': lesson('a2b1-067', {
+    title: 'Kas sa oled kunagi …?',
+    phases: grammar('Keel: olen käinud · ei ole kunagi proovinud · 2019. aastal käisin · Kas sa oled kunagi … ?'),
+    format: 'game',
+    topic: 'freetime',
+    canDo: 'Ma küsin ja räägin kogemustest täisminevikus (olen käinud, ei ole kunagi proovinud), ütlen lihtminevikus, millal see oli, ja teen väikese küsitluse.',
+    teacherPage: {
+      goal: 'Ученик спрашивает и рассказывает об опыте в täisminevik (olen käinud, ei ole kunagi proovinud), называет время в lihtminevik (2019. aastal käisin) и проводит мини-опрос.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → подкаст «Esimest korda» (2 раза, 9 утверждений õige / vale = Harno L4), в паре 6 строк «опыт или точное время» → пункт 4: опрос по картинке «Kas sa oled kunagi …?», пара решает, что попробовать; выход — 30 секунд о себе. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mis sai sinu kodus viimati valmis ja mis jäi pooleli?» (урок 66) и «Milline ilm oli eelmisel talvel kõige halvem?» (урок 56). Без записей, 2–3 предложения каждый; сначала отвечаете вы.',
+      plan: [
+        '0–8: пункт 1 — два вопроса повторения (урок 66 и урок 56) в паре без записей',
+        '8–23: пункт 2 — слова (три старых: proovima, soovitama, tegelikult), стратегия «прочитай утверждения и угадай» → подкаст 2 раза (≈ 2,5 мин), 9 õige / vale; в паре таблица «опыт или точное время» (6 строк)',
+        '23–45: пункт 3 — заметить → правило (olen + -nud; ei ole kunagi + -nud; kindel aeg → lihtminevik; L1) → 8 пропусков с начальной формой → Hääldusnurk õ / ä / ö / ü 5 мин → 6 своих вопросов для опроса',
+        '45–70: пункт 4 — опрос по картинке: 6 своих вопросов + «Millal? Kuidas oli?», доклад результатов, решение «что мы попробуем»; выход — 30 секунд',
+        '70–75: самооценка 0–1–2, домашнее задание (задание-ссылка: передача на Jupiter → «Minu eesti keele võrgustik», голосовое 1 мин, Harjuta → moodul 14)',
+        'Kui aega jääb (10 мин, только в плане учителя): «Kaks tõtt ja üks vale» — ученик говорит три опыта, учитель угадывает ложный',
+        '75–90: запас',
+      ],
+      sources: 'Подкаст (пункт 2) и картинка — учебные, люди выдуманы; проверять не нужно (владелец 2026-11-25). Домашнее задание — настоящий портал ERR Jupiter (https://jupiter.err.ee).',
+      groups: 'Пункт 4 в паре: каждый задаёт свои 6 вопросов, потом оба докладывают. Один на один вы — человек, которого опрашивают; ваши ответы — смесь «olen …» и «ei ole kunagi …», на «Millal?» называйте год.',
+      errors: [
+        '«Ma olen käinud Hiiumaal 2019. aastal» — с точным временем lihtminevik: «2019. aastal käisin Hiiumaal».',
+        '«Ma ei olnud kunagi proovinud» вместо «Ma ei ole kunagi proovinud» (опыт до сегодняшнего дня).',
+        '«Kas sa oled kunagi käis?» вместо «Kas sa oled kunagi käinud?» (olema + -nud).',
+        '«Ma olen ei käinud» вместо «Ma ei ole käinud».',
+      ],
+      notes: [
+        'Опрос — продукт урока: 6 своих вопросов с «Kas sa oled kunagi …?», два уточнения «Millal? Kuidas oli?», доклад «Mõlemad oleme …, aga ainult mina …» и одно решение.',
+        'Abikaart и Lisaväljakutse видны в рамке задания; сильному ученику — опросить дома ещё двух людей и сравнить. Обратная связь, 1 цель: täisminevik vs lihtminevik по признаку «есть ли точное время».',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('067_d_gen', 'Mida sa mäletad?', 'Vasta paarilisele 2–3 lausega ilma märkmeteta. Siis vahetage.', [
+        'Mis sai sinu kodus või tööl viimati valmis ja mis jäi pooleli, sest aega või raha ei olnud?',
+        'Milline ilm oli eelmisel talvel kõige halvem ja mida sa sel päeval tegid?',
+      ], [120, 180]), 'Tuletad meelde eelmiste tundide sõnu ja vorme.'), { task: 'S01', fluency: true }),
+      'Kordamine kahest kaugusest (tund 66 ja tund 56), ilma lehte vaatamata. Üks-ühele: vasta kõigepealt ise (2–3 lauset), siis õpilane; ära paranda, märgi üks vorm (tegi … valmis, ei teinud … valmis).'), 1, 8),
+      review(tag(B.vocab('067_d_vocab', 'Tunni sõnad.', ['kogemus — опыт', 'kunagi — когда-нибудь / никогда (с отрицанием)', 'esimest korda — впервые', 'julge — смелый', 'kartma — бояться', 'langevari — парашют', 'hüppama — прыгать', 'virmalised — северное сияние', 'talisuplus — зимнее купание', 'laval — на сцене', 'pärast seda — после этого', 'sellest ajast — с тех пор'], '2'), { topic: ['langevari', 'virmalised', 'talisuplus'] }), ['proovima', 'soovitama', 'tegelikult']),
+      station(tag(purpose(why(ownText(twice(B.examListen('067_d_pod', 'Eksaminurk: saade „Esimest korda” (Harno B1 kuulamine 4)', 'Loe enne väited läbi ja arva. Kuula kaks korda: kas väide on õige või vale?', 'truefalse', [
+        'Saatejuht: Tere tulemast saatesse „Esimest korda”! Täna räägime asjadest, mida inimesed on elus esimest korda teinud. Stuudios on Liina ja Aivar. Liina, mida sa oled teinud, mida paljud ei ole teinud?',
+        'Liina: Ma olen hüpanud langevarjuga. Ausalt öeldes ma kartsin väga. See oli kolm aastat tagasi, kui ma sain neljakümneaastaseks. Sõbrad kinkisid mulle hüppe ja ma ei saanud enam ära öelda.',
+        'Saatejuht: Ja kuidas oli?',
+        'Liina: Esimesi sekundeid ma ei mäletagi. Siis avanes langevari ja kõik oli vaikne ja ilus. Pärast seda olen hüpanud veel kaks korda.',
+        'Saatejuht: Kas sa olid enne seda midagi sarnast proovinud?',
+        'Liina: Ei, kunagi. Ma olin ainult paar korda lennukiga lennanud. Aga nüüd ma tean, et hirm ei ole põhjus, miks mitte proovida.',
+        'Saatejuht: Aivar, kas sina oled kunagi midagi nii julget teinud?',
+        'Aivar: Ei, langevarjuga ma ei ole kunagi hüpanud. Aga ma olen elanud pool aastat ilma telefonita. See oli 2022. aastal, kui ma töötasin ühes talus Lõuna-Eestis.',
+        'Saatejuht: Pool aastat! Mis oli kõige raskem?',
+        'Aivar: Esimesel nädalal võtsin ma kogu aeg taskust telefoni, mida seal ei olnud. Aga teisel kuul hakkasin rohkem lugema ja magasin palju paremini. Sellest ajast saadik olen ma lugenud igal õhtul vähemalt pool tundi.',
+        'Saatejuht: Kas sul ei olnud igav?',
+        'Aivar: Alguses oli küll. Õhtuti ei olnud midagi teha. Siis õppisin naabrilt leiba küpsetama. Seda olen ma pärast teinud peaaegu igal nädalal.',
+        'Saatejuht: Mida te kuulajatele soovitate?',
+        'Liina: Langevarju küll. Aga kõigepealt tasub proovida midagi väiksemat, näiteks talisuplust.',
+        'Aivar: Mina soovitan proovida üks nädal ilma telefonita. Üks nädal ei ole palju, aga sa näed, kui palju aega sul tegelikult on.',
+        'Saatejuht: Ja mida te ei ole veel teinud, aga tahaksite proovida?',
+        'Liina: Ma ei ole kunagi virmalisi näinud. See on minu järgmine plaan.',
+        'Aivar: Mina ei ole kunagi laval laulnud. Võib-olla järgmisel aastal julgen.',
+      ], [
+        ['Liina hüppas langevarjuga esimest korda siis, kui ta sai neljakümneaastaseks.', true],
+        ['Liina ostis endale langevarjuhüppe ise, sest sõbrad ei uskunud teda.', false],
+        ['Liina on hüpanud langevarjuga elus kokku kolm korda.', true],
+        ['Aivar on kord langevarjuga hüpanud, aga see ei meeldinud talle.', false],
+        ['Aivar elas Lõuna-Eesti talus kuus kuud ilma telefonita.', true],
+        ['Sellest ajast saadik loeb Aivar igal õhtul vähemalt pool tundi.', true],
+        ['Liina soovitab kuulajatel alustada millestki väiksemast kui langevari.', true],
+        ['Aivar on juba laval laulnud ja tahab seda uuesti teha.', false],
+      ]))), [
+        'Liina: „See oli kolm aastat tagasi, kui ma sain neljakümneaastaseks.”',
+        'Liina: „Sõbrad kinkisid mulle hüppe.”',
+        'Liina: üks hüpe + „Pärast seda olen hüpanud veel kaks korda.”',
+        'Aivar: „langevarjuga ma ei ole kunagi hüpanud”.',
+        'Aivar: „ma olen elanud pool aastat ilma telefonita” — pool aastat = kuus kuud.',
+        'Aivar: „olen ma lugenud igal õhtul vähemalt pool tundi”.',
+        'Liina: „kõigepealt tasub proovida midagi väiksemat”.',
+        'Aivar: „Mina ei ole kunagi laval laulnud.”',
+      ]), 'Kuuled, kuidas inimesed oma kogemustest räägivad.'), { harno: 'L4', task: 'L05', voice: 'interview' }), 2, 15),
+      teach(tag(purpose(B.table('067_d_rule', 'Paaris: kogemus või kindel aeg?', 'Kirjutage saatest igasse ritta terve lause. Kas see on kogemus (olen …) või kindel aeg?', 'Kes ja mis?, Terve lause saatest', [
+        'Mida on Liina teinud, mida paljud ei ole teinud? | ',
+        'Millal hüppas Liina esimest korda ja miks just siis? | ',
+        'Mida ei ole Aivar kunagi teinud ega tahagi teha? | ',
+        'Kus ja mis aastal elas Aivar ilma telefonita? | ',
+        'Mida on Aivar sellest ajast saadik igal õhtul teinud? | ',
+        'Mida ei ole Liina veel kunagi näinud, aga tahab näha? | ',
+        'Mida soovitab Liina proovida enne langevarju? | ',
+        'Mida on Aivar talus õppinud ja pärast seda teinud? | ',
+        'Mida tahab Aivar järgmisel aastal julgeda? | ',
+      ], 'g_read'), 'Need laused näitavad, millal kasutad täisminevikku.'), { task: 'G02' }),
+      'Paarid kirjutavad pärast teist kuulamist 6 minutit. Kontrolli: kogemus ilma kindla ajata → olen hüpanud, ei ole kunagi hüpanud, olen lugenud; kindel aeg → kolm aastat tagasi hüppas, 2022. aastal elas / töötas. Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Millal?” — kui vastus on aasta, peab lause olema lihtminevikus.'),
+      teach(tag(purpose(withInstruction(B.examiner('067_d_exam', 'kogemused ja vaba aeg', [
+        'Mida sa oled oma elus esimest korda teinud viimase aasta jooksul?',
+        'Kas sa oled kunagi teinud midagi, mida sa väga kartsid? Miks sa seda tegid?',
+        'Mis sa arvad: kas inimene peaks igal aastal proovima midagi uut?',
+        'Mida sa ei ole veel kunagi teinud, aga tahaksid proovida? Miks?',
+        'Kas sinu kodumaal ja Eestis veedetakse vaba aega samamoodi? Mis on teisiti?',
+        'Mis sa arvad: kumb on parem, kas reis üksi või reis koos sõpradega?',
+        'Milline kogemus on sind kõige rohkem muutnud? Miks?',
+        'Mida sa soovitaksid proovida inimesele, kes on just Eestisse kolinud?',
+      ], 'B1', [120, 180]), 'Küsige paaris kordamööda. Vasta igale küsimusele 2–4 lausega ja põhjenda.'), 'Räägid laiemalt oma kogemustest ja vabast ajast.'), { task: 'S02', fluency: true }),
+      'Eksamineerija küsimused (Harno B1 rääkimine 1a moodi, ≈ 8 min). Paaris küsivad kordamööda, kuulaja küsib vähemalt korra „Miks?”. Kontrolli, et kogemus on täisminevikus (olen proovinud) ja kindel aeg lihtminevikus (eelmisel suvel proovisin) ning vastuses on põhjus. Üks-ühele: sina oled eksamineerija ja küsid kõik kuus küsimust; ütle vahel vastupidise arvamuse.'),
+    ],
+    practice: [
+      station(B.notice('067_d_notice', 'Märka: kogemus või kindel aeg?', [
+        'Saatest: Ma **olen hüpanud** langevarjuga. · Ma **ei ole** kunagi virmalisi **näinud**. · 2022. aastal **töötasin** ma talus.',
+        'Kogemus (kunagi, juba, mitu korda, sellest ajast): olema + **-nud**: olen käinud, oled proovinud, on elanud',
+        'Eitus: **ei ole** + -nud: Ma ei ole kunagi laulnud. (mitte: ma olen ei …)',
+        'Kindel aeg (eile, 2022. aastal, kolm aastat tagasi): lihtminevik: käisin, **elasin**, hüppas',
+        'Vene keeles on üks minevik („я был”) — eesti keeles kogemus: olen käinud, kindel aeg: käisin.',
+      ], 'full'), 3, 22),
+      tag(purpose(why(B.gaps('067_p_forms', 'Kogemus või kindel aeg?', 'Kirjuta sulgudes olev sõna õiges vormis: täisminevik või lihtminevik.', [
+        'Ma [olen käinud] Hiiumaal juba kaks korda. (käima)',
+        'Esimest korda [käisin] seal 2019. aastal. (käima)',
+        'Kas sa [oled] kunagi talisuplust proovinud? (olema)',
+        'Ei, ma [ei ole] seda kunagi teinud. (olema)',
+        'Minu vend [on hüpanud] langevarjuga ainult üks kord. (hüppama)',
+        'See oli 2015. aastal, kui ta [elas] Soomes. (elama)',
+        'Me [oleme näinud] virmalisi mitu korda. (nägema)',
+        'Eile õhtul [nägime] neid jälle. (nägema)',
+      ], '', 'full', 'g_notice'), [
+        'juba kaks korda → kogemus: olen käinud.',
+        '2019. aastal → kindel aeg: käisin.',
+        'kunagi → kogemus: oled … proovinud.',
+        'eitus: ei ole … teinud.',
+        'üks kord, aega ei ole → on hüpanud.',
+        '2015. aastal → kindel aeg: elas.',
+        'mitu korda → kogemus: oleme näinud.',
+        'eile → kindel aeg: nägime.',
+      ]), 'Kaheksa lauset näitavad, kas valid õige mineviku.'), { task: 'G03' }),
+      teach(pron(B.tip('067_p_pron', 'Hääldusnurk: õ, ä, ö, ü (5 min)', [
+        'Kuula paari, ütle, kumba kuulsid, ja korda mõlemat. Üks täht muudab tähendust:',
+        'tuli – tüli · muts – müts · kera – kära · korts – kõrts',
+        'Ütle koos salvestusega: „Ma ei ole kunagi virmalisi näinud.”',
+      ], 'full'), 'vokaalid'),
+      'Hääldusnurk (≈ 5 min). Loe paar, õpilane ütleb, kumba sõna kuulis (1 või 2), siis kordab mõlemat; tähendused: tuli (огонь / пришёл) – tüli (ссора), muts – müts (шапка), kera (шар) – kära (шум), korts (морщина) – kõrts (корчма). Viimane rida: varjutamine — mängi saatest Liina lause ja õpilane ütleb samal ajal. Märgi üks täht, mis jäi valeks; see läheb kodutöösse.'),
+      tag(purpose(rows(B.writing('067_p_quest', 'Minu küsitlus.', 'Kirjuta kuus küsimust „Kas sa oled kunagi …?”. Kirjuta iga juurde oma vastus: olen … või ei ole kunagi …', [8, 10]), 7), 'Need küsimused kasutad kohe oma küsitluses.'), { task: 'W01' }),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(B.speaking('067_t_survey', 'Küsitlus: kas sa oled kunagi …?', 'Vaata pilti. Küsi paariliselt oma kuut küsimust ja „Millal? Kuidas oli?”. Siis räägi tulemustest.', [
+        'Mida paariline on teinud, mida sina ei ole?',
+        'Mida te mõlemad ei ole kunagi teinud?',
+        'Millal ja kuidas see oli?',
+        'Mida te koos järgmisena prooviksite? Otsustage.',
+      ], [120, 180]), ['Kas sa oled kunagi … ? Millal see oli?', 'Mina olen …, aga ma ei ole kunagi …', 'Mõlemad oleme … , aga ainult tema on …'], 'küsi kodus veel kahelt inimeselt ja võrdle tulemusi.', 'survey'), 'Saad teada, mida teised on elus proovinud.'), { task: 'S09', main: true, level: 4 }),
+      'Küsitlus (≈ 20 min). Paaris: igaüks küsib oma kuut küsimust, märgib vastused (jah / ei, millal), siis räägivad kordamööda 1–2 minutit tulemustest ja otsustavad koos ühe asja, mida järgmisena proovida. Edukriteeriumid: 1) küsimused täisminevikus (Kas sa oled kunagi …?); 2) millal-vastus lihtminevikus (2019. aastal käisin); 3) tulemuse kokkuvõte ja üks otsus. Abikaart ja lisaväljakutse on ülesande raamis; märgi, kas õpilane kasutas abikaarti. Üks-ühele: õpilane küsib sind; sinu vastused: olen hüpanud langevarjuga (2018), ei ole kunagi talisuplust proovinud, olen laulnud laval (kooli ajal), ei ole virmalisi näinud, olen elanud välismaal (2010–2012), ei ole kunagi kala püüdnud. Ära paranda kõne ajal, märgi üks vorm.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.speaking('067_t_again', 'Teine katse: ilma abikaardita', 'Räägi 2–3 minutit ilma lehte vaatamata: mida sa küsitlusest teada said ja mida te otsustasite?', [
+        'Mida te mõlemad olete teinud?',
+        'Mida ainult üks teist on teinud? Millal?',
+        'Mida te järgmisena proovite ja miks?',
+      ], [120, 180]), 'Nüüd räägid tulemustest ilma igasuguse toeta.'), { task: 'S13', fluency: true }),
+      'Teine katse (v5 kordus muutusega): leht kinni, ilma abikaardita. Üks-ühele: küsi vahele „Millal see oli?” ja „Kuidas sa end tundsid?”. Märgi üks vorm, mille õpilane pärast ise parandab (olen …-nud / …-sin).'),
+      teach(exitCheck(tag(purpose(B.speaking('067_t_exit', 'Väljumine: 30 sekundit', 'Ütle 30 sekundiga: mida sa oled elus teinud, mida mitte ja millal see oli.', ['Mida sa oled teinud ja millal?', 'Mida sa ei ole kunagi teinud?'], [20, 40]), 'Näitad, et oskad oma kogemusest lühidalt rääkida.'), { task: 'S02', level: 3 })),
+      'Väljumine (v6, 30 s, ilma abikaardita). Õnnestunud, kui on vähemalt üks täisminevik (olen …-nud), üks eitus (ei ole kunagi …-nud) ja üks kindel aeg lihtminevikus (… aastal käisin).'),
+      selfCheck('067_t_self', ['Ma küsin: Kas sa oled kunagi …?', 'Ma räägin kogemusest täisminevikus ja ütlen lihtminevikus, millal see oli.', 'Ma võtan küsitluse tulemused kokku.'], 'Küsitlus tehtud'),
+      teach(tag(homeTask(purpose(networkLog(B.examWriting('067_t_home', 'Minu eesti keele võrgustik', 'Kuula ERR Jupiterist (https://jupiter.err.ee) saadet kellegi kogemusest. Kirjuta kolm rida, lisa häälsõnum (1 min). Harjuta → moodul 14.', 'vastus', {
+        points: ['Mis saade see oli ja millest see räägib?', 'Üks uus sõna saatest.', 'Üks lause: mida see inimene on teinud?'],
+        words: [20, 40],
+      }), 'ERR Jupiter (päris saade)'), 'Leiad eesti keeles päris saate, mida kuulata.')), { task: 'W08' }),
+      'Seosülesanne ja meediapäevik (v6 §2 k). Õpilane avab lehe ise (ERR Jupiter on tasuta); kui ta ei leia, soovita rubriiki „Raadio” ja otsingusõna „esimest korda” või „minu lugu”. Järgmise tunni alguses räägib ta 1 minuti, mida kuulis. Harjuta: tunni sõnad ja kaheksa lause vorm (olen käinud / käisin).'),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 068 infogap: two life stories (the three pasts, jigsaw)
+  'a2b1-068': lesson('a2b1-068', {
+    title: 'Kaks elu, üks ajajoon',
+    phases: grammar('Keel: 2015. aastal kolis ta Tartusse · Selleks ajaks oli ta juba töötanud · Ta on Tartus elanud kümme aastat'),
+    format: 'infogap',
+    topic: 'family',
+    canDo: 'Ma jutustan ühe inimese elust ajajoone järgi (liht-, täis- ja enneminevik, tegusõna pärast ajasõna teisel kohal) ja võrdlen paarilisega kaht elu.',
+    teacherPage: {
+      goal: 'Ученик рассказывает о жизни человека по шкале времени (три прошедших времени, глагол на втором месте после «2015. aastal») и сравнивает две жизни с партнёром (jigsaw).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → текст A (Leida) или B (Andrei), 4 вопроса к своему тексту, своя шкала времени (6 строк) → пункт 4: jigsaw — рассказ без текста, партнёр заполняет общую шкалу, вместе 3 сходства; у учителя скрытая информация; выход — 30 секунд. Пункт 3 (правило, Eksaminurk R3b, Hääldusnurk) — дома в «Harjuta».',
+      hook: '«Kas sul on telefonis vana foto oma perest? Kes on pildil ja mis aastal see oli?» Затем без записей: «Mida paariline on elus proovinud, mida sina mitte?» (урок 67) и «Mida sa viimati tellisid või tagastasid?» (урок 53). Сначала отвечаете вы.',
+      plan: [
+        '0–6: пункт 1 — старое фото и два вопроса повторения (уроки 67 и 53)',
+        '6–26: пункт 2 — слова (три старых: töökoda, muutuma, selguma), стратегия «найди сначала годы», A читает текст A, B — текст B (≈ 130 слов каждый), по 4 вопроса; своя шкала времени 6 строк полными предложениями',
+        '26–46: пункт 3 — заметить → правило (lihtminevik / täisminevik / enneminevik; ajasõna + tegusõna teisel kohal; L1) → Eksaminurk R3b: письмо с банком слов, 8 пропусков → Hääldusnurk: варьирование (повторить фразу вместе) 5 мин → 6–8 предложений о своей жизни',
+        '46–70: пункт 4 — jigsaw: A рассказывает о Leida, B об Andrei без текста (по 2 мин), слушатель заполняет общую шкалу, вместе 3 сходства и 1 различие; у учителя скрытая информация; выход — 30 секунд',
+        '70–75: самооценка 0–1–2, домашнее задание (жизнь члена семьи 80–100 слов + голосовое 1 мин, Harjuta → moodul 14)',
+        'Kui aega jääb (10 мин, только в плане учителя): «Minu elu kolm pöördepunkti» — ученик рассказывает три года своей жизни',
+        '75–90: запас',
+      ],
+      sources: 'Два текста (Leida и Andrei), письмо внучки (R3b) и картинка «Kaks elu, üks Eesti» — учебные, люди выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 2 и 4 — настоящий jigsaw: A читает только текст A, B только текст B, потом каждый рассказывает своё. Один на один: ученик читает текст A, вы — B со своей карточкой (скрытая информация, см. заметку у карточки).',
+      errors: [
+        '«2015. aastal ta kolis Tartusse» вместо «2015. aastal kolis ta Tartusse» (глагол на втором месте).',
+        '«Ta elas Tartus juba kümme aastat» о том, что продолжается сегодня: «Ta on Tartus elanud kümme aastat».',
+        '«Selleks ajaks ta töötas juba» вместо «Selleks ajaks oli ta juba töötanud» (раньше другого события — enneminevik).',
+        '«Ta sündis Pihkvas aastal 1985» — допустимо, но в рассказе естественнее «Ta sündis 1985. aastal Pihkvas».',
+      ],
+      notes: [
+        'Jigsaw — продукт урока: рассказ о своём человеке 1,5–2 минуты без текста (5–6 лет на шкале, три прошедших времени), вопросы партнёра «Millal? Miks?», общая шкала, 3 сходства.',
+        'Abikaart и Lisaväljakutse — последние строки карточек A и B. Обратная связь, 1 цель: глагол после «… aastal / pärast seda / siis» на втором месте.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('068_d_photo', 'Üks vana foto', 'Näita või kirjelda üht vana pere fotot. Siis vasta paarilisele ilma märkmeteta.', [
+        'Kes on pildil ja mis aastal see oli?',
+        'Mida paariline on elus proovinud, mida sina mitte?',
+        'Mida sa viimati tellisid või tagastasid? Miks?',
+      ], [120, 180]), 'Tuletad meelde eelmiste tundide sõnu ja vorme.'), { task: 'S06', fluency: true }),
+      'Fotost ja kahest kordamisküsimusest (tund 67 ja tund 53), ilma lehte vaatamata. Üks-ühele: näita kõigepealt oma vana fotot (2–3 lauset: „See on 1990. aastal …”), siis õpilane. Ära paranda.'), 1, 6),
+      review(B.vocab('068_d_vocab', 'Tunni sõnad.', ['sündima — родиться', 'kasvama — расти', 'kolima — переезжать', 'abielluma — жениться / выйти замуж', 'lõpetama — заканчивать', 'pensionile jääma — уйти на пенсию', 'õmblema — шить', 'palk — зарплата', 'selleks ajaks — к тому времени', 'hiljem — позже', 'pärast seda — после этого', 'üle — больше (üle kümne aasta)'], '2'), ['töökoda', 'muutuma', 'selguma']),
+      station(teach(tag(purpose(why(ownText(B.reading('068_d_lives', 'Kaks elulugu.', 'Otsi kõigepealt aastaarvud. A loeb teksti A, B teksti B ja vastab oma neljale küsimusele (1–5 sõna).', 'Kaks elu, üks Eesti', [
+        '**Tekst A. Leida (sündinud 1952)**',
+        'Leida sündis 1952. aastal Hiiumaal kalurite peres. Kui ta oli kuueteistaastane, kolis ta Tallinnasse, sest ta tahtis õppida. Selleks ajaks oli ta juba kaks aastat kalatehases töötanud. Tallinnas lõpetas ta meditsiinikooli ja hakkas tööle haiglas. 1975. aastal abiellus ta ja kaks aastat hiljem sündis tütar. Kõige raskem aeg oli 1990. aastate algus, kui elu kiiresti muutus: haiglas ei makstud mitu kuud palka. Siis hakkas Leida õhtuti kodus õmblema. Nüüd elab ta jälle Hiiumaal. Ta on juba kümme aastat kirjutanud raamatut oma lapsepõlvest, aga raamat ei ole veel valmis.',
+        '',
+        '**Tekst B. Andrei (sündinud 1985)**',
+        'Andrei sündis 1985. aastal Pihkvas. Kui ta kooli lõpetas, oli tema pere juba Narva kolinud. Andrei õppis Narvas automehaanikuks ja töötas kümme aastat töökojas. Eesti keelt ta ei osanud, sest kõik töökaaslased rääkisid vene keelt. 2015. aastal kolis ta Tartusse ja avas oma töökoja. Esimesed kaks aastat olid rasked: kliente oli vähe. Hiljem selgus, et paljud tahtsid rääkida eesti keeles. Siis hakkas Andrei õhtuti keelekursusel käima. Nüüd on ta Tartus elanud üle kümne aasta ja tema töökojas töötab neli inimest. Ta ütleb: „Ma olen siin palju õppinud, aga kõige rohkem keelt.”',
+      ], [
+        ['A: Miks kolis Leida kuueteistaastaselt Tallinnasse?', 'ta tahtis õppida|tahtis õppida'],
+        ['A: Mida oli Leida enne Tallinnasse kolimist teinud?', 'töötanud kalatehases|kalatehases töötanud|töötas kalatehases'],
+        ['A: Mida tegi Leida, kui haiglas palka ei makstud?', 'hakkas õhtuti õmblema|õmbles õhtuti kodus|õmbles'],
+        ['A: Mis on Leidal veel pooleli?', 'raamat lapsepõlvest|raamat|raamatu kirjutamine'],
+        ['B: Kus elas Andrei pere, kui ta kooli lõpetas?', 'Narvas'],
+        ['B: Miks ei õppinud Andrei alguses eesti keelt?', 'töökaaslased rääkisid vene keelt|kõik rääkisid vene keelt'],
+        ['B: Mida tegi Andrei, kui selgus, et kliendid tahavad eesti keelt?', 'hakkas keelekursusel käima|käis keelekursusel'],
+        ['B: Mida on Andrei tema enda sõnul kõige rohkem õppinud?', 'keelt|eesti keelt'],
+      ])), [
+        'Tekst A: „kolis ta Tallinnasse, sest ta tahtis õppida”.',
+        'Tekst A: „Selleks ajaks oli ta juba kaks aastat kalatehases töötanud.”',
+        'Tekst A: „Siis hakkas Leida õhtuti kodus õmblema.”',
+        'Tekst A: „raamat ei ole veel valmis”.',
+        'Tekst B: „oli tema pere juba Narva kolinud” — kooli lõpus elasid nad Narvas.',
+        'Tekst B: „sest kõik töökaaslased rääkisid vene keelt”.',
+        'Tekst B: „Siis hakkas Andrei õhtuti keelekursusel käima.”',
+        'Tekst B: „Ma olen siin palju õppinud, aga kõige rohkem keelt.”',
+      ]), 'Hiljem räägid selle inimese elust paarilisele.'), { task: 'R11', voice: 'popsci' }),
+      'Jigsaw: A loeb ainult teksti A, B ainult teksti B (paber kokku murtud), kumbki vastab oma neljale küsimusele. Üks-ühele: õpilane loeb teksti A ja vastab küsimustele A1–A4; teksti B hoiad sina (Kasuta lehel räägid sellest õpilasele). Tugevale õppijale: loe pärast ka teist teksti ja kontrolli, mida paariline unustas.'), 2, 20),
+      teach(tag(purpose(B.table('068_d_line', 'Ajajoon: minu inimene ja paarilise inimene.', 'Kirjuta oma tekstist kuus aega ja terve lausega, mis siis juhtus. Kolmas veerg täitub Kasuta lehel.', 'Millal?, Minu inimene (terve lause), Paarilise inimene (märksõnad)', [
+        ' |  | ',
+        ' |  | ',
+        ' |  | ',
+        ' |  | ',
+        ' |  | ',
+        ' |  | ',
+      ], 'g_read'), 'Selle ajajoone järgi räägid hiljem paarilisele.'), { task: 'R08' }),
+      'Igaüks kirjutab 6 minutit ainult oma teksti järgi. Kontrolli: lause algab ajaga ja tegusõna on teisel kohal (1975. aastal abiellus ta; Siis hakkas Andrei …). Üks-ühele: õpilane teeb teksti A ajajoone, sina hoiad teksti B (vt kaart Kasuta lehel).'),
+    ],
+    practice: [
+      station(B.notice('068_d_notice', 'Märka: kolm minevikku ja sõnajärg', [
+        'Lihtminevik — sündmus kindlal ajal: 1975. aastal **abiellus** ta. · Siis **hakkas** Leida õmblema.',
+        'Täisminevik — kestab tänaseni: Andrei **on** Tartus **elanud** üle kümne aasta.',
+        'Enneminevik — juba enne teist sündmust: Selleks ajaks **oli** ta kaks aastat kalatehases töötanud.',
+        'Sõnajärg: aeg lause alguses, tegusõna teisel kohal: 2015. aastal **kolis** ta Tartusse.',
+        'Vene keeles „В 2015 году он переехал” — eesti keeles tuleb tegusõna kohe pärast aega: 2015. aastal kolis ta.',
+      ], 'full'), 3, 20),
+      teach(tag(purpose(why(B.gaps('068_p_letter', 'Kiri sõbrale: vali minevik', 'Loe kirja. Kirjuta igasse lünka sobiv sõna pangast; kaks sõna jääb üle.', [
+        'Tere, Kati! Vanaisa [sündis] 1949. aastal Saaremaal.',
+        'Kui ta oli kahekümneaastane, [kolis] ta Tallinnasse.',
+        'Selleks ajaks [oli] ta juba kolm aastat laeval töötanud.',
+        'Tallinnas [hakkas] ta tööle sadamas.',
+        '1972. aastal [abiellus] ta vanaemaga.',
+        'Nad [on] koos olnud üle viiekümne aasta.',
+        'Ta on terve elu [elanud] mere lähedal.',
+        'Eelmisel suvel [käisin] tal külas ja ta rääkis mulle oma lugusid.',
+      ], ['sündis', 'kolis', 'oli', 'hakkas', 'abiellus', 'on', 'elanud', 'käisin', 'kolib', 'oleme'], 'full', 'g_notice'), [
+        '1949. aastal → lihtminevik: sündis.',
+        'Kui ta oli …, → lihtminevik, tegusõna enne „ta”: kolis.',
+        'selleks ajaks → enneminevik: oli … töötanud.',
+        'Tallinnas → tegusõna teisel kohal: hakkas.',
+        '1972. aastal → lihtminevik: abiellus.',
+        'kestab tänaseni → täisminevik: on … olnud.',
+        'terve elu kuni tänaseni → täisminevik: on … elanud.',
+        'eelmisel suvel, mina → lihtminevik: käisin.',
+      ]), 'Kaheksa lünka näitavad, kas valid õige mineviku.'), { task: 'R04' }),
+      'Kiri sõnapangaga (Harno B1 lugemise 3b moodi, ≈ 8 min). Strateegia: 1) loe kogu kiri; 2) vaata, kas lünga ees on aeg (1972. aastal → lihtminevik) või „selleks ajaks” (enneminevik) või kestab tänaseni (täisminevik); 3) kontrolli, et iga sõna on kasutatud üks kord. Üleliigsed: kolib (olevik), oleme (mitte meie).'),
+      teach(pron(B.tip('068_p_pron', 'Hääldusnurk: ütle koos (5 min)', [
+        'Kuula lauset ja ütle seda koos õpetajaga, siis üksi. Märgi sõna, mis oli raske:',
+        '„Kui ta oli kuueteistaastane, kolis ta Tallinnasse.”',
+        '„Selleks ajaks oli ta juba kaks aastat töötanud.”',
+        '„2015. aastal kolis ta Tartusse ja avas oma töökoja.”',
+        '„Ma olen siin palju õppinud, aga kõige rohkem keelt.”',
+      ], 'full'), 'varjutamine'),
+      'Hääldusnurk (≈ 5 min), varjutamine: loe lause loomulikus tempos, õpilane ütleb samal ajal; siis üksi. Jälgi kahte asja: pikad häälikud (kuueteist-, töötanud, õppinud) ja et pärast koma on lühike paus, mitte pikk. Rasked sõnad lähevad kodutöösse.'),
+      tag(purpose(rows(B.writing('068_p_sent', 'Minu elu aastad.', 'Kirjuta oma elust 6–8 lauset. Alusta igat lauset ajaga: 2010. aastal …, pärast seda …', [6, 8]), 5), 'Need laused aitavad sul hiljem elusid võrrelda.'), { task: 'G07' }),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(cards(B.phoneCards('068_t_poster', 'Kaks elu, üks ajajoon', 'Vaata pilti. A räägib Leidast, B Andreist, ilma tekstita. Kuulaja kirjutab tabeli kolmandasse veergu. Leidke kolm sarnasust.',
+        'Raamatukogu teeb näituse „Kaks elu, üks Eesti”. Teil on kaks lugu, aga plakat on üks.',
+        ['Leida (tekst A)', [
+          'Sinu inimene: Leida. Sinu tekst ja ajajoon on Avasta lehel.',
+          'Eesmärk: paariline paneb Leida elu ajajoonele.',
+          'Abi: … aastal … ta … · Kui ta oli …, … · Selleks ajaks oli ta juba …',
+          'Lisaväljakutse: leia üks asi, mis oli mõlemal raske, ja üks, mis on vastupidi.',
+        ]], ['Andrei (tekst B)', [
+          'Sinu inimene: Andrei. Sinu tekst ja ajajoon on Avasta lehel.',
+          'Eesmärk: paariline paneb Andrei elu ajajoonele.',
+          'Abi: … aastal … ta … · Pärast seda … · Nüüd on ta … elanud …',
+          'Lisaväljakutse: leia üks asi, mis oli mõlemal raske, ja üks, mis on vastupidi.',
+        ]], [180, 300])), ['… aastal kolis ta …', 'Selleks ajaks oli ta juba …', 'Mõlemad on … , aga ainult …'], 'leia üks asi, mis oli mõlemal raske, ja üks, mis on vastupidi.', 'jigsaw'), 'Teie plakat võrdleb kaht eri elu.'), { task: 'S05', harno: 'S2', main: true, level: 4 }),
+      'Eksaminurk (Harno B1 rääkimine 2, infovahetus kaartidega), jigsaw-vormis (≈ 20 min). Paaris: A räägib Leidast, B Andreist, kumbki 1,5–2 minutit ilma tekstita; kuulaja kirjutab ajajoonele ja küsib vähemalt kaks korda „Millal?” või „Miks?”. Siis leiavad nad koos kolm sarnasust (mõlemad kolisid, mõlemad õppisid täiskasvanuna, mõlemad on elanud …) ja ühe erinevuse. Varjatud info: üks-ühele oled sina B (Andrei) ja tead kahte asja, mida tekstis B ei ole: 2016. aastal sündis Tartus tema tütar; 2019. aastal käis ta esimest korda üle kahekümne aasta Pihkvas ja sai aru, et kodu on nüüd Tartu. Ütle need ainult siis, kui õpilane küsib (Kas tal on pere? Kas ta on Pihkvas käinud?). Takistused: 1) ütle aasta valesti („2005. aastal kolis ta Tartusse”) — õpilane peab kontrollima; 2) küsi „Mis oli enne seda?” — õpilane vajab enneminevikku. Edukriteeriumid: 1) vähemalt viis aega õigesti ajajoonel; 2) tegusõna pärast aega teisel kohal; 3) kolm sarnasust kolme minevikuga. Abikaart ja lisaväljakutse on kaartide viimastel ridadel.'), 4, 24, { final: 'negotiate' }),
+      teach(exitCheck(tag(purpose(B.speaking('068_t_exit', 'Väljumine: 30 sekundit', 'Ütle 30 sekundiga, mis on Leida ja Andrei elus sarnane ja mis erinev.', ['Mis on sarnane?', 'Mis on erinev?'], [20, 40]), 'Näitad, et oskad kaht elu lühidalt võrrelda.'), { task: 'S16', level: 3, fluency: true })),
+      'Väljumine (v6, 30 s, ilma kaardita). Õnnestunud, kui on kolm erinevat minevikku (kolis / on elanud / oli … kolinud) ja vähemalt üks lause algab ajaga ning tegusõna on teisel kohal.'),
+      selfCheck('068_t_self', ['Ma jutustan ühe inimese elust ajajoone järgi.', 'Ma valin õige mineviku: kolis, on elanud, oli töötanud.', 'Pärast aega panen tegusõna teisele kohale.'], 'Ajajoon valmis'),
+      teach(tag(homeTask(purpose(B.speaking('068_t_rec', 'Teine katse: üks elu minu perest', 'Küsi kodus ühelt pereliikmelt tema elust. Salvesta 2 minutit: tema elu ajajoone järgi.', [
+        'Millal ja kus ta sündis?',
+        'Mis juhtus tema elus kõige tähtsamal aastal?',
+        'Mis oli selleks ajaks juba juhtunud ja kus ta on elanud kõige kauem?',
+        'Mida ta oma elus kõige rohkem armastab ja mida ta teistele soovitab?',
+      ], [120, 180]), 'Jutustad ühe oma pereliikme elust ilma tekstita.')), { task: 'S15' }),
+      'Kodune teine katse: uus inimene, sama oskus (kolm minevikku, aeg + tegusõna). Õpilane kuulab salvestuse enne saatmist ise üle ja parandab ühe vormi. Kui pereliiget ei ole lähedal, võib ta jutustada sõbra või tuntud inimese elust.'),
+      homeTask(B.phrasebank('068_t_homework', [['Kodutöö', ['1. Kirjuta pereliikme elust 80–100 sõna: alusta lauseid ajaga (… aastal, pärast seda, selleks ajaks).', '2. Salvesta oma teine katse (ülesanne üleval).', '3. Harjuta → moodul 14: kolm minevikku (10 min).', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 069 project: a story for the story evening (connectors)
+  'a2b1-069': lesson('a2b1-069', {
+    title: 'Üks päev, mida ma ei unusta',
+    phases: grammar('Keel: Kõigepealt … · Siis läksime … · Äkki … · sest … / seepärast … · Kuigi … · Lõpuks …'),
+    format: 'project',
+    topic: 'culture',
+    canDo: 'Ma jutustan 2–3 minutit ühest päevast neljas osas (sündmus, tunne, põhjus, järeldus), seon loo sidesõnadega ja vastan kuulajate küsimustele.',
+    teacherPage: {
+      goal: 'Ученик рассказывает 2–3 минуты об одном дне в четырёх частях (событие, чувство, причина, вывод) со связками kõigepealt, siis, äkki, sest, seepärast, kuigi, lõpuks.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → запись «Lugude õhtu: Maria lugu» (2 раза, 8 пропусков = Harno L3a), в паре 5 строк «четыре части истории» → пункт 4: своя история с фото 2–3 мин, партнёр: две звезды и одно пожелание; выход — 30 секунд. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sa oled kunagi eksinud? Kus ja millal?» Без записей: «Kelle elust rääkisid eelmises tunnis?» (урок 68) и «Kuidas sa naabrilt viisakalt abi palud?» (урок 61). Сначала отвечаете вы.',
+      plan: [
+        '0–7: пункт 1 — «заблудился ли ты когда-нибудь» и два вопроса повторения (уроки 68 и 61)',
+        '7–22: пункт 2 — слова (три старых: kraad, kiirustama, vabandama), стратегия «прочитай предложения и угадай, что в пропуске» → запись 2 раза (≈ 2,5 мин), 8 пропусков по 1–2 слова; в паре 5 строк «четыре части истории»',
+        '22–42: пункт 3 — заметить → правило (связки + глагол на втором месте; sest = причина, seepärast = следствие; kuigi; L1) → 8 пропусков с банком → Hääldusnurk: интонация и паузы 5 мин → план своей истории',
+        '42–67: пункт 4 — своя история 2–3 мин с фото, два вопроса слушателя; слушатель пишет «две звезды и одно пожелание»; выход — 30 секунд о выводе',
+        '67–72: самооценка 0–1–2, домашнее задание (история 80–100 слов + голосовое, одна исправленная ошибка в «Minu vead», Harjuta → moodul 14)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает ту же историю с конца — с вывода',
+        '72–90: запас',
+      ],
+      sources: 'Запись «Lugude õhtu» (пункт 2), упражнение со связками и картинка «Loo neli osa» — учебные, люди выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4 в паре: A рассказывает, B задаёт два вопроса и пишет «две звезды и одно пожелание», потом смена. Один на один: ученик записывает историю, учитель отправляет запись другому ученику того же уровня (с согласия обоих), тот отвечает звёздами и пожеланием; если это невозможно, отвечаете вы.',
+      errors: [
+        '«Siis me läksime» вместо «Siis läksime me» / «Siis läksime» (после связки-наречия глагол на втором месте).',
+        '«Ma olin väsinud, seepärast ma jäin koju» — правильно; «…, sest ma jäin koju» — неправильно: sest = причина, seepärast = следствие.',
+        '«Kuigi oli külm, aga me läksime» — после kuigi не нужно aga.',
+        '«Äkki ma sain aru» вместо «Äkki sain ma aru».',
+      ],
+      notes: [
+        'История — продукт урока: четыре части (событие, чувство, причина, вывод), минимум четыре связки, ответы на два вопроса слушателя. Ссылка на картинку «Loo neli osa» над заданием.',
+        'Abikaart и Lisaväljakutse видны в рамке задания. Обратная связь, 1 цель: глагол на втором месте после связки. Одна ошибка ученика идёт в Harjuta «Minu vead».',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.speaking('069_d_opinion', 'Kas sa oled kunagi eksinud?', 'Räägi paarilisele kahe-kolme lausega. Ära vaata eelmiste tundide lehti.', [
+        'Kas sa oled kunagi võõras linnas või metsas eksinud? Kus ja millal see oli?',
+        'Kelle elust sa eelmises tunnis rääkisid ja mis oli tema elus kõige raskem?',
+        'Kuidas sa palud naabrilt viisakalt abi, kui sul on suur mure?',
+        'Mis sa arvad: miks on võõrale inimesele mõnikord kergem oma lugu rääkida?',
+      ], [120, 180]), 'Tuletad meelde eelmiste tundide sõnu ja vorme.'), { task: 'S11', fluency: true }),
+      'Kordamine kahest kaugusest (tund 68 ja tund 61), ilma lehte vaatamata. Üks-ühele: räägi kõigepealt lühidalt üks oma eksimise lugu (2–3 lauset), siis õpilane. Ära paranda.'), 1, 7),
+      review(B.vocab('069_d_vocab', 'Tunni sõnad.', ['eksima — заблудиться', 'hirmus — страшно', 'äkki — вдруг', 'kõigepealt — сначала', 'lõpuks — в конце концов', 'kuigi — хотя', 'koputama — стучать', 'ööbima — ночевать', 'aku — аккумулятор', 'järeldus — вывод', 'publik — публика', 'unustama — забывать'], '2'), ['kraad', 'kiirustama', 'vabandama']),
+      station(tag(purpose(why(ownText(twice(B.listening('069_d_tale', 'Eksaminurk: lugude õhtu (Harno B1 kuulamine 3a)', 'Loe laused enne läbi ja arva, mis lünka tuleb. Kuula kaks korda ja kirjuta 1–2 sõna.', [
+        'Saatejuht: Tere õhtust ja tere tulemast raamatukogu lugude õhtule! Täna jutustab oma loo Maria, kes elab Tartus juba kaheksa aastat. Maria, palun.',
+        'Maria: Aitäh. Minu lugu juhtus minu esimesel talvel Eestis. Ma olin just Tartusse kolinud ja eesti keelt ma peaaegu ei osanud. Ühel laupäeval otsustasin minna Peipsi äärde, sest olin kuulnud, et seal on talvel väga ilus.',
+        'Maria: Kõigepealt sõitsin bussiga Kallastele. Ilm oli päikeseline ja külm, umbes kümme kraadi miinust. Ma ei kiirustanud: jalutasin kaua mööda randa ja tegin pilte. Siis märkasin, et päike oli juba loojunud ja viimane buss oli läinud.',
+        'Maria: Äkki sain aru, et mul ei ole kohta, kus ööbida. Telefoni aku oli peaaegu tühi. Mul oli väga hirmus, sest pimedas ja külmas ei teadnud ma, kuhu minna. Ma helistasin sõbrale, aga ta ei vastanud. Siis küsisin abi ühelt mehelt bussipeatuses, aga ta rääkis väga kiiresti ja ma ei saanud midagi aru.',
+        'Maria: Lõpuks koputasin ühe maja uksele, kus põles tuli. Ukse avas vanem naine. Ma vabandasin ja ütlesin oma halvas eesti keeles: „Ma olen eksinud.” Kuigi ta ei tundnud mind, kutsus ta mind kohe sisse. Ta tegi mulle teed ja pakkus kala, ja tema poeg viis mind hiljem autoga Tartusse.',
+        'Maria: Miks ma seda lugu räägin? Sel õhtul sain ma aru kahest asjast. Esiteks: inimesed siin ei ole külmad, kuigi nad räägivad vähe. Teiseks: keel ei pea olema täiuslik. Need kolm sõna aitasid mind rohkem kui kõik minu õpikud.',
+        'Saatejuht: Aitäh, Maria! Kas te olete selle naisega hiljem kohtunud?',
+        'Maria: Jah! Ma olen tal igal suvel külas käinud. Ja nüüd räägime juba eesti keeles.',
+        'Saatejuht: Mida te soovitaksite neile, kes alles õpivad eesti keelt?',
+        'Maria: Ärge kartke rääkida, ka siis, kui teete vigu. Isegi kolm sõna võivad aidata.',
+      ], [
+        'Maria lugu juhtus tema esimesel [talvel] Eestis, kui ta oli just Tartusse kolinud.',
+        'Ühel laupäeval sõitis ta Tartust Peipsi äärde [bussiga], sest seal pidi olema ilus.',
+        'Ilm oli päikeseline, aga õues oli umbes kümme kraadi [miinust|külma].',
+        'Kui päike oli juba loojunud, oli ka viimane [buss] Tartusse läinud.',
+        'Maria telefoni [aku] oli peaaegu tühi ja ööbimiskohta tal ei olnud.',
+        'Vanem naine kutsus ta sisse, tegi talle teed ja pakkus [kala].',
+        'Hiljem õhtul viis Maria autoga Tartusse selle naise [poeg].',
+        'Nüüd käib Maria selle naise juures külas igal [suvel].',
+      ]))), [
+        'Maria: „Minu lugu juhtus minu esimesel talvel Eestis.”',
+        'Maria: „Kõigepealt sõitsin bussiga Kallastele.”',
+        'Maria: „umbes kümme kraadi miinust”.',
+        'Maria: „viimane buss oli läinud”.',
+        'Maria: „Telefoni aku oli peaaegu tühi.”',
+        'Maria: „Ta tegi mulle teed ja pakkus kala”.',
+        'Maria: „tema poeg viis mind hiljem autoga Tartusse”.',
+        'Maria: „Ma olen tal igal suvel külas käinud.”',
+      ]), 'Kuuled, kuidas hea lugu on üles ehitatud.'), { harno: 'L3a', task: 'L03', voice: 'interview' }), 2, 15),
+      teach(tag(purpose(B.table('069_d_rule', 'Paaris: loo neli osa.', 'Kirjutage Maria loost igasse ritta terve lause.', 'Osa, Maria loost (terve lause)', [
+        'Algus: miks sõitis Maria talvel Peipsi äärde? | ',
+        'Koht ja ilm: kus ta oli ja milline oli ilm? | ',
+        'Sündmus: mis juhtus, kui päike oli loojunud? | ',
+        'Tunne: mida Maria tundis, kui viimane buss oli läinud? | ',
+        'Põhjus: miks oli tal nii hirmus ja raske? | ',
+        'Abi: kes avas ukse ja mida ta tegi? | ',
+        'Telefon: miks ei saanud Maria sõbralt abi? | ',
+        'Mees bussipeatuses: miks ta ei aidanud? | ',
+        'Tee koju: kuidas jõudis Maria Tartusse? | ',
+        'Järeldus: millest sai Maria sel õhtul aru? | ',
+        'Lõpp: kuidas on Maria ja vanem naine nüüd sõbrad? | ',
+      ], 'g_read'), 'Sama ülesehitusega jutustad hiljem oma loo.'), { task: 'L09' }),
+      'Paarid kirjutavad 5–6 minutit pärast teist kuulamist. Kontrolli, et igas reas on terve lause ja vähemalt kaks sidesõna (äkki, sest, kuigi, lõpuks). Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Miks?”.'),
+      teach(tag(purpose(B.speaking('069_d_retell', 'Paaris: Maria lugu.', 'Jutusta paarilisele Maria lugu ilma tekstita. Kasuta sõnu kõigepealt, siis, äkki, lõpuks.', [
+        'Mis juhtus Mariaga kõigepealt ja mis siis edasi juhtus?',
+        'Mis juhtus äkki ja mida Maria sel hetkel tundis?',
+        'Kuidas lugu lõppes ja millest Maria sel õhtul aru sai?',
+        'Mida soovitab Maria neile, kes alles õpivad eesti keelt?',
+        'Mis sa arvad: kas sina oleksid samas olukorras teisiti teinud?',
+      ], [120, 180], ['kõigepealt · siis · äkki', 'sest · kuigi · lõpuks']), 'Proovid loo ülesehitust kohe suuliselt läbi.'), { task: 'S07', fluency: true }),
+      'A jutustab loo alguse (kuni „aku oli tühi”), B lõpu; siis vahetavad. Kuulaja märgib, mitu sidesõna jutustaja kasutas. Üks-ühele: õpilane jutustab kogu loo, sina küsid „Ja siis?”.'),
+    ],
+    practice: [
+      station(B.notice('069_d_notice', 'Märka: loo sidesõnad', [
+        'Loost: **Kõigepealt** sõitsin bussiga. · **Siis** märkasin … · **Äkki** sain aru … · **Lõpuks** koputasin uksele.',
+        'Pärast kõigepealt, siis, äkki, lõpuks tuleb tegusõna: Siis läksime (mitte: Siis me läksime).',
+        'Põhjus: … , **sest** … · Tagajärg: … , **seepärast** … · Vastand: **Kuigi** ta ei tundnud mind, kutsus ta mind sisse.',
+        'Vene keeles „потом мы пошли” — eesti keeles pärast „siis” kohe tegusõna: Siis läksime.',
+      ], 'full'), 3, 20),
+      tag(purpose(why(B.gaps('069_p_links', 'Loo sidesõnad.', 'Kirjuta igasse lünka sobiv sidesõna pangast; kaks jääb üle.', [
+        '[Kõigepealt] ostsime piletid ja pakkisime kotid.',
+        'Rong hilines tund aega, [seepärast] jõudsime hotelli alles öösel.',
+        'Hommikul oli ilus ilm. [Siis] läksime mägedesse matkama.',
+        'Kõik oli hästi, aga [äkki] hakkas sadama lund.',
+        'Me pöörasime tagasi, [sest] rada oli libe ja ohtlik.',
+        '[Kuigi] meil oli külm, laulsime terve tee.',
+        '[Lõpuks] jõudsime õhtul hotelli tagasi.',
+        'Järgmisel korral vaatan ilmateadet, [kui] lähen mägedesse.',
+      ], ['Kõigepealt', 'seepärast', 'Siis', 'äkki', 'sest', 'Kuigi', 'Lõpuks', 'kui', 'aga', 'nii'], 'full', 'g_notice'), [
+        'loo algus → Kõigepealt + tegusõna: ostsime.',
+        'hilines → tagajärg: seepärast + tegusõna: jõudsime.',
+        'järgmine samm → Siis + tegusõna: läksime.',
+        'ootamatu → äkki + tegusõna: hakkas.',
+        'põhjus → sest.',
+        'vastand → Kuigi …, laulsime.',
+        'lõpp → Lõpuks + tegusõna: jõudsime.',
+        'tingimus → kui.',
+      ]), 'Kaheksa lauset näitavad, kas valid õige sidesõna.'), { task: 'W09' }),
+      teach(pron(B.tip('069_p_pron', 'Hääldusnurk: paus ja hääletoon (5 min)', [
+        'Kuula lauset. Märgi /, kus on paus. Siis ütle koos õpetajaga:',
+        '„Äkki sain aru, et mul ei ole kohta, kus ööbida.”',
+        '„Kuigi ta ei tundnud mind, kutsus ta mind kohe sisse.”',
+        '„Kõigepealt sõitsin bussiga Kallastele.”',
+        '„Miks ma seda lugu räägin?” (küsimus: hääl tõuseb sõnal „miks”)',
+      ], 'full'), 'intonatsioon'),
+      'Hääldusnurk (≈ 5 min), intonatsioon: loe iga lause kaks korda, teisel korral liialda pausi enne „et”, „kus” ja pärast koma. Õpilane märgib pausid (/), siis ütleb koos sinuga. Viimane lause on küsimus: hääl tõuseb sõnal „miks” ja langeb lõpus. See on ettevalmistus loo esitamiseks.'),
+      teach(tag(purpose(rows(B.writing('069_p_plan', 'Minu loo plaan.', 'Kirjuta oma loost 6–8 lauset: sündmus, tunne, põhjus ja järeldus. Kasuta nelja sidesõna.', [6, 8]), 7), 'Plaani järgi räägid hiljem ilma tekstita.'), { task: 'W11' }),
+      'Kirjutamine on plaan, mitte tekst ette lugemiseks: Kasuta lehel räägib õpilane leht kinni. Kontrolli, et iga osa on olemas ja vähemalt neli sidesõna (tegusõna pärast neid teisel kohal).'),
+    ],
+    transfer: [
+      station(teach(tag(purpose(aid(B.speaking('069_t_talk', 'Lugude õhtu: minu lugu', 'Räägi 2–3 minutit päevast, mida ei unusta. Näita fotot. Vasta siis kahele küsimusele.', [
+        'Sündmus: mis, kus ja millal juhtus?',
+        'Tunne: mida sa tundsid?',
+        'Põhjus: miks see juhtus?',
+        'Järeldus: millest sa aru said?',
+        'Publiku küsimused: vasta kahele küsimusele, millele loos vastust ei olnud.',
+        'Lõpp: mida sa sellest päevast täna teistele soovitad?',
+      ], [120, 180]), ['See juhtus … aastal, kui …', 'Äkki … · Mul oli … , sest …', 'Sel päeval sain aru, et …'], 'alusta lõpust ja jutusta siis, kuidas sinna jõudsid.', 'presentation'), 'Sinu lugu kuulab lugude õhtu publik.'), { task: 'S18', main: true, level: 4 }),
+      'Esitlus (≈ 15 min). Paaris: A räägib 2–3 minutit plaani järgi ilma tekstita, B kuulab, küsib kaks küsimust, millele loos vastust ei olnud, ja ütleb suuliselt kaks tähte ja ühe soovi; siis vahetus. Edukriteeriumid: 1) neli osa (sündmus, tunne, põhjus, järeldus); 2) vähemalt neli sidesõna, tegusõna pärast neid teisel kohal; 3) vastus kahele küsimusele. Abikaart ja lisaväljakutse on ülesande raamis; märgi, kas õpilane kasutas abikaarti. Üks-ühele: sina oled publik; küsi „Kuidas sa end pärast tundsid?” ja „Mida sa järgmisel korral teisiti teeksid?”.'), 4, 25, { final: 'present' }),
+      teach(exitCheck(tag(purpose(B.speaking('069_t_exit', 'Väljumine: 30 sekundit', 'Ütle 30 sekundiga oma loo järeldus: millest sa sel päeval aru said ja miks.', ['Millest sa aru said?', 'Miks see on sulle tähtis?'], [20, 40]), 'Näitad, et oskad loo lühidalt kokku võtta.'), { task: 'S16', level: 3 })),
+      'Väljumine (v6, 30 s, ilma abikaardita). Õnnestunud, kui järeldus on selge (Sel päeval sain aru, et …), on põhjus (sest …) ja vähemalt üks sidesõna, mille järel tegusõna on teisel kohal.'),
+      selfCheck('069_t_self', ['Minu loos on neli osa: sündmus, tunne, põhjus, järeldus.', 'Ma kasutan sidesõnu ja panen tegusõna pärast neid teisele kohale.', 'Ma vastan kuulaja küsimustele.'], 'Lugu jutustatud'),
+      teach(tag(homeTask(purpose(peer(B.speaking('069_t_rec', 'Teine katse: lugu paarilisele', 'Salvesta oma lugu kodus (2 minutit) ja saada paarilisele. Tema vastab: kaks tähte ja üks soov.', [
+        'Mis juhtus, kus ja millal?',
+        'Mida sa tundsid ja miks?',
+        'Millest sa sel päeval aru said?',
+        'Mida sa järgmisel korral teisiti teeksid?',
+        'Mida sa tahad, et paariline sinu loos eriti tähele paneks?',
+      ], [120, 180])), 'Sinu lugu kuuleb päris kuulaja, mitte ainult õpetaja.')), { task: 'S15', fluency: true }),
+      'Kaaslase vastus (v6 §2 k, peerReply): salvestus läheb teisele sama taseme õppijale (mõlema nõusolekul; õpetaja vahendab), kes vastab kirjalikult „kaks tähte ja üks soov” edukriteeriumide järgi (neli osa, sidesõnad, selge järeldus). Õpilane vastab omakorda tema loole. Kui paarilist ei ole, vastab õpetaja — aga siis ütle õpilasele, et järgmisel korral on kuulaja päris inimene.'),
+      homeTask(B.phrasebank('069_t_homework', [['Kodutöö', ['1. Kirjuta oma lugu 80–100 sõnaga: sündmus, tunne, põhjus, järeldus.', '2. Salvesta lugu ja saada paarilisele (ülesanne üleval); vasta tema loole: kaks tähte ja üks soov.', '3. Üks parandatud viga → Harjuta „Minu vead”.', '4. Harjuta → moodul 14: sidesõnad (10 min).', '5. Järgmise tunni alguses: üks lause, mida paariline sinu loost kiitis, ja üks, mida soovis.', NO_RECORDING]]])),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 070 control: reading + writing, one sheet
+  'a2b1-070': lesson('a2b1-070', {
+    title: 'Kontroll 14: minevik, kogemused ja jutustamine',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen elulugu ja kirja, selgitan naabrile lihtsalt üht teadet ja kirjutan ilma abita loo ühest oma päevast.',
+    discover: [
+      B.examPart('070_p_rpart', 'R', { part: 'Lugemine', minutes: 20, points: 16, tasks: 2, target: 60, note: `See on mooduli 14 kontroll: kaks osa (lugemine ja kirjutamine), umbes 45 minutit, ilma sõnaraamatuta. Harno teine tingimus: ükski osa ei tohi olla 0 punkti. ${THRESHOLDS}` }),
+      teach(tag(why(ownText(B.reading('070_p_r2text', 'Lugemine 1. Elulugu.', 'Loe teksti. Vasta igale küsimusele lühidalt (1–4 sõna).', 'Õpetaja, kes alustas viiekümneselt', [
+        'Tiiu sündis 1968. aastal Tartus. Kui ta oli kahekümneaastane, abiellus ta ja kolis mehe juurde Võrumaale. Selleks ajaks oli ta juba kaks aastat ülikoolis keemiat õppinud, aga ülikool jäi pooleli, sest külas ei olnud bussi linna.',
+        '',
+        'Järgmised kakskümmend viis aastat töötas Tiiu poes, kasvatas kolme last ja tegi aias kõik tööd ise ära. Õhtuti luges ta palju, eriti ajalooraamatuid. „Ma olen alati tahtnud õpetada,” ütleb ta, „aga mul ei olnud kunagi aega.”',
+        '',
+        '2018. aastal, kui noorim poeg oli kooli lõpetanud, otsustas Tiiu ülikooli tagasi minna. Sõbrad naersid ja küsisid, miks viiekümneaastane naine veel õpib. Tiiu ei kuulanud neid.',
+        '',
+        'Ka ülikoolis ei olnud alguses lihtne. Tiiu oli kursusel kõige vanem ja arvutiga töötamine võttis tal palju aega. Aga ta tegi kõik kodutööd õigel ajal ära ja aitas nooremaid, kui neil oli ajalooga raskusi. Noored hakkasid teda kutsuma „Tiiu-emaks”. Kolme aasta pärast kirjutas ta lõputöö valmis ja sai õpetaja diplomi.',
+        '',
+        'Nüüd on Tiiu töötanud külakoolis juba neli aastat. Ta õpetab ajalugu ja keemiat. Õpilased armastavad tema tunde, sest ta jutustab ajaloost nagu lugusid. Kõige raskem oli esimene aasta: tal oli tunne, et noored õpetajad teavad rohkem. Hiljem selgus, et tal on midagi, mida noortel ei ole — elukogemus.',
+        '',
+        'Mida ta teistele soovitab? „Ärge oodake õiget aega. Seda ei tule kunagi.”',
+      ], [
+        ['Mitu aastat oli Tiiu enne abiellumist ülikoolis õppinud?', 'kaks aastat|kaks'],
+        ['Mis jäi Tiiul kahekümneaastaselt lõpetamata?', 'ülikool|keemia õpingud|keemia õppimine'],
+        ['Miks ei hakanud Tiiu varem õpetajaks?', 'tal ei olnud aega|aega ei olnud'],
+        ['Mis juhtus vahetult enne, kui Tiiu ülikooli tagasi läks?', 'noorim poeg lõpetas kooli|poeg lõpetas kooli'],
+        ['Kuidas suhtusid sõbrad Tiiu otsusesse?', 'nad naersid|naersid tema üle|ei võtnud tõsiselt'],
+        ['Mis oli Tiiule ülikoolis raske?', 'arvutiga töötamine|töö arvutiga|arvuti'],
+        ['Miks hakkasid noored teda „Tiiu-emaks” kutsuma?', 'ta aitas neid|ta aitas nooremaid|ta oli kõige vanem'],
+        ['Mis on Tiiul, mida noortel õpetajatel ei ole?', 'elukogemus'],
+      ])), [
+        'Esimene lõik: „Selleks ajaks oli ta juba kaks aastat ülikoolis keemiat õppinud” (enneminevik).',
+        'Esimene lõik: „ülikool jäi pooleli” — pooleli = lõpetamata.',
+        'Teine lõik: „mul ei olnud kunagi aega”.',
+        'Kolmas lõik: „kui noorim poeg oli kooli lõpetanud” — see oli enne otsust.',
+        'Kolmas lõik: „Sõbrad naersid ja küsisid …”.',
+        'Neljas lõik: „arvutiga töötamine võttis tal palju aega”.',
+        'Neljas lõik: „aitas nooremaid, kui neil oli ajalooga raskusi” (järeldus: ta hoolitses nende eest nagu ema).',
+        'Viies lõik: „tal on midagi, mida noortel ei ole — elukogemus”.',
+      ]), { task: 'R02' }),
+      'Lugemine 1 (8 p, ≈ 10 min). Õige on iga vastus, mis näitab, et õpilane leidis koha tekstist; õigekirjaviga punkti ei võta. Küsimused 1, 2, 4 ja 7 nõuavad ümbersõnastust või järeldust (enneminevik: oli õppinud, oli lõpetanud; pooleli = lõpetamata), mitte kopeerimist.'),
+      teach(tag(why(B.gaps('070_p_r3', 'Lugemine 2. Kiri sõbrale.', 'Loe kirja. Kirjuta igasse lünka sobiv sõna pangast; kaks sõna jääb üle.', [
+        'Tere, Ilona! Kas sa [oled] kunagi Kihnus käinud?',
+        'Mina käisin seal eelmisel nädalal ja [sõitsin] saarel terve päeva rattaga.',
+        'Hommikul [lugesin] laeval saare ajaloo läbi.',
+        'Kui ma sadamasse jõudsin, [oli] praam juba ära läinud.',
+        'Kohalike sõnul [olevat] järgmine praam alles õhtul.',
+        'Üks vanaproua [palus] mul oma poes natuke aidata.',
+        'Õhtul sõime koos tema kala [ära] ja ta jutustas oma elust.',
+        'Kas sa [saaksid] järgmisel suvel minuga sinna tulla?',
+      ], ['oled', 'sõitsin', 'lugesin', 'oli', 'olevat', 'palus', 'ära', 'saaksid', 'läbi', 'olin'], 'full', 'g_read'), [
+        'kunagi → kogemus: Kas sa oled … käinud?',
+        'eelmisel nädalal → lihtminevik: sõitsin.',
+        'läbi on lause lõpus → lugesin … läbi.',
+        'enne minu jõudmist → enneminevik: oli … läinud.',
+        '… sõnul, ma ei tea kindlalt → kaudne kõneviis: olevat (moodul 13).',
+        'paluma kellel + da: palus mul aidata (moodul 13).',
+        'sõime kõik → ära + täissihitis: kala (siin: kogu kala).',
+        'viisakas küsimus → tingiv kõneviis: saaksid (moodul 13).',
+      ]), { harno: 'R3b', task: 'R04' }),
+      'Lugemine 2 (8 p, ≈ 10 min, Harno R3b vorm). Varasemast (≈ 20 % lugemisest): lüngad 5 (kaudne kõneviis), 6 (paluma + da) ja 8 (tingiv kõneviis) on moodulist 13. Üleliigsed: läbi, olin.'),
+      B.examPart('070_t_wpart', 'W', { part: 'Kirjutamine', minutes: 25, points: 20, tasks: 2, target: 60, note: 'Kaks ülesannet. Ülesanne 1 on lühike sõnum naabrile, ülesanne 2 on lugu ilma antud alguseta.' }),
+      teach(tag(B.examWriting('070_t_w1', 'Kirjutamine 1. Selgita naabrile.', 'Naaber ei saanud teatest aru. Kirjuta talle lihtsalt 40–60 sõna. Kõik neli punkti peavad olema kirjas.', 'vastus', {
+        situation: 'Trepikojas on teade: „Kirjandusmuuseum kogub elulugusid! Kirjutage oma elust või oma pere ajaloost. Oodatud on kõik, ka need, kelle emakeel ei ole eesti keel. Lugu võib olla lühike. Saatke see 31. maiks e-postiga või tooge raamatukogu kasti. Parimad lood ilmuvad raamatus.”',
+        points: ['mida muuseum kogub', 'kes võib kirjutada', 'kuhu ja mis ajaks saata', 'mida sina naabrile soovitad'],
+        words: [40, 60],
+      }), { harno: 'W1b', task: 'W12' }),
+      'Kirjutamine 1 = vahendus (v6 §2 l): õpilane ütleb teate sisu naabrile lihtsamalt, mitte ei kopeeri seda. Iga sisupunkt 1 p (kopeeritud lause ilma ümbersõnastuseta = 0,5 → ümarda alla), keel ja vorm 0–4.'),
+      B.rubricW1('070_t_rw1', ['mida muuseum kogub', 'kes võib kirjutada', 'kuhu ja mis ajaks saata', 'mida sina soovitad']),
+      teach(tag(B.examWriting('070_t_w2', 'Kirjutamine 2. Kui midagi läks teisiti.', 'Kirjuta ilma abita 80–100 sõna: üks kord, kui midagi läks teisiti, kui plaanisid.', 'jutt', {
+        points: ['mis juhtus ja millal', 'mida sa tundsid', 'kuidas see lõppes ja mida sa õppisid'],
+        words: [80, 100],
+      }), { harno: 'W2a', task: 'W05' }),
+      'Paralleelne uus ülesanne (tunni 66 külm start): sama žanr (oma lugu), sama pikkus (80–100 sõna), sama W2 juhend; teema on teine. Ära aita. Võrdle punkte tunni 66 omadega ja kirjuta tulemuse tabelisse, mis paranes (sidesõnad, minevikuvormid, lõpetatus).'),
+      B.rubricW2('070_t_rw2'),
+      teach(B.table('070_t_profile', 'Minu tulemus.', 'Kirjuta iga osa punktid ja protsent. Viimases lahtris võrdle lugu tunni 66 alguse looga.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Lugemine (16 p) |  |  | ',
+        'Kirjutamine 1 (8 p) |  |  | ',
+        'Kirjutamine 2 (12 p) |  |  | ',
+      ]), 'Kokku 36 punkti: 60 % ≈ 21,6, 70 % ≈ 25,2, 80 % ≈ 28,8. Harno tingimus: kui lugemine või kirjutamine on 0 punkti, ei ole kontroll sooritatud. Kui osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (lugemine → tunnid 66 ja 68, kirjutamine 1 → tund 67, kirjutamine 2 → tunnid 66 ja 69). Kuulamist ja rääkimist selles kontrollis ei ole: neid mõõtis moodul 13 (065) ja tundide kuulamisülesanded 067 ja 069.'),
+    ],
+  }),
 }, {
-  'a2b1-066': 'LUGU R→W', 'a2b1-067': 'AVAS L→S', 'a2b1-068': 'KUUL L→W', 'a2b1-069': 'RÄÄK R→S', 'a2b1-070': 'EKS',
+  'a2b1-066': 'LUGU R→W', 'a2b1-067': 'AVAS L→S', 'a2b1-068': 'LUGE R→S', 'a2b1-069': 'RÄÄK L→S', 'a2b1-070': 'EKS',
 });
