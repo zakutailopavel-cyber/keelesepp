@@ -98,12 +98,12 @@
  "course": [
   "*|*|V6-exam-L1",
   "*|*|V6-exam-L2",
+  "*|*|V6-exam-R3",
   "*|*|V6-exam-R4",
   "*|*|V6-exam-S1b",
   "*|*|V6-gap-L1",
   "*|*|V6-gap-L2",
-  "*|*|V6-total-L1",
-  "*|*|V6-total-L2",
+  "*|*|V6-total-R3",
   "*|*|V6-total-R4",
   "*|*|V6-total-S1b",
   "*|*|V6-variant-W1a"
@@ -112,6 +112,9 @@
   "*|*|V3-min-S03",
   "*|*|V3-min-S04",
   "*|*|V4-type-speaking",
+  "*|*|V5-pairs"
+ ],
+ "a2b1-module-15": [
   "*|*|V5-pairs"
  ]
 }
