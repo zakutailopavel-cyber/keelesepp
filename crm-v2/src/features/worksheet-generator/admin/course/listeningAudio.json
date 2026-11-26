@@ -3219,6 +3219,11 @@
     "seconds": 111.5,
     "hash": "0f04ae547f109648c32b53a889509b137863fd28"
   },
+  "b1b2-062:062_d_radio": {
+    "src": "/audio/b1b2-062/062_d_radio.mp3",
+    "seconds": 228.1,
+    "hash": "400bb98df180eea5bd4261e13500be67d6984c9e"
+  },
   "b1b2-062:062_t_voice": {
     "src": "/audio/b1b2-062/062_t_voice.mp3",
     "seconds": 60.6,
@@ -3233,6 +3238,11 @@
     "src": "/audio/b1b2-064/064_d_clips.mp3",
     "seconds": 130.5,
     "hash": "b6e01e718bf8f9bfc36c033691f9cbcc08e15df7"
+  },
+  "b1b2-064:064_d_radio": {
+    "src": "/audio/b1b2-064/064_d_radio.mp3",
+    "seconds": 229.3,
+    "hash": "65fdf5e4ffa55a84eb5fa5f4b17a5adc6ccd00c8"
   },
   "b1b2-065:065_p_listen": {
     "src": "/audio/b1b2-065/065_p_listen.mp3",

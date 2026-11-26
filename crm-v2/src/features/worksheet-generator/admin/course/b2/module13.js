@@ -1,42 +1,49 @@
-// B2 course (B1 → B2 roadmap), module 13 „Keskkond ja vastutustundlik elu” (b1b2-061…065), stage B2- (homework 160–200
-// words, the B2 opener and article lengths, nominal style: -mine nouns, cause phrases with tõttu / tänu, vaatamata).
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–10. Module goal (the learner): „Ma oskan keskkonnast rääkida oma elu kaudu: selgitan, mis saab
-// meie prügist, toidust ja energiast ning miks, võrdlen lahendusi ja kirjutan probleemist lahenduseni”; module product
-// „Minu kodu keskkonnaplaan” (064 Kasuta, the S16 one-minute talk in 065). Environment from the learner's own angle: his
-// bin and the bottle deposit, his fridge and the food bank, the oil-shale exit of Ida-Virumaa (his region or his
-// neighbours'), his flat and his old neighbour in a heatwave. Real facts with sources on every page; no slogans — every
-// task makes the learner choose between convenience, price, time and the environment (roadmap „attention”).
-// Not repeated from earlier modules: the bog hike (module 3), the real or artificial Christmas tree and the commute cost
-// (module 5); not module 11's money topics (second-hand buying, electricity contracts).
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 13).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   061 quest    „Pudel, purk ja banaanikoor: kuhu sinu prügi tegelikult läheb?”      home     final present: talk at the house meeting (S16)
-//   062 facts    „127 kilo aastas: miks me toitu ära viskame?”                          family   final plan: the data summary (W15 → W2a at home)
-//   063 debate   „Põlevkivielekter lõpeb: millest elab Ida-Virumaa 2035. aastal?”       work     final decide: argument cards, one joint position (S17)
-//   064 project  „Toas on 30 kraadi: kas su kodu ja naabrid on kuumalaineks valmis?”    health   final plan: the stairwell heat plan + „Minu kodu keskkonnaplaan”
-//   065 exam     Kontroll 13 in Harno B2 form + „Minu kodu keskkonnaplaan” as the S16 one-minute talk.
-// Grammar line of the roadmap (B2, docs/METHODOLOGY_STANDARD.md §5) by discovery and spiralled: change of state and result
-// — muutuma / jääma / minema / tegema + -ks, X-st saab Y, jääb sorteerimata, -nema verbs (vähenema, paranema) (061; back in
-// 062's text, 064 and 065); cause and consequence a step above module 10's kuna-clause — the cause as a noun phrase
-// (soodustuste tõttu, tänu Toidupangale, selle tagajärjel) and mistõttu / seetõttu with the verb second (062; back in 063's
-// radio, 064 and 065); -mine nouns with a genitive object and comparison of numbers (põlevkivi kaevandamine, tootmise
-// lõpetamine; 4,5 protsendipunkti võrra kõrgem, kaks korda rohkem kui) (063; back in 064's clips and 065); concession at
-// B2 — vaatamata + alaleütlev / vaatamata sellele, et …; küll …, kuid; ehkki; samas — after module 5's kuigi … siiski, in the
-// problem → causes → solutions → conclusion text (064; back in 065). The one long text of the module is the topic opener
-// (061 station 2, ≈ 320 words, after a 10-minute hook and pre-taught words). The course's cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js (061–064 without g_listen: as in module 10, a recording of a teaching
-// lesson trains g_read, and every goal needs two tasks — lessonGoals.test.js) and the
-// archetypes (AVAS R→S, LUGU R→W, PROB L→S, KUUL L→W, EKS); exactly one exam corner a lesson (V12): R1 (061), W2a (062, the
-// summary written at home), W1 (063, the letter to a friend in Narva written at home: the radio — now gaps, so that 063
-// and 064 do not open with the same two stations — would make the exam share 34 % of the lesson), L1 (064). The v2 storyline
-// version (Viktor's farm and the Kõrvemaa wind farm, Tuul Logistika's 60 000 euros, the zero-waste week) is in git history
-// before 2026-11-19.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B2 course (B1 → B2 roadmap), module 13 „Keskkond ja vastutustundlik elu” (b1b2-061…065), stage B2-.
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25),
+// built on the pattern of modules 11–12 (b2/module11.js, b2/module12.js). On the v3 station engine with the v4 task formats.
+// Module goal (the learner): „Ma räägin keskkonnast oma elu kaudu ja otsustan koos teistega: mida meie maja prügiga teeb,
+// kuidas meie köök vähem raiskab, mis on õiglane üleminek ja kuidas naabrid kuumalaine üle elavad.” Environment from the
+// learner's own angle: his bin and the house board, his fridge and the weekend, the oil-shale exit of Ida-Virumaa (his
+// region or his neighbours'), his stairwell in a heatwave. No slogans: every task weighs convenience, price, time and the
+// environment. Nobody has to tell his real life: every task allows a typical or invented case.
+//   Avasta  (4): station 1 — 061 the module's COLD TASK in writing (5 min, 5–7 sentences, no phrases; module 12 measured
+//                speaking, module 13 measures writing; its parallel is 065_t_cold), 062–064 the 5-min „Parandatud
+//                versioon” of the previous lesson's draft (data.revisionOf, v6 G16); station 2 the words (10 + 3 review
+//                words from 3–15 lessons back, data.review, v6 G18), ONE input and one scheme — reading ≈ 470–500 words
+//                with 3 inference questions (061 „Miks hea tahe jääb prügimajja?”, 063 „Kas üleminek saab olla
+//                õiglane?”) or listening ≈ 3.5–4 min, 2 voices (062 „Köögiraadio”, 064 „Ohutusraadio”), a reading /
+//                listening strategy line in the instruction.
+//   Harjuta (4): the rule box (B1 one-line review, B2 step, one L1-contrast line „Vene keeles …”), one form task of 10
+//                items that PRODUCES the rule box's bold forms (the choice is left open, the hint is the dictionary form,
+//                never the answer; v6 G15), one second task of 8 rows, and the 10-min DRAFT of the home text in class.
+//   Kasuta  (5): station 4 the main task — types modules 11–12 used least, one each (v6 G17): 061 ranking (a decision under
+//                a budget), 062 info-gap (two half-cards), 063 debate (argument cards), 064 jigsaw (two halves of the
+//                stairwell) — each with an „Abikaart” and a „Lisaväljakutse” (data.support / data.stretch, v6 G24) and
+//                hidden information on the teacher's card (v5 G9); the EXIT 30–60 s of speech in the main task's skill
+//                (v6 G14); the self-check with 3 criteria rated 0–1–2 and one own sentence as evidence; the home text
+//                (finish the draft, ~140 / ~180 words, 1-min voice message, „Harjuta → moodul 13”); the analytic Harno B2
+//                rubric with a borderline sample (v5 G10).
+//   061 quest   „Pudel, purk ja banaanikoor: kuhu sinu prügi tegelikult läheb?”   reading  change and result (-ks, -mata, -nema)   ranking
+//   062 facts   „Toit prügikastis: miks me ostame rohkem, kui jõuame ära süüa?”     radio    cause as a noun (tõttu, tänu), mistõttu  infogap
+//   063 debate  „Põlevkivielekter lõpeb: millest elab Ida-Virumaa 2035. aastal?”    reading  -mine with a genitive, comparing numbers  debate
+//   064 project „Toas on 30 kraadi: kas su kodu ja naabrid on kuumalaineks valmis?” radio    concession (vaatamata, ehkki, küll … kuid) jigsaw
+//   065 exam    Kontroll 13: one sheet, 45 min, READING + WRITING (m11 R + W, m12 L + S — the controls alternate). It is a
+//                two-skill control, not a full mock (the methodologist's decision for 040, 055 and 060: v6 §2 g, „B2,
+//                lesson 5 of a module: 2 skills alternating”). Why R + W: module 12 tested listening and speaking; the
+//                module's cold task is written (061_d_cold), so its parallel is written (065_t_cold); a waste bill and a
+//                repair-or-buy article reach the learner as text and are answered by a letter.
+// Real network (v6 G25): peer exchange 063_t_essay (a classmate answers with two stars and a wish), media log 062_t_note
+// („Minu eesti keele võrgustik”), real document + link task 064_t_note (ilmateenistus.ee, a 3-item task — the page was
+// not opened by the author). Mediation 064_t_note (the heat warning in plain words for an old neighbour); jigsaw 064; the
+// peer feedback round 063 (v6 §2 l). Texts are adapted learning texts („KeeleSepp õppetekst”) without exact statistics
+// (owner 2026-11-25); no story cast, no dictation, no „Kas teadsid?”.
+// Module 12's last draft (the data request 059_t_request) is revised in 061's home task (three marked sentences into
+// „Minu vead” in Harjuta): station 1 of 061 holds the cold task, and the Avasta sheet has no room for a second 5-min block
+// (v5 G1: ≤ 4 blocks on a B2 Avasta) — the same decision as modules 11 and 12.
+// Kept: lesson ids, the titles of 061 / 063 / 064 (062's title lost its exact figure), topics, the v4 formats; the v4
+// lessons of 2026-11-19 are kept below as V4 and every block that is not on a v6 sheet is taken from there with retire()
+// (hidden, id and learners' answers kept, old explanations in OLD_WHY). A kept id keeps its block type.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -75,7 +82,8 @@ const RADIO_063 = [
   'Saatejuht: Aitäh mõlemale!',
 ];
 
-export const LESSONS = withShapes({
+// the v4 lessons of 2026-11-19 („task-based”): the source of every block that is not on a v6 sheet
+const V4 = {
   'b1b2-061': {
     title: 'Pudel, purk ja banaanikoor: kuhu sinu prügi tegelikult läheb?',
     phases: grammar('Keel: muutus ja tulemus — muutub kompostiks, jääb sorteerimata, läheb kallimaks, pudelist saab tooraine; vähenema, paranema'),
@@ -716,15 +724,11 @@ export const LESSONS = withShapes({
       B.selfcheck('065_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Moodul 13 läbitud'),
     ],
   },
-}, {
-  'b1b2-061': 'AVAS R→S', 'b1b2-062': 'LUGU R→W', 'b1b2-063': 'PROB L→S', 'b1b2-064': 'KUUL L→W', 'b1b2-065': 'EKS',
-});
+};
 
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the v4 explanations of the retired blocks (shown with the hidden block, courseSheet.js withExplanations)
+const OLD_WHY = {
   // 061
   '061_d_facts': [
     '1. lõik: 437 miljonist toodi tagasi 381 miljonit — „peaaegu üheksa kümnest”.',
@@ -937,3 +941,857 @@ export const EXPLAIN = {
     'Õige: „Vanemad elanikud on selle üle eriti rõõmsad.”',
   ],
 };
+
+// ---- v6 helpers (the same mechanisms as b2/module11.js and b2/module12.js) ------------------------------------------
+// G18: the vocab block brings back three old words (3–15 lessons back); they are named on the sheet and used in the input
+const withReview = (b, review) => ({ ...b, data: { ...b.data, title: `${b.data.title} Kordamiseks: ${review.join(', ')}.`, review } });
+// G17 / G24: the main task of Kasuta — its type, the „Abikaart” (2–3 sentence starters) and the „Lisaväljakutse” line;
+// both are printed on the learner's card too (the fold-out card is UI work, v6 §2 i)
+const mainTask = (b, taskType, support, stretch, tags = {}) => tag({ ...b, data: { ...b.data, taskType, support, stretch } }, { main: true, level: 4, ...tags });
+// G16: the 5-min „Parandatud versioon” that opens lessons 062–064 (replaces the warm-up statement, not an extra block)
+const revision = (id, of, instruction) => {
+  const b = B.writing(id, 'Parandatud versioon.', instruction, [3, 4]);
+  return teach(tag({ ...b, data: { ...b.data, revisionOf: of } }, { task: 'W10' }),
+    '„Parandatud versioon” (5 minutit, v6): õppija kirjutab ümber kolm lauset, mille sa eelmise tunni mustandis või kodutekstis märkisid (ainult märgi, ära paranda ise), ja ütleb ühe reaga, mis muutus. Kontrolli kohe: kas viga on parandatud? Korduv viga läheb õppija „Minu vead” nimekirja Harjutas. Kui õppija kodutööd ei teinud, parandab ta tunni mustandi kolm lauset.');
+};
+// G16: the in-class draft of the home text's first paragraph (≈ 10 min, feedback on one rubric criterion)
+const draft = (id, title, instruction, criterion, range = [5, 7]) => teach(tag(B.writing(id, `Mustand tunnis: ${title} (10 minutit).`, instruction, range), { task: 'W11', level: 3 }),
+  `Mustand tunnis, 10 minutit (v6): see on kodutöö esimene lõik. Tagasiside ainult ühele kriteeriumile — ${criterion}. Märgi kolm lauset (ära paranda): järgmise tunni alguses kirjutab õppija need ümber („Parandatud versioon”). Paaris: kaaslane loeb ja ütleb hindamisjuhendi selle rea järgi üht head ja üht parandust. Kui aega jääb vähe, piisab kolmest lausest.`);
+// G14: the exit — 30–60 s of speech performing the lesson's can-do (the main task's skill), done in class
+const exitTalk = (id, instruction, questions, note) => teach(tag(exitCheck(inLesson(B.speaking(id, 'Väljumine: 30 sekundit.', instruction, questions, [30, 60]))), { task: 'S11', fluency: true }),
+  `Väljumiskontroll (v6 G14), 3 minutit: üks sooritus tunni oskusest, mitte vormiküsimused. Kuula, ära sega vahele. ${note} Lõpus üks tugevus ja üks parandus.`);
+// G24: the self-check — three success criteria rated 0–1–2 and one own sentence as evidence
+const selfCheck = (id, criteria, stamp, titleMore) => {
+  const b = B.selfcheck(id, criteria, stamp, titleMore);
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0 — veel mitte, 1 — osaliselt, 2 — jah. Kirjuta alla üks oma lause, mis seda tõendab.', criteria, evidence: true } };
+};
+// the home text: the draft finished at home + the 1-min voice message + Harjuta (v6 G18); the sheet gives few lines
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// G25: the module's peer exchange (a classmate reads the product and answers) and media log („Minu eesti keele võrgustik”)
+const peerReply = (b) => ({ ...b, data: { ...b.data, peerReply: 'Kursusekaaslane loeb arutluse ja vastab: kaks tugevat kohta ja üks soov (hindamisjuhendi järgi).', realAddressee: 'kursusekaaslane' } });
+const mediaLog = (b) => ({ ...b, data: { ...b.data, mediaLog: true } });
+// a control's rubric stays directly under the task it scores (courseSheet.js lessonOrder)
+const keepPlace = (b) => ({ ...b, data: { ...b.data, keepPlace: true } });
+// v5 G6: a lesson recording is heard twice
+// two blocks side by side on one row (the sheet's page balance)
+const half = (b) => ({ ...b, width: 'half', span: 6 });
+const twiceInLesson = (b) => ({ ...b, data: { ...b.data, plays: 2 } });
+const HARJUTA = 'Harjuta → moodul 13: sõnad ja vormid (10 min).';
+
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 11–12, the grammar line names module 13)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (muutub …-ks, jääb …-mata, tõttu ja tänu, -mine omastavaga, vaatamata) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample) => {
+  const b = B.rubricW2(id, title);
+  return teach({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Kontrolli oma teksti enne saatmist.', criteria: B2_WRITING.map(([name], i) => ({ name, max: 3, hint: B2_WRITING_SHORT[i] })) } }, sample);
+};
+
+// why a v4 block left the sheet
+const CUT_HOOK = 'v5/v6: station 1 is the cold task (061) or the 5-min „Parandatud versioon” (062–064); the hook text and the warm-up talk merged into it';
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) or a second input';
+const CUT_DRILL = 'exit gaps → Harjuta (v6 G14: the exit is a 30–60-s performance of the can-do, not three form items)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home text on the sheet carries the 1-min voice message and the Harjuta link (v5 §3, v6 G18)';
+const CUT_OLDTASK = 'v4 task replaced by the v6 task of the same station (new id, other block type)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, reading + writing (v6 §2 g: B2 lesson 5 = 2 skills alternating; m12 was L + S)';
+const RETIRE_WHY = {
+  '061_d_open': CUT_STATS, '061_d_facts': CUT_STATS, '061_t_chat': CUT_INPUT, '061_t_sort': 'sorting drill (v5 §4: matching and sorting live in Harjuta, not on a B2 lesson sheet)', '061_t_meeting': CUT_OLDTASK,
+  '062_d_chart': CUT_STATS, '062_d_text': CUT_STATS, '062_d_facts': CUT_STATS, '062_t_voice': 'v4 input (voice message, ≈ 60 s): the lesson\'s one input is now the radio 062_d_radio (v5: B2 listening 3–4 min, 2 voices)', '062_t_explain': CUT_OLDTASK,
+  '063_d_radio': 'v4 input (radio with exact figures, ≈ 2.5 min): the lesson\'s one input is now the article 063_d_text (v5: inputs alternate reading / listening; owner: no exact statistics)', '063_d_know': CUT_STATS, '063_t_facts': CUT_INPUT,
+  '064_d_clips': 'v4 input (five clips with exact figures): the lesson\'s one input is now the radio 064_d_radio (v5: B2 listening 3–4 min, 2 voices)', '064_d_know': CUT_STATS, '064_t_house': 'four neighbour cards: they are the two half-cards of the jigsaw 064_t_plan now (v5: ≤ 5 blocks on Kasuta)', '064_t_product': 'module product card: the in-class products are the drafts and the main tasks 061–064; the control is reading + writing (v6 §2 g)',
+};
+const reasonFor = (id) => RETIRE_WHY[id] || (/^065_/.test(id) ? CUT_CONTROL : /_d_(hook|talk)$/.test(id) ? CUT_HOOK : /_t_more$/.test(id) ? CUT_EXTRA
+  : /_t_exit$/.test(id) ? CUT_DRILL : /_t_(home|homework|letter|essay|summary)$/.test(id) ? CUT_HOME : CUT_OLDTASK);
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module13: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reasonFor(id));
+};
+// every v4 block of the lesson that is not on the v6 sheet goes, hidden, to the end of its own phase (a kept id must keep
+// its block type)
+const withRetired = (lessons) => Object.fromEntries(Object.entries(lessons).map(([id, l]) => {
+  const used = new Map(['discover', 'practice', 'transfer'].flatMap((p) => (l[p] || []).map((b) => [b.id, b])));
+  const phases = Object.fromEntries(['discover', 'practice', 'transfer'].map((p) => {
+    const old = (V4[id]?.[p] || []).filter((b) => !used.has(b.id)).map((b) => retire(b.id));
+    return [p, [...(l[p] || []), ...old]];
+  }));
+  used.forEach((b, bid) => {
+    if (V4_BLOCKS[bid] && V4_BLOCKS[bid].type !== b.type) throw new Error(`module13: ${bid} oli ${V4_BLOCKS[bid].type}, nüüd ${b.type}`);
+  });
+  return [id, { ...l, ...phases }];
+}));
+
+// the purpose of every task („kes, kellele, mis tulemus”, stations.js st-purpose) for the teacher page — not printed in the
+// instruction (v6 §2 e, G22: the instruction stays ≤ 25 words)
+const PURPOSE = {
+  '061_d_cold': 'Õpetaja näeb mooduli alguses, kuidas sa praegu arvamust kirjutad.',
+  '061_d_text': 'Tead pärast lugemist, miks inimesed ei sorteeri ja mis neid aitab.',
+  '061_d_scheme': 'Skeem näitab, kuhu iga asi läheb ja kus on sinu maja takistus.',
+  '061_p_forms': 'Ühistu teatest on aru saada, mis muutub ja mis jääb tegemata.',
+  '061_p_fix': 'Naabrite sõnumid lähevad vestlusrühma ilma vigadeta.',
+  '061_p_draft': 'Ettepaneku algus on valmis ja õpetaja märgib kolm lauset.',
+  '061_t_rank': 'Juhatus teab, millised kolm muudatust elanikud kõigepealt tahavad.',
+  '061_t_say': 'Näitad 30 sekundiga, et oskad otsust ja selle tulemust põhjendada.',
+  '061_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '061_t_board': 'Juhatus saab konkreetse ettepaneku, mida koosolekul arutada.',
+  '061_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '062_d_revise': 'Sinu ettepanek juhatusele saab paremaks ja sa näed oma vigu.',
+  '062_d_radio': 'Kuuled spetsialistilt, miks toit raisku läheb ja mis aitab.',
+  '062_d_scheme': 'Skeemist näed, mis toidu raiskamise põhjusele vastab ja mis sinu köögis aitab.',
+  '062_p_forms': 'Köögi kokkuleppes on põhjused ja tagajärjed selgelt kirjas.',
+  '062_p_cause': 'Oskad pika kuna-lause asemel öelda põhjuse lühidalt nimisõnaga.',
+  '062_p_draft': 'Sõnumi esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '062_t_gap': 'Teil on koos plaan, et nädalavahetusel ei läheks toit raisku.',
+  '062_t_say': 'Näitad 30 sekundiga, et oskad plaani ja selle põhjuse öelda.',
+  '062_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '062_t_note': 'Kaaslased teavad, milline köögi kokkulepe sellest nädalast kehtib.',
+  '062_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '063_d_revise': 'Sinu sõnum kaaslastele saab paremaks ja sa näed oma vigu.',
+  '063_d_text': 'Tead pärast lugemist, mida üleminek eri inimestele tähendab.',
+  '063_d_scheme': 'Skeem on sinu argumentide nimekiri aruteluks.',
+  '063_p_mine': 'Arutelu märkmetes on lühikesed ja täpsed fraasid.',
+  '063_p_nom': 'Oskad kõrvallause asemel kasutada -mine-sõna ja arve võrrelda.',
+  '063_p_draft': 'Arutluse esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '063_t_debate': 'Paar jõuab ühise esimese sammuni, mida mõlemad toetavad.',
+  '063_t_say': 'Näitad 30 sekundiga, et oskad oma lõplikku seisukohta põhjendada.',
+  '063_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '063_t_essay': 'Kursusekaaslane loeb kaalutud arvamust ja vastab sulle.',
+  '063_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '064_d_revise': 'Sinu arutlus saab paremaks ja sa näed oma vigu.',
+  '064_d_radio': 'Kuuled päästjalt, mida kuumalaine ajal teha ja keda kontrollida.',
+  '064_d_scheme': 'Skeem on sinu maja kuumaplaani kava.',
+  '064_p_forms': 'Oskad öelda, mis juhtub hoolimata takistusest.',
+  '064_p_fix': 'Naabrite sõnumid kuumalainest on õiged ja rahulikud.',
+  '064_p_draft': 'Sõnumi esimene lõik on valmis ja õpetaja märgib kolm lauset.',
+  '064_t_plan': 'Trepikojal on plaan: kes keda kontrollib ja millal.',
+  '064_t_say': 'Näitad 30 sekundiga, et oskad plaani naabritele lühidalt öelda.',
+  '064_t_self': 'Hindad ise, mida sa tunnis õppisid, ja tõendad seda oma lausega.',
+  '064_t_note': 'Eakas naaber saab hoiatusest aru ja teab, mida ta teeb.',
+  '064_t_rubric': 'Enne saatmist näed, mille eest hindaja punkte annab.',
+  '065_d_read': 'Näitad, et saad arvamusartiklist aru ka ilma sõnaraamatuta.',
+  '065_d_mc': 'Näitad, et saad aru ka sellest, mida autor otse ei ütle.',
+  '065_t_cold': 'Näed, kuidas su kirjutamine on mooduli algusest muutunud.',
+  '065_t_rubric': 'Näed, mille eest viie minuti arvamuse punktid tulevad.',
+  '065_t_claim': 'Firma saab aru, miks arve ei ole õige, ja vastab sulle.',
+  '065_t_wrubric': 'Näed, mille eest kirja punktid tulevad.',
+};
+const withPurposes = (lessons) => Object.fromEntries(Object.entries(lessons).map(([id, l]) => [id, { ...l, ...Object.fromEntries(['discover', 'practice', 'transfer'].map((p) => [p, (l[p] || []).map((b) => (PURPOSE[b.id] ? { ...b, data: { ...b.data, purpose: PURPOSE[b.id] } } : b))])) }]));
+
+export const LESSONS = withPurposes(withShapes(withRetired({
+  'b1b2-061': {
+    title: 'Pudel, purk ja banaanikoor: kuhu sinu prügi tegelikult läheb?',
+    phases: grammar('Kordamine: muutub puhtaks · B2: muutub kompostiks, jääb sorteerimata, pudelist saab tooraine, segaprügi vähenes — ühistu vähendas'),
+    format: 'quest',
+    topic: 'home',
+    canDo: 'Ma loen artiklit sellest, miks inimesed prügi ei sorteeri, arutlen paarilisega, millised kolm muudatust meie maja kõigepealt vajab, ja kirjutan juhatusele umbes 140-sõnalise ettepaneku; väljendan muutust ja tulemust (muutub kompostiks, jääb sorteerimata, vähenes).',
+    teacherPage: {
+      goal: 'Холодная задача письменно; статья о сортировке; -ks, -mata, -nema / -dama; решение в паре: три изменения для дома; дома предложение правлению 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–5 и вопросы 1–5; станция 3 — правило и 10 предложений, черновик 3 предложения; решение — четыре карточки из шести, без скрытой информации.',
+      hook: '«Väide: prügi sorteerimine peaks olema kohustuslik ja selle eest, kes ei sorteeri, tuleks trahvida.» Ученик пишет 5 минут, 5–7 предложений, без помощи. Это холодная задача модуля (письменно; модуль 12 мерил устную речь): не помогайте, не давайте фраз, не исправляйте; лист сохраните до 065. В уроке 065 ученик пишет параллельную задачу в тех же условиях (065_t_cold).',
+      plan: [
+        '0–5: станция 1 — холодная задача: 5 минут, 5–7 предложений; лист сохраните до 065',
+        '5–30: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: пробежать заголовок и первые фразы абзацев (1 мин), статья (6 мин), 7 вопросов, из них 3 на вывод (10 мин), схема «куда идёт вещь» (5 мин)',
+        '30–52: станция 3 — -ks одной строкой (B1), B2: -ks, -mata, -nema / -dama; 10 предложений, исправить 8 сообщений соседей; черновик первого абзаца письма правлению (10 мин), обратная связь — содержание',
+        '52–70: станция 4 — решение в паре: шесть изменений, денег на три; ранжировать и договориться; вы вносите скрытую информацию',
+        '70–75: выход: 30 секунд правлению; самооценка 0–1–2 + своё предложение; домашнее задание: письмо 140 слов, голосовое 1 мин, Harjuta; три отмеченных предложения из запроса данных 059 — в «Minu vead»',
+        'Kui aega jääb (75–90): ролевая игра «новый сосед бросает всё в смешанные отходы» — вы сосед, ученик говорит вежливо и предлагает помощь',
+      ],
+      sources: 'Статья «Miks hea tahe jääb prügimajja?» — учебный текст KeeleSepp без точной статистики (раньше: 437 / 381 млн упаковок, 378 кг, 40 %, 33 %, Haabersti −20 % — убраны). Общая основа: залоговая система (pandimärk, taaraautomaat), раздельный сбор биоотходов обязателен, смешанные отходы дороже вывозить, чем упаковку и биоотходы; пилот с контейнером у дома и инструкцией с картинками уменьшил смешанные отходы (ERR, 2024, без цифр). Карточки решения — учебные.',
+      groups: 'Холодная задача и статья — каждый сам, вопросы на вывод сравнивают в паре. Черновик — каждый сам, партнёр читает по строке рубрики «Ülesande täitmine». Станция 4 — пары; в 1:1 вы — второй член правления.',
+      errors: [
+        '«Koored muutuvad kompost» → «kompostiks» (muutuma / jääma / minema / tegema + -ks: во что превращается).',
+        '«Pudelist saab uueks pudeliks» → «Pudelist saab uus pudel» (X-st saab Y — Y в номинативе; X muutub Y-ks).',
+        '«Jääb mitte sorteeritud» → «jääb sorteerimata» (русское «остаётся несортированным» = jääma + -mata).',
+        '«Segaprügi vähendas» → «Segaprügi hulk vähenes» (-nema: меняется само; -dama: кто-то меняет что-то).',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по письму. Отметьте: позиция в первой фразе, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 065 ученик пишет параллельную задачу (065_t_cold), вы сравниваете листы.',
+        'Решение (v6 §2 d, ranking): нет «правильного» порядка, оценивается аргумент и договорённость. Ученику в частном доме — контейнеры у калитки и соседи по улице; в общежитии — кухня на этаже; пенсионеру — он сам член правления. Никого не стыдим за то, что не сортирует.',
+        'Слова на повтор (korteriühistu из урока 48, kulu из 51, mugavus из 56) есть в статье: попросите ученика найти их и сказать, откуда он их знает.',
+      ],
+    },
+    discover: [
+      station(teach(tag(homeLines(B.writing('061_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Prügi sorteerimine peaks olema kohustuslik ja sellele, kes ei sorteeri, tuleks teha trahv.” Kirjuta 5 minutit, 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7]), 12), { task: 'W14', harno: 'W2b' }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, kirjalikult (moodul 12 mõõtis rääkimist, moodul 13 mõõdab kirjutamist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (kuigi, seetõttu, samas …) ja 2–3 korduvat viga. Hoia leht alles: tunnis b1b2-065 kirjutab õppija paralleelse ülesande samades tingimustes (kontrolli kirjutamise 1. osa) ja te võrdlete.'), 1, 5),
+      station(withReview(tag(B.vocab('061_d_vocab', 'Tunni sõnad.', ['jäätmed — отходы', 'pakend — упаковка', 'biojäätmed — биоотходы', 'pandipakend — тара с залогом', 'segaprügi — смешанный мусор', 'konteiner — контейнер', 'sorteerima — сортировать', 'ringlusse võtma — перерабатывать', 'tooraine — сырьё', 'prügivedu — вывоз мусора']), { topic: ['jäätmed', 'pakend', 'biojäätmed', 'pandipakend', 'segaprügi', 'tooraine', 'prügivedu', 'taaraautomaat', 'pandimärk'] }), ['korteriühistu', 'kulu', 'mugavus']), 2, 25),
+      why(teach(tag(B.reading('061_d_text', 'Loe artiklit.', 'Silmitse 1 minut pealkirja ja lõikude esimesi lauseid. Siis loe ja vasta. Küsimustele 5–7 järelda ja näita lauset tekstist.', 'Miks hea tahe jääb prügimajja?', [
+        'Peaaegu igas Eesti köögis on täna mitu prügikasti: üks pakenditele, teine toidujäätmetele, kolmas kõigele muule. Pandimärgiga pudelid ja purgid viiakse poodi tagasi ja enamik inimesi teeb seda pikemalt mõtlemata. Pudelist saab uus tooraine ja mõne kuu pärast on sama materjal jälle poeriiulil. Selles on Eesti üks Euroopa edukamaid riike. Teiste jäätmetega on lugu aga palju kehvem: suur osa pakenditest ja toidujäätmetest jääb ikka sorteerimata ja läheb segaprügi hulka.',
+        'Miks on pudelitega lihtne ja kõige muuga raske? Vastus ei ole selles, et inimesed oleksid laisad. Pandisüsteem on üles ehitatud nii, et õige valik on ka kõige mugavam. Taaraautomaat on poes, kuhu inimene niikuinii läheb, ja iga pudeli eest saab väikese summa tagasi. Pakendikonteiner on aga sageli kodust kaugel, juhised on eri linnades erinevad ja keegi ei maksa sulle selle eest, et sa jogurtitopsi loputad. Kui hea tegu nõuab lisaaega ja keegi seda ei näe, jääb see sageli tegemata.',
+        'Paljud kardavad ka eksida. Uuringute järgi loobuvad inimesed sorteerimisest sageli just sellepärast, et nad ei tea, kas rasvane pitsakarp on pakend või segaprügi. Kahtluse korral visatakse kõik ühte konteinerisse: siis vähemalt ei riku ma teiste tööd ära. Tegelikult on väike viga palju väiksem probleem kui terve sorteerimata kott. Pakendid läbivad sorteerimistehase, kus osa vigu parandatakse. Lisaks on juhised sageli ainult ühes keeles ja väikeses kirjas, nii et uus elanik ei leia neist vastust. Mõni naaber teeb siis nagu teised: kui konteineris on niikuinii kõik segamini, ei tundu oma pudeli sorteerimine enam mõttekas.',
+        'Sorteerimata prügil on ka hind, mida maksavad kõik. Segaprügi vedu on kallim kui pakendite või biojäätmete vedu, sest segaprügi tuleb põletada. Kui maja konteiner on alati täis, tellib korteriühistu sagedasema veo ja kulu jagatakse kõigi korterite vahel. Nii maksab ka naaber, kes hoolikalt sorteerib, nende eest, kes seda ei tee. Biojäätmed aga muutuvad õige kogumise korral kompostiks või biogaasiks, millest saab kütust.',
+        'Mõnes linnaosas tehtud katse näitab, mida mugavus muudab. Kui kortermajade juurde toodi pakendikonteiner ja trepikotta pandi lihtne pildiga juhis, vähenes segaprügi hulk juba mõne kuuga märgatavalt. Elanikud ei muutunud paremaks. Sorteerimine muutus lihtsamaks. Mõni maja vähendas oma kulusid veel sellega, et lepiti kokku suurte asjade äraveo päev: vana mööbel ei jää enam kuudeks hoovi seisma. Ka naabrid hakkasid omavahel rohkem rääkima, sest prügimaja ei olnud enam koht, kust kiiresti ära joostakse.',
+        'Seega ei piisa sellest, kui inimesi ainult hoiatada või trahvida. Trahv võib küll lühikeseks ajaks aidata, kuid kui konteiner on endiselt kaugel, otsivad inimesed lihtsalt teise tee. Palju rohkem aitab, kui omavalitsus, vedaja ja korteriühistu teevad õige valiku lihtsaks: konteiner on maja juures, juhis on arusaadav ka neile kasutajatele, kes eesti keelt alles õpivad, ja tulemused on kõigile näha. Abiks võib olla ka linna rakendus, kust elanik saab kontrollida, kuhu mingi asi käib.',
+        'Kas üksikinimene siis millegi eest ei vastuta? Vastutab küll. Kuid tema esimene samm ei pea olema täiuslik sorteerimine, vaid küsimus: mis on meie maja kõige suurem takistus? Kui vastus on teada, saab koosolekul teha ettepaneku, mis muudab rohkem kui ükski plakat.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Mis saab teksti järgi pandimärgiga pudelist, kui see viiakse poodi tagasi?', 'sellest saab uus tooraine'],
+        ['Miks on pandisüsteemis õige valik ka kõige mugavam?', 'automaat on poes, kuhu niikuinii minnakse, ja raha tuleb tagasi'],
+        ['Mida teevad paljud inimesed, kui nad ei tea, kuhu asi käib?', 'viskavad kõik ühte konteinerisse|viskavad kõik segaprügi hulka'],
+        ['Miks on segaprügi vedu kallim kui pakendite vedu?', 'segaprügi tuleb põletada'],
+        ['Miks maksab ka hoolikalt sorteeriv naaber teiste eest? Järelda.', 'sagedasema veo kulu jagatakse kõigi korterite vahel'],
+        ['Mida tahab autor öelda lausetega „Elanikud ei muutunud paremaks. Sorteerimine muutus lihtsamaks.”? Järelda.', 'tulemus sõltub sellest, kui lihtsaks sorteerimine on tehtud, mitte inimeste iseloomust'],
+        ['Miks ei usu autor, et trahv üksi aitab? Milline on tema hoiak?', 'kui konteiner on kaugel, otsitakse teine tee; õige valik tuleb teha lihtsaks'],
+      ]), { task: 'R15', voice: 'article' }), 'Lugemine, umbes 25 minutit koos sõnade ja skeemiga. Strateegia (v6 §2 l, lugemine: silmitse → otsi → arva kontekstist): enne lugemist vaatab õppija 1 minuti pealkirja ja lõikude esimesi lauseid ning ütleb, millest tekst räägib. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Kordamise sõnad (korteriühistu, kulu, mugavus) on tekstis: lase need leida. Tekst on õppetekst ilma täpse statistikata.'), [
+        '1. lõik: „Pudelist saab uus tooraine.”',
+        '2. lõik: „Taaraautomaat on poes, kuhu inimene niikuinii läheb, ja iga pudeli eest saab väikese summa tagasi.”',
+        '3. lõik: „Kahtluse korral visatakse kõik ühte konteinerisse.”',
+        '4. lõik: „segaprügi tuleb põletada”.',
+        'Järeldus 4. lõigust: ühistu „tellib … sagedasema veo ja kulu jagatakse kõigi korterite vahel”.',
+        'Järeldus 5. lõigust: inimesed jäid samaks, muutus korraldus — konteiner ja juhis tegid sorteerimise lihtsaks.',
+        'Järeldus 6. lõigust: „inimesed otsivad lihtsalt teise tee”; „Palju rohkem aitab, kui … teevad õige valiku lihtsaks.”',
+      ]),
+      teach(B.diagram('061_d_scheme', 'flow', { title: 'Skeem: kuhu asi läheb?', instruction: 'Kirjuta iga kasti juurde üks näide tekstist. Viimase kasti juurde kirjuta oma maja kõige suurem takistus.', nodes: 'Pudel pandimärgiga → taaraautomaat → uus tooraine\nPakend → pakendikonteiner → ringlusse\nKoored → biokonteiner → kompost või biogaas\nMis jääb sorteerimata → segaprügi → põletus, kallim vedu\nMinu maja takistus: …' }, 'full', 'g_read'),
+        'Skeem on õppija otsuse alus jaamas 4: viimase kasti takistus (kaugus, juhis, ruum, hirm eksida) määrab, millise muudatuse ta valib esimeseks.'),
+    ],
+    practice: [
+      station(teach(B.notice('061_p_notice', 'Märka: koored muutuvad kompostiks — pakend jääb sorteerimata', [
+        'Artiklist: biojäätmed **muutuvad kompostiks** · suur osa **jääb sorteerimata** · pudelist **saab** uus tooraine · segaprügi hulk **vähenes** · maja **vähendas** kulusid',
+        'Kordamine (B1): muutuma + -ks: hoov muutub puhtaks.',
+        'B2, tulemus — muutuma, jääma, minema, tegema + -ks: kompost → **kompostiks**, kallis → **kallimaks**, puhas → **puhtamaks**, tühi → **tühjaks**',
+        'B2, mida ei tehtud — jääma + -mata: **sorteerimata**, **viimata**, **loputamata**',
+        'B2, muutub ise (-nema) või keegi muudab (-dama): hulk **vähenes** — ühistu **vähendas** hulka · olukord **paranes** — juhis **parandas** olukorda',
+        'X-st saab Y (nimetav): pudelist saab uus pudel · võrdle: pudel **muutub** uueks pudeliks.',
+        'Vene keeles „превращается в компост” (в + винительный) — eesti keeles saav kääne: muutub kompostiks; „остаётся несортированным” — jääb sorteerimata.',
+      ], 'full'), 'Kordamine ühe minutiga (muutub puhtaks). Siis B2 samm: kolm tulemuse vormi ja -nema / -dama vahe. Lase õppijal leida artiklist kolm lauset ja öelda, kas asi muutub ise või keegi muudab seda. L1 rida: vene „в компост” ei ole eesti keeles „kompostisse”, vaid „kompostiks”.'), 3, 22),
+      why(teach(tag(B.gaps('061_p_forms', 'Korteriühistu teade elanikele.', 'Kas vaja on tulemust (-ks), tegemata asja (-mata) või muutust (-nema / -dama)? Kirjuta sõna õiges vormis. Panka ei ole.', [
+        'Hoovi tuleb biokonteiner ja koored muutuvad paari kuuga [kompostiks]. (kompost)',
+        'Eelmisel aastal jäi meie majas suur osa pakenditest [sorteerimata]. (sorteerima)',
+        'Kuna segaprügi on palju, läheb vedu järgmisest aastast [kallimaks]. (kallis)',
+        'Pärast pakendikonteineri tulekut [vähenes] segaprügi hulk märgatavalt. (väike: muutus ise, minevik)',
+        'Juhatus [vähendas] veokulusid, sest konteinerit tühjendatakse nüüd harvem. (väike: keegi muutis, minevik)',
+        'Kogutud pudelitest ja purkidest [saab] uus tooraine. (saama, olevik)',
+        'Pildiga juhis trepikojas [parandas] sorteerimist kõigis korterites. (parem: keegi muutis, minevik)',
+        'Uus kaanega konteiner teeb hoovi suvel [puhtamaks]. (puhas, keskvõrre)',
+        'Pudel, mis jääb poodi tagasi [viimata], ei saa uueks tooraineks. (viima)',
+        'Pärast suurte asjade äraveo päeva jäi hoov lõpuks [tühjaks]. (tühi)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Kas siin on tulemus, tegemata asi või muutus? Kas asi muutub ise või keegi muudab?” Read 4–5 ja 7: -nema / -dama. Rida 6: X-st saab Y — tooraine on nimetavas. Lisaküsimus: „Mis jääb sinu majas kõige sagedamini sorteerimata?”'), [
+        'muutuma + -ks: kompost → kompostiks.',
+        'jääma + -mata: sorteerimata.',
+        'minema + -ks keskvõrdes: kallis → kallimaks.',
+        'Hulk muutub ise, minevik: vähenema → vähenes.',
+        'Keegi muudab midagi, minevik: vähendama → vähendas.',
+        'X-st saab Y: saab (Y = tooraine, nimetav).',
+        'Miski muudab midagi, minevik: parandama → parandas.',
+        'tegema + -ks keskvõrdes: puhas → puhtamaks.',
+        'jääma + -mata: viimata.',
+        'jääma + -ks: tühi → tühjaks.',
+      ]),
+      why(teach(tag(B.errorfix('061_p_fix', 'Naabrite sõnumid enne saatmist.', 'Naabrid kirjutavad maja vestlusrühma. Igas sõnumis on üks viga. Kirjuta sõnum õigesti.', [
+        ['Kartulikoored muutuvad biokonteineris kompost.', 'Kartulikoored muutuvad biokonteineris kompostiks.'],
+        ['Pool pakenditest jääb meie majas mitte sorteeritud.', 'Pool pakenditest jääb meie majas sorteerimata.'],
+        ['Kogutud pudelist saab uueks pudeliks.', 'Kogutud pudelist saab uus pudel.|Kogutud pudel muutub uueks pudeliks.'],
+        ['Pärast uut juhist segaprügi hulk vähendas.', 'Pärast uut juhist segaprügi hulk vähenes.|Pärast uut juhist vähenes segaprügi hulk.'],
+        ['Juhatus vähenes eelmisel aastal prügiveo kulusid.', 'Juhatus vähendas eelmisel aastal prügiveo kulusid.'],
+        ['Olukord meie hoovis on sel aastal parandanud.', 'Olukord meie hoovis on sel aastal paranenud.'],
+        ['Prügivedu läheb järgmisel aastal kallis.', 'Prügivedu läheb järgmisel aastal kallimaks.'],
+        ['Uus konteiner tegi meie hoov puhtamaks.', 'Uus konteiner tegi meie hoovi puhtamaks.'],
+      ], 'full', 'g_notice'), { task: 'G06' }),
+      'Pärast iga rida küsi: „Mis siin valesti on: kääne, vorm või tegusõna?” Read 4–6: kas asi muutub ise (-nema) või keegi muudab (-dama)? Rida 8: tegema millegi millekski — hoovi (osastav) puhtamaks (saav).'), [
+        'muutuma + -ks: kompostiks.',
+        'jääma + -mata: sorteerimata (mitte „mitte sorteeritud”).',
+        'X-st saab Y nimetavas — või X muutub Y-ks.',
+        'Hulk muutub ise: vähenes (vähendas vajab sihitist).',
+        'Juhatus muudab midagi: vähendas kulusid.',
+        'Olukord muutub ise: on paranenud.',
+        'minema + -ks: kallimaks.',
+        'tegema keda/mida millekski: hoovi puhtamaks.',
+      ]),
+      draft('061_p_draft', 'ettepaneku esimene lõik', 'Kirjuta juhatusele vähemalt 6 lauset: mis on praegu probleem ja mis muutub, kui midagi teha? Kasuta kolme tulemuse vormi.', 'Ülesande täitmine (probleem ja konkreetne ettepanek)', [6, 10]),
+    ],
+    transfer: [
+      station(teach(mainTask(B.ideaCard('061_t_rank', 'Otsus: kolm muudatust meie majale (12–15 minutit).', 'Järjestage paarilisega kuus muudatust. Juhatusel on raha kolmeks. Leppige kokku kolm ja põhjendage iga valikut.', [
+        'Teie maja segaprügi konteiner on alati täis, prügiveo arve kasvab ja hoovis seisab vana mööbel. Juhatus küsib elanikelt: millised kolm muudatust teha kõigepealt?',
+        'Abikaart: Kõige tähtsam on …, sest siis väheneb … · Kui … jääb tegemata, läheb vedu kallimaks · Olen nõus, kui …',
+        'Lisaväljakutse: ütle, mis on poole aasta pärast teisiti, ja leia üks samm, mis ei maksa midagi.',
+      ], [
+        'pakendikonteiner maja juurde',
+        'biojäätmete konteiner kaanega',
+        'pildiga sorteerimisjuhis kahes keeles trepikotta',
+        'suurte asjade äraveo päev kord kuus',
+        'prügimaja valgustus ja lukk',
+        'naabrite infotund ja vestlusrühma meelespea',
+      ], 'Kolm valitud muudatust järjekorras ja iga juurde üks lause: mis selle tulemusel muutub.', [180, 240]), 'ranking',
+      ['Kõige tähtsam on …, sest siis väheneb …', 'Kui … jääb tegemata, läheb vedu kallimaks.', 'Olen nõus, kui …'],
+      'Ütle, mis on poole aasta pärast teisiti, ja leia üks samm, mis ei maksa midagi.', { task: 'S12', fluency: true }),
+      'Otsus (v6 §2 d, järjestamine): õigeid järjekordi ei ole — hinda põhjendust ja kokkulepet. Sina oled juhatuse teine liige. Varjatud info (ütle ükshaaval, kui paar on esimese järjekorra pannud): 1) „Vedaja ütles eile: pakendikonteineri annab ta tasuta, aga ainult lukustatud prügimajja.” (Õppijad peavad järjekorda muutma: valgustus ja lukk + pakendikonteiner koos.) 2) „Viienda korruse 80-aastane proua ütles, et ta ei jaksa hoovi teise otsa käia.” (Konteiner maja ukse lähedale või naabriabi.) Õnnestunud, kui õppija nimetab kolm muudatust järjekorras, põhjendab igat tulemusega (väheneb, muutub …-ks, jääb …-mata), reageerib uuele infole ja jõuab kokkuleppele. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 18, { final: 'decide' }),
+      exitTalk('061_t_say', 'Ütle 30 sekundiga juhatusele, millised kolm muudatust te valisite ja mis nende tulemusel muutub.', ['Millised kolm muudatust te valisite?', 'Mis on poole aasta pärast teisiti?'], 'Kas õppija nimetab kolm muudatust järjekorras ja ütleb tulemuse vähemalt ühe -ks- või -mata-vormiga (hoov muutub puhtamaks, midagi ei jää sorteerimata)?'),
+      teach(selfCheck('061_t_self', ['Leidsin artiklist põhjused ja järeldasin autori hoiaku.', 'Kasutasin tulemuse ja muutuse vorme (muutub kompostiks, jääb sorteerimata, vähenes).', 'Põhjendasin paarilisega kolme muudatuse järjekorda ja leppisime kokku.'], 'Otsus tehtud', 'Ma oskan muudatust ja selle tulemust põhjendada'),
+        'Üks-ühele: sina oled paariline (juhatuse teine liige); õppija hindab kolmandat rida selle järgi, kas te jõudsite kokkuleppele.'),
+      tag(homeTask(homeLines(B.examWriting('061_t_board', 'Kodus: ettepanek juhatusele (umbes 140 sõna).', `Lõpeta tunni mustand kirjaks (130–150 sõna). Pöördumist ja algust ei anta. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Kirjuta oma maja juhatusele, üürileandjale või ühiselamu juhatajale. Kasuta tunni otsust. Moodul 12: kirjuta oma andmepäringu (tund 59) kolm õpetaja märgitud lauset parandatult Harjutas „Minu vead” alla.',
+        points: ['mis on praegu probleem (mis jääb sorteerimata, mis läheb kallimaks)', 'kolm muudatust tähtsuse järjekorras', 'mis nende tulemusel muutub (väheneb, muutub …-ks)', 'palve: arutada üldkoosolekul ja vastata kindlaks kuupäevaks'],
+        words: [130, 150],
+      }), 6)), { task: 'W13' }),
+      writingRubric('061_t_rubric', 'Hindamisjuhend: ettepanek juhatusele (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Meie prügi on halb. Konteiner on alati täis ja pool prügist jääb mitte sorteeritud. Pange uus konteiner. Siis hoov muutub puhas. Vastake.” Hinnang: ülesanne 2 (probleem ja üks ettepanek on olemas, kuid kolm muudatust ja kuupäev puuduvad), ülesehitus 2 (järjekord on selge, sidendeid ei ole), sõnavara 2 (puuduvad segaprügi, prügivedu, kulu), grammatika 1 („jääb mitte sorteeritud” → jääb sorteerimata, „muutub puhas” → muutub puhtamaks); toon („Pange”, „Vastake”) on juhatusele liiga käskiv. Kui õppija lisab kolm muudatust järjekorras, viisaka palve (palun arutada, ootan vastust …) ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-062': {
+    title: 'Toit prügikastis: miks me ostame rohkem, kui jõuame ära süüa?',
+    phases: grammar('Kordamine: kuna oli soodushind, … · B2: soodushinna tõttu, tänu nimekirjale, selle tagajärjel, seetõttu ostame, …, mistõttu'),
+    format: 'facts',
+    topic: 'family',
+    canDo: 'Ma saan aru umbes 4-minutilisest raadiosaatest toidu raiskamisest, küsin paariliselt infot ja lepin temaga kokku nädalavahetuse plaani ning kirjutan kaaslastele umbes 140-sõnalise köögi kokkuleppe; väljendan põhjust nimisõnaga (soodushinna tõttu, tänu nimekirjale) ja tagajärge (selle tagajärjel, mistõttu).',
+    teacherPage: {
+      goal: 'Радио о пищевых отходах; причина существительным (tõttu, tänu); инфолакуна: холодильник и план выходных; дома сообщение 140 слов + медиадневник.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 предложений, черновик 3 предложения; инфолакуна без скрытой информации.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три предложения, которые вы отметили в черновике или письме правлению урока 061, и одной строкой говорит, что изменил. Вопрос, если есть время: «Что ты выбросил(а) последним — оно было испорчено или ещё съедобно?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (61)',
+        '5–27: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: прочитать вопросы и предсказать ответы (2 мин), радио дважды (9 мин), 10 вопросов, из них 3 на вывод (5 мин), схема «причина — что помогает» (4 мин)',
+        '27–50: станция 3 — kuna-предложение одной строкой (B1), B2: tõttu / tänu / selle tagajärjel / seetõttu / mistõttu; 10 предложений, 8 перефраз; черновик сообщения (10 мин), обратная связь — грамматика',
+        '50–70: станция 4 — инфолакуна: у одного холодильник, у другого план выходных; не показывая карточки, составить план; вы вносите скрытую информацию',
+        '70–75: выход: 30 секунд — план и причина; самооценка; домашнее задание: сообщение 140 слов + медиадневник, голосовое, Harjuta',
+        'Kui aega jääb (75–90): игра «холодильник перед отпуском»: шесть продуктов, для каждого решение (съесть, заморозить, отдать, выбросить) с причиной',
+      ],
+      sources: 'Радио «Köögiraadio» — учебный текст KeeleSepp (ведущая Kristel и специалист Rasmus вымышлены), без точной статистики (раньше: 127 кг, 40 % / 24 %, 164 млн €, 4 млн кг — убраны). Общая основа: больше всего съедобной еды пропадает в домохозяйствах (Kliimaministeerium, план предотвращения пищевых отходов, 2023); «parim enne» — качество, «kõlblik kuni» — безопасность (Põllumajandus- ja Toiduamet); Toidupank собирает излишки магазинов; toidujagamise kapid есть в некоторых городах.',
+      groups: 'Радио — каждый сам, вопросы на вывод сравнивают в паре. Черновик — каждый сам. Станция 4 — пары с карточками A и B (не показывать!); в 1:1 карточка B у вас.',
+      errors: [
+        '«Soodushind tõttu» → «soodushinna tõttu» (перед tõttu — родительный падеж).',
+        '«Tänu nimekiri» / «tänu nimekirja» → «tänu nimekirjale» (tänu + аллатив, как русское «благодаря + дательный»).',
+        '«Seetõttu me ostame vähem» → «Seetõttu ostame (me) vähem» (после seetõttu / selle tagajärjel глагол второй).',
+        '«Naabri tõttu sain sooja toitu» → «Tänu naabrile …» (о хорошей причине — tänu).',
+      ],
+      notes: [
+        'Инфолакуна (v6 §2 d, infogap): ученик должен спрашивать и объяснять, а не читать карточку. Еда — тема личная и денежная: не спрашивайте, сколько семья тратит; можно говорить о любой кухне (общежитие, родители, выдуманная семья).',
+        'Студенту — общий холодильник; маме — детское пюре и остатки; пенсионеру — «раньше ничего не выбрасывали», это ценный опыт; уставшему — готовая еда и акции по дороге с работы.',
+        'Слова на повтор (eelarve из урока 51, ostukorv из 52, uuring из 58) звучат в радио: попросите ученика поднять руку, когда услышит.',
+      ],
+    },
+    discover: [
+      station(half(revision('062_d_revise', 'b1b2-061', 'Kirjuta ümber kolm lauset, mille õpetaja sinu ettepanekus juhatusele märkis. Lisa üks rida: mida sa muutsid ja miks?')), 1, 5),
+      station(half(withReview(tag(B.vocab('062_d_vocab', 'Tunni sõnad.', ['toidujäätmed — пищевые отходы', 'raiskama — тратить впустую', 'söödav — съедобный', 'halvaks minema — портиться', 'märgis — маркировка', 'kõlblik kuni — годен до', 'parim enne — лучше употребить до', 'ülejääk — остаток', 'külmutama — замораживать', 'annetama — жертвовать (отдавать даром)']), { topic: ['toidujäätmed', 'märgis', 'ülejääk', 'külmutama', 'parim enne', 'toidujagamise'] }), ['eelarve', 'ostukorv', 'uuring'])), 2, 22),
+      teach(B.diagram('062_d_scheme', 'formula', { title: 'Skeem: miks toit raisku läheb — mis aitab?', instruction: 'Kuulates kirjuta iga põhjuse juurde, mis aitab. Kaks viimast rida täida oma köögi järgi.', nodes: 'Soodushind: kolm pakki ühe asemel | …\nToit unustatakse külmkapi taha | …\nMärgised ajatakse segi | …\nPeost jääb toitu üle | …\nLeib läheb halvaks enne, kui jõuame süüa | …\nPere ei tea, mida nädalal süüakse | …\nMinu köögis läheb raisku … | …\nMinu köögi kokkulepe: … | …' }, 'full', 'g_notice'),
+        'Skeem on enne saadet: esimese kuulamise ajal märgib õppija põhjused, teisel korral lahendused. Vasakule: soodushind, külmkapi tagumine riiul, märgiste segiajamine, liiga suur kogus peol. Paremale: foto ja nimekiri, ülejääkide õhtu, külmutamine kohe, edasiandmine (naaber, toidujagamise kapp, Toidupank poodidele). Skeem on õppija infolünga plaani alus.'),
+      why(teach(tag(B.examListen('062_d_radio', 'Kuulamine: raadiosaade „Köögiraadio”.', 'Loe küsimused läbi ja ennusta vastused pliiatsiga. Kuula saadet kaks korda ja vali õige vastus.', 'choice', [
+        'Kristel: Tere, siin „Köögiraadio”! Täna räägime toidust, mis jõuab prügikasti enne, kui keegi seda sööb. Stuudios on toiduohutuse spetsialist Rasmus. Rasmus, kus läheb kõige rohkem söödavat toitu raisku: poes, restoranis või kodus?',
+        'Rasmus: Paljud arvavad, et poes. Tegelikult näitavad uuringud, et kõige suurem osa raisatud toidust tuleb kodudest. Poed on viimastel aastatel palju õppinud: osa toidust müüakse õhtul soodsamalt ja ülejääk annetatakse. Kodus ei näe keegi, mida me ära viskame, ja seetõttu ei märka me seda ka ise.',
+        'Kristel: Miks me siis kodus nii palju ära viskame?',
+        'Rasmus: Esimene põhjus on ostmine. Soodushinna tõttu paneme ostukorvi kolm pakki, kuigi vajame ühte. Kassas tundub, et säästsime raha, aga kui kaks pakki lähevad halvaks, ei säästnud me midagi. Teine põhjus on külmkapp: toit pannakse taha ja unustatakse sinna.',
+        'Kristel: Ja kolmas?',
+        'Rasmus: Kolmas on märgised. Paljud ei tee vahet „parim enne” ja „kõlblik kuni” vahel. „Parim enne” räägib kvaliteedist. Pärast seda kuupäeva võib küpsis olla vähem krõbe, aga seda võib süüa, kui pakend on terve ning toit näeb välja ja lõhnab normaalselt. „Kõlblik kuni” räägib ohutusest. Hakkliha või kala pärast seda kuupäeva enam ei sööda.',
+        'Kristel: Nii et kui jogurt on paar päeva üle „parim enne” kuupäeva …',
+        'Rasmus: … siis vaata, nuusuta ja maitse. Kui inimesed seda teavad, jõuab prügikasti palju vähem toitu. Ainult „kõlblik kuni” puhul ei tasu riskida.',
+        'Kristel: Kuulajad küsivad sageli, kas toitu võib külmutada.',
+        'Rasmus: Võib ja tasub. Leiba ja liha saab külmutada. Kõige parem on külmutada kohe, mitte viimasel päeval. Paljudes peredes on reede õhtu ülejääkide õhtu: süüakse ära kõik, mis nädala jooksul üle jäi. Tänu sellele lihtsale harjumusele väheneb raiskamine märgatavalt.',
+        'Kristel: Aga kui toitu jääb ikkagi üle, näiteks pärast sünnipäeva?',
+        'Rasmus: Siis anna edasi: naabrile, sõbrale, töökaaslasele. Mõnes linnas on toidujagamise kapid, kuhu võib panna pakendis toitu, mida teised saavad tasuta võtta. Poodide ülejäägi kogub Toidupank, kes jagab seda abivajajatele. Kodus tehtud toitu Toidupank tavaliselt vastu ei võta, sest selle ohutust ei saa kontrollida.',
+        'Kristel: Kas lastega peres on raiskamist rohkem?',
+        'Rasmus: Sageli küll, sest lapse maitse muutub iga nädalaga. Eile armastas ta jogurtit, täna mitte. Siin aitavad väiksemad portsjonid: pane taldrikule pigem vähem ja anna juurde, kui laps küsib. Ülejäänud toidu võib panna karpi ja süüa järgmisel päeval lõunaks. Paljud vanemad ütlevad, et tänu sellele on ka nende enda lõuna tööl odavam.',
+        'Kristel: Ja poed? Kas nemad ei võiks rohkem teha?',
+        'Rasmus: Võiksid. Paljud poed müüvad õhtul lühikese kuupäevaga toitu soodsamalt, aga suured pakid ja pakkumised „kolm ühe hinnaga” panevad meid ikka ostma rohkem, kui vajame. Seetõttu on ostja otsus lõpuks tähtsam kui poe reklaam.',
+        'Kristel: Kas toidu raiskamine on ka raha küsimus?',
+        'Rasmus: Väga suur. Iga ära visatud leib on ära visatud raha. Kui pere teeb nädala menüü ja ostunimekirja, jääb pere eelarvesse kuu lõpus märgatavalt rohkem raha. Ja kui toit läheb prügikasti, raiskame ka vett, energiat ja tööd, mis selle valmistamiseks kulus.',
+        'Kristel: Mida soovitad inimesele, kes tahab homme alustada?',
+        'Rasmus: Ära alusta suurest plaanist. Tee enne poodi minekut foto oma külmkapist. Poes vaata seda fotot, mitte reklaame. See võtab kümme sekundit, aga muudab kogu ostukorvi.',
+        'Kristel: Aitäh, Rasmus!',
+      ], [
+        ['Kust tuleb Rasmuse sõnul kõige suurem osa raisatud toidust?', 'kodudest', 'poodidest', 'restoranidest', 'koolisööklatest'],
+        ['Miks ei märka me Rasmuse sõnul ise, kui palju toitu kodus raisku läheb?', 'kodus ei näe keegi, mida ära visatakse', 'kodus visatakse ainult rikutud toitu', 'kodus ei ole prügikasti', 'kodus süüakse alati kõik ära'],
+        ['Mis on Rasmuse sõnul toidu raiskamise esimene põhjus?', 'soodushinna tõttu ostetakse rohkem, kui vaja', 'toit on poes liiga kallis', 'külmkapid on liiga väikesed', 'pakendid on liiga suured'],
+        ['Mida tähendab Rasmuse sõnul märgis „parim enne”?', 'kvaliteeti: pärast kuupäeva võib toitu sageli veel süüa', 'ohutust: pärast kuupäeva ei tohi toitu süüa', 'kuupäeva, millal toit valmistati', 'hinda, mis kehtib kuupäevani'],
+        ['Mida ei tohi Rasmuse sõnul teha pärast „kõlblik kuni” kuupäeva?', 'süüa hakkliha või kala', 'süüa küpsiseid', 'toitu külmutada enne kuupäeva', 'toitu naabrile anda enne kuupäeva'],
+        ['Millal on Rasmuse sõnul kõige parem toitu külmutada?', 'kohe, mitte viimasel päeval', 'viimasel päeval enne kuupäeva', 'alles pärast kuupäeva', 'ainult reede õhtul'],
+        ['Miks ei võta Toidupank tavaliselt kodus tehtud toitu vastu?', 'selle ohutust ei saa kontrollida', 'seda on liiga palju', 'abivajajad ei taha seda', 'see ei mahu kappidesse'],
+        ['Miks ei säästnud ostja Rasmuse arvates midagi, kuigi kassas tundus vastupidi? Järelda.', 'osa ostetud toidust läks halvaks ja raha läks prügikasti', 'soodushind oli tegelikult kõrgem', 'kassas tehti viga', 'ta ostis vale toote'],
+        ['Mida tahab Rasmus öelda soovitusega teha enne poodi foto külmkapist? Järelda.', 'ostetakse seda, mida on vaja, mitte seda, mida reklaam pakub', 'külmkapp tuleb enne poodi koristada', 'poes tuleb kõik pildistada', 'fotot on vaja Toidupangale näitamiseks'],
+        ['Milline on Rasmuse hoiak kogu saate jooksul? Järelda.', 'väikesed harjumused muudavad rohkem kui suured plaanid', 'toidu raiskamise eest vastutavad ainult poed', 'toidu raiskamist ei ole võimalik vähendada', 'kõik toidud tuleks kohe külmutada'],
+      ], 'g_listen'), { voice: 'interview', task: 'L02', harno: 'L2' }),
+      'Kuulamine, umbes 22 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: ennusta → võtmesõnad → kontrolli): õppija loeb küsimused, ennustab pliiatsiga ja kontrollib kuulates. Küsimused 8–10 on järeldusküsimused: küsi, millisele lausele vastus toetub. Kordamise sõnad (eelarve, ostukorv, uuring) on saates: lase õppijal käsi tõsta, kui ta neid kuuleb.'), [
+        'Rasmus: „kõige suurem osa raisatud toidust tuleb kodudest”.',
+        'Rasmus: „Kodus ei näe keegi, mida me ära viskame, ja seetõttu ei märka me seda ka ise.”',
+        'Rasmus: „Soodushinna tõttu paneme ostukorvi kolm pakki, kuigi vajame ühte.”',
+        'Rasmus: „„Parim enne” räägib kvaliteedist … seda võib süüa, kui pakend on terve …”',
+        'Rasmus: „Hakkliha või kala pärast seda kuupäeva enam ei sööda.”',
+        'Rasmus: „Kõige parem on külmutada kohe, mitte viimasel päeval.”',
+        'Rasmus: „selle ohutust ei saa kontrollida”.',
+        'Järeldus: „kui kaks pakki lähevad halvaks, ei säästnud me midagi”.',
+        'Järeldus: „Poes vaata seda fotot, mitte reklaame.”',
+        'Järeldus kogu saatest: „Ära alusta suurest plaanist”; foto, ülejääkide õhtu ja külmutamine on väikesed harjumused.',
+      ]),
+    ],
+    practice: [
+      station(teach(B.notice('062_p_notice', 'Märka: soodushinna tõttu — tänu nimekirjale', [
+        'Saatest: **soodushinna tõttu** paneme ostukorvi kolm pakki · **tänu sellele** harjumusele väheneb raiskamine · **seetõttu** ei märka me seda',
+        'Kordamine (B1): kuna-lause: Kuna oli soodushind, ostsin kolm pakki.',
+        'B2, põhjus nimisõnana: omastav + **tõttu** (halb või neutraalne põhjus): kuuma ilma tõttu · **tänu** + alaleütlev (hea põhjus): **tänu nimekirjale**, **tänu Toidupangale**',
+        'B2, tagajärg uues lauses: **seetõttu** või **selle tagajärjel** + kohe tegusõna: Seetõttu **ostame** vähem. · samas lauses: …, **mistõttu** piim läks halvaks.',
+        'Vene keeles „благодаря списку” (+ дательный) ja „из-за скидки” (+ родительный) — eesti keeles tänu nimekirjale (alaleütlev) ja soodushinna tõttu (omastav, tõttu järel).',
+      ], 'full'), 'Kordamine ühe minutiga (kuna-lause). Siis B2 samm: põhjus nimisõnana (lühem, kirjalikum) ja tagajärg uues lauses tegusõnaga teisel kohal. Küsi iga näite juures: „Kas põhjus on hea või halb?” L1 rida: vene keeles on eessõna ees, eesti keeles on tõttu järel.'), 3, 23),
+      why(teach(tag(B.gaps('062_p_forms', 'Meie köögi kokkulepe.', 'Kas põhjus on hea või halb? Kas tagajärg on uues lauses või samas? Kirjuta lünka õige sõna või vorm. Panka ei ole.', [
+        'Kuuma ilma [tõttu] läks piim juba teisel päeval halvaks. (põhjus: hea või halb?)',
+        '[Tänu] ostunimekirjale viskame nüüd vähem toitu ära. (põhjus: hea või halb?)',
+        'Tänu [nimekirjale] ostame ainult seda, mida tõesti vajame. (nimekiri)',
+        'Soodushinna [tõttu] ostsime kolm pakki jogurtit, kuigi vajasime ühte. (põhjus)',
+        'Tänu [Toidupangale] jõuab poodide ülejääk abivajajateni. (Toidupank)',
+        'Märgiseid ei mõistetud. [Selle tagajärjel] läks söödav toit prügikasti. (tagajärg uues lauses, kaks sõna)',
+        'Külmkapp läks katki, [mistõttu] toit riknes. (tagajärg samas lauses)',
+        'Eelmisel nädalal viskasime pool leiba ära. Seetõttu [ostame] nüüd väiksema pätsi. (ostma, olevik)',
+        'Kodudes raisatakse kõige rohkem. [Seetõttu] tuleks alustada kodust. (tagajärg uues lauses, üks sõna)',
+        'Tänu [naabrile] ei läinud sünnipäeva kook raisku. (naaber)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Kas põhjus on hea või halb? Kas tagajärg on uues lauses?” Read 1, 2, 4: tõttu või tänu sõltub põhjusest. Read 3, 5, 10: tänu + -le. Read 8–9: pärast seetõttu tuleb tegusõna kohe.'), [
+        'Halb põhjus: omastav + tõttu.',
+        'Hea põhjus: tänu + alaleütlev.',
+        'tänu + alaleütlev: nimekiri → nimekirjale.',
+        'Neutraalne põhjus, mis viis liigse ostuni: tõttu.',
+        'tänu + alaleütlev: Toidupank → Toidupangale.',
+        'Tagajärg uues lauses: selle tagajärjel + tegusõna (läks).',
+        'Tagajärg samas lauses: koma + mistõttu.',
+        'Pärast seetõttu on tegusõna kohe: ostame.',
+        'Tagajärg uues lauses, üks sõna: seetõttu.',
+        'tänu + alaleütlev: naaber → naabrile.',
+      ]),
+      why(teach(tag(B.transformation('062_p_cause', 'Kokkuleppe laused nimisõnaga.', 'Alusta antud sõnadega. Põhjus on nimisõna (tõttu, tänu) või tagajärg tuleb uues lauses.', [
+        ['Kuna oli soodushind, ostsin kolm kotti kartuleid.', 'Soodushinna …', 'Soodushinna tõttu ostsin kolm kotti kartuleid.|Soodushinna tõttu ostsin ma kolm kotti kartuleid.'],
+        ['Kuna sõber aitas, ei läinud peo toit raisku.', 'Tänu …', 'Tänu sõbrale ei läinud peo toit raisku.'],
+        ['Kuna tööpäev oli pikk, jäi õhtusöök tegemata.', 'Pika tööpäeva …', 'Pika tööpäeva tõttu jäi õhtusöök tegemata.'],
+        ['Me tegime nädala menüü. Nüüd jääb eelarvesse rohkem raha.', 'Tänu …', 'Tänu nädala menüüle jääb eelarvesse rohkem raha.'],
+        ['Külmkapp oli liiga täis. Toit unustati taha.', 'Külmkapp oli liiga täis. Selle tagajärjel …', 'Külmkapp oli liiga täis. Selle tagajärjel unustati toit taha.'],
+        ['Leib hakkas hallitama. Me viskasime selle ära.', 'Leib hakkas hallitama, mistõttu …', 'Leib hakkas hallitama, mistõttu me viskasime selle ära.|Leib hakkas hallitama, mistõttu viskasime selle ära.'],
+        ['Pered ostavad liiga palju. Tuleb alustada kodudest.', 'Pered ostavad liiga palju. Seetõttu …', 'Pered ostavad liiga palju. Seetõttu tuleb alustada kodudest.|Pered ostavad liiga palju. Seetõttu tuleb kodudest alustada.'],
+        ['Kuna majas on toidujagamise kapp, saavad naabrid ülejäägi kätte.', 'Tänu …', 'Tänu toidujagamise kapile saavad naabrid ülejäägi kätte.'],
+      ], 'full', 'g_notice'), { task: 'G05' }),
+      'Kokkuleppes on lühike põhjus nimisõnana täpsem kui pikk kuna-lause. Kontrolli: tõttu ees omastav (soodushinna, tööpäeva), tänu järel alaleütlev (sõbrale, menüüle, kapile), pärast selle tagajärjel ja seetõttu tegusõna kohe.'), [
+        'Neutraalne põhjus: soodushinna tõttu; tegusõna kohe: ostsin.',
+        'Hea põhjus: tänu sõbrale.',
+        'Halb põhjus: pika tööpäeva tõttu.',
+        'Hea põhjus: tänu nädala menüüle; tegusõna kohe: jääb.',
+        'Tagajärg uues lauses: selle tagajärjel + tegusõna (unustati).',
+        'Tagajärg samas lauses: …, mistõttu …',
+        'Pärast seetõttu on tegusõna kohe: tuleb.',
+        'Hea põhjus: tänu toidujagamise kapile.',
+      ]),
+      draft('062_p_draft', 'sõnumi esimene lõik', 'Kirjuta kaaslastele vähemalt 6 lauset: miks meie köögis toit raisku läheb ja mida me muudame? Kasuta kolme põhjuse või tagajärje väljendit.', 'Grammatika (tõttu, tänu + -le, tegusõna pärast seetõttu)', [6, 10]),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('062_t_gap', 'Infolünk: nädalavahetus ilma raiskamiseta (12–15 minutit).', 'Sinul on pool infost. Ära näita oma kaarti. Küsige teineteiselt ja koostage koos plaan: mida süüa, külmutada või ära anda.',
+        'Kaart A — külmkapp reede õhtul:\nhakkliha, „kõlblik kuni” laupäev · pool pätsi leiba, „parim enne” eile · kolm pakki jogurtit, „parim enne” pühapäev · porgandid ja kapsas · avatud moosipurk · pool sünnipäevakooki\nAbikaart: Mille tõttu …? · Tänu …-le saame … · Selle tagajärjel …\nLisaväljakutse: leia üks toit toidujagamise kappi ja põhjenda, miks see sinna sobib.',
+        'Kaart B — nädalavahetuse plaan:\nlaupäeval lõunaks tulevad kaks sõpra · laupäeva õhtul oled tööl kella kümneni · pühapäeva hommikul sõidate kaheks päevaks maale · sügavkülmikus on ruumi ühele karbile · naabril on kolm last ja nad armastavad kooki · sõbrad kinnitasid eile, et tulevad\nAbikaart: Mille tõttu …? · Tänu …-le saame … · Selle tagajärjel …\nLisaväljakutse: leia üks toit toidujagamise kappi ja põhjenda, miks see sinna sobib.',
+        [], []), 'infogap',
+      ['Mille tõttu …?', 'Tänu …-le saame …', 'Selle tagajärjel …'],
+      'Leia üks toit toidujagamise kappi ja põhjenda, miks see sinna sobib.', { task: 'S05', fluency: true }),
+      'Infolünk (v6 §2 d): kumbki teab pool. Õppijad peavad küsima ja seletama, kaarte näitamata. Üks-ühele: kaart B on sinul. Varjatud info (ütle viienda minuti lõpus): „Sõbrad helistasid: nad ei saa laupäeval tulla, nad tulevad hoopis pühapäeva õhtul.” (Aga pühapäeva hommikul sõidate maale — plaan tuleb muuta: hakkliha täna, kook naabrile, jogurt kaasa maale.) Õnnestunud, kui iga toidu kohta on otsus, vähemalt kolm otsust on põhjendatud põhjuse või tagajärjega (tõttu, tänu, selle tagajärjel, mistõttu), hakkliha ei jää pärast „kõlblik kuni” kuupäeva sööma ja paar reageerib uuele infole. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 20, { final: 'plan' }),
+      exitTalk('062_t_say', 'Ütle 30 sekundiga, mida te nädalavahetusel toiduga teete ja miks. Kasuta üht tõttu- või tänu-väljendit.', ['Mida te teete kolme toiduga?', 'Mille tõttu just nii?'], 'Kas õppija ütleb plaani kolme toidu kohta ja põhjendab vähemalt üht põhjuse või tagajärje väljendiga (soodushinna tõttu, tänu naabrile, selle tagajärjel)?'),
+      keepPlace(selfCheck('062_t_self', ['Sain raadiosaatest aru ja järeldasin spetsialisti hoiaku.', 'Kasutasin põhjust nimisõnaga ja tagajärge (tõttu, tänu, selle tagajärjel, mistõttu).', 'Küsisin ja seletasin kaarti näitamata ning tegime koos plaani.'], 'Plaan valmis', 'Ma oskan põhjust ja tagajärge selgelt öelda')),
+      tag(homeTask(homeLines(mediaLog(B.examWriting('062_t_note', 'Kodus: köögi kokkulepe kaaslastele (umbes 140 sõna).', `Kirjuta tunni mustand sõnumiks lõpuni (130–150 sõna) ja täida meediapäevik. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Kirjuta korterikaaslastele, perele või ühiselamu köögi vestlusesse: mis meie köögis raisku läheb, mille tõttu ja milline kokkulepe sellest nädalast kehtib. Minu eesti keele võrgustik (meediapäevik): vali üks eestikeelne saade, taskuhääling või leht toidust või keskkonnast — näiteks ERR, https://www.err.ee. Kirjuta sõnumi alla kolm rida: mida kuulasid või lugesid, üks uus sõna ja üks lause selle kohta.',
+        points: ['mis meie köögis kõige sagedamini raisku läheb', 'kaks põhjust (soodushinna tõttu, unustatud toit)', 'kolm kokkulepet (nimekiri, ülejääkide õhtu, külmutamine)', 'mis selle tagajärjel muutub (raha, aeg, vähem prügi)'],
+        words: [130, 150],
+      })), 6)), { task: 'W08' }),
+      writingRubric('062_t_rubric', 'Hindamisjuhend: köögi kokkulepe (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Me viskame palju toitu. Soodushind tõttu me ostame palju. Tänu nimekiri see on parem. Seetõttu me ostame vähem. Okei?” Hinnang: ülesanne 2 (põhjus ja üks kokkulepe on olemas, kuid kolm kokkulepet ja tagajärg puuduvad), ülesehitus 2 (järjekord on selge, kuid lõike ja sidendeid on vähe), sõnavara 2 (puuduvad märgis, ülejääk, külmutama, raiskama), grammatika 1 („Soodushind tõttu” → soodushinna tõttu, „Tänu nimekiri” → tänu nimekirjale, „Seetõttu me ostame” → seetõttu ostame me). Kui õppija lisab kolm kokkulepet, tagajärje ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-063': {
+    title: 'Põlevkivielekter lõpeb: millest elab Ida-Virumaa 2035. aastal?',
+    phases: grammar('Kordamine: lugemine, õppimine · B2: töökohtade kadumine, enne koondamist, tehaste ehitamiseks; kaks korda kõrgem kui, … võrra väiksem'),
+    format: 'debate',
+    topic: 'work',
+    canDo: 'Ma loen artiklit Ida-Virumaa üleminekust ja eri inimeste vaadetest, arutlen argumendikaardiga ja lepin paarilisega kokku ühise esimese sammu ning kirjutan kursusekaaslasele umbes 180-sõnalise arutluse; kasutan -mine-nimisõnu omastavaga ja võrdlen arve.',
+    teacherPage: {
+      goal: 'Статья о справедливом переходе Ида-Вирумаа; -mine с родительным, сравнение чисел; дебаты A / B, общий первый шаг; дома рассуждение 180 слов однокурснику.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); статья — абзацы 1–5 и вопросы 1–5; станция 3 — правило и 10 предложений, черновик 3 предложения; дебаты один раунд без новостной карточки.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три отмеченных предложения из сообщения урока 062 и одной строкой говорит, что изменил. Если есть время: «2035 — это слишком рано, вовремя или поздно? Одним словом и одной причиной».',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (62)',
+        '5–30: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: пробежать первые фразы абзацев и найти, чьи это голоса (1 мин), статья (7 мин), 7 вопросов, из них 3 на вывод (10 мин), схема «быстрее — постепенно» (5 мин)',
+        '30–50: станция 3 — -mine одной строкой (B1), B2: родительный перед -mine, падежи -mine, сравнение чисел (korda, võrra, kui); 10 предложений, 8 перефраз; черновик рассуждения (10 мин), обратная связь — структура',
+        '50–70: станция 4 — дебаты: карточки A и B, 6 минут, во втором раунде новость от вас (скрытая информация), общий первый шаг',
+        '70–75: выход: 30 секунд — окончательная позиция и общий шаг; самооценка; домашнее задание: рассуждение 180 слов однокурснику, он отвечает «две звезды и пожелание»; голосовое; Harjuta',
+        'Kui aega jääb (75–90): ролевая игра у консультанта Töötukassa — вы консультант, ученик называет три умения и одно желание учиться',
+      ],
+      sources: 'Статья «Kas üleminek saab olla õiglane?» — учебный текст KeeleSepp без точной статистики (раньше: 4000 работников, 11,6 % / 7,1 %, 340 млн €, до 2000 рабочих мест — убраны). Общая основа: Эстония прекращает производство электроэнергии из сланца в середине 2030-х (решение государства, цена выбросов CO₂ в ЕС), фонд справедливого перехода ЕС для Ида-Вирумаа, новые заводы и бизнес-парки, критика медленных решений (ERR, 2026); безработица в Ида-Вирумаа заметно выше средней по Эстонии. Люди в статье — собирательные, без имён.',
+      groups: 'Статья — каждый сам, вопросы на вывод сравнивают в паре. Дебаты: пары A / B; в 1:1 ученик выбирает карточку, вы — другая сторона, во втором раунде меняетесь.',
+      errors: [
+        '«Elektri tootma lõpeb» → «Elektri tootmine lõpeb» (процесс как подлежащее — -mine).',
+        '«Ma kardan töökohad kadumine» → «… töökohtade kadumist» (дополнение перед -mine — в родительном; kartma + частичный объект).',
+        '«Sulgemine jaamade» → «jaamade sulgemine» (русское «закрытие станций» — в эстонском определение впереди).',
+        '«Kaks korda kõrgem nagu …» → «kaks korda kõrgem kui …»; «10 protsenti väiksem» о разнице → «… võrra väiksem».',
+      ],
+      notes: [
+        'Тема может быть личной: у ученика из Нарвы или Кохтла-Ярве в секторе могут работать он сам, муж, отец. Обе карточки уважительны. В начале скажите: «Мы спорим о порядке шагов, а не о людях». Ученику не из Ида-Вирумаа — свой край, где закрылся большой работодатель.',
+        'Обмен с однокурсником (v6 G25): домашнее рассуждение уходит однокурснику, тот отвечает «две звезды и пожелание» по рубрике (в 1:1 — ученик другой группы или вы как «однокурсник» с рубрикой).',
+        'Слова на повтор (kompromiss из урока 49, järeldus из 58, seisukoht из 60) есть в статье: попросите ученика найти их.',
+      ],
+    },
+    discover: [
+      station(half(revision('063_d_revise', 'b1b2-062', 'Kirjuta ümber kolm lauset, mille õpetaja sinu sõnumis kaaslastele märkis. Lisa üks rida: mida sa muutsid ja miks?')), 1, 5),
+      station(half(withReview(tag(B.vocab('063_d_vocab', 'Tunni sõnad.', ['põlevkivi — горючий сланец', 'kaevandus — шахта (карьер)', 'tööstus — промышленность', 'heitmed — выбросы', 'töökoht — рабочее место', 'töötus — безработица', 'koondama — сокращать (работников)', 'ümberõpe — переобучение', 'üleminek — переход', 'õiglane — справедливый']), { topic: ['põlevkivi', 'kaevandus', 'heitmed', 'koondama', 'ümberõpe', 'üleminek', 'põlevkivielekter', 'automaatikatehnik', 'oskustööline'] }), ['kompromiss', 'järeldus', 'seisukoht'])), 2, 25),
+      teach(B.diagram('063_d_scheme', 'formula', { title: 'Skeem: kiiremini või järk-järgult?', instruction: 'Kirjuta iga argumendi juurde A (kiiremini) või B (järk-järgult) ja näide tekstist. Kaks viimast rida on sinu omad.', nodes: 'Heitmete hind kasvab iga aastaga | …\nHästi makstud töökohad kaovad | …\nKursus ei asenda kogemust | …\nÕhk ja põhjavesi muutuvad puhtamaks | …\nLubadus ei ole tööleping | …\nUued tehased vajavad töötajaid kohe | …\nMinu argument: … | …\nMinu näide: … | …' }, 'full', 'g_read'),
+        'Skeem on enne artiklit: õppija täidab selle lugemise ajal ja see on tema argumentide nimekiri jaamas 4. Vasakule: heitmete hind, puhtam õhk ja põhjavesi, mitmekesisem majandus, uued tehased vajavad töötajaid kohe. Paremale: hästi makstud töökohad, töötus kaks korda kõrgem, kursus ei asenda kogemust, projektid jäävad lubaduseks.'),
+      why(teach(tag(B.reading('063_d_text', 'Loe artiklit.', 'Vaata enne lõikude esimesi lauseid ja leia, kelle hääled tekstis on (1 minut). Siis loe ja vasta. Küsimustele 5–7 järelda.', 'Kas üleminek saab olla õiglane?', [
+        'Ida-Virumaal on põlevkivi olnud aastakümneid rohkem kui maavara. See on andnud tööd isale ja pojale, ehitanud linnu ja kujundanud inimeste uhkust. Nüüd on riik otsustanud, et põlevkivist elektri tootmine lõpeb järgmise kümnendi keskel. Põhjus on lihtne: heitmete eest tuleb Euroopas maksta üha rohkem ja põlevkivielekter on muutunud nii kalliks, et seda ostetakse üha harvem. Küsimus ei ole enam selles, kas tootmine lõpeb, vaid selles, kuidas üleminek inimeste jaoks välja näeb.',
+        'Kaevanduses ja elektrijaamades töötab praegu mitu tuhat inimest. Palgad on seal piirkonna keskmisest märgatavalt kõrgemad. Paljudes peredes on kaevanduses või jaamas töötanud mitu põlvkonda ja töökoht on osa pere loost. Kui need töökohad kaovad, ei kao ainult sissetulek. Kaob ka põhjus, miks noored pered peaksid jääma Narva, Kohtla-Järvele või Sillamäele. Töötus on maakonnas juba praegu tunduvalt kõrgem kui Eestis keskmiselt, mõnel aastal peaaegu kaks korda. Seetõttu kardavad paljud, et töökohtade kadumine viib inimesed piirkonnast minema.',
+        'Viiekümneaastane elektrik, kes on jaamas töötanud pool oma elu, ütleb, et ta ei karda tööd, vaid tundmatut. „Mulle räägitakse ümberõppest, aga keegi ei ütle, millise töö jaoks. Kolmekuuline kursus ei asenda kahtkümmend aastat kogemust.” Tema seisukoht on, et jaamu ei tohiks sulgeda enne, kui uued töökohad on päriselt olemas, mitte ainult paberil. Ta lisab, et tema vanuses inimesel on kodu, laen ja lapsed koolis, nii et kolimine ei ole lihtne.',
+        'Kakskümmend aastat noorem automaatikatehnik, kes lõpetab kutsekooli, näeb olukorda teisiti. Tema kursuselt on mitmed saanud tööd uutes tehastes, mis on viimastel aastatel piirkonda ehitatud. „Elektrikut ja keevitajat on vaja ka uues tööstuses. Minu oskused ei kao.” Ta tunnistab siiski, et palk on uues tehases esialgu väiksem ja et paljud tema sõbrad on juba Tallinnasse või Soome kolinud. Tema arvates aitaks, kui kool ja tehased teeksid rohkem koostööd: praktika ajal näeks õpilane päris tööd ja tööandja näeks tulevast töötajat.',
+        'Riik ja Euroopa Liit on piirkonnale lubanud suurt toetust. Raha eest ehitatakse ettevõtlusparke, toetatakse uute tehaste rajamist ja inimeste ümberõpet. Kriitikute sõnul on otsuste tegemine aga liiga aeglane ja mõni suur projekt on jäänud lubaduseks. Usaldusväärne on nende arvates ainult plaan, millel on tähtaeg ja vastutaja; kõik muu jääb kahtlaseks. Kohalik ettevõtja ütleb, et tal oleks vaja kümmet oskustöölist kohe, kuid koolitus kestab kaks aastat. „Raha ei loo usaldust. Usaldust loob tööleping.” Toetajad vastavad, et suured muutused ei toimu kunagi ühe aastaga ja et esimesed tulemused on juba näha: mõnes linnas on avatud uued töökojad ja kursused täiskasvanutele.',
+        'Üleminekul on ka teine pool, millest räägitakse harvem. Kaevandamine on muutnud maastikku ja põhjavett ning õhk on mõnel pool olnud aastaid halvem kui mujal Eestis. Kui tootmine väheneb, muutub õhk puhtamaks ja piirkonna majandus ei sõltu enam ühest maavarast. Mõnda vana kaevandust kasutatakse juba praegu matka- ja puhkekohana, kuhu tuleb külastajaid ka teistest riikidest. Mõne uurija järeldus on, et Ida-Virumaa võib kümne aasta pärast olla mitmekesisem ja tervem kui praegu.',
+        'Kas üleminek saab olla õiglane? Vastus sõltub sellest, kellelt seda küsitakse. Ilmselt ei leidu lahendust, mis sobiks kõigile. Kompromiss võiks olla selline: ümberõpe algab enne koondamist, mitte pärast seda, ja vanad jaamad suletakse alles siis, kui uued töökohad on samas piirkonnas olemas. See nõuab riigilt kiirust ja inimestelt julgust. Kui inimesed näevad, et otsuseid tehakse koos nendega, mitte nende eest, on ka raske muutus kergem vastu võtta.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Miks on põlevkivielekter teksti järgi muutunud kalliks?', 'heitmete eest tuleb maksta üha rohkem'],
+        ['Mis kaob koos töökohtadega lisaks sissetulekule?', 'põhjus, miks noored pered peaksid piirkonda jääma'],
+        ['Mida kardab viiekümneaastane elektrik kõige rohkem?', 'tundmatut|tundmatut, mitte tööd'],
+        ['Miks ei arva noor automaatikatehnik, et tema oskused kaovad?', 'elektrikut ja keevitajat on vaja ka uues tööstuses'],
+        ['Mida tahab ettevõtja öelda lausega „Usaldust loob tööleping”? Järelda.', 'lubadused ja raha ei piisa, inimesed usuvad päris töökohta'],
+        ['Miks räägib autor ka ülemineku teisest poolest? Järelda.', 'et näidata, et üleminek toob ka kasu: puhtam õhk ja mitmekesisem majandus'],
+        ['Milline on autori seisukoht? Millise kompromissi ta pakub?', 'ümberõpe enne koondamist; jaamad suletakse alles siis, kui uued töökohad on olemas'],
+      ]), { task: 'R15', voice: 'article' }), 'Lugemine, umbes 25 minutit koos sõnade ja skeemiga. Strateegia (v6 §2 l, lugemine: silmitse → otsi → arva kontekstist): enne lugemist leiab õppija lõikude esimestest lausetest, kelle hääled tekstis on (elektrik, noor tehnik, ettevõtja, riik, uurija). Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Kordamise sõnad (kompromiss, järeldus, seisukoht) on tekstis. Kui õppija on Ida-Virumaalt, küsi: „Kas tekst kirjeldab sinu linna õigesti?”'), [
+        '1. lõik: „heitmete eest tuleb Euroopas maksta üha rohkem”.',
+        '2. lõik: „Kaob ka põhjus, miks noored pered peaksid jääma …”',
+        '3. lõik: „ta ei karda tööd, vaid tundmatut”.',
+        '4. lõik: „Elektrikut ja keevitajat on vaja ka uues tööstuses.”',
+        'Järeldus 5. lõigust: projektid on „jäänud lubaduseks”; usaldust loob päris leping, mitte lubatud raha.',
+        'Järeldus 6. lõigust: „õhk muutub puhtamaks … majandus ei sõltu enam ühest maavarast” — autor näitab ka kasu.',
+        'Järeldus 7. lõigust: „ümberõpe algab enne koondamist … jaamad suletakse alles siis, kui uued töökohad … on olemas”.',
+      ]),
+    ],
+    practice: [
+      station(teach(B.notice('063_p_notice', 'Märka: töökohtade kadumine — enne koondamist', [
+        'Artiklist: elektri **tootmine** lõpeb · **töökohtade kadumine** viib inimesed minema · ümberõpe algab enne **koondamist** · otsuste **tegemine** on aeglane',
+        'Kordamine (B1): -mine teeb tegusõnast tegevuse nime: lugema → lugemine.',
+        'B2: sihitis läheb -mine ette omastavasse: ehitatakse tehaseid → **tehaste ehitamine** · palgad kasvavad → **palkade kasvamine**',
+        'B2: -mine käändub: kardan töökohtade **kadumist** · raha tehaste **ehitamiseks** · räägime noorte **kolimisest**',
+        'B2, arvude võrdlus: töötus on **kaks korda** kõrgem **kui** Eestis keskmiselt · palk on saja euro **võrra** väiksem · **võrreldes** eelmise aastaga',
+        'Vene keeles „закрытие станций” (определение после) — eesti keeles laiend ette ja omastavasse: jaamade sulgemine.',
+      ], 'full'), 'Kordamine ühe minutiga (lugemine). Siis B2 samm: omastav -mine ees, -mine käänded ja arvude võrdlus. Lase õppijal leida artiklist kolm -mine-sõna ja öelda, kes mida teeb. L1 rida: vene keeles on laiend järel (закрытие станций), eesti keeles ees (jaamade sulgemine).'), 3, 20),
+      why(teach(tag(B.gaps('063_p_mine', 'Märkmed arutelu jaoks.', 'Kirjuta sulgudes olev sõna -mine-nimisõnana õiges vormis või lünka sobiv võrdluse sõna. Panka ei ole.', [
+        'Vanade elektrijaamade [sulgemine] on riigi otsus, mitte ühe linna valik. (sulgema)',
+        'Paljud kardavad hästi makstud [töökohtade kadumist]. (töökohad, kaduma)',
+        'Ümberõpe peab algama juba enne [koondamist]. (koondama)',
+        'Fondi raha kasutatakse uute [tehaste ehitamiseks]. (tehased, ehitama; milleks?)',
+        'Raadios räägiti noorte [kolimisest] Tallinnasse ja Soome. (kolima; millest?)',
+        'Põlevkivi [kaevandamine] on muutnud maastikku ja põhjavett. (kaevandama)',
+        'Töötus on maakonnas peaaegu kaks [korda] kõrgem kui Eestis keskmiselt. (mitu …?)',
+        'Uues tehases on palk esialgu saja euro [võrra] väiksem. (kui palju?)',
+        '[Võrreldes] eelmise aastaga on uusi töökohti rohkem. (võrdlema)',
+        'Ettevõtja sõnul on otsuste [tegemine] liiga aeglane. (tegema)',
+      ], '', 'full', 'g_notice'), { task: 'G03' }),
+      'Pärast iga rida küsi: „Kes mida teeb? Mis kääne siia sobib?” Rida 2: kartma + osastav (kadumist), laiend omastavas (töökohtade). Rida 4: milleks? → ehitamiseks. Read 7–9: arvude võrdlus (korda, võrra, võrreldes).'), [
+        'Tegevus on alus: sulgema → sulgemine.',
+        'kartma + osastav; laiend omastavas: töökohtade kadumist.',
+        'enne + osastav: koondamist.',
+        'Milleks? → saav kääne: tehaste ehitamiseks.',
+        'Millest? → seestütlev: kolimisest.',
+        'Tegevus on alus: kaevandamine.',
+        'Mitu korda: kaks korda kõrgem kui …',
+        'Vahe: saja euro võrra väiksem.',
+        'võrreldes + kaasaütlev: võrreldes eelmise aastaga.',
+        'Tegevus on alus: tegemine.',
+      ]),
+      why(teach(tag(B.transformation('063_p_nom', 'Arutelu laused lühemaks.', 'Alusta antud sõnadega. Kasuta -mine-sõna või arvude võrdlust.', [
+        ['Kui jaamad suletakse, kaovad töökohad.', 'Jaamade …', 'Jaamade sulgemisel kaovad töökohad.|Jaamade sulgemise järel kaovad töökohad.|Jaamade sulgemine tähendab töökohtade kadumist.'],
+        ['Kui palgad kasvavad, jäävad noored piirkonda.', 'Palkade …', 'Palkade kasvamise korral jäävad noored piirkonda.|Palkade kasvamisel jäävad noored piirkonda.'],
+        ['Elektrit ei toodeta varsti enam põlevkivist.', 'Elektri tootmine …', 'Elektri tootmine põlevkivist lõpeb varsti.|Elektri tootmine põlevkivist lõpetatakse varsti.'],
+        ['Paljud kardavad, et noored lahkuvad.', 'Paljud kardavad noorte …', 'Paljud kardavad noorte lahkumist.'],
+        ['Inimesi tuleb ümber õpetada enne, kui neid koondatakse.', 'Ümberõpe peab algama enne …', 'Ümberõpe peab algama enne koondamist.|Ümberõpe peab algama enne inimeste koondamist.'],
+        ['Maakonnas on töötuid kümme protsenti, Eestis keskmiselt viis.', 'Maakonnas on töötus kaks …', 'Maakonnas on töötus kaks korda kõrgem kui Eestis keskmiselt.'],
+        ['Uues tehases saab ta 1500 eurot, vanas jaamas sai 1600.', 'Uues tehases on palk saja euro …', 'Uues tehases on palk saja euro võrra väiksem.|Uues tehases on palk saja euro võrra väiksem kui vanas jaamas.'],
+        ['Tehaseid ehitatakse aeglaselt.', 'Tehaste …', 'Tehaste ehitamine on aeglane.|Tehaste ehitamine võtab aega.'],
+      ], 'full', 'g_notice'), { task: 'G05' }),
+      'Arutelus teeb -mine lause lühemaks ja ametlikumaks. Kontrolli: laiend omastavas ette (jaamade, palkade, noorte), õige kääne (sulgemisel, kasvamise korral, lahkumist, koondamist) ja võrdluses kui / võrra.'), [
+        'kui jaamad suletakse → jaamade sulgemisel.',
+        'kui palgad kasvavad → palkade kasvamise korral.',
+        'ei toodeta → tootmine lõpeb.',
+        'kartma + osastav: noorte lahkumist.',
+        'enne + osastav: koondamist.',
+        '10 ja 5: kaks korda kõrgem kui …',
+        'Vahe 100 eurot: saja euro võrra väiksem.',
+        'ehitatakse aeglaselt → tehaste ehitamine on aeglane.',
+      ]),
+      draft('063_p_draft', 'arutluse esimene lõik', 'Kirjuta 5–7 lauset: kas üleminek peaks olema kiire või järk-järguline? Seisukoht, põhjus ja näide. Kasuta kolme -mine-sõna.', 'Ülesehitus ja sidusus (seisukoht, põhjus, näide)'),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('063_t_debate', 'Arutelu: mida üleminekul kõigepealt teha? (12–15 minutit)', 'Vali kaart A või B. Ütle seisukoht ja kaks argumenti. Arutage 6 minutit ja jõudke ühise esimese sammuni.',
+        'Kaart A (kiiremini). Seisukoht: põlevkivielektri tootmine tuleb lõpetada kiiresti ja raha suunata uutele tööstustele. Argumendid: heitmete hind kasvab iga aastaga; puhtam õhk on ka tervise küsimus; uued tehased vajavad töötajaid kohe. Lisa oma näide.\nAbikaart: Minu seisukoht on, et … · Võrreldes … on … · Tehaste ehitamine …\nLisaväljakutse: vasta partneri tugevaimale argumendile ja paku tingimus.',
+        'Kaart B (järk-järgult). Seisukoht: jaamu ei tohi sulgeda enne, kui uued töökohad on päriselt olemas. Argumendid: mitu tuhat hästi makstud töökohta; töötus on juba praegu palju kõrgem kui Eestis keskmiselt; lubadus ei ole tööleping. Lisa oma näide.\nAbikaart: Minu seisukoht on, et … · Võrreldes … on … · Töökohtade kadumine …\nLisaväljakutse: vasta partneri tugevaimale argumendile ja paku tingimus.',
+        [], []), 'debate',
+      ['Minu seisukoht on, et …', 'Võrreldes … on …', 'Kas me võiksime kokku leppida, et …?'],
+      'Vasta partneri tugevaimale argumendile ja paku tingimus.', { task: 'S17', harno: 'S2', fluency: true }),
+      'Arutelu (v6 §2 d, väitlus): alguses ja lõpus hääletus (liiga vara / õigel ajal / liiga hilja). Üks-ühele: kui õppija valis A, mängi B ja vastupidi. Varjatud info (teise vooru alguses tõmba üks uudis ja ütle see): 1) „Uus tehas lükkas avamise kaks aastat edasi.” 2) „Kutsekool avab tasuta automaatikakursuse, töökoht on kursuse lõpus garanteeritud.” 3) „Talvel tõusis elektri hind kaks korda.” Õppijad peavad uudisele reageerima ja ühist sammu täpsustama. Õnnestunud, kui õppija esitab kaks argumenti näite või arvuga, kasutab vähemalt kolm -mine-sõna ja ühe arvude võrdluse ning te sõnastate ühise esimese sammu (näiteks: „Ümberõpe algab enne koondamist ja jaamad suletakse alles siis, kui …”). Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 20, { final: 'negotiate' }),
+      exitTalk('063_t_say', 'Ütle 30 sekundiga oma lõplik seisukoht ja teie ühine esimene samm. Kasuta üht -mine-sõna ja üht võrdlust.', ['Mis on sinu lõplik seisukoht?', 'Milles te kokku leppisite?'], 'Kas õppija ütleb seisukoha ja ühise sammu ning kasutab -mine-sõna omastavaga (jaamade sulgemine, töökohtade kadumine) ja võrdlust (kaks korda, … võrra)?'),
+      keepPlace(selfCheck('063_t_self', ['Leidsin artiklist eri inimeste vaated ja järeldasin autori seisukoha.', 'Kasutasin -mine-sõnu omastavaga ja võrdlesin arve (kaks korda kõrgem kui, … võrra).', 'Kaitsesin oma seisukohta, reageerisin uudisele ja leppisime kokku esimese sammu.'], 'Arutelu peetud', 'Ma oskan seisukohta kaitsta ja kokku leppida')),
+      teach(tag(homeTask(homeLines(peerReply(B.examWriting('063_t_essay', 'Kodus: arutlus kursusekaaslasele (umbes 180 sõna).', `Kirjuta tunni mustand arutluseks lõpuni (170–190 sõna). Pealkirja ja algust ei anta. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'arutlus', {
+        situation: 'Kursuse uudiskiri kogub arvamusi teemal „Kas üleminek ilma põlevkivita saab olla õiglane?”. Võid kirjutada ka oma kodukohast, kus on kadunud mõni suur tööandja. Kursusekaaslane loeb sinu teksti ja vastab: kaks tugevat kohta ja üks soov.',
+        points: ['seisukoht esimeses lõigus', 'kaks argumenti, igaühel näide või arv (võrdlusega)', 'vastuargument ja vastus sellele', 'järeldus: milline on õiglane esimene samm'],
+        words: [170, 190],
+      })), 6)), { task: 'W14' }),
+        'Kaaslase vastus (v6 G25): õppija saadab arutluse kursusekaaslasele, kes vastab hindamisjuhendi järgi kahe tugeva koha ja ühe sooviga. Üks-ühele: kaaslane on teise rühma õppija või loed sina „kaaslasena” juhendi järgi; õppija parandab ühe koha soovi järgi.'),
+      writingRubric('063_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Minu arvates on üleminek halb. Töökohad kadumine on suur probleem. Töötus on kaks korda kõrgem nagu Eestis. Noored lähevad ära. Riik peab midagi tegema. Kokkuvõttes see ei ole õiglane.” Hinnang: ülesanne 2 (seisukoht ja argument on olemas, kuid vastuargument ja konkreetne esimene samm puuduvad), ülesehitus 2 (lõigud on, sidendid korduvad), sõnavara 2 (puuduvad ümberõpe, koondamine, tööstus), grammatika 1 („Töökohad kadumine” → töökohtade kadumine, „kaks korda kõrgem nagu” → kaks korda kõrgem kui). Kui õppija lisab vastuargumendi, esimese sammu ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-064': {
+    title: 'Toas on 30 kraadi: kas su kodu ja naabrid on kuumalaineks valmis?',
+    phases: grammar('Kordamine: kuigi …, siiski · B2: vaatamata kuumusele, vaatamata sellele, et …; ehkki …, oli; küll …, kuid; samas'),
+    format: 'project',
+    topic: 'health',
+    canDo: 'Ma saan aru umbes 4-minutilisest raadiosaatest kuumalaine ohtudest, räägin paarilisega oma naabritest ja koostame trepikoja kuumaplaani ning kirjutan eakale naabrile umbes 140-sõnalise sõnumi, mis seletab lihtsas keeles kuumahoiatust; väljendan vastuväidet (vaatamata …, ehkki, küll …, kuid).',
+    teacherPage: {
+      goal: 'Радио о жаре; уступка (vaatamata, ehkki, küll … kuid); пазл: план подъезда из двух половин; дома сообщение пожилой соседке простым языком + ilmateenistus.ee.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: исправленная версия (5 мин); радио — один раз и пропуски 1–7; станция 3 — правило и 10 предложений, черновик 3 предложения; пазл без скрытой информации.',
+      hook: 'Станция 1 — «Parandatud versioon»: ученик переписывает три отмеченных предложения из рассуждения урока 063 (или из ответа однокурснику) и одной строкой говорит, что изменил. Если есть время: «Июль, третий день +30. Соседке 84, она два дня не выходит. Что ты делаешь первым?»',
+      plan: [
+        '0–5: станция 1 — исправленная версия трёх отмеченных предложений (63)',
+        '5–25: станция 2 — 10 слов + 3 на повтор (2 мин), стратегия: прочитать предложения с пропусками и найти ключевые слова (2 мин), радио дважды (9 мин), 10 пропусков (4 мин), схема плана (3 мин)',
+        '25–47: станция 3 — kuigi … siiski одной строкой (модуль 5), B2: vaatamata + -le / sellele, et; ehkki; küll …, kuid; samas; 10 предложений, исправить 8 сообщений (со словами уроков 61–63); черновик сообщения соседке (10 мин), обратная связь — регистр и простой язык',
+        '47–70: станция 4 — пазл: карточки A и B (по два соседа), не показывая, рассказать и составить план подъезда (кто, что, когда); вы — старшая по дому со скрытой информацией',
+        '70–75: выход: 30 секунд — три шага плана; самооценка; домашнее задание: сообщение соседке 140 слов + три вещи с ilmateenistus.ee, голосовое, Harjuta',
+        'Kui aega jääb (75–90): ролевая игра — звонок 112 о соседке с признаками теплового удара; вы — диспетчер',
+      ],
+      sources: 'Радио «Ohutusraadio» — учебный текст KeeleSepp (ведущая Liina и специалист Tarmo вымышлены), без точной статистики (раньше: >36 преждевременных смертей, +14–17 %, пороги 27 / 30 °C — убраны). Общая основа: предупреждения о жаре двух уровней (Keskkonnaagentuur вместе с Päästeamet и Terviseamet; ilmateenistus.ee, приложение), группы риска, признаки теплового удара и первая помощь, советы (вода, окна днём закрыты, проветривать ночью, вентилятор в очень жаркой комнате не охлаждает тело, связь с пожилыми, прохладные помещения) — Regions4Climate (2024) и Terviseamet.',
+      groups: 'Радио — каждый сам, сверка в паре. Станция 4 — пары с карточками A и B (не показывать); в 1:1 карточка B у вас, вы же — старшая по дому.',
+      errors: [
+        '«Vaatamata kuumus» / «vaatamata kuumust» → «vaatamata kuumusele» (vaatamata + аллатив; русское «несмотря на жару» с винительным).',
+        '«Vaatamata sellest, et …» → «Vaatamata sellele, et …» (калька с «несмотря на то, что»).',
+        '«Ehkki oli palav, aga …» → «Ehkki oli palav, ei …» (после ehkki / kuigi без aga; главное предложение начинается с глагола).',
+        '«Ventilaator küll töötab, ja …» → «… küll …, kuid …» (küll требует kuid / aga во второй части).',
+      ],
+      notes: [
+        'Пазл (v6 §2 d, jigsaw): у каждого половина соседей; ученики рассказывают своими словами, а не читают карточку. Пенсионеру — он сам в группе риска: пусть план будет о нём и его соседях, без драматизма; маме — ребёнок до года тоже в группе риска; уставшему — работа на жаре.',
+        'Посредничество (v6 §2 l) — домашнее сообщение: соседка не поняла предупреждение; ученик объясняет простыми словами, а не копирует текст сайта. Реальный документ (v6 G25): ilmateenistus.ee — автор страницу не открывал; проверьте сами перед уроком, где на сайте предупреждения.',
+        'Слова на повтор (kontrollima из урока 57, vabatahtlik и teadetetahvel из 60) звучат в радио.',
+      ],
+    },
+    discover: [
+      station(revision('064_d_revise', 'b1b2-063', 'Sinu arutluses on kolm märgitud lauset. Kirjuta need parandatult ja lisa üks rida: mida muutsid ja miks?'), 1, 5),
+      station(withReview(tag(B.vocab('064_d_vocab', 'Tunni sõnad.', ['kuumalaine — волна жары', 'hoiatus — предупреждение', 'riskirühm — группа риска', 'eakas — пожилой', 'vedelik — жидкость', 'kuumarabandus — тепловой удар', 'jahutama — охлаждать', 'tuulutama — проветривать', 'kiirabi — скорая помощь', 'vaatamata — несмотря на']), { topic: ['kuumalaine', 'riskirühm', 'kuumarabandus', 'tuulutama', 'jahutama', 'kuumahoiatus', 'ilmaäpp', 'ventilaator'] }), ['kontrollima', 'vabatahtlik', 'teadetetahvel']), 2, 20),
+      why(teach(tag(twiceInLesson(B.listening('064_d_radio', 'Kuulamine: raadiosaade „Ohutusraadio”.', 'Enne kuulamist loe laused ja leia võtmesõnad. Kuula kaks korda. Kirjuta igasse lünka 1–2 sõna.', [
+        'Liina: Tere, siin „Ohutusraadio”! Suvi on ilus aeg, aga viimastel aastatel on Eestis üha sagedamini nädalaid, kui ka öösel ei lähe jahedaks. Stuudios on Päästeameti ennetusspetsialist Tarmo. Tarmo, kas kuumus on Eestis tõesti ohtlik?',
+        'Tarmo: On küll. Paljud arvavad, et põhjamaal ei saa kuumus ohtlik olla. Vaatamata põhjamaisele kliimale tuleb meil kuumalaineid varasemast sagedamini ja need kestavad kauem. Kõige ohtlikum on see, kui ka öösel jääb toas üle kahekümne kraadi. Siis ei saa keha puhata.',
+        'Liina: Kes on kõige suuremas ohus?',
+        'Tarmo: Eakad, väikesed lapsed, lapseootel naised ja kroonilised haiged. Aga ka need, kes töötavad õues, näiteks ehitajad ja kullerid. Eakas inimene ei pruugi janu tunda, ehkki keha vajab vedelikku. Seepärast tuleb talle meelde tuletada, et ta jooks vett.',
+        'Liina: Kuidas ma tean, et kuumalaine tuleb?',
+        'Tarmo: Ilmateenistus annab hoiatuse. Hoiatusel on kaks taset: ohtlik ja väga ohtlik kuumus. Hoiatust näeb ilmateenistuse kodulehel ja ilmaäpis. Kui hoiatus tuleb, ära oota, vaid tee plaan valmis juba eelmisel õhtul.',
+        'Liina: Mida see plaan kortermajas tähendab?',
+        'Tarmo: Kõige tähtsamad on naabrid. Ametlik hoiatus küll jõuab telefoni, kuid ainult naaber märkab, et viienda korruse proua ei ole kaks päeva uksest välja tulnud. Hea mõte on panna trepikoja teadetetahvlile leht, kus on vabatahtlike nimed ja telefoninumbrid. Mõnes majas kirjutab keegi igal hommikul vestlusrühma: kas kõik on korras? Ja keegi kontrollib, kas kõik on vastanud.',
+        'Liina: Ja kodus endas?',
+        'Tarmo: Päeval hoia aknad ja kardinad kinni, eriti päikesepoolsel küljel. Tuuluta öösel ja varahommikul. Ventilaator küll liigutab õhku, kuid väga kuumas toas see keha ei jahuta. Kui kodus on liiga palav, mine mõneks tunniks jahedasse kohta: raamatukokku, kaubanduskeskusesse või linna jahedasse ruumi, kui selline on avatud.',
+        'Liina: Aga kui inimene töötab õues, näiteks ehitusel?',
+        'Tarmo: Siis tuleb tööandjaga kokku leppida. Raskem töö tehakse varahommikul, keskpäeval on pikem paus varjus ja vett peab olema piisavalt. Vaatamata sellele, et töö peab valmis saama, ei ole ükski tähtaeg tähtsam kui tervis. Kui töötajal tekib peavalu või iiveldus, peab ta kohe lõpetama.',
+        'Liina: Ja väikesed lapsed?',
+        'Tarmo: Last ei jäeta kunagi autosse, ka mitte paariks minutiks, sest auto läheb päikese käes väga kiiresti kuumaks. Lapsele pane heledad riided ja müts ning paku juua tihti, isegi kui ta ise ei küsi.',
+        'Liina: Kuidas aru saada, et inimesel on kuumarabandus?',
+        'Tarmo: Nahk on kuum ja kuiv, inimene on segaduses, tal on tugev peavalu ja süda lööb kiiresti. Siis tuleb tegutseda kohe. Vii ta jahedasse kohta, jahuta pead, kaela ja kaenlaaluseid märja rätikuga ja helista hädaabinumbrile üks-üks-kaks. Kui inimene on segaduses, ära anna talle juua, sest ta võib lämbuda.',
+        'Liina: Kas sa soovitad konditsioneeri osta?',
+        'Tarmo: Konditsioneer on küll kallis, kuid riskirühma inimesele võib see olla mõistlik. Samas aitavad ka odavad asjad: heledad kardinad, märg rätik, jahe dušš. Vaatamata sellele, et need tunduvad lihtsad, unustatakse need kuumaga kõige sagedamini.',
+        'Liina: Mida soovitad kuulajale, kes tahab täna midagi teha?',
+        'Tarmo: Kirjuta üles kolme naabri või sugulase number, keda kuumalaine ajal kontrollid. Ja helista neile juba täna, mitte siis, kui hoiatus on käes.',
+        'Liina: Aitäh, Tarmo!',
+      ], [
+        'Tarmo sõnul on kõige ohtlikum see, kui toas jääb palavaks ka [öösel] ja keha ei saa puhata.',
+        'Eakas inimene ei pruugi tunda [janu], kuigi tema keha vajab kuuma ilmaga rohkem vedelikku.',
+        'Ilmateenistuse kuumahoiatusel on kaks [taset]: ohtlik ja väga ohtlik kuumus.',
+        'Hoiatust näeb ilmateenistuse kodulehel ja [ilmaäpis|äpis], nii et plaani võib teha juba eelmisel õhtul.',
+        'Ametlik hoiatus jõuab küll telefoni, kuid ainult [naaber] märkab, et eakas proua ei ole päevi välja tulnud.',
+        'Trepikoja teadetetahvlile võib panna lehe vabatahtlike nimede ja [telefoninumbritega|numbritega], et igaüks teaks, kellele helistada.',
+        'Päeval tuleb hoida aknad ja [kardinad] kinni, eriti korteri päikesepoolsel küljel.',
+        'Väga kuumas toas õhku liigutav [ventilaator] Tarmo sõnul keha tegelikult ei jahuta.',
+        'Kui inimene on kuumarabanduse tõttu segaduses, ei tohi talle anda [juua|vett], sest ta võib lämbuda.',
+        'Tarmo soovitab naabritele või sugulastele helistada juba [täna], mitte alles hoiatuse ajal.',
+      ], 'g_listen')), { voice: 'interview', task: 'L04', harno: 'L3' }),
+      'Kuulamine, umbes 20 minutit koos sõnade ja skeemiga (umbes 3,5 minutit, kaks korda). Strateegia (v6 §2 l, kuulamine: ennusta → võtmesõnad → kontrolli): õppija loeb lüngaga laused, joonib võtmesõnad ja ennustab, mis sõna puudub. Eksaminurk (Harno B2 L3): 1–2 sõna, kirjaviga on viga, kui tähendus kaob. Kordamise sõnad (kontrollima, vabatahtlik, teadetetahvel) on saates.'), [
+        'Tarmo: „kui ka öösel jääb toas üle kahekümne kraadi”.',
+        'Tarmo: „Eakas inimene ei pruugi janu tunda, ehkki keha vajab vedelikku.”',
+        'Tarmo: „Hoiatusel on kaks taset.”',
+        'Tarmo: „ilmateenistuse kodulehel ja ilmaäpis”.',
+        'Tarmo: „ainult naaber märkab …”.',
+        'Tarmo: „leht, kus on vabatahtlike nimed ja telefoninumbrid”.',
+        'Tarmo: „Päeval hoia aknad ja kardinad kinni.”',
+        'Tarmo: „Ventilaator küll liigutab õhku, kuid väga kuumas toas see keha ei jahuta.”',
+        'Tarmo: „Kui inimene on segaduses, ära anna talle juua.”',
+        'Tarmo: „helista neile juba täna”.',
+      ]),
+      teach(B.diagram('064_d_scheme', 'flow', { title: 'Skeem: meie maja kuumaplaan', instruction: 'Kuulates kirjuta iga kasti juurde üks samm. Viimasesse kasti kirjuta, kes sinu majas on riskirühmas.', nodes: 'Hoiatus tuleb: kust ma seda näen?\nEelmisel õhtul: kes kontrollib keda?\nPäeval: aknad, kardinad, vesi\nÖösel: …\nKui keegi jääb haigeks: …\nMeie majas on riskirühmas: …' }, 'full', 'g_notice'),
+        'Skeem täidetakse kuulates (teisel korral) ja on pusleülesande plaan: hoiatus (koduleht, äpp) → nimekiri ja numbrid teadetetahvlil → aknad ja kardinad päeval kinni, vesi → tuulutamine öösel → kuumarabanduse korral jahedasse, jahutada, 112, mitte juua anda segaduses inimesele.'),
+    ],
+    practice: [
+      station(teach(B.notice('064_p_notice', 'Märka: vaatamata kuumusele', [
+        'Saatest: **vaatamata põhjamaisele kliimale** tuleb kuumalaineid sagedamini · eakas ei tunne janu, **ehkki** keha vajab vedelikku · ventilaator **küll** liigutab õhku, **kuid** ei jahuta · **samas** aitavad odavad asjad',
+        'Kordamine (moodul 5): kuigi …, siiski: Kuigi oli palav, jõi ta vähe vett.',
+        'B2: **vaatamata** + alaleütlev: vaatamata **kuumusele**, vaatamata **hoiatusele** · terve lausega: vaatamata **sellele**, et …',
+        'B2: **ehkki** = kuigi, kirjalikum. Pärast kõrvallauset tuleb pealauses tegusõna kohe: Ehkki aken oli lahti, **oli** toas palav. Sõna „aga” ei lisata.',
+        'B2: **küll …, kuid** — tunnistad üht poolt ja ütled teise: Konditsioneer on küll kallis, kuid … · **samas** = teisalt.',
+        'Vene keeles „несмотря на жару” (на + винительный) ja „несмотря на то, что” — eesti keeles vaatamata kuumusele (alaleütlev) ja vaatamata sellele, et … (mitte „sellest”).',
+      ], 'full'), 'Kordamine ühe minutiga (kuigi …, siiski). Siis B2 samm: vaatamata + alaleütlev, ehkki koos tegusõnaga pealause alguses, küll …, kuid. Lase õppijal leida saatest (skeemi märkmetest) kaks lauset ja öelda, mida kõneleja tunnistab ja mida ta siiski ütleb. L1 rida: „несмотря на” + винительный → eesti keeles alaleütlev.'), 3, 22),
+      why(teach(tag(B.gaps('064_p_forms', 'Maja vestlusrühm kuumalaine ajal.', 'Vali ise: vaatamata, ehkki, küll …, kuid või samas. Kirjuta lünka õige sõna või vorm. Panka ei ole.', [
+        'Vaatamata [kuumusele] läks eakas naaber keskpäeval aeda. (kuumus)',
+        'Vaatamata [hoiatusele] jättis keegi akna päeval lahti. (hoiatus)',
+        'Vaatamata [sellele], et ventilaator töötas, oli toas 30 kraadi. (see)',
+        '[Ehkki] öösel tuulutasime, oli hommikul ikka palav. (kirjalik kuigi)',
+        'Ehkki aken jäi terve öö lahti, [oli] lapse toas hommikul 29 kraadi. (olema, minevik)',
+        'Konditsioneer on [küll] kallis, kuid riskirühma inimesele võib see päästa elu. (tunnistad üht poolt)',
+        'Ventilaator küll liigutab õhku, [kuid] keha see väga kuumas toas ei jahuta. (teine pool)',
+        'Meie linnas on parke palju. [Samas] on kesklinnas varju vähe. (teisalt)',
+        'Vaatamata põhjamaisele [kliimale] tuleb kuumalaineid varasemast sagedamini. (kliima)',
+        'Ehkki ta oli väsinud, [helistas] ta igal hommikul eakale naabrile. (helistama, minevik)',
+      ], '', 'full', 'g_notice'), { task: 'G13' }),
+      'Pärast iga rida küsi: „Mida lause tunnistab ja mida ta siiski ütleb?” Read 1–3 ja 9: vaatamata + alaleütlev (kuumusele, hoiatusele, sellele, kliimale). Read 5 ja 10: pärast ehkki-lauset on tegusõna pealause alguses. Read 6–8: küll …, kuid ja samas.'), [
+        'vaatamata + alaleütlev: kuumus → kuumusele.',
+        'vaatamata + alaleütlev: hoiatus → hoiatusele.',
+        'vaatamata sellele, et … (see → sellele).',
+        'ehkki = kuigi, kirjalikum.',
+        'Pärast ehkki-lauset on pealause tegusõna kohe: oli.',
+        'küll …, kuid: tunnistad üht poolt.',
+        'küll …, kuid: teine pool.',
+        'samas = teisalt, uue lause algus.',
+        'vaatamata + alaleütlev: kliima → kliimale.',
+        'Pärast ehkki-lauset on tegusõna kohe: helistas.',
+      ]),
+      why(teach(tag(B.errorfix('064_p_fix', 'Naabrite sõnumid enne saatmist.', 'Need sõnumid on kuumalaine ajal maja vestlusrühmas. Igas on üks viga. Kirjuta sõnum õigesti.', [
+        ['Vaatamata kuumus läksime pärastlõunal trenni.', 'Vaatamata kuumusele läksime pärastlõunal trenni.'],
+        ['Vaatamata sellest, et hoiatati, jäi aken päeval lahti.', 'Vaatamata sellele, et hoiatati, jäi aken päeval lahti.'],
+        ['Ehkki toas oli 30 kraadi, aga proua ei avanud öösel akent.', 'Ehkki toas oli 30 kraadi, ei avanud proua öösel akent.'],
+        ['Ehkki oli juba öö, temperatuur ei langenud.', 'Ehkki oli juba öö, ei langenud temperatuur.'],
+        ['Ventilaator küll töötab, ja tuba on ikka palav.', 'Ventilaator küll töötab, kuid tuba on ikka palav.|Ventilaator küll töötab, aga tuba on ikka palav.'],
+        ['Kuumus tõttu ei saanud ma terve öö magada.', 'Kuumuse tõttu ei saanud ma terve öö magada.'],
+        ['Juulis muutub meie lõunapoolne korter väga palav.', 'Juulis muutub meie lõunapoolne korter väga palavaks.'],
+        ['Akende sulgema päeval aitab hoida tuba jahedana.', 'Akende sulgemine päeval aitab hoida tuba jahedana.'],
+      ], 'full', 'g_notice'), { task: 'G06' }),
+      'Pärast iga rida küsi: „Mis siin valesti on: kääne, sõnajärg või sõna?” Read 6–8 on varasematest tundidest (Varasemast): tõttu + omastav (62), muutuma + -ks (61), -mine (63).'), [
+        'vaatamata + alaleütlev: kuumusele.',
+        'Õige väljend: vaatamata sellele, et … (mitte sellest).',
+        'Pärast ehkki-lauset ei ole sõna „aga”; pealause algab tegusõnaga: ei avanud.',
+        'Pärast kõrvallauset on tegusõna kohe: ei langenud temperatuur.',
+        'küll …, kuid (või aga): teine pool vajab vastandavat sidendit.',
+        'tõttu + omastav: kuumuse tõttu (tund 62).',
+        'muutuma + -ks: palavaks (tund 61).',
+        'Tegevus on alus: sulgema → sulgemine (tund 63).',
+      ]),
+      draft('064_p_draft', 'sõnumi esimene lõik', 'Kirjuta eakale naabrile vähemalt 6 lauset lihtsas keeles: mida hoiatus tähendab ja mida ta homme teeb? Kasuta kahte vastuväite vormi.', 'Ülesande täitmine ja register (lihtne keel, sõbralik toon)', [6, 10]),
+    ],
+    transfer: [
+      station(teach(mainTask(B.rolecards('064_t_plan', 'Pusle: trepikoja kuumaplaan (12–15 minutit).', 'Sul on pool infot naabrite kohta. Ära näita kaarti. Räägi oma naabritest ja koostage koos plaan: kes, mida ja millal teeb.',
+        'Kaart A — naabrid 2. ja 3. korrusel:\npere 8-kuuse lapsega: laps magab päeval mitu tundi, isa töötab päeval ehitusel õues · öövahetuses töötaja: magab päeval kella üheksast neljani, aknad on päikese poole\nMaja reegel: trepikoja uks on öösel lukus.\nAbikaart: Minu naaber on ohus, sest … · Ehkki …, saab ta … · Vaatamata sellele, et …, …\nLisaväljakutse: leia üks samm, mis ei maksa midagi, ja üks, mis vajab maja raha.',
+        'Kaart B — naabrid 4. ja 5. korrusel:\nproua (84): elab üksi, korter on lõunapoolne, ta ei kuule telefoni hästi · üliõpilane: on suvel kodus, autot ei ole, tahab aidata\nTeade: raamatukogu jahe saal on avatud iga päev kümnest kaheksani.\nAbikaart: Minu naaber on ohus, sest … · Ehkki …, saab ta … · Vaatamata sellele, et …, …\nLisaväljakutse: leia üks samm, mis ei maksa midagi, ja üks, mis vajab maja raha.',
+        [], []), 'jigsaw',
+      ['Minu naaber on ohus, sest …', 'Ehkki …, saab ta …', 'Vaatamata sellele, et …, …'],
+      'Leia üks samm, mis ei maksa midagi, ja üks, mis vajab maja raha.', { task: 'S10', fluency: true }),
+      'Pusle (v6 §2 d): kumbki teab kahte naabrit; õppijad räägivad oma sõnadega ja panevad plaani kokku (vähemalt neli sammu: kes, mida, millal). Üks-ühele: kaart B on sinul. Sina oled ka maja vanem. Varjatud info (ütle ükshaaval): 1) „Proua ütles mulle, et ta ei taha, et teda iga päev segatakse.” (Õppija: kokkulepe — üks kõne kell 12 või märk uksel, mitte külaskäik.) 2) „Üliõpilane sõidab nädalavahetusel ära.” (Kes teda asendab?) Õnnestunud, kui plaanis on neli sammu, iga naabri risk on nimetatud, õppija kasutab vähemalt kaks vastuväite vormi (vaatamata …, ehkki, küll …, kuid) ja reageerib uuele infole. Abikaarti võib kasutada; pane kirja, kas õppija seda vajas.'), 4, 23, { final: 'explain' }),
+      exitTalk('064_t_say', 'Ütle 30 sekundiga naabritele teie plaani kolm sammu. Kasuta üht vastuväite vormi: vaatamata, ehkki või küll …, kuid.', ['Millised on plaani kolm sammu?', 'Kes on kõige suuremas ohus ja miks?'], 'Kas õppija ütleb kolm sammu (kes, mida, millal) ja kasutab vähemalt üht vastuväite vormi õigesti (vaatamata kuumusele, ehkki …, tegusõna kohe)?'),
+      keepPlace(selfCheck('064_t_self', ['Sain raadiosaatest aru, mida kuumalaine ajal teha ja kes on ohus.', 'Kasutasin vastuväite vorme (vaatamata kuumusele, ehkki, küll …, kuid).', 'Rääkisin oma naabritest kaarti näitamata ja panime koos plaani kokku.'], 'Kuumaplaan valmis', 'Ma oskan naabritega kuumaplaani teha')),
+      tag(homeTask(homeLines(B.examWriting('064_t_note', 'Kodus: sõnum eakale naabrile (umbes 140 sõna).', `Lõpeta tunni mustand sõnumiks (130–150 sõna). Algust ei anta. Salvesta 1-minutiline häälsõnum. ${HARJUTA}`, 'kiri', {
+        situation: 'Eakas naaber ei saanud kuumahoiatusest aru. Seleta lihtsas keeles, mida hoiatus tähendab ja mida ta teeb. Päris allikas: Riigi ilmateenistus (https://www.ilmateenistus.ee) — leia hoiatuste leht ja kirjuta üles kolm asja: kus hoiatusi jälgida, mida tähendab hoiatuse tase ja mida lubatakse homseks. Lisa need sõnumisse. Kui naaber annab nõusoleku, lisa tema number maja nimekirja.',
+        points: ['mida hoiatus tähendab (lihtsas keeles, info ilmateenistuse lehelt)', 'mida ta päeval ja öösel kodus teeb', 'kuumarabanduse tunnused ja millal helistada 112', 'kes ja millal teda kontrollib (teie maja plaan)'],
+        words: [130, 150],
+      }), 6)), { task: 'W12' }),
+      writingRubric('064_t_rubric', 'Hindamisjuhend: sõnum eakale naabrile (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Homme on kuumalaine hoiatus 1. tase. Vaatamata kuumus joo vett. Ehkki on palav, aga ära ava aken. Kui halb, helista. Head päeva!” Hinnang: ülesanne 2 (hoiatus ja üks nõuanne on olemas, kuid kuumarabanduse tunnused ja maja plaan puuduvad), ülesehitus 2 (lühikesed laused, järjekord on selge), sõnavara 2 (puuduvad tuulutama, kuumarabandus, kiirabi), grammatika 1 („Vaatamata kuumus” → vaatamata kuumusele, „Ehkki on palav, aga ära ava aken” → Ehkki on palav, ära ava päeval akent); register: „1. tase” jääb eakale arusaamatuks — seleta lihtsalt. Kui õppija lisab tunnused, plaani ja parandab vormid, saab ta 9/12 (75 %).'),
+    ],
+  },
+
+  'b1b2-065': {
+    title: 'Kontroll 13 — keskkond ja vastutus',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen eksami vormis umbes 500-sõnalist arvamusartiklit asjade parandamisest ja lahendan selle ülesanded ning kirjutan kaks teksti: viie minutiga arvamuse samades tingimustes nagu mooduli alguses ja umbes 140-sõnalise kirja prügiveofirmale; Harno lävi on 60 %.',
+    teacherPage: {
+      goal: 'Контроль модуля 13 на одном листе, 45 минут: чтение (16 баллов) + письмо (18 баллов). Параллельная задача к холодной задаче урока 061 и письмо фирме по вывозу мусора с аналитической рубрикой.',
+      core: [1], alt: 1,
+      short: 'Если времени мало: чтение (22 мин) в классе, письмо 2 — дома в тех же условиях (без словаря, 20 минут).',
+      hook: 'Почему чтение + письмо, а не полный пробный экзамен: решение методиста для 040, 055 и 060 — по v6 §2 g контроль B2 — два навыка по очереди (модуль 11 R + W, модуль 12 L + S, модуль 13 R + W); следующий полный пробный экзамен — 080. Холодная задача модуля письменная (061_d_cold), поэтому и параллельная задача письменная; счёт за вывоз мусора и статья «чинить или купить» приходят к ученику текстом, а отвечает он письмом (Harno B2 W1).',
+      plan: [
+        '0–2: инструкция, баллы и пороги (Harno 60 %, KeeleSepp 70 % и 80 %, ни одна часть не 0)',
+        '2–24: чтение — статья ≈ 500 слов: часть 1 — 8 коротких ответов (1–3 слова), часть 2 — 8 вопросов с выбором, из них 3 на вывод',
+        '24–29: письмо 1 — параллельная задача: 5 минут, 5–7 предложений, новое утверждение (те же условия, что 061_d_cold)',
+        '29–45: письмо 2 — письмо фирме по вывозу мусора 130–150 слов, аналитическая рубрика 12 баллов',
+      ],
+      sources: 'Статья «Parandada, jagada või osta uus?» — учебный текст KeeleSepp (мнение автора), без точной статистики. Общая основа: требования ЕС к запасным частям и инструкциям по ремонту (право на ремонт), ремонтные кафе и прокат инструментов в библиотеках, приём электроники в пунктах сбора и магазинах бесплатно. Ситуация письма — учебная.',
+      groups: 'Каждый сам, без словаря. Устная часть модуля проверяется в уроках (выходы 061–064).',
+      errors: [
+        'Varasemast (≈ 20 %, v6 §2 f): часть 1 вопросы 3 (kogukulu, урок 54) и 5 (vabatahtlikud, урок 60), часть 2 вопрос 4 (tellimus, урок 51) — 3 из 16 заданий чтения; в письме 2 — претензия с доказательством и сроком ответа (модуль 11, уроки 53 и 55).',
+        'Сравнение с холодной задачей: положите рядом листы 061_d_cold и 065_t_cold (оба утверждения — «обязать и штрафовать») и назовите ученику одно развитие и один следующий шаг.',
+      ],
+      notes: [
+        'Баллы: чтение 8 + 8 = 16; письмо 1 — 6 баллов по трём строкам 0/1/2; письмо 2 — 12 баллов (4 критерия × 0–3). Всего 34. Harno 60 % = 21, KeeleSepp 70 % = 24, 80 % = 28. Ни одна часть не может быть 0 баллов.',
+      ],
+    },
+    // Methodology v5 + v6 (2026-11-26): one sheet, 45 minutes, ≤ 10 blocks, READING + WRITING; points add up (v6 G20: R 16
+    // items = 16 points; W 6 + 12 = the rubrics' maxima), the no-zero rule is stated (G21), the reading is at least the
+    // lessons' level (≈ 520 words, 3 inference questions), the cold → parallel writing is the same task (5 min, 5–7
+    // sentences, „obligate and fine”) with a new statement. The v4 control (three sheets, 28 blocks, ≈ 167 min) stays hidden.
+    discover: [
+      B.text('065_d_intro', 'Kontroll 13: lugemine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Lugemine (22 minutit): üks arvamusartikkel ja kaks ülesannet ilma sõnaraamatuta, 16 punkti. Kirjutamine (23 minutit): viie minutiga arvamus (6 punkti) ja kiri prügiveofirmale umbes 140 sõna (12 punkti) — kokku 18 punkti. Kokku 34 punkti. Harno: sooritatud alates 60 % (vähemalt 21 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (24 punkti), meie tunnistus alates 80 % (28 punkti) — see on sisemine lävi.'),
+      PART('065_d_rpart', 'R', { minutes: 22, points: 16, tasks: 2, note: 'Artikkel umbes 500 sõna: osa 1 lühivastused (8 punkti), osa 2 valikvastused (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      why(tag(B.reading('065_d_read', 'Lugemine: arvamusartikkel. Osa 1 (8 punkti).', 'Loe artiklit (umbes 9 minutit). Vasta osa 1 küsimustele 1–3 sõnaga. Sõnaraamatut ei kasutata.', 'Parandada, jagada või osta uus?', [
+        '(A) Kui veekeetja läheb katki, viskab enamik meist selle ära ja ostab uue. Põhjus on lihtne: uus maksab vähe ja parandamine tundub tülikas. Veel paarkümmend aastat tagasi oli teisiti: igas linnas oli kingsepp, kellassepp ja raadiomeister. Täna on neid järel vähe, sest paljud asjad on tehtud nii, et neid ei saagi avada. Minu arvates on aeg see harjumus uuesti läbi mõelda.',
+        '(B) Esimene põhjus on keskkond. Iga asi, mis visatakse ära enne aega, muutub jäätmeteks, ja uue asja tootmiseks kulub jälle toorainet, vett ja energiat. Eriti kiiresti kasvab elektroonikajäätmete hulk. Telefon, mida kasutatakse viis aastat, tekitab vähem jäätmeid kui telefon, mida kasutatakse kaks aastat — aga ainult siis, kui keegi selle vahepeal ka parandab. Segaprügisse visatud vana seade on pealegi ohtlik: patareid ja akud võivad süttida ning mürgised ained ei tohi jõuda loodusesse.',
+        '(C) Teine põhjus on raha. Kui arvutad ainult ostuhinda, tundub uus asi odav. Kui arvutad aga kogukulu kogu eluea jooksul, on pilt teine: odav asi läheb sageli kiiresti katki ja tuleb osta uuesti. Kvaliteetne asi, mida saab parandada, on pikas plaanis sageli soodsam. Odav jope, mis kestab ühe talve, maksab lõpuks rohkem kui kallim, mida saab kanda viis aastat ja vahepeal parandada. Sama kehtib tellimuste kohta: koos uue seadmega ostab inimene sageli ka uue tasulise teenuse, mida ta tegelikult ei vaja.',
+        '(D) Kolmas põhjus on kogukond. Paljudes linnades tegutsevad parandustoad, kus vabatahtlikud aitavad tasuta parandada riideid, rattaid ja väikseid elektriseadmeid. Inimene õpib seal ise, kuidas asi töötab, ja kohtub naabritega. Mõnes raamatukogus saab laenutada mitte ainult raamatuid, vaid ka tööriistu, ja naabrid jagavad internetis asju, mida on vaja harva: puuri, redelit või telki. Paljud ütlevad, et parandustoast lahkudes on neil hea tunne: asi, mis oleks prügikasti läinud, töötab jälle, ja see on nende endi tehtud.',
+        '(E) Kõik ei ole siiski nii lihtne. Mõnda toodet ei saa parandada, sest varuosi ei müüda või need on kallimad kui uus asi. Ka parandajaid on vähe ja nende töö on kallis, sest käsitööd ei saa teha kiiresti. Euroopa Liit on seetõttu hakanud tootjatelt nõudma, et varuosi ja parandusjuhiseid pakutaks pikema aja jooksul. Vaatamata sellele jääb lõplik otsus ostja kätte. Kui pood pakub uut seadet soodushinnaga ja parandaja ootab kaks nädalat, valib inimene sageli mugavama tee.',
+        '(F) Mida siis teha? Enne ostu tasub küsida kolm küsimust: kas mul on seda tõesti vaja, kas saan seda laenata või jagada ja kas see on parandatav. Kui vastus on, et vajan ja parandada ei saa, ostan uue — ja eelistan sellist, millel on pikk garantii ja mille varuosi müüakse. Vana seadet ei viska ma segaprügisse, vaid viin elektroonikajäätmete kogumispunkti või poodi, kus see võetakse tasuta vastu.',
+        '(G) Ma ei arva, et peaksime loobuma kõigest uuest. Kuid iga parandatud asi tähendab ühte asja vähem prügilas ja ühte head kogemust rohkem. Kui õpetame seda oskust oma lastele, kasvab põlvkond, kelle jaoks katkine asi ei ole veel prügi. Parandamine ei ole vaesuse märk, vaid oskus — ja oskused ei muutu kunagi jäätmeteks.',
+        'Allikas: KeeleSepp õppetekst (autori arvamus).',
+      ].join('\n\n'), [
+        ['1. Mida teeb enamik inimesi, kui veekeetja läheb katki?', 'ostab uue|ostavad uue|ostab uue veekeetja'],
+        ['2. Miks ei saa paljusid asju tänapäeval parandada?', 'neid ei saa avada|ei saa avada'],
+        ['3. Mida peaks ostja arvutama lisaks ostuhinnale?', 'kogukulu|kogukulu kogu eluea jooksul'],
+        ['4. Milliseid jäätmeid tekib teksti järgi üha rohkem?', 'elektroonikajäätmeid|elektroonikajäätmed|elektroonikat'],
+        ['5. Kes aitavad parandustubades tasuta?', 'vabatahtlikud'],
+        ['6. Mida saab mõnest raamatukogust laenutada peale raamatute?', 'tööriistu|tööriistad'],
+        ['7. Mida nõuab Euroopa Liit tootjatelt pikema aja jooksul pakkuda?', 'varuosi ja parandusjuhiseid|varuosad ja parandusjuhised|varuosi'],
+        ['8. Kuhu viib autor vana seadme, mida parandada ei saa?', 'kogumispunkti|elektroonikajäätmete kogumispunkti|poodi'],
+      ]), { task: 'R15', harno: 'R2b' }), [
+        '(A): „viskab enamik meist selle ära ja ostab uue”.',
+        '(A): „paljud asjad on tehtud nii, et neid ei saagi avada”.',
+        '(C): „Kui arvutad aga kogukulu kogu eluea jooksul …” (Varasemast: kogukulu, tund 54.)',
+        '(B): „Eriti kiiresti kasvab elektroonikajäätmete hulk.”',
+        '(D): „vabatahtlikud aitavad tasuta parandada”. (Varasemast: vabatahtlik, tund 60.)',
+        '(D): „saab laenutada mitte ainult raamatuid, vaid ka tööriistu”.',
+        '(E): „et varuosi ja parandusjuhiseid pakutaks pikema aja jooksul”.',
+        '(F): „viin elektroonikajäätmete kogumispunkti või poodi”.',
+      ]),
+      why(tag(B.choice('065_d_mc', 'Osa 2: vali õige vastus (8 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
+        ['Mida ütleb lõik A selle kohta, kuidas asjadega varem käituti?', 'linnades oli meistreid, kes asju parandasid', 'asju ei parandatud kunagi', 'kõik asjad olid odavad', 'katkist asja ei visatud kunagi ära'],
+        ['Millal on lõigu B järgi kauem kasutatud telefon keskkonnale parem?', 'kui keegi seda vahepeal ka parandab', 'alati, ka siis, kui see on katki', 'kui see on kallim kui uus', 'kui seda kasutatakse ainult kodus'],
+        ['Mida tähendab lõigu C järgi, et kvaliteetne asi on „pikas plaanis sageli soodsam”?', 'parandatav asi maksab kogu eluea jooksul vähem', 'kvaliteetne asi on poes odavam', 'kallis asi ei lähe kunagi katki', 'odava asja eest ei pea üldse maksma'],
+        ['Millist viga teeb lõigu C järgi inimene, kes ostab uue seadme?', 'ta ostab sageli ka tasulise teenuse, mida ei vaja', 'ta maksab sularahas', 'ta unustab garantii küsida', 'ta ostab liiga vana mudeli'],
+        ['Mida saab inimene lõigu D järgi parandustoas lisaks parandatud asjale?', 'ta õpib ise ja kohtub naabritega', 'ta saab uue asja tasuta', 'ta saab raha tagasi', 'ta saab tööd parandajana'],
+        ['Miks valib inimene lõigu E järgi sageli uue asja, kuigi parandamine oleks võimalik? Järelda.', 'uus on soodushinnaga kohe käes, parandamine võtab aega', 'parandamine on alati kallim kui uus', 'seadus keelab vana asja parandada', 'parandaja ei taha tööd teha'],
+        ['Miks soovitab autor enne ostu küsida kolm küsimust? Järelda.', 'et ost oleks teadlik otsus ja asju läheks vähem prügisse', 'et pood annaks allahindlust', 'et ostja saaks rohkem asju korraga osta', 'et parandajad saaksid rohkem tööd'],
+        ['Millise mõttega nõustuks autor kõige tõenäolisemalt? Järelda.', 'parandamine on oskus, mis aitab nii raha kui ka keskkonda', 'uusi asju ei tohiks üldse osta', 'parandamine on vaeste inimeste mure', 'keskkonna eest vastutavad ainult tootjad'],
+      ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }), [
+        '(A): „igas linnas oli kingsepp, kellassepp ja raadiomeister”.',
+        '(B): „aga ainult siis, kui keegi selle vahepeal ka parandab”.',
+        '(C): „Kvaliteetne asi, mida saab parandada, on pikas plaanis sageli soodsam.”',
+        '(C): „ostab inimene sageli ka uue tasulise teenuse, mida ta tegelikult ei vaja”. (Varasemast: tellimus, tund 51.)',
+        '(D): „Inimene õpib seal ise … ja kohtub naabritega.”',
+        'Järeldus (E) lõigust: „uut seadet soodushinnaga ja parandaja ootab kaks nädalat” — mugavam tee.',
+        'Järeldus (F) lõigust: kolm küsimust (vaja, laenata, parandatav) teevad ostust otsuse.',
+        'Järeldus (G) lõigust: „Parandamine ei ole vaesuse märk, vaid oskus”; (B) ja (C) — keskkond ja raha.',
+      ]),
+      PART('065_t_wpart', 'W', { minutes: 23, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): kolm rida 0–2 — samad tingimused nagu mooduli külmas alguses (tund 61). Kirjutamine 2 (umbes 18 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: lugemine … / 16 + kirjutamine … / 18 = … / 34.' }),
+      teach(tag(homeLines(B.writing('065_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Toidupoed peaksid müümata söödava toidu ära andma ja poele, kes seda ei tee, tuleks teha trahv.” Kirjuta 5 minutit, 5–7 lauset: seisukoht, põhjus, näide, vastuargument.', [5, 7], [], 0, 'g_use'), 12), { task: 'W14', harno: 'W2b' }),
+        'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-061 (5 minutit, 5–7 lauset, fraase ega algust ei ole) ja sama väite tüüp („kohustada ja trahvida”), uus teema samast moodulist (toit, tund 62). Hinda kolme rea järgi 0–2 (hindamine all). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
+      keepPlace(B.rubric('065_t_rubric', 'Hindamine: kirjutamine 1 (6 punkti).', 'Iga rida 0–2 punkti.', ['Seisukoht esimeses lauses, põhjus ja näide (0–2).', 'Vastuargument ja vastus sellele (0–2).', 'Keel: sidendid (kuigi …, siiski; seetõttu; vaatamata sellele, et) ja mooduli vormid (tõttu, tänu, -mine, -ks) (0–2).'])),
+      tag(homeLines(B.examWriting('065_t_claim', 'Kirjutamine 2: kiri prügiveofirmale (umbes 140 sõna, 12 punkti).', 'Kirjuta 130–150 sõna. Pöördumist ja algust ei anta.', 'kiri', {
+        situation: 'Prügiveofirma saatis teie majale arve, mis on kaks korda suurem kui tavaliselt. Põhjuseks on kirjas „ülekoormatud konteiner”. Tegelikult jäi konteiner kaks nädalat tühjendamata ja elanikel on sellest fotod. Kirjuta firma klienditeenindusele korteriühistu nimel.',
+        points: ['mis juhtus ja millal (konteiner jäi tühjendamata)', 'miks arve ei ole sinu arvates õige (fotod, kuupäevad)', 'mida palud (arve parandamine) ja mis ajaks ootad vastust', 'üks ettepanek, mis vähendaks segaprügi (näiteks pakendikonteiner)'],
+        words: [130, 150],
+      }), 12), { task: 'W13', harno: 'W1' }),
+      writingRubric('065_t_wrubric', 'Hindamine: kiri (12 punkti).', 'Hinda kirja nelja kriteeriumi järgi (0–3). Mooduli keel on grammatika kriteeriumi osa: tulemus ja muutus (61: jäi tühjendamata, muutus kallimaks), põhjus nimisõnaga (62: ülekoormuse tõttu, tänu fotodele), -mine omastavaga (63: arve parandamine, konteineri tühjendamine), vastuväide (64: vaatamata sellele, et …). Piiripealne näidis (7/12 ≈ 58 %): seisukoht ja palve on olemas, tõend ja tähtaeg puuduvad (ülesanne 2), sidendeid on vähe (2), sõnavara piisav (2), „konteiner jäi mitte tühjendatud”, „tänu fotod” (grammatika 1). Kontrolli tulemus = lugemine … / 16 + kirjutamine 1 … / 6 + kirjutamine 2 … / 12.'),
+    ],
+  },
+}), {
+  'b1b2-061': 'AVAS R→S', 'b1b2-062': 'KUUL L→S', 'b1b2-063': 'PROB R→S', 'b1b2-064': 'PROJ L→S', 'b1b2-065': 'EKS',
+}));
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v6 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
