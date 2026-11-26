@@ -1,32 +1,100 @@
-// A2 course (A1 → A2 roadmap), module 9 „Tervis ja kehahooldus” (a2-041…045), level A2, in the final shape
-// (docs/COURSE_FINAL_SHAPE_A2.md, row m9 = m1: LUGU KUUL AVAS PROB; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
-// One storyline, one year before the B1 course (docs/COURSE_CAST.md): the last week before Christmas. Sofia's job interview
-// is behind her and she wants to go home to Tartu on Thursday (Helgi asked in module 7). Sunday's walk in Kadriorg ends
-// badly for Markus, on Monday Sofia wakes up with a fever. Minor characters: nurse Epp Saar (pereõde, a separate person
-// from Sofia's later boss Epp; the pictures of this module show her), Dr Mari Rebane and registrar Merike (module 8) at Mustamäe
-// perearstikeskus, pharmacist Kaja (apteek „Pärn”).
-//   041 LUGU R→W  a walk in the park: the story, the body and how one feels (mul valutab pea, mul valutavad jalad, mul on
-//                 palavik, ma olen haige); corner R5 (Helgi's letter with option gaps); main: the story goes on, 60–80 words (W05).
-//   042 KUUL L→W  Sofia at home ill: the call to the health centre, radio, Helgi's family news — who has what (Sofial
-//                 valutab kurk, mul ei ole palavikku, mul on vaja puhata); corner L4 (a talk on personal life, matching); main:
-//                 a 50–70-word letter to Kati (W04), planned and edited.
-//   043 AVAS L→S  Anna's back: the doctor's questions and advice, the teie-imperative (võtke, puhake, jooge, ärge tõstke);
-//                 try first → rule → try again; corner S1 (the picture + topic questions, S06); main: the visit (S10).
-//   044 PROB R→S  Viktor's knee: the leaflet, the appointment and a clash with the market (kaks tabletti, kolm korda päevas,
-//                 pärast sööki, kabinetis 12); first try, language, second try; corner R3 (packaging and signs); main: the
-//                 call that moves the appointment (S04).
-//   045 EKS       the module exam, every part timed (B.examPart); tasks tagged R1, R2, R3, R4, R5, L2, L3, L4, W1, W2b, S0, S1, S2.
-//                 L1 is not tagged: its last practice was module 5, a tag here would add V6-gap-L1 (4 modules).
-// Every teaching lesson: „Mäletad?” naming the previous lesson and one of modules 5–7, an in-lesson pair task, a home
-// recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2).
-import { B, tag, teach, withShapes } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 9 „Tervis ja kehahooldus” (a2-041…045), stage A2- (lessons 021–050).
+// Methodology v5 for A2 (docs/METHODOLOGY_A2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25), in the
+// pattern of A2 modules 6–8:
+//   - every teaching lesson: ≤ 14 blocks (≤ 5 / 4 / 5) in a 60-minute lesson; one input; one learning picture on the page of
+//     its task (art/visuals/a2-module-09.js); a 5-minute pronunciation corner (data.pronunciation: 041 vokaalid — body
+//     words in four minimal pairs kõht / kiht, jalg / jälg, kael / käel, silm / sõlm; 042 intonatsioon — question or answer,
+//     the stress on „ei”; 043 the dictation of a doctor's advice + varjutamine; 044 välted — the strong partitive against
+//     the weak genitive, tabletti / tableti, korda / korra, sööki / söögi, pakki / paki); the rule box („Märka”, bold forms,
+//     one „Vene keeles … — eesti keeles …” line) is produced by the Harjuta form task, whose hints are the dictionary form,
+//     the person or the other form of the pair (korda → kord), never the answer;
+//   - Kasuta in the standard order: main task (data.taskType, data.support = „Abikaart”, data.stretch = „Lisaväljakutse”)
+//     → home task (homeTask, always „Harjuta → moodul 9”) → exit check (exitCheck: one rewritten line after a writing main
+//     task, 30 s of speech after a speaking one) beside the self-check (three success criteria 0–1–2 + one own sentence);
+//   - main-task types rotate and take the types modules 5–8 used least: 041 narrative (a picture story in four frames, a
+//     classmate answers: data.peerReply), 042 infogap (two cards about six patients in a waiting room + the picture),
+//     043 roleplay (a doctor's visit; the module's HIDDEN INFORMATION card, G9), 044 mediation (a neighbour who cannot read
+//     the leaflet: the dosage told in plain words from the picture);
+//   - spaced retrieval: every vocab block carries data.review (3 words from 3–15 lessons back, used again in the lesson);
+//   - real network: 041's story goes to a classmate who answers (peerReply), 042's home task is the media log („Minu eesti
+//     keele võrgustik”, the real family-doctor advice line https://www.1220.ee), 044's addressee is a neighbour and its home
+//     task a real medicine package or https://www.ravimiamet.ee (G13);
+//   - Harno A2 exam corners spread over the module (COURSE_FINAL_SHAPE_A2.md, finalShape.js profile a2): 041 L1 (five short
+//     announcements, 3 options — the course's L1 gap), 042 L2 (the input: a call to the health centre, true / false),
+//     043 S1 (the picture of the doctor's office + topic questions), 044 R3 (signs and packages at the pharmacy); the
+//     control tags R1, R4, L1, L3, W2a, S2;
+//   - a teacher page per lesson (lesson.teacherPage); until the A2 sheet renders it, the same plan stands in the teacher
+//     note of the lesson's first block.
+//   041 LUGE R→W  „Mul valutab pea” — three short messages to a language school (reading): mul / sul / tal valutab, pea
+//                 valutab · silmad valutavad, mul on palavik, ma olen haige; the module's COLD TASK („Proovi kohe: sa oled
+//                 haige” without help, its parallel is the control's speaking 1); the L1 corner; main: a picture story,
+//                 25–45 words, read and answered by a classmate.
+//   042 KUUL L→S  „Mul ei ole palavikku” — a call to the family doctor's nurse (listening, the L2 corner). The negation with
+//                 the partitive (mul ei ole palavikku, temperatuuri, aega) and mul on vaja + da (puhata, juua, magada,
+//                 tulla); main: an information gap — six patients, two cards, one picture; home: the media log.
+//   043 RÄÄK L→S  „Millal see algas?” — a doctor's visit (listening). Millal see algas? — kaks päeva tagasi; Kui kaua? —
+//                 juba …; the doctor's advice in the teie form beyond module 8 (puhake, jooge, pange, ärge jookske, ärge
+//                 tõstke); the dictation of advice (5 sentences) + varjutamine; the S1 corner with the picture; main: the
+//                 visit as a role play with HIDDEN INFORMATION.
+//   044 PROB R→S  „Kaks tabletti kolm korda päevas” — a medicine leaflet (reading). The number + partitive (kaks tabletti),
+//                 üks kord / kolm korda päevas / nädalas, enne sööki / pärast sööki / söögi ajal; the R3 corner; the
+//                 module's last teaching lesson: one speech and one text without ready phrases or a given opening (G9);
+//                 main: mediation — the dosage explained to a neighbour from the picture, then a note to her.
+//   045 EKS       Control 9 (one sheet, 9 blocks, 45 min): reading, listening, writing, speaking 10 points each; raw points,
+//                 the Harno scale (× 2), the thresholds named one way, „ükski osa ei tohi olla 0 punkti”; 4 of the 20 closed
+//                 items recycle modules 4–8 (teacher note „Varasemast”); speaking 1 parallel to 041's cold task, writing
+//                 parallel to 041's input (a message: I am ill).
+// No lesson uses the continuing story's cast (G7). Dictation: one, in 043 (5 sentences). Texts are learning texts, the
+// people, the health centre „Männi”, the pills „Valutu” and the places are invented; real pages are named only by title and
+// URL. The final-shape module (2026-10-29, one storyline with Sofia, Markus, Anna, Viktor …) is kept below as OLD: every
+// old block keeps its id and comes back hidden (retire), so learners' saved answers keep their key and Harjuta still draws
+// on the old form tasks.
+import { B, hide, tag, teach, withShapes } from '../blocks.js';
+import { exitCheck, homeTask } from '../stationBlocks.js';
 
 export const MODULE = { id: 'a2-module-09', course: 'a2', title: 'Tervis ja kehahooldus', level: 'A2', design: 'v2', template: 'v4' };
 
-// the part header of an exam lesson belongs to the goal of its part (B.examPart has none of its own)
+// the part header of an exam lesson belongs to the goal of its part (B.examPart has none of its own) — the old control
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
+// one line for every block taken off the sheets by the v5 / v6 rewrite
+const V6_CUT = 'v5+v6 (2026-11-26): lehelt maha — tunni eelarve (60 min), üks sisend, loo tegelased mitte, uus tunni ülesanne';
+// a recording is heard twice (methodV5.js G6); in the control the player is locked
+const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// more fields on a block (v6 markers: taskType, support, stretch, review, pronunciation, peerReply, mediaLog, hiddenInfo)
+const v6 = (block, data) => ({ ...block, data: { ...block.data, ...data } });
+// the self-check of v6 (G24): the main task's three success criteria rated 0–1–2 and one own sentence as evidence
+const selfcheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, criteria, stamp, 'Kuidas mul läks?');
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0, 1 või 2. Kirjuta üks oma lause.', criteria, scale: [0, 1, 2], evidence: true } };
+};
+// a check is one sheet with its own label (no „Avasta” subtitle)
+const checkSheet = (label, subtitle) => ({ discover: { label, slot: 1, subtitle } });
+// the thresholds, named one way everywhere (METHODOLOGY_A2_V5.md §2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi, et eksamil oleks varu).';
+// the teacher's plan of a lesson, shown today in the teacher note of its first block (A2 sheets do not render
+// lesson.teacherPage yet; METHODOLOGY_V6.md §2 i)
+const planNote = (p) => [
+  `Õpetaja leht. Eesmärk: ${p.goal}`,
+  `Põhitee (60 min): ${p.core}`,
+  `Lühike tee (45 min): ${p.short}`,
+  `Alternatiiv: ${p.alt}`,
+  `Kui aega jääb: ${p.extra}`,
+  `Tüüpvead: ${p.errors.join(' · ')}`,
+].join('\n');
+// the old blocks the new lesson does not reuse come back hidden, in their old phase
+const PHASES = ['discover', 'practice', 'transfer'];
+function retire(old, lesson) {
+  const used = new Set(PHASES.flatMap((p) => (lesson[p] || []).map((b) => b.id)));
+  const out = { ...lesson };
+  PHASES.forEach((p) => { out[p] = [...(lesson[p] || []), ...(old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, V6_CUT))]; });
+  return out;
+}
 
-export const LESSONS = withShapes({
+// ---------------------------------------------------------------- the final-shape module (2026-10-29, one storyline): every
+// block stays here with its id; the v6 lessons below take what they reuse and hide the rest (retire).
+const OLD = {
   'a2-041': {
     title: 'Halb pühapäev',
     canDo: 'Ma loen lugu, ütlen, mis mul valutab ja kuidas ma end tunnen (mul valutab pea, mul on palavik), ning kirjutan loo järje 60–80 sõnaga.',
@@ -757,6 +825,511 @@ export const LESSONS = withShapes({
       B.selfcheck('045_t_self', ['Ma kirjutan teksti visiitkaardi järgi.', 'Ma kirjutan oma tervisest 30 sõna.', 'Ma räägin arstiga oma haigusest.', 'Ma kirjeldan pilti ja vastan küsimustele.'], 'Moodul 9 on läbitud'),
     ],
   },
+};
+
+// ---------------------------------------------------------------- the v6 lessons
+const P041 = {
+  goal: 'õppija loeb lühikestest sõnumitest, mis kellel valutab, ütleb oma enesetunde (mul valutab pea, jalad valutavad, mul on palavik, ma olen haige) ja kirjutab nelja pildi järgi loo, millele kaaslane vastab.',
+  core: 'Mäletad? (3) → KÜLM ÜLESANNE „Proovi kohe: sa oled haige” ilma abita, õpetaja paneb kirja 3 märget (3) → sõnad (4) → kolm sõnumit (8) → Märka (4) → lüngad (5) → hääldusnurk: kõht / kiht (5) → eksaminurk L1: viis teadet (6) → paaris: mis sul viga on? (4) → pildilugu suuliselt (4) → pildilugu kirjalikult, kaaslane küsib (8) → väljumine: üks lause uuesti (2) → kodutöö ja enesekontroll (3).',
+  short: 'Proovi kohe → kolm sõnumit → Märka → lüngad → pildilugu suuliselt ja kirjalikult → väljumine; eksaminurk ja hääldusnurk koju (Harjuta).',
+  alt: 'pildiloo asemel oma lugu: õppija jutustab, millal ta viimati haige oli (kus, mis valutas, mida ta tegi), ja kirjutab sellest 25–45 sõna; kaaslane küsib ühe küsimuse.',
+  extra: 'kuidas õppija kodumaal haigena tööle või kooli teatatakse — kolm lauset: seal helistatakse …, seal on vaja …, mulle meeldib rohkem ….',
+  errors: ['„mina valutab pea” (vene „у меня болит”) → mul valutab pea', '„mul valutab jalad” → mul valutavad jalad (mitu)', '„mul on haige” → ma olen haige · mul on palavik', '„mul on kõht valu” → mul valutab kõht'],
+};
+const P042 = {
+  goal: 'õppija saab aru kõnest pereõega (eksaminurk L2), ütleb, mis tal on ja mida ei ole (mul ei ole palavikku, temperatuuri, aega) ning mida on vaja teha (puhata, juua, magada), ja täidab paaris infolünga kuue patsiendi kohta.',
+  core: 'Mäletad? (3) → sõnad (4) → kõne pereõega 2× = eksaminurk L2 (8) → Märka (4) → proovi: kolm lauset (4) → lüngad (5) → hääldusnurk: küsimus või vastus (5) → mis on vaja? (4) → minu kaart (3) → infolünk paaris: kuus patsienti ja pilt (10) → väljumine: 30 s (2) → kodutöö ja enesekontroll (3).',
+  short: 'kõne pereõega → Märka → lüngad → infolünk paaris → väljumine; minu kaart, ühendamine ja hääldusnurk koju (Harjuta).',
+  alt: 'kuue patsiendi asemel rühma päris info: iga õppija kirjutab kaardile ühe välja mõeldud haiguse (mis valutab, kas on palavik, mis kell on aeg), kaardid segatakse ja õppijad küsivad, kuni leiavad kõigi kaartide omanikud.',
+  extra: 'õppija helistab „pereõele” (õpetaja) teise haigusega ja palub teist aega (Kas on vaba aeg pärast kella kolme?) — moodul 8 kordub.',
+  errors: ['„mul ei ole palavik” → mul ei ole palavikku (osastav)', '„mul on vaja puhkama” → mul on vaja puhata (da-vorm)', '„mul ei ole temperatuur” → mul ei ole temperatuuri', 'eitavas lauses ei ole „on”: „mul ei on” → mul ei ole'],
+};
+const P043 = {
+  goal: 'õppija saab aru arsti küsimustest ja nõuannetest, vastab Millal see algas? Kui kaua? (kaks päeva tagasi, juba nädal), kordab nõuandeid teie-vormis (puhake, jooge, pange, ärge jookske) ja peab arstiga vestluse, kus arstil on varjatud info.',
+  core: 'Mäletad? (3) → sõnad (4) → arsti juures 2× (8) → Märka (4) → proovi: arst küsib (3) → lüngad (5) → etteütlus ja varjutamine (6) → sõbra vead (3) → eksaminurk S1: pilt ja küsimused (6) → arsti juures VARJATUD INFOGA (10) → väljumine: 30 s (2) → kodutöö ja enesekontroll (3).',
+  short: 'arsti juures → Märka → lüngad → rollimäng varjatud infoga → väljumine; etteütlus, vead ja eksaminurk koju (Harjuta).',
+  alt: 'arsti asemel hambaarst või loomaarst (lemmikloom on haige): samad küsimused (Millal see algas? Kui kaua?), arst annab kaks nõuannet ja ühe keelu teie-vormis.',
+  extra: 'õppija räägib, kuidas tema kodumaal arsti juurde minnakse ja mis on teisiti kui Eestis — kolm lauset.',
+  errors: ['„kaks päeva tagasi” sõnajärg: „tagasi kaks päeva” → kaks päeva tagasi (vene „два дня назад”)', '„puhkage” → puhake; „jooge” on õige (juua → jooge)', '„ärge jookse” → ärge jookske', '„Millal see algab?” minevikus → Millal see algas?'],
+};
+const P044 = {
+  goal: 'õppija loeb ravimi infolehte ja apteegi silte (eksaminurk R3), ütleb annuse (kaks tabletti kolm korda päevas, pärast sööki) ja seletab ilma valmis lauseteta naabrile pildi järgi, kuidas ravimit võtta; siis kirjutab talle märke.',
+  core: 'Mäletad? (3) → sõnad (4) → infoleht (8) → Märka (4) → proovi: minu ravim (3) → lüngad (5) → hääldusnurk: tabletti / tableti (5) → eksaminurk R3: apteegi sildid (5) → apteegis paaris (4) → naabrile pildi järgi (8) → märge naabrile ilma alguseta (5) → väljumine: 30 s (2) → kodutöö ja enesekontroll (3).',
+  short: 'infoleht → Märka → lüngad → naabrile pildi järgi → väljumine; märge, eksaminurk ja hääldusnurk koju (Harjuta).',
+  alt: 'Valutu asemel päris pakk: õppija toob kodust vitamiini- või ravimipaki (või näitab telefonis), loeb annuse ja seletab selle naabrile (õpetaja); õpetaja küsib kaks küsimust.',
+  extra: 'õppija võrdleb, mida tema kodumaal apteegist ilma retseptita saab ja mida Eestis — kolm lauset.',
+  errors: ['„kaks tablett” → kaks tabletti (2, 3 … + osastav)', '„kolm kord päevas” → kolm korda päevas', '„pärast söök” → pärast sööki (osastav)', '„üks tabletti” → üks tablett (1 + nimetav)'],
+};
+const P045 = {
+  goal: 'kontroll 9: neli oskust 10 punkti, toorpunktid, Harno skaala ja lävendid; võrdlus kontrolliga 8; rääkimise 1. osa on tunni 41 külma ülesande paralleel.',
+  core: 'kuidas punkte loetakse (2) → lugemine 1–2 (14) → kuulamine 1–2 (10) → kirjutamine (9) → rääkimine üks-ühele (5) → tulemus ja võrdlus (5).',
+  short: 'kui aega on 35 minutit: lugemine, kuulamine ja kirjutamine tunnis, rääkimine järgmise tunni alguses (5 min).',
+  alt: 'rühmas: rääkimise 1. osa paaris (üks helistab, teine on lasteaia õpetaja; siis vahetus), õpetaja hindab kahte õppijat korraga sama juhendi järgi.',
+  extra: 'õppija võrdleb oma tunni 41 külma ülesande märkmeid ja kontrolli rääkimist ning kirjutab kaks lauset: mida ta nüüd oskab ja mida Harjutas kordab.',
+  errors: ['kuulamisel kirjutatakse terve lause — piisab 1–2 sõnast', 'kirjutamisel puudub üks neljast punktist', 'rääkimisel „mina valutab” → mul valutab, „mul ei ole palavik” → palavikku'],
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 041 reading: what hurts (picture story)
+  'a2-041': retire(OLD['a2-041'], {
+    title: 'Mul valutab pea',
+    canDo: 'Ma saan aru häälsõnumitest, ütlen, mis mul valutab, ja kirjutan pildiloo.',
+    teacherPage: P041,
+    discover: [
+      teach(B.review('041_d_review', [['Mida sa ütled klienditeenindusele, kui internet ei tööta?', 'a2-039'], ['Mida sa kohvikus jood, kui väljas on külm?', 'a2-028'], 'Kuidas sa täna end tunned?']), planNote(P041)),
+      teach(tag(B.speaking('041_d_cold', 'Proovi kohe: sa oled haige.', 'Helista õpetajale: sa ei tule tundi. Ilma abita.', [
+        'Kes sa oled ja miks sa helistad?',
+        'Mis sul viga on?',
+        'Millal sa tuled tagasi?',
+      ], [45, 60]), { task: 'S01', level: 3 }),
+      'MOODULI KÜLM ÜLESANNE (2–3 min, enne sõnu ja reeglit): õpetaja on keelekooli sekretär, õpilane helistab ilma abita ja ütleb, et ei tule tundi. Õpetaja küsib ainult „Mis teil viga on?” ega aita ega paranda. Pane kirja kolm märget: kas õpilane ütleb sümptomi õiges vormis (mul valutab pea, mul on palavik), kas ta ütleb, mida ta ei saa ja millal tuleb tagasi, kas algus ja lõpp on viisakad. Kontrolli 9 rääkimise 1. osa on selle paralleel (laps on haige, helistad lasteaeda; samad kriteeriumid) — võrdle.'),
+      tag(v6(B.vocab('041_d_vocab', 'Tunni sõnad.', ['pea — голова', 'kurk — горло', 'kõht — живот', 'selg — спина', 'jalg — нога', 'silm — глаз', 'valutama — болеть', 'palavik — температура (жар)', 'köha — кашель', 'nohu — насморк', 'haige — больной']),
+        { review: ['tass', 'soe', 'perearst'] }), { topic: ['häälsõnum', 'häälsõnumeid', 'keelekooli', 'valutama', 'valutab', 'valutavad', 'palavik', 'palavikku', 'köha', 'nohu', 'keelekool', 'pereõde', 'pereõele', 'kraadi', 'apteek', 'vastuvõtt', 'ooteruumi', 'tervisepäev'] }),
+      twice(teach(tag(B.listening('041_d_voice', 'Kolm häälsõnumit.', 'Kuula keelekooli häälsõnumeid kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Lena: Tere, õpetaja! Siin on Lena. Mul on palavik, kolmkümmend kaheksa kraadi, ja kurk valutab. Täna ma tundi ei tule. Olen kodus, seal on soe, ja joon teed meega. Homme helistan perearstile.',
+        'Tõnu: Tere! Siin on Tõnu. Mul valutab selg, sest eile tõstsin tööl raskeid kaste. Palavikku ei ole. Tundi ma tulen, aga ma ei saa kaua istuda. Kas ma võin vahepeal seista?',
+        'Aino: Tere, õpetaja! Mina olen Aino. Minu poeg on haige: tal on köha ja nohu ning silmad valutavad. Ma pean temaga kodus olema. Kas ma saan ülesanded e-postiga? Joon tassi kohvi ja teen kodus tööd.',
+      ], ['Lenal valutab [kurk].', 'Lena palavik on [kolmkümmend kaheksa|38] kraadi.', 'Homme helistab Lena [perearstile].', 'Tõnul valutab [selg].', 'Tõnu ei saa kaua [istuda].', 'Aino poeg on [haige].', 'Aino pojal valutavad [silmad].'], 'g_listen'), { task: 'L03' }),
+      'Kuulamisstrateegia (üks lause enne kuulamist): „Ennusta: miks inimesed keelekooli helistavad? Loe lüngad enne läbi.” Esimesel korral kirjutab õpilane ainult kindlad vastused, teisel korral ülejäänud. Siis loe stsenaariumist kõik laused „mul … valutab / mul on …” — Märka-kastis teeb õpilane nendest reegli (üks: kurk valutab; mitu: silmad valutavad). Vanad sõnad: tass, soe, perearst.')),
+      B.notice('041_d_notice', 'Märka: mul valutab pea', [
+        'Kellel? **mul**, **sul**, **tal**, Lenal, lapsel',
+        'Üks: pea **valutab** · mitu: silmad **valutavad**, **jalad** valutavad',
+        'Mul **on palavik** · mul on köha · mul on nohu',
+        'Ma **olen haige** · ma olen väsinud',
+        'Vene keeles „у меня болит голова” — eesti keeles mul valutab pea (ilma sõnata „on”).',
+      ], 'half'),
+    ],
+    practice: [
+      half(tag(B.gaps('041_p_gaps', 'Mis sul viga on?', 'Vaata sulgudes sõna. Kirjuta lünka sobiv vorm.', [
+        '[Mul] valutab täna kõht. (mina)',
+        'Kas [sul] valutab pea? (sina)',
+        'Lapsel on köha ja [tal] on ka nohu. (tema)',
+        'Lenal [valutab] kurk. (valutama)',
+        'Pärast trenni [valutavad] jalad. (valutama)',
+        'Kõndisin kaua, nüüd valutavad [jalad]. (jalg)',
+        'Mul on [palavik], 38,5 kraadi. (temperatuur)',
+        'Ma ei tule tööle, ma [olen] haige. (olema)',
+      ], '', 'half'), { task: 'G08' })),
+      teach(tag(v6(B.choice('041_p_pron', 'Hääldusnurk: õ, ä, ü või i?', 'Kuula õpetajat. Vali kuuldud sõna. Siis ütle lause kaasa.', [
+        ['Sõna 1', 'kõht', 'kiht'],
+        ['Sõna 2', 'jalg', 'jälg'],
+        ['Sõna 3', 'kael', 'käel'],
+        ['Sõna 4', 'silm', 'sõlm'],
+      ], 'half', 'g_listen'), { pronunciation: 'vokaalid' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min, neli minimaalpaari. Ütle igast reast võtmes oleva sõna (kõht, jalg, kael, silm); õpilane valib. Näita suu kuju: õ — huuled laiad, keel taga (kõht, mitte „kõht” nagu ы); ä — suu lahti (jälg); ü — huuled ümarad, keel ees. Siis varjutamine: loe „Mul valutab kõht ja jalad valutavad ka.”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: õ ei ole „ы”, ä on lahtisem kui „э”.'),
+      teach(tag(twice(B.examListen('041_p_clips', 'Eksaminurk: viis lühikest teadet.', 'Kuula kaks korda. Vali õige vastus.', 'choice', [
+        'Teade üks. Apteek on täna lahti kella kaheksani õhtul.',
+        'Teade kaks. Perearst doktor Lepp on haige. Tema vastuvõtt on täna kinni.',
+        'Teade kolm. Kui teil on palavik, ärge tulge ooteruumi. Helistage pereõele.',
+        'Teade neli. Kooli spordipäev on reedel. Kes on haige, see jääb koju.',
+        'Teade viis. Tervisepäev raamatukogus: laupäeval kell üksteist räägib pereõde, kuidas talvel terve olla.',
+      ], [
+        ['Mis kellani on apteek täna lahti?', 'kella kaheksani', 'kella kuueni', 'kella kümneni'],
+        ['Miks on vastuvõtt täna kinni?', 'arst on haige', 'arst on puhkusel', 'keskus kolib'],
+        ['Mida teha, kui sul on palavik?', 'helistada pereõele', 'tulla ooteruumi', 'minna apteeki'],
+        ['Kes jääb reedel koju?', 'kes on haige', 'kes on väsinud', 'kõik lapsed'],
+        ['Millal räägib pereõde raamatukogus?', 'laupäeval kell üksteist', 'reedel kell üksteist', 'laupäeval kell kümme'],
+      ], 'g_listen')), { harno: 'L1', task: 'L01', level: 3 }),
+      'Eksaminurk nagu Harno A2 kuulamise 1. osas: lühikesed teated (20–30 s), igas küsimuses kolm valikut; 6 min, ilma abita. Kuulamisstrateegia: „Loe enne küsimused: mis kell? miks? kes?” Siis kontroll: õpilane ütleb teatest sõna, mis aitas (kaheksani, haige, pereõele).'),
+      teach(tag(B.rolecards('041_p_pair', 'Paaris: mis sul viga on?', 'A on haige, B küsib ja annab nõu. Siis vahetage.',
+        'Vali üks kaart ja ütle B-le, mis sul viga on: 1) pea valutab, palavik 38; 2) selg ja jalad valutavad; 3) kurk valutab, köha ja nohu.',
+        'Küsi A-lt: Mis sul viga on? Mis valutab? Kas sul on palavik? Siis anna üks nõu: joo sooja teed, puhka või helista perearstile.',
+        [], []), { task: 'S10', level: 3, fluency: true }),
+      'Paaristöö tunnis, 4 min (üks-ühele: õpetaja on kõigepealt B, siis A). Paranda ainult kahte vormi: mul valutab (mitte „mina valutab”) ja jalad valutavad (mitu). Teisel korral räägitakse kiiremini.'),
+    ],
+    transfer: [
+      teach(tag(B.speaking('041_t_pics', 'Pildilugu: mis juhtus?', 'Vaata nelja pilti. Räägi paaris, mis juhtus.', [
+        'Pilt 1: kus Marek on? Mis ilm on?',
+        'Pilt 2: mis tal valutab?',
+        'Pilt 3: kas tal on palavik?',
+        'Pilt 4: mida ta teeb? Kes aitab?',
+      ], [45, 75]), { task: 'S07', level: 3 }),
+      'Enne kirjutamist (4 min, plaani asemel): pildil on neli kaadrit, sõnu peaaegu pole (−10 °C, 38,7, E 9.00). Õpilane ütleb igale pildile ühe-kaks lauset. Võti: 1 = Laupäeval on Marek pargis, väljas on külm, miinus kümme, tal ei ole mütsi. 2 = Õhtul valutavad tal pea ja kurk. 3 = Öösel on tal palavik, 38,7 kraadi. 4 = Hommikul toob naine talle teed ja ta helistab kell üheksa perearstile. Lugu võib olla olevikus või minevikus (laupäeval oli …).'),
+      teach(tag(v6(B.examWriting('041_t_story', 'Pildilugu: halb nädalavahetus.', 'Kirjuta piltide järgi lugu, 25–45 sõna.', 'jutt', {
+        situation: 'Kirjuta Mareki lugu. Kaaslane loeb sinu loo ja küsib ühe küsimuse.',
+        points: ['kus Marek oli ja mis ilm oli', 'mis tal valutas', 'mis oli öösel', 'mida ta hommikul tegi'],
+        words: [25, 45],
+      }), {
+        lines: 4, taskType: 'narrative', peerReply: true, realAddressee: 'kaaslane, kes loeb loo ja küsib ühe küsimuse',
+        support: ['Laupäeval on Marek …', 'Õhtul valutab tal …', 'Hommikul helistab ta …'],
+        stretch: 'Lisa üks lause: mida Marek järgmisel korral teisiti teeb?',
+      }), { task: 'W06', main: true, level: 4 }),
+      'Kirjutamine tunnis, 8 min, pildiloo järgi. Siis kaaslase vastus (mooduli kaaslase vahetus): lehed liiguvad, kaaslane loeb ja kirjutab alla ühe küsimuse (Kas Marekil oli ka köha?) või „kaks tärni ja üks soov” (kas kõik neli punkti on olemas? mul / tal valutab, valutavad õigesti?). Üks-ühele: õpetaja on kaaslane. Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: mida Marek teeb teisiti.'),
+      homeTask(teach(tag(B.speaking('041_t_home', 'Kodus: minu tervis.', 'Salvesta 45 sekundit: kuidas sa end tunned? Siis Harjuta → moodul 9.', [
+        'Mis sul täna valutab või ei valuta? Kas sa oled väsinud? Mida sa teed, kui oled haige?',
+      ], [45, 60]), { task: 'S15' }),
+      'Kodune salvestus: kolm-neli lauset oma tervisest (võib olla välja mõeldud). Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 9: keha sõnad ja mul valutab (10 min). Järgmise tunni „Mäletad?” küsib seda.')),
+      half(exitCheck(tag(v6(B.writing('041_t_exit', 'Väljumine: parem lause.', 'Kirjuta üks lause loost uuesti, kaaslase küsimuse järgi.', [1, 2]), { lines: 2 }), { task: 'W10', level: 3 }))),
+      half(teach(selfcheck('041_t_self', ['Saan aru, mis kellel valutab.', 'Ütlen: mul valutab pea.', 'Kirjutan pildiloo.'], 'Tund 41 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas loost saab kõigest aru. Õpilane kirjutab ühe lause (Mul valutab …) tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 042 reading: what I do not have, what I need (infogap)
+  'a2-042': retire(OLD['a2-042'], {
+    title: 'Mul ei ole palavikku',
+    canDo: 'Ma loen pereõe vastuseid, ütlen, mis mul on ja mida ei ole, ja küsin paaris patsientide kohta.',
+    teacherPage: P042,
+    discover: [
+      teach(B.review('042_d_review', [['Mis sul valutab, kui sa oled kaua arvutis?', 'a2-041'], ['Mis jope või kampsun on talvel kõige parem?', 'a2-033'], 'Kas sa helistad perearstile või lähed kohe kohale?']), planNote(P042)),
+      tag(v6(B.vocab('042_d_vocab', 'Tunni sõnad.', ['kõrv — ухо', 'hammas — зуб', 'terve — здоровый', 'puhkama — отдыхать', 'magama — спать', 'pereõde — медсестра', 'temperatuur — температура', 'kraad — градус', 'nõuanne — совет', 'vastuvõtt — приём (у врача)']),
+        { review: ['aeg', 'vaba', 'isikukood'] }), { topic: ['pereõde', 'pereõe', 'pereõele', 'perearstikeskus', 'perearstikeskusesse', 'nõuanne', 'nõuannet', 'vastuvõtt', 'temperatuuri', 'palavik', 'palavikku', 'köha', 'nohu', 'valutab', 'valutavad', 'isikukood', 'isikukoodi', 'kabinet', 'kabinetti', 'ooteruum', 'ooteruumis', 'patsient', 'patsiendid', 'patsienti', 'hambaarst', 'hambaarsti', 'ravi', 'nõuandeliin', 'meediapäevik', 'meediapäevikusse'] }),
+      teach(tag(B.reading('042_d_page', 'Küsi pereõelt.', 'Loe küsimusi ja vastuseid. Vasta ühe-kolme sõnaga.', 'Perearstikeskus Männi: küsi pereõelt',
+        'Küsimus: Mul on köha ja nohu, aga palavikku ei ole. Kas ma pean arsti juurde tulema?\nPereõde Kersti: Ei pea. Teil on vaja puhata, juua palju sooja teed ja magada. Kui köha on kauem kui nädal, helistage meile.\n\nKüsimus: Minu lapsel on palavik 39 ja kõrv valutab. Mul ei ole täna aega kodus olla. Mida teha?\nPereõde Kersti: Lapsel on vaja täna arsti juurde tulla. Helistage meile: täna on doktor Lepal vaba aeg kell kolm.\n\nKüsimus: Mul valutab hammas. Kas perearst saab aidata?\nPereõde Kersti: Perearst hambaid ei ravi. Teil on vaja minna hambaarsti juurde. Kui hammas valutab öösel, helistage nõuandeliinile 1220.',
+        [['Kas köhaga peab arsti juurde tulema?', 'ei|ei pea'], ['Mida on köhaga vaja juua?', 'sooja teed|palju sooja teed|teed'], ['Millal helistada, kui köha ei kao?', 'kauem kui nädal|nädala pärast|üle nädala'], ['Kui kõrge on lapse palavik?', '39 kraadi|39'], ['Mis lapsel veel valutab?', 'kõrv'], ['Mis kell on doktor Lepal vaba aeg?', 'kell kolm|kolm|15'], ['Kuhu minna, kui hammas valutab?', 'hambaarsti juurde|hambaarsti']]), { task: 'R15' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Silmitse: mis probleemid siin on? Siis otsi pereõe nõuanne.” Üks-ühele: õpilane joonib alla kõik laused „ei ole …” ja „on vaja …” (palavikku ei ole, mul ei ole aega, teil on vaja puhata) — Märka-kastis teeb ta nendest reegli. Vanad sõnad: aeg, vaba (tund 36: vaba aeg kell kolm), isikukood (kõnes).'),
+      B.notice('042_d_notice', 'Märka: mul ei ole palavikku', [
+        'Mul on palavik. → Mul **ei ole palavikku**.',
+        'Mul on temperatuur. → Mul ei ole **temperatuuri**. · Mul ei ole **aega**.',
+        'Mul on vaja + da: **puhata**, **juua**, **magada**, **tulla**',
+        'Vene keeles „у меня нет температуры” — eesti keeles osastav: mul ei ole palavikku.',
+      ], 'half'),
+      half(teach(tag(B.speaking('042_d_try', 'Proovi: kolm lauset.', 'Ütle: mis sul on, mis ei ole, mida on vaja.', [
+        'Mis sul on? Mis valutab?',
+        'Mis sul ei ole?',
+        'Mida sul on vaja teha?',
+      ], [45, 60]), { task: 'S02', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti: õpilane mõtleb välja haiguse ja ütleb kolm lauset (Mul on köha. Mul ei ole palavikku. Mul on vaja puhata.). Õpetaja kordab õiget vormi, kui õpilane ütleb „mul ei ole palavik” või „mul on vaja puhkama”.')),
+    ],
+    practice: [
+      half(tag(B.gaps('042_p_gaps', 'Ei ole ja on vaja.', 'Pane sõna sulgudest lausesse sobivas vormis.', [
+        'Mul ei ole täna [palavikku]. (palavik)',
+        'Lapsel ei ole [temperatuuri], ta on terve. (temperatuur)',
+        'Mul ei ole täna [aega] arsti juurde minna. (aeg)',
+        'Täna mul ei ole [tundi], ma olen haige. (tund)',
+        'Sul on köha. Sul on vaja sooja teed [juua]. (jooma)',
+        'Tal on palavik. Tal on vaja kodus [puhata]. (puhkama)',
+        'Öösel ma ei maganud. Mul on vaja [magada]. (magama)',
+        'Kõrv valutab. Sul on vaja arsti juurde [tulla]. (tulema)',
+      ], '', 'half'), { task: 'G03' })),
+      teach(tag(v6(B.choice('042_p_pron', 'Hääldusnurk: küsimus või vastus?', 'Kuula lauset. Vali, siis korda kaks korda.', [
+        ['Lause 1', 'küsimus', 'vastus'],
+        ['Lause 2', 'vastus', 'küsimus'],
+        ['Lause 3', 'küsimus', 'vastus'],
+        ['Lause 4', 'vastus', 'küsimus'],
+      ], 'half', 'g_listen'), { pronunciation: 'intonatsioon' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Loe: 1 „Kas teil on palavik?” 2 „Palavikku ei ole.” 3 „Kas teil valutab kõrv?” 4 „Mul ei ole aega.” Õpilane valib, siis kordab iga lause kaks korda (varjutamine). Eesti küsimus Kas …? läheb lõpus alla — küsimuse teeb sõna kas, mitte hääl üles nagu vene keeles. Eituses on rõhk sõnal ei: „Mul EI ole palavikku.” Rõhk on alati sõna esimesel silbil (palavik, temperatuur).'),
+      tag(B.match('042_p_advice', 'Mis on vaja?', 'Ühenda probleem ja pereõe nõuanne.', [
+        ['Mul on köha.', 'Teil on vaja juua sooja teed meega.'],
+        ['Mul valutab hammas.', 'Teil on vaja minna hambaarsti juurde.'],
+        ['Ma olen väga väsinud.', 'Teil on vaja kaua magada.'],
+        ['Mul on palavik 39.', 'Teil on vaja helistada perearstile.'],
+        ['Mul valutavad silmad.', 'Teil on vaja arvuti kinni panna.'],
+        ['Mul valutab kõht.', 'Teil on vaja täna vähe süüa.'],
+      ], 'half', 'g_use'), { task: 'G08' }),
+      teach(tag(twice(B.examListen('042_p_phone', 'Eksaminurk: kõne pereõega.', 'Kuula kõnet kaks korda. Kas lause on õige või vale?', 'truefalse', [
+        'Kersti: Perearstikeskus Männi, pereõde Kersti, tere!',
+        'Artur: Tere! Minu nimi on Artur Lill. Mul on halb olla.',
+        'Kersti: Palun öelge oma isikukood.',
+        'Artur: Kolm, kaheksa, viis, null, kolm, üks, kaks, null, neli, kaks, kaks.',
+        'Kersti: Aitäh. Mis teil viga on?',
+        'Artur: Kurk valutab ja mul on köha. Kõrv valutab ka natuke.',
+        'Kersti: Kas teil on palavik?',
+        'Artur: Ei, palavikku ei ole.',
+        'Kersti: Teil on vaja puhata ja juua palju sooja teed. Arsti juurde on ka vaja tulla.',
+        'Kersti: Homme kell pool neli on vaba aeg, kabinet viis. Kas see sobib?',
+        'Artur: Jah, sobib. Aitäh!',
+      ], [
+        ['Artur ütleb pereõele oma isikukoodi.', true],
+        ['Arturil valutavad kurk ja kõrv.', true],
+        ['Arturil on palavik.', false],
+        ['Pereõde soovitab puhata ja juua sooja teed.', true],
+        ['Artur ei pea arsti juurde tulema.', false],
+        ['Arturi aeg arsti juures on homme hommikul.', false],
+      ], 'g_listen')), { harno: 'L2', task: 'L05', level: 3 }),
+      'Eksaminurk nagu Harno A2 kuulamise 2. osas (dialoog, 6 õige / vale), lühem (≈ 50 s), kaks korda, 5 min, ilma abita. Kuulamisstrateegia: „Ennusta: mida pereõde küsib? Loe laused enne läbi.” Siis kontroll: mis Arturil ei ole? (palavikku) Mis kell on aeg? (pool neli = pärastlõunal).'),
+    ],
+    transfer: [
+      teach(tag(v6(B.rolecards('042_t_gap', 'Ooteruumis: kuus patsienti.', 'A ja B küsivad teineteiselt. Täitke tabel.',
+        'Sina tead kolme patsienti. Kaie: valutab kõrv, palavikku ei ole, aeg kell 9.00. Juhan: köha ja nohu, palavik 38,5, aeg kell 9.15. Lembit: valutab selg, palavikku ei ole, aeg kell 9.45. Küsi B-lt: Ilja, Svetlana, Toomas.',
+        'Sina tead kolme patsienti. Ilja: valutab hammas, palavikku ei ole, aeg kell 9.30. Svetlana: valutab kurk, palavik 39, aeg kell 10.00. Toomas: valutavad silmad, palavikku ei ole, aeg kell 10.15. Küsi A-lt: Kaie, Juhan, Lembit.',
+        [], []), {
+        taskType: 'infogap',
+        support: ['Mis Iljal viga on?', 'Kas tal on palavik? — Ei, palavikku ei ole.', 'Mis kell tal aeg on?'],
+        stretch: 'Otsustage: kes peab arsti juurde minema esimesena ja miks?',
+      }), { task: 'S05', main: true, level: 4, fluency: true }),
+      'Infolünk paaris, 10 min. A ja B ei näita kaarti. Nad küsivad täislausega (Mis Kaiel viga on? Kas Juhanil on palavik? Mis kell Toomasel aeg on?) ja kirjutavad vastused tabelisse, siis leiavad pildilt iga patsiendi numbri. Pildi võti: 1 Svetlana (kurk, palavik 39), 2 Lembit (selg), 3 Kaie (kõrv), 4 Toomas (silmad), 5 Ilja (hammas), 6 Juhan (köha, 38,5). Üks-ühele: õpetaja on B. Paranda ainult kahte vormi: tal ei ole palavikku (osastav) ja nimi kellel-vormis (Kaiel, Juhanil, Iljal). Abikaart: kolm küsimust (märgi kasutamine). Lisaväljakutse: kes läheb esimesena (Svetlana: palavik 39).'),
+      tag(B.table('042_t_table', 'Tabel: kes mis?', 'Kirjuta vastused. Leia pildilt number.', 'Nimi, Mis valutab?, Palavik?, Aeg, Number pildil', [
+        'Kaie |  |  |  | ',
+        'Juhan |  |  |  | ',
+        'Lembit |  |  |  | ',
+        'Ilja |  |  |  | ',
+        'Svetlana |  |  |  | ',
+        'Toomas |  |  |  | ',
+      ]), { task: 'W07', level: 3 }),
+      homeTask(teach(v6(tag(B.examWriting('042_t_home', 'Kodus: minu eesti keele võrgustik.', 'Loe üht tervise lehte. Kirjuta 25–40 sõna. Harjuta → moodul 9.', 'teade', {
+        situation: 'Ava üks päris eestikeelne tervise leht, nt perearsti nõuandeliin 1220 (https://www.1220.ee) või oma perearstikeskuse leht. Kirjuta meediapäevikusse.',
+        points: ['mis lehte sa lugesid', 'üks uus sõna sellelt lehelt', 'üks nõuanne (nt Teil on vaja …)', 'kas leht oli lihtne või raske ja miks'],
+        words: [25, 40],
+      }), { task: 'W12' }), { mediaLog: true }),
+      'Meediapäevik „Minu eesti keele võrgustik” (mooduli kirje): õppija avab ise ühe päris eestikeelse tervise lehe (lehte sisse ei kopeerita) ja kirjutab neli punkti, ühe nõuande lausega „on vaja + da”. Järgmisel tunnil loeb ta oma uue sõna ette. Harjuta → moodul 9: ei ole + osastav, on vaja + da (10 min).')),
+      half(exitCheck(tag(B.speaking('042_t_exit', 'Väljumine: kes on kes?', 'Ütle 30 sekundiga: kellel mis viga on?', [
+        'Kolm patsienti: mis neil on ja mida ei ole?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('042_t_self', ['Loen pereõe nõuandeid.', 'Ütlen: mul ei ole palavikku.', 'Küsin ja vastan paaris.'], 'Tund 42 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida; õpetaja ütleb, kas tabel on õige. Õpilane kirjutab ühe lause (Mul ei ole …) tõendiks.')),
+    ],
+  }),
+  // ---------------------------------------------------------------- 043 listening: at the doctor's (role play, hidden information)
+  'a2-043': retire(OLD['a2-043'], {
+    title: 'Millal see algas?',
+    canDo: 'Ma saan aru arsti küsimustest ja nõuannetest ning räägin arstiga oma haigusest.',
+    teacherPage: P043,
+    discover: [
+      teach(B.review('043_d_review', [['Mis sul ei ole, kui sa oled terve?', 'a2-042'], ['Mida sa kohvikus tellid, kui kurk valutab?', 'a2-028'], 'Millal sa viimati arsti juures käisid?']), planNote(P043)),
+      tag(v6(B.vocab('043_d_vocab', 'Tunni sõnad.', ['arst — врач', 'algama — начинаться', 'tagasi — назад', 'juba — уже', 'põlv — колено', 'tõstma — поднимать', 'jooksma — бегать', 'soovitama — советовать', 'retsept — рецепт', 'haigusleht — больничный лист']),
+        { review: ['ootama', 'vorm', 'number'] }), { topic: ['tugevam', 'rätik', 'ärge', 'ravimit', 'teie-vormis', 'keeld', 'haigusleht', 'haiguslehe', 'haiguslehte', 'retsept', 'retsepti', 'retseptiga', 'põlv', 'põlve', 'põlvele', 'kabinet', 'kabinetis', 'ooteruumis', 'tablette', 'tabletti', 'jalgpalli', 'kukkusin', 'palavik', 'palavikku', 'apteek', 'valutab', 'valu'] }),
+      twice(teach(tag(B.listening('043_d_visit', 'Arsti kabinetis.', 'Kuula arsti ja patsienti kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Arst: Tere! Palun istuge. Mis teil viga on?',
+        'Patsient: Tere, doktor! Mul valutab põlv.',
+        'Arst: Millal see algas?',
+        'Patsient: Kaks päeva tagasi. Ma mängisin jalgpalli ja kukkusin.',
+        'Arst: Kas põlv valutab kogu aeg?',
+        'Patsient: Hommikul on valu kõige tugevam. Ma ei saa hästi kõndida.',
+        'Arst: Kas teil on palavik?',
+        'Patsient: Ei, palavikku ei ole.',
+        'Arst: Selge. Võtke valu vastu tablette, kaks korda päevas pärast sööki.',
+        'Arst: Puhake kodus kolm päeva. Pange põlvele külm rätik.',
+        'Arst: Ärge jookske ja ärge mängige jalgpalli kaks nädalat!',
+        'Patsient: Kas ma saan haiguslehe?',
+        'Arst: Jah, kolm päeva. Oodake ooteruumis ja täitke see vorm.',
+        'Patsient: Kas ma pean uuesti tulema?',
+        'Arst: Kui valu ei kao, tulge nädala pärast tagasi. Kabinet number kaksteist.',
+      ], ['Patsiendil valutab [põlv].', 'Valu algas kaks päeva [tagasi].', 'Hommikul on valu kõige [tugevam].', 'Tablette tuleb võtta [kaks korda|kaks|2 korda] päevas.', 'Kodus tuleb puhata [kolm|3] päeva.', 'Jalgpalli ei tohi mängida kaks [nädalat].', 'Tagasi tuleb tulla kabinetti [kaksteist|12].'], 'g_listen'), { task: 'L03' }),
+      'Kuulamisstrateegia: „Kuula märksõnu: millal? mida teha? mida mitte?” Esimesel korral kirjutab õpilane ainult kindlad vastused, teisel korral ülejäänud. Siis loe stsenaariumist kõik nõuanded (võtke, puhake, pange, ärge jookske, ärge mängige) — need on Märka-kasti näited. Vanad sõnad: ootama (oodake), vorm, number (kabinet number kaksteist).')),
+      B.notice('043_d_notice', 'Märka: millal see algas?', [
+        'Millal see **algas**? — **Kaks päeva tagasi**. · Eile. · Esmaspäeval.',
+        'Kui kaua? — **Juba** kolm päeva. · Nädal aega.',
+        'Arst soovitab (teie): **võtke**, **puhake**, **jooge**, **pange**',
+        'Keeld: **ärge jookske**, **ärge tõstke**',
+        'Vene keeles „два дня назад” — eesti keeles kaks päeva tagasi (tagasi on lõpus).',
+      ], 'half'),
+      half(teach(tag(B.speaking('043_d_ask', 'Proovi: arst küsib.', 'Vasta arsti kolmele küsimusele. Ütle aeg täpselt.', [
+        'Mis teil viga on?',
+        'Millal see algas?',
+        'Kui kaua see juba on?',
+      ], [45, 60]), { task: 'S02', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti: õpetaja on arst ja küsib kolm küsimust, õpilane mõtleb välja haiguse. Võti nt: Mul valutab selg. See algas kolm päeva tagasi, esmaspäeval. Juba kolm päeva. Õpetaja kordab õiget sõnajärge, kui õpilane ütleb „tagasi kolm päeva”.')),
+    ],
+    practice: [
+      half(tag(B.gaps('043_p_gaps', 'Arst küsib ja soovitab.', 'Kirjuta küsimus või nõuanne õiges vormis.', [
+        'Millal valu [algas]? (algama)',
+        'Täna on reede. Köha algas teisipäeval, kolm päeva [tagasi].',
+        'Mul on nohu [juba] nädal aega.',
+        '[Võtke] tablett pärast sööki. (võtma)',
+        '[Puhake] kodus kolm päeva. (puhkama)',
+        '[Jooge] palju vett. (jooma)',
+        '[Ärge] [jookske] kaks nädalat! (ära jookse)',
+        '[Ärge] [tõstke] midagi rasket! (ära tõsta)',
+      ], '', 'half'), { task: 'G05' })),
+      teach(half(v6(tag(B.dictation('043_p_dict', 'Etteütlus ja varjutamine: arst soovitab.', 'Kuula arsti nõuannet, räägi kaasa, siis kirjuta.', [
+        'Millal see algas?',
+        'Valu algas kaks päeva tagasi.',
+        'Võtke tablett pärast sööki.',
+        'Puhake kodus kolm päeva.',
+        'Ärge jookske kaks nädalat.',
+      ], 5), { task: 'L08' }), { pronunciation: 'varjutamine' })),
+      'Hääldusnurk + etteütlus, 6 min. Enne: varjutamine — loe arsti kaks lauset („Puhake kodus kolm päeva. Pange põlvele külm rätik.”), õpilane räägib kohe kaasa, kaks korda; rõhk on esimesel silbil (puhake, ärge). Siis loe iga etteütluse lause kaks korda; õpilane kordab valjusti ja kirjutab. Kontrolli: algas (s), tagasi, tablett (tt), jookske (ksk).'),
+      half(tag(B.errorfix('043_p_fix', 'Sõber kirjutas valesti.', 'Sõbra lausetes on üks viga. Kirjuta lause õigesti.', [
+        ['Puhkage kodus kolm päeva.', 'Puhake kodus kolm päeva.'],
+        ['Joge palju vett.', 'Jooge palju vett.'],
+        ['Ärge jookse kaks nädalat.', 'Ärge jookske kaks nädalat.'],
+        ['Valu algas tagasi kaks päeva.', 'Valu algas kaks päeva tagasi.'],
+        ['Võtage tablett pärast sööki.', 'Võtke tablett pärast sööki.'],
+      ], 'half'), { task: 'G06' })),
+      teach(tag(B.speaking('043_p_pic', 'Eksaminurk: kirjelda pilti.', 'Kirjelda pilti. Siis vasta küsimustele.', [
+        'Kus need inimesed on? Mida nad teevad?',
+        'Mis patsiendil viga on? Millal see algas?',
+        'Mida sa teed, kui sul valutab põlv?',
+        'Kas sa käid tihti arsti juures? Miks?',
+      ], [45, 75]), { harno: 'S1', task: 'S06', level: 3 }),
+      'Eksaminurk nagu Harno A2 rääkimise 1. osas: õpilane kirjeldab pilti umbes minut, siis küsib õpetaja kolm teemaküsimust. 6 min. Pildi võti: arstikabinet (KABINET 12), arst arvuti taga, patsient põlvesidemega, kõrval kark; kalendris on esmaspäev ringis ja täna on kolmapäev → valu algas kaks päeva tagasi; laual tabletid ja HAIGUSLEHT. Hinda nagu eksamil: kas laused on täislaused, kas aeg on õige (kaks päeva tagasi).'),
+    ],
+    transfer: [
+      teach(tag(v6(B.rolecards('043_t_visit', 'Arsti juures.', 'A on patsient, B on arst. Siis vahetage.',
+        'Sa oled patsient. Ootad ooteruumis, siis lähed kabinetti. Vali probleem: selg valutab (algas esmaspäeval, sa tõstsid kappi) või kurk valutab (juba neli päeva). Küsi arstilt: kas pead ravimit võtma, kas võid tööle minna, kas saad haiguslehe?',
+        'Sa oled arst, sinu kabinet on number 12. Küsi: Mis teil viga on? Millal see algas? Kas teil on palavik? Anna kaks nõuannet teie-vormis ja üks keeld (Ärge …!). Lõpus ütle: täitke vorm.',
+        [], []), {
+        taskType: 'roleplay', hiddenInfo: true,
+        support: ['Mul valutab … See algas …', 'Kas ma võin …?', 'Kas ma saan haiguslehe?'],
+        stretch: 'Arst ütleb: minge homme tööle. Seleta, miks sa ei saa.',
+      }), { task: 'S10', main: true, level: 4, fluency: true }),
+      'Rollimäng, 10 min. Üks-ühele: õpetaja on arst. Varjatud info (ütle alles vestluse ajal, kaardil seda ei ole): 1) haigusleht on ainult kolm päeva — kui patsient vajab rohkem, peab ta ise küsima, mis siis saab (vastus: tulge reedel tagasi); 2) ravim on retseptiga ja apteek maja all on täna lahti ainult kella kuueni; 3) tööle võib minna alles esmaspäeval, raskeid asju ei tohi tõsta kaks nädalat. Kui õpilane ei küsi, kas ta võib tööle minna, ära ütle seda ise. Rühmas: arsti kaardi saab B, varjatud info annab õpetaja B-le eraldi lipikul. Teisel korral vahetage. Paranda ainult kaks päeva tagasi ja teie-käsk (puhake, ärge tõstke). Abikaart: kolm lausealgust (märgi kasutamine). Lisaväljakutse: arst saadab tööle.'),
+      homeTask(teach(tag(B.examWriting('043_t_home', 'Kodus: sõnum tööle.', 'Kirjuta juhatajale 25–40 sõna. Siis Harjuta → moodul 9.', 'teade', {
+        situation: 'Sa käisid arsti juures ja said haiguslehe. Kirjuta oma tööle juhatajale sõnum.',
+        points: ['mis sul viga on', 'millal see algas', 'mida arst soovitas', 'millal sa tuled tagasi'],
+        words: [25, 40],
+      }), { task: 'W02' }),
+      'Kodune sõnum (Harno A2 kirjutamise 2. osa „teade” vorm): neli punkti, „algas … tagasi” ja üks nõuanne teie- või ma-vormis (Arst ütles: puhake). Järgmisel tunnil loeb õpetaja sõnumi ja märgib ühe vea, õppija kirjutab selle Harjutas „Minu vead” alla õigesti. Harjuta → moodul 9: teie-käsk ja tagasi (10 min).')),
+      half(exitCheck(tag(B.speaking('043_t_exit', 'Väljumine: arsti nõuanded.', 'Ütle 30 sekundiga sõbrale: mis sul on ja mida arst soovitas?', [
+        'Mis sul viga on, millal see algas ja mida arst soovitas?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('043_t_self', ['Saan aru arsti küsimustest.', 'Ütlen: algas kaks päeva tagasi.', 'Räägin arstiga ilma paberita.'], 'Tund 43 on läbitud'), 'Üks-ühele: õpilane hindab kolme rida, õpetaja ütleb, kas „arst” sai kõigest aru ja kas õpilane küsis varjatud info välja. Õpilane kirjutab ühe nõuande teie-vormis tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 044 reading: the leaflet and the pharmacy (the module's last teaching lesson)
+  'a2-044': retire(OLD['a2-044'], {
+    title: 'Kaks tabletti kolm korda päevas',
+    canDo: 'Ma loen ravimi infolehte ja kirjutan naabrile lihtsalt, kuidas ravimit võtta.',
+    teacherPage: P044,
+    discover: [
+      teach(B.review('044_d_review', [['Mida arst sulle soovitas? Ütle teie-vormis.', 'a2-043'], ['Mida sa ütled apteegi kassas, kui arvel on viga?', 'a2-029'], 'Mis ravimid sul kodus on?']), planNote(P044)),
+      tag(v6(B.vocab('044_d_vocab', 'Tunni sõnad.', ['ravim — лекарство', 'tablett — таблетка', 'siirup — сироп', 'kord — раз', 'päevas — в день', 'söök — еда', 'apteeker — фармацевт', 'infoleht — инструкция (листок-вкладыш)', 'hoidma — хранить', 'täiskasvanu — взрослый']),
+        { review: ['pudel', 'pakk', 'kokku'] }), { topic: ['ravim', 'täiskasvanu', 'tablett', 'tabletti', 'tableti', 'tabletid', 'tablette', 'siirup', 'siirupit', 'siirupi', 'apteeker', 'apteekri', 'apteegis', 'apteegi', 'infoleht', 'infolehte', 'Valutu', 'Valutut', 'valu', 'palaviku', 'täiskasvanud', 'retsept', 'retsepti', 'retseptiga', 'retseptiravimid', 'vitamiin', 'vitamiini', 'vitamiinid', 'valveapteek', 'külmkapis', 'alkoholiga', 'perearstile', 'avamist'] }),
+      teach(tag(B.reading('044_d_leaflet', 'Ravimi infoleht.', 'Loe Valutu infolehte. Vasta ühe-kolme sõnaga.', 'Valutu: tabletid valu ja palaviku vastu',
+        'Valutu aitab, kui valutab pea, hammas või selg, ja kui on palavik.\n\nTäiskasvanud võtavad üks-kaks tabletti kuni kolm korda päevas. Võtke tablett pärast sööki ja jooge klaas vett. Kokku võib päevas võtta kuni kuus tabletti, mitte rohkem.\n\nLapsed (6–12 aastat) võtavad ühe tableti kaks korda päevas. Alla kuue aasta lastele on siirup.\n\nKui valu või palavik ei kao kolme päevaga, helistage perearstile. Ärge võtke Valutut koos alkoholiga.\n\nÜhes pakis on 20 tabletti. Hoidke pakk kuivas kohas, mitte külmkapis. Siirupi pudel hoidke pärast avamist külmkapis ja kasutage kahe nädala jooksul.',
+        [['Mille vastu Valutu aitab?', 'valu ja palaviku vastu|valu vastu|palaviku vastu'], ['Mitu tabletti võtab täiskasvanu korraga?', 'üks-kaks|üks või kaks|1–2'], ['Mitu korda päevas võib täiskasvanu tablette võtta?', 'kuni kolm korda|kolm korda|3'], ['Millal tablett võtta: enne või pärast sööki?', 'pärast sööki'], ['Mitu tabletti võib päevas kokku võtta?', 'kuni kuus|kuus|6'], ['Mida saavad alla kuue aasta lapsed?', 'siirupit|siirup'], ['Millal tuleb helistada perearstile?', 'kui valu ei kao|kui palavik ei kao|kolme päeva pärast'], ['Kus hoida lahti tehtud siirupi pudelit?', 'külmkapis']]), { task: 'R15' }),
+      'Lugemisstrateegia: „Loe küsimused enne läbi, siis otsi tekstist numbrid: mitu? mitu korda? millal?” 8 min. Kontroll: õpilane näitab tekstis sõna, mis aitas. Üks-ühele: õpilane joonib alla kõik „mitu” ja „millal” (kaks tabletti, kolm korda päevas, pärast sööki) — Märka-kastis teeb ta nendest reegli. Vanad sõnad: pudel, pakk, kokku.'),
+      B.notice('044_d_notice', 'Märka: kaks tabletti kolm korda päevas', [
+        'Mitu? 1 + nimetav: **üks tablett** · 2, 3 … + osastav: **kaks tabletti**, **kuus tabletti**',
+        'Mitu korda? **üks kord** · **kolm korda päevas** · kaks korda **nädalas**',
+        'Millal? **enne sööki**, **pärast sööki**, **söögi ajal**',
+        'Vene keeles „две таблетки” (родительный падеж) — eesti keeles kaks tabletti (osastav).',
+      ], 'half'),
+      half(teach(tag(B.speaking('044_d_try', 'Proovi: minu ravim.', 'Ütle: mida sa võtad, mitu korda ja millal.', [
+        'Mis ravimit või vitamiini sa võtad?',
+        'Mitu tabletti ja mitu korda päevas?',
+        'Enne või pärast sööki?',
+      ], [45, 60]), { task: 'S02', level: 3, fluency: true }),
+      'Juhendatud kasutus kohe pärast Märka-kasti, ilma valmis lauseteta (mooduli viimane tund): õpilane räägib oma vitamiinist või välja mõeldud ravimist (Ma võtan D-vitamiini üks kord päevas söögi ajal.). Õpetaja kordab õiget vormi, kui õpilane ütleb „kaks tablett” või „kolm kord”.')),
+    ],
+    practice: [
+      half(tag(B.gaps('044_p_gaps', 'Mitu ja millal?', 'Kirjuta sobiv vorm.', [
+        'Võtke kaks [tabletti] päevas. (tablett)',
+        'Lapsele andke õhtul üks [tablett].',
+        'Võtke rohtu kolm [korda] päevas. (kord)',
+        'Siirupit võtke üks [kord] päevas, õhtul. (korda)',
+        'Vitamiini võtan kaks korda [nädalas]. (nädal)',
+        'Tablett võtke pärast [sööki]. (söök)',
+        'Seda rohtu võtke söögi [ajal]. (aeg)',
+        'Ärge võtke rohkem kui kuus [tabletti] päevas. (tablett)',
+      ], '', 'half'), { task: 'G08' })),
+      teach(tag(v6(B.choice('044_p_pron', 'Hääldusnurk: tabletti või tableti?', 'Kuula sõna: pikk või lühike? Vali, siis ütle kaasa.', [
+        ['Sõna 1', 'tabletti', 'tableti'],
+        ['Sõna 2', 'korra', 'korda'],
+        ['Sõna 3', 'sööki', 'söögi'],
+        ['Sõna 4', 'pakki', 'paki'],
+      ], 'half', 'g_listen'), { pronunciation: 'välted' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min, neli minimaalpaari. Ütle igast reast võtmes oleva sõna (tabletti, korra, sööki, pakki); õpilane valib. Selgita: osastav on pikk ja tugev (kaks tabletti, kolm korda, pärast sööki, kaks pakki), omastav lühike ja nõrk (ühe tableti, ühe korra, söögi ajal, paki sees). Siis varjutamine: loe „Võtke kaks tabletti kolm korda päevas pärast sööki.”, õpilane räägib kohe kaasa, kaks korda. Vene keelt kõnelejal: topelttäht (tt, kk) on päriselt pikem.'),
+      teach(tag(B.adsmatch('044_p_signs', 'Eksaminurk: apteegis.', 'Loe apteegi silte. Kirjuta lause juurde sildi täht.', [
+        ['A. Apteegi uks', 'E–R 8–20, L 9–15, P suletud. Retseptiravimid ainult apteekri käest.'],
+        ['B. Siirupi pudel', 'Lastele alates kuuest kuust. Pärast avamist hoia külmkapis kuni 14 päeva.'],
+        ['C. Vitamiinid', 'D-vitamiin. Täiskasvanud: üks tablett päevas söögi ajal.'],
+        ['D. Silt kassa juures', 'Retsepti jaoks võta number. Ilma retseptita ravimid: kassa 2.'],
+        ['E. Teade apteegi aknal', 'Pühapäeval on avatud valveapteek Kesk tänav 5, kell 9–21.'],
+      ], [
+        ['On pühapäev. Kuhu sa lähed rohu järele?', 'E'],
+        ['Sul on retsept. Mida sa kõigepealt teed?', 'D'],
+        ['Laps on kaheaastane. Mida talle osta?', 'B'],
+        ['Mida võtad söögi ajal?', 'C'],
+        ['Kas laupäeval kell viis on apteek lahti?', 'A'],
+        ['Siirup on lahti juba kolm nädalat. Kas võib veel võtta?', 'B'],
+      ]), { harno: 'R3', level: 3 }),
+      'Eksaminurk nagu Harno A2 lugemise 3. osas (sildid, pakendid). 5 min, ilma abita; siis kontroll: miks just see silt? Õpilane ütleb sildilt ühe sõna, mis aitas (pühapäeval, number, lastele …). Võti 5: ei, laupäeval on lahti ainult kella 15-ni.'),
+      teach(tag(B.rolecards('044_p_pharm', 'Apteegis.', 'A on klient, B on apteeker. Siis vahetage.',
+        'Sul valutab kurk ja sul on palavik 38. Küsi rohtu. Küsi ka: mitu korda päevas, enne või pärast sööki, kui palju see maksab?',
+        'Sa oled apteeker. Küsi: mis viga on, kas on palavik, kas on allergia? Paku Valutut. Ütle, mitu tabletti, mitu korda päevas ja millal. Hind: 4,50 eurot.',
+        [], []), { task: 'S10', level: 3, fluency: true }),
+      'Paaristöö tunnis ilma valmis lauseteta (mooduli viimane tund), 4 min. Üks-ühele: õpetaja on kõigepealt apteeker, siis klient. Paranda ainult kaks tabletti ja kolm korda päevas.'),
+    ],
+    transfer: [
+      teach(tag(B.speaking('044_t_explain', 'Suuliselt: naaber küsib.', 'Naaber ei saa infolehest aru. Seleta pildi järgi lihtsalt.', [
+        'Naaber Lidia (78) ostis Valutut. Ta ei loe väikest kirja ega saanud apteekri jutust aru. Vaata pilti: mitu, mitu korda, millal, mida mitte?',
+        'Lidia küsib: Kas ma võin õhtul kolm tabletti võtta?',
+      ], [45, 75]), { task: 'S13', level: 3 }),
+      'Suuline vahendus pildi järgi, 6 min, ilma valmis lauseteta — märke ettevalmistus. Õpilane räägib naabrile lihtsalt, ühe asja kaupa; õpetaja on Lidia ja küsib: „Kas ma võin õhtul kolm tabletti võtta?” Pildi võti: üks-kaks tabletti korraga, hommikul, lõunal, õhtul (kuni kolm korda päevas), pärast sööki, klaas vett, kokku kuni kuus tabletti päevas, alkoholiga mitte, lastele 6–12 üks tablett kaks korda päevas, kui kolme päevaga ei aita → perearst. Vastus: õhtul võib võtta kaks, mitte kolm. Paranda ainult kaks tabletti ja kolm korda päevas.'),
+      teach(tag(v6(B.writing('044_t_note', 'Märge naabrile: kuidas Valutut võtta.', 'Kirjuta Lidiale külmkapi uksele märge, 3–5 lauset.', [3, 5]), {
+        lines: 5, taskType: 'mediation', realAddressee: 'naaber, kes ei loe väikest kirja',
+        support: ['kaks tabletti · kolm korda · pärast sööki', 'mitte rohkem kui …', 'kolm päeva → perearst'],
+        stretch: 'Lidia lapselaps on 8: kirjuta ka tema annus.',
+      }), { task: 'W12', main: true, level: 4 }),
+      'Põhiülesanne: vahendus kirjas, 8 min, mooduli viimane tund — ilma antud alguse ja valmis lauseteta, abikaart on ainult märksõnad. Suured selged laused, üks asi ühes lauses (Lidia loeb märget köögis). Kontrolli: kas mitu / mitu korda / millal / mida mitte on olemas, kas kaks tabletti, kolm korda päevas, pärast sööki on õiged. Siis loeb õpetaja Lidiana märke ja küsib ühe küsimuse (Kas ma võin Valutut koos veiniga võtta?). Lisaväljakutse: lapselapse annus (üks tablett kaks korda päevas).'),
+      homeTask(teach(tag(B.speaking('044_t_home', 'Kodus: päris ravimi info.', 'Vaata päris pakki või lehte. Salvesta 45 sekundit. Siis Harjuta → moodul 9.', [
+        'Sinu kodu ravimi- või vitamiinipakk või Ravimiamet (https://www.ravimiamet.ee): mis ravim, mitu korda päevas, enne või pärast sööki?',
+      ], [45, 60]), { task: 'S15' }),
+      'Seosülesanne ja päris dokument: õppija võtab kodust ühe päris ravimi- või vitamiinipaki (või avab Ravimiameti lehe; lehte sisse ei kopeerita) ja salvestab 45–60 s ilma valmis lauseteta: mis see on, mitu ja mitu korda, millal. Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse. Harjuta → moodul 9: kaks tabletti, kolm korda (10 min); kirjuta oma üks viga Harjutas „Minu vead” alla õigesti.')),
+      half(exitCheck(tag(v6(B.writing('044_t_exit', 'Väljumine: selgem lause.', 'Kirjuta üks märke lause uuesti, Lidia küsimuse järgi.', [1, 2]), { lines: 2 }), { task: 'W10', level: 3 }))),
+      half(teach(selfcheck('044_t_self', ['Loen infolehest, mitu ja millal.', 'Kirjutan: kaks tabletti kolm korda.', 'Naaber saab märkest aru.'], 'Moodul 9: tervis'), 'Üks-ühele: õpilane hindab kolme rida, õpetaja („Lidia”) ütleb, kas ta sai kõigest aru; õpilane kirjutab ühe lause annusest tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 045 control 9: one sheet, four skills
+  'a2-045': retire(OLD['a2-045'], {
+    title: 'Kontroll 9 — tervis',
+    assessment: true,
+    phases: checkSheet('Kontroll', 'Lugemine, kuulamine, kirjutamine ja rääkimine, igaüks 10 punkti (45 min)'),
+    canDo: 'Ma näitan ilma abita, et loen tervise teateid, saan aru lühikestest teadetest ja häälsõnumist, kirjutan haiguse kohta sõnumi ja räägin oma tervisest; ma tean oma punkte ja lävendeid.',
+    teacherPage: P045,
+    discover: [
+      teach(PART('045_d_rpart', 'R', { exam: 'A2', minutes: 18, points: 10, tasks: 2, note: `Kontrollis on neli osa, igas 10 punkti, kokku 40; töötad 45 minutit ilma abita. Harno A2 eksamil on igas osas 20 punkti: korruta oma punktid kahega. ${THRESHOLDS} Lõpus võrdled tulemust kontrolliga 8 (tund 40).` }), planNote(P045)),
+      teach(tag(B.choice('045_d_polite', 'Lugemine 1. Mida öelda?', 'Mida sa ütled? Vali sobiv lause. (5 punkti)', [
+        ['Kolleeg ütleb, et ta on haige.', 'Saa ruttu terveks!', 'Head isu!', 'Head reisi!'],
+        ['Arst küsib, kui kaua sul köha on.', 'Juba kolm päeva.', 'Kell kolm.', 'Kolmapäeval.'],
+        ['Sa ei saa homme arsti juurde tulla.', 'Ma pean aega muutma.', 'Ma tahan aega kinnitada.', 'See aeg sobib mulle hästi.'],
+        ['Apteeker annab sulle uue ravimi.', 'Mitu korda päevas ma seda võtan?', 'Mitu korda nädalas ma söön?', 'Kus on kassa?'],
+        ['Kohvikus on üks laud ja tool. Sa ei tea, kas seal keegi istub.', 'Kas see koht on vaba?', 'Kas see koht on kallis?', 'Kas te olete väsinud?'],
+      ], 'full', 'g_read'), { harno: 'R1', task: 'R01' }),
+      'Varasemast: 3. küsimus (aega muutma) on moodulist 8, 5. küsimus (kas koht on vaba) moodulist 6. Iga õige vastus 1 punkt.'),
+      teach(tag(B.reading('045_d_read', 'Lugemine 2. Perearstikeskuse teade.', 'Loe teadet. Vasta ühe-kolme sõnaga. (5 punkti)', 'Talv ja gripp: perearstikeskus Männi',
+        'Talvel on palju gripi haigeid. Kui teil on palavik üle 38 kraadi, köha ja valutavad pea ja lihased, võib see olla gripp. Jääge koju ja puhake. Jooge palju vett ja sooja teed.\n\nÄrge tulge ilma ajata perearstikeskusesse! Helistage pereõele telefonil 640 2200 kella kaheksast neljani. Õhtul ja nädalavahetusel helistage perearsti nõuandeliinile 1220.\n\nKui palavik ei lange kolme päevaga või teil on raske hingata, helistage kohe.\n\nKui te ei saa tööle minna, kirjutab perearst haiguslehe. Haigusleht algab päevast, kui te arstile helistasite.\n\nEt mitte haigeks jääda, peske tihti käsi, magage palju ja käige iga päev väljas.\n\nApteek on meie maja esimesel korrusel, avatud iga päev kella kaheksast kaheksani.',
+        [['Mis palavik on gripi korral?', 'üle 38 kraadi|üle 38|38 kraadi'], ['Mida tuleb kodus palju juua?', 'vett ja teed|vett|sooja teed'], ['Kuhu helistada nädalavahetusel?', 'nõuandeliinile 1220|1220|nõuandeliinile'], ['Millal algab haigusleht?', 'kui helistasite arstile|helistamise päevast|kui te helistasite'], ['Mis korrusel on apteek?', 'esimesel|esimesel korrusel']]), { task: 'R15', harno: 'R4' }),
+      'Varasemast: 5. küsimus (mis korrusel) on moodulist 4. Harno-pikkune tekst (≈ 125 sõna). Iga õige vastus 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'),
+      teach(PART('045_d_lpart', 'L', { exam: 'A2', minutes: 10, points: 10, tasks: 2, note: 'Iga salvestus kõlab kaks korda. Kirjaviga ei loe, kui sõna on arusaadav.' }), 'Kuulamise osa: kaks salvestust, mõlemad kaks korda, mängija on lukus.'),
+      twice(teach(tag(B.examListen('045_d_clips', 'Kuulamine 1. Lühikesed teated.', 'Kuula teateid kaks korda. Vali õige vastus. (5 punkti)', 'choice', [
+        'Teade üks. Perearstikeskus on reedel kinni. Kiire probleemi korral helistage numbril 1220.',
+        'Teade kaks. Hambaarst doktor Pärn võtab täna vastu kabinetis seitse, teisel korrusel.',
+        'Teade kolm. Apteek on pühapäeval lahti kella kümnest kolmeni.',
+        'Teade neli. Lapsed, kellel on palavik, jäävad lasteaiast koju. Ema või isa helistab rühma õpetajale.',
+        'Teade viis. Kaubamaja kolmandal korrusel on uus prillipood. Silmade kontroll on tasuta.',
+      ], [
+        ['Millal on perearstikeskus kinni?', 'reedel', 'laupäeval', 'täna'],
+        ['Mis kabinetis on hambaarst?', 'seitsmes', 'kaheteistkümnendas', 'teises'],
+        ['Mis kellani on apteek pühapäeval lahti?', 'kella kolmeni', 'kella kümneni', 'kella kaheni'],
+        ['Kes helistab rühma õpetajale?', 'ema või isa', 'laps', 'arst'],
+        ['Mis on prillipoes tasuta?', 'silmade kontroll', 'prillid', 'kohv'],
+      ], 'g_listen'), { harno: 'L1', task: 'L01' }),
+      'Varasemast: 5. teade (kaubamaja korrus, tasuta) on moodulist 7. Iga õige vastus 1 punkt.'), true),
+      twice(teach(tag(B.listening('045_d_voice', 'Kuulamine 2. Pereõe häälsõnum.', 'Kuula häälsõnumit kaks korda. Kirjuta üks-kaks sõna. (5 punkti)', [
+        'Kersti: Tere! Siin on pereõde Kersti perearstikeskusest Männi.',
+        'Kersti: Teie aeg doktor Lepa juures on homme, neljapäeval.',
+        'Kersti: Kahjuks on doktor Lepp homme haige.',
+        'Kersti: Uus aeg on reedel kell üksteist, kabinetis neli.',
+        'Kersti: Palun võtke kaasa ID-kaart ja oma ravimite nimekiri.',
+        'Kersti: Kui aeg ei sobi, helistage meile täna kella neljani. Aitäh!',
+      ], ['Vana aeg oli [neljapäeval].', 'Uus aeg on reedel kell [üksteist|11].', 'Uus aeg on kabinetis [neli|4].', 'Kaasa tuleb võtta ID-kaart ja [ravimite nimekiri|nimekiri].', 'Helistada tuleb täna kella [neljani|16-ni].'], 'g_listen'), { task: 'L03', harno: 'L3' }),
+      'Häälsõnum nagu Harno A2 kuulamise 3. osas. Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      teach(tag(B.examWriting('045_t_write', 'Kirjutamine (10 min). Ma olen haige.', 'Kirjuta juhatajale 25–40 sõna. (10 punkti)', 'teade', {
+        situation: 'Sa oled haige ja ei saa homme tööle minna. Kirjuta oma juhatajale e-kiri.',
+        points: ['kes sa oled ja et sa ei tule', 'mis sul viga on (mis valutab, kas on palavik)', 'mida arst soovitas', 'millal sa tagasi tuled'],
+        words: [25, 40],
+      }), { task: 'W02', harno: 'W2a' }),
+      'Üks-ühele: õpilane kirjutab üksi, ilma abita ja ilma antud alguseta. Sama žanr kui tunni 41 sõnumid ja tunni 43 kodune sõnum (neli punkti, uus adressaat). Hinda allpool oleva juhendi järgi (kirjutamise viis rida).'),
+      teach(tag(B.speaking('045_t_say', 'Rääkimine (5 min). Helista ja vasta küsimustele.', 'Helista õpetajale ja vasta kahele küsimusele. (10 punkti)', [
+        '1. osa: helista lasteaeda: sinu laps on haige (mis tal on, mis ei ole, millal ta tuleb tagasi).',
+        '2. osa: mida sa teed, kui sul on gripp?',
+        '2. osa: kuidas sa ostad apteegis rohtu?',
+      ], [45, 75]), { task: 'S04', harno: 'S2' }),
+      'Üks-ühele: õpetaja on lasteaia õpetaja, siis eksamineerija. 1. osa on tunni 41 külma ülesande („Proovi kohe: sa oled haige”) tõeline paralleel — sama olukord (helistad, keegi on haige, ei tule), samad kolm märget (sümptom õiges vormis: tal valutab, tal on palavik, tal ei ole palavikku; mida ei saa ja millal tuleb tagasi; viisakas algus ja lõpp), uus sisu. Võrdle oma märkmetega. Ära aita. Hinda allpool oleva juhendi järgi.'),
+      teach(B.table('045_t_score', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja hindab iga rida: 0, 1 või 2 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja juhataja saab kõigest aru; 1 = alla 25 sõna või osa on segane; 0 = tekstist ei saa aru. | ',
+        'Kirjutamine, vormid: 2 = mul valutab, mul ei ole palavikku, kaks päeva tagasi peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vormidest ei saa aru. | ',
+        'Kirjutamine, sõnavara: 2 = keha ja tervise sõnad õiged; 1 = mõni sõna puudub või on vale; 0 = sõnu on väga vähe. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, kõne: 2 = ütleb, kes on haige, mis tal on ja millal ta tuleb; 1 = üks-kaks asja; 0 = kõnet ei ole. | ',
+        'Rääkimine, vormid: 2 = tal valutab, tal ei ole palavikku, kaks tabletti peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = raske aru saada. | ',
+        'Rääkimine, vastused: 2 = kaks vastust täislausega ja detailiga; 1 = üks vastus või ainult sõnad; 0 = ei vasta. | ',
+        'Rääkimine, sõnavara: 2 = keha, haiguse ja apteegi sõnad õiged; 1 = mõni sõna puudub; 0 = sõnu on väga vähe. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10). Lugemine 5 + 5 küsimust ja kuulamine 5 + 5 küsimust, iga õige vastus 1 punkt — kokku 10 + 10 + 10 + 10 = 40.'),
+      teach(B.table('045_t_result', 'Minu tulemus: kontroll 9.', 'Kirjuta punktid, võrdle kontrolliga 8. Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 8 (%), Mida harjutada?', [
+        'Lugemine |  |  |  | ',
+        'Kuulamine |  |  |  | ',
+        'Kirjutamine |  |  |  | ',
+        'Rääkimine |  |  |  | ',
+        'Kokku (/40) |  |  |  | ',
+      ]), 'Õpetajale: Harno järgi sooritatud = kokku ≥ 24/40 (60 %) ja ükski osa ei ole 0. KeeleSepa sisemine lävi: eksamiks valmis ≥ 28/40 (70 %), sertifikaat ≥ 32/40 (80 %). Kui osa on alla 6/10, anna üks parandusülesanne: lugemine → Harjuta „Lugemine” (moodul 9), kuulamine → tunni 42 või 43 salvestis uuesti ilma tekstita, kirjutamine → sama sõnum parandatult, rääkimine → uus salvestus „Helistan: ma olen haige”. Varasemast (moodulid 4–8) on 4 küsimust 20-st (20 %): lugemine 1.3 ja 1.5, lugemine 2.5, kuulamine 1.5.'),
+    ],
+  }),
 }, {
-  'a2-041': 'LUGU R→W', 'a2-042': 'KUUL L→W', 'a2-043': 'AVAS L→S', 'a2-044': 'PROB R→S', 'a2-045': 'EKS',
+  'a2-041': 'LUGU L→W', 'a2-042': 'LUGE R→S', 'a2-043': 'RÄÄK L→S', 'a2-044': 'KIRJ R→W', 'a2-045': 'EKS',
 });
