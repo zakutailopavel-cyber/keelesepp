@@ -1,31 +1,88 @@
-// A2 course (A1 → A2 roadmap), module 5 „Linn, kohad ja tee” (a2-021…025), level A2. Lesson template v4
-// (docs/COURSE_DESIGN_COMMUNICATIVE.md §12) in the final shape of the A2 course (docs/COURSE_FINAL_SHAPE_A2.md, row m5:
-// AVAS LUGU PROB KUUL). One storyline, one year before the B1 course (docs/COURSE_CAST.md): Sofia (27) has lived in
-// Tallinn for a month (a room at Malle Pärn's, Akadeemia tee 30, Mustamäe; Malle works at the library on Tuesdays and
-// Fridays) and learns the town. Keelekool Sõna (Narva maantee 7, 2nd floor, near the Hobujaama stop; Mon–Thu 9–12;
-// teacher Maret, administrator Ene, classmates Lucía, Dmitri — a bus driver — and Tom); Jaan cooks at café Pann
-// (Kadriorg, open 8–16, kitchen until 15); Oskar (8) is in class 2 at Kase kool in Kristiine, football on Tuesdays at 17
-// with coach Raivo. Goal, said on the first sheet: at the end the learner guides a classmate by phone from the language
-// school to the café and writes him a letter with the way and the opening hours (024 Kasuta, module project).
-//   021 AVAS L→S  kus? kuhu? kust? with places in town (apteegis / apteeki / apteegist, raamatukokku, postkontorisse,
-//                 turul) — „proovi kõigepealt” → Malle's call → rule → the free Saturday agreed with Jaan (idea card).
-//   022 LUGU R→W  Sofia fetches Oskar from Kase kool: asking the way and checking it (Kas see on kaugel? Palun
-//                 korrake!), kuni ristmikuni, üle silla; the story goes on (the park path is closed) → a story (W05).
-//   023 PROB R→S  the imperative (mine, osta, ära oota; minge, ostke, ärge oodake): Helgi comes by bus from Tartu —
-//                 a first attempt, the family chat and Jaan's ticket-machine guide, the rule, a second attempt → the
-//                 phone call from the bus station (S04).
-//   024 KUUL L→W  signs and opening hours (kella üheksast viieni, esmaspäevast reedeni): announcements in Mustamäe
-//                 keskus, the service centre's answering machine, Tom's voicemail → a letter to Tom (W04).
-//   025 EKS       the module's check (only instructions reworded and a vocab box added).
-// Speaking: every teaching lesson has a pair task done in the lesson (the teacher is the partner) and a home recording
-// (S15, 45–60 s) in Kasuta; S06 picture = 022_t_picture, S05 info gap = 021_p_roles; no tingiv kõneviis (A2). Two
-// fluency tasks a lesson; „Mäletad?” names the previous lesson and one of module 3. No exam corners before module 6.
-// Earlier versions: archive/v3/a2/module05.js and git history.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 5 „Linn, kohad ja tee” (a2-021…025), stage A2- (lessons 021–050).
+// Methodology v5 for A2 (docs/METHODOLOGY_A2_V5.md) AND methodology v6 (docs/METHODOLOGY_V6.md, gates G14–G25) — the first
+// A2 module written to v6, so it sets the pattern for the A2 retrofit:
+//   - every teaching lesson: 14 blocks (5 / 4 / 5) in a 60-minute lesson; one input; one learning picture on the page of its
+//     task (art/visuals/a2-module-05.js); a 5-minute pronunciation corner (data.pronunciation: välted, vokaalid,
+//     varjutamine — in 023 it is the dictation, heard for the long and short sounds); the rule box („Märka”, bold forms)
+//     is produced by the Harjuta form task, whose hints are the dictionary form, a number or an arrow, never the answer;
+//   - Kasuta in the standard order: situation → main task (data.taskType, data.support = „Abikaart”, data.stretch =
+//     „Lisaväljakutse”) → product / home task (homeTask, always „Harjuta → moodul 5”) → exit check (exitCheck: 30 s of
+//     speech in the main task's skill, the lesson's last in-class step) beside the self-check (three success criteria
+//     0–1–2 + one own sentence, data.evidence);
+//   - Avasta: „Mäletad?” → words → the one input → rule box „Märka” → guided use (021 and 023: the lesson's picture task);
+//     Harjuta: form task beside the pronunciation corner → whole sentences → pair talk (half widths keep pages ≥ 70 % full);
+//   - main-task types rotate: 021 survey (classmates), 022 infogap (two maps), 023 phone (hidden information), 024 ranking
+//     (a Saturday errand route under opening hours);
+//   - spaced retrieval: every vocab block carries data.review (3 words from 3–15 lessons back, used again in the input);
+//   - real network: 021 asks classmates, 022's home task is the media log („Minu eesti keele võrgustik”, a real public
+//     page), 024's home message goes to a classmate who answers (data.peerReply) after checking a real library page;
+//   - a teacher page per lesson (lesson.teacherPage: goal, core path, alternative, short path, „Kui aega jääb”, errors);
+//     until the A2 sheet renders it, the same plan stands in the teacher note of the lesson's „Mäletad?” block.
+//   021 LUGE R→S  „Kuhu ja miks?” — Irina's week in town (reading). lähen + kuhu? + -ma (lähen apteeki rohtu ostma);
+//                 the week planner picture is the pair gap; a survey of three classmates; home: my week in town.
+//   022 AVAS L→S  „Kuidas ma sinna saan?” — a phone call with directions (listening). otse, paremale, kuni + -ni
+//                 (ristmikuni), üle + mille? (üle silla); the cold task of the module („Proovi kohe” without help, its
+//                 parallel is the control's speaking 1); two half-maps = the information gap; home: the media log.
+//   023 LUGE R→S  „Ostke pilet!” — a city leaflet for newcomers (reading). Imperative sina / teie and ära / ärge; the
+//                 ticket-machine picture; a phone call from the station with HIDDEN INFORMATION (G9); home: a written
+//                 guide for a new learner (its parallel is the control's writing).
+//   024 KUUL L→S  „Millal on avatud?” — a service centre's answering machine (listening). kella üheksast kuueni,
+//                 esmaspäevast reedeni, tööpäeviti. The module's last teaching lesson: no ready phrases (G9); the
+//                 Saturday route decided under opening hours; home: a message to a classmate who answers, after checking
+//                 a real library page (G13, G25).
+//   025 EKS       Control 5 (one sheet, 9 blocks, 45 min): reading, listening, writing, speaking 10 points each; raw points,
+//                 the Harno scale (× 2), the thresholds named one way, „ükski osa ei tohi olla 0 punkti”; 4 of the 20 closed
+//                 items recycle modules 1–4 (teacher note „Varasemast”), writing and speaking are parallel to 023 and 022.
+// No lesson uses the continuing story's cast (G7). Dictation: one, in 023 (5 sentences). Texts are learning texts, the
+// people and places are invented (Kase, Lena, Irina …); real pages are named only by title and URL.
+// The v4 module (one storyline with Sofia, Malle, Jaan …) is kept below as V4: every old block keeps its id and comes
+// back hidden (retire), so learners' saved answers keep their key and Harjuta still draws on the old form tasks.
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask } from '../stationBlocks.js';
 
 export const MODULE = { id: 'a2-module-05', course: 'a2', title: 'Linn, kohad ja tee', level: 'A2', design: 'v2', template: 'v4' };
 
-export const LESSONS = withShapes({
+// one line for every block taken off the sheets by the v5 / v6 rewrite
+const V6_CUT = 'v5+v6 (2026-11-26): lehelt maha — tunni eelarve (60 min), üks sisend, loo tegelased mitte, uus tunni ülesanne';
+// a recording is heard twice (methodV5.js G6); in the control the player is locked
+const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a block that starts a new page of the sheet (the page above would otherwise end with a cut task)
+const brk = (block) => ({ ...block, pageBreakBefore: true });
+// more fields on a block (v6 markers: taskType, support, stretch, review, pronunciation, peerReply, mediaLog, hiddenInfo)
+const v6 = (block, data) => ({ ...block, data: { ...block.data, ...data } });
+// the self-check of v6 (G24): the main task's three success criteria rated 0–1–2 and one own sentence as evidence
+const selfcheck = (id, criteria, stamp) => {
+  const b = B.selfcheck(id, criteria, stamp, 'Kuidas mul läks?');
+  return { ...b, data: { ...b.data, instruction: 'Hinda iga rida: 0, 1 või 2. Kirjuta üks oma lause.', criteria, scale: [0, 1, 2], evidence: true } };
+};
+// a check is one sheet with its own label (no „Avasta” subtitle)
+const checkSheet = (label, subtitle) => ({ discover: { label, slot: 1, subtitle } });
+// the thresholds, named one way everywhere (METHODOLOGY_A2_V5.md §2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi, et eksamil oleks varu).';
+// the teacher's plan of a lesson, shown today in the teacher note of its first block (A2 sheets do not render
+// lesson.teacherPage yet; METHODOLOGY_V6.md §2 i)
+const planNote = (p) => [
+  `Õpetaja leht. Eesmärk: ${p.goal}`,
+  `Põhitee (60 min): ${p.core}`,
+  `Lühike tee (45 min): ${p.short}`,
+  `Alternatiiv: ${p.alt}`,
+  `Kui aega jääb: ${p.extra}`,
+  `Tüüpvead: ${p.errors.join(' · ')}`,
+].join('\n');
+// the old blocks the new lesson does not reuse come back hidden, in their old phase
+const PHASES = ['discover', 'practice', 'transfer'];
+function retire(old, lesson) {
+  const used = new Set(PHASES.flatMap((p) => (lesson[p] || []).map((b) => b.id)));
+  const out = { ...lesson };
+  PHASES.forEach((p) => { out[p] = [...(lesson[p] || []), ...(old[p] || []).filter((b) => !used.has(b.id)).map((b) => hide(b, V6_CUT))]; });
+  return out;
+}
+
+// ---------------------------------------------------------------- the v4 module (2026-10, one storyline): every block stays
+// here with its id; the v6 lessons below take what they reuse and hide the rest (retire).
+const V4 = {
   'a2-021': {
     title: 'Kohad linnas',
     canDo: 'Ma räägin, kuhu ma linnas lähen ja mida seal teen (apteeki, apteegis, apteegist), ja lepin sõbraga kokku vaba laupäeva plaani.',
@@ -627,6 +684,525 @@ export const LESSONS = withShapes({
       B.selfcheck('025_t_self', ['Ma kirjutan tee juhendi 5–6 sammuga.', 'Ma kirjeldan pilti ja vastan küsimustele.', 'Ma juhatan sõpra telefonis.', 'Ma loen sõbra vastust.'], 'Moodul 5 on läbitud'),
     ],
   },
+};
+
+// ---------------------------------------------------------------- the v6 lessons
+const P021 = {
+  goal: 'õppija ütleb, kuhu ta linnas läheb ja mida seal teeb (lähen apteeki rohtu ostma), ja küsitleb kolme kaaslast.',
+  core: 'Mäletad? (3) → sõnad (5) → Irina nädal (8) → Märka (4) → Proovi kohe (5) → lüngad (5) → terved laused (6) → hääldusnurk (5) → Toomase nädal paaris (6) → küsitlus (8) → väljumine (2) → kodutöö ja enesekontroll (3).',
+  short: 'Mäletad? → Irina nädal → Märka → lüngad → Toomase nädal → küsitlus → väljumine; terved laused ja hääldusnurk koju (Harjuta).',
+  alt: 'küsitluse asemel „Meie rühma linnakaart”: iga õppija kirjutab tahvlile ühe koha ja ühe tegevuse (lähen … -ma), rühm loeb kaardi ette.',
+  extra: 'kuhu lähevad inimesed õppija kodumaal laupäeval (turule, kirikusse, sauna) — kolm lauset -ma-vormiga.',
+  errors: ['„lähen apteegis” → lähen apteeki (kuhu?)', '„lähen osta” → lähen ostma (liikumine + -ma; vene „иду купить”)', '„saadama” → saatma (ma saadan, aga saatma)'],
+};
+const P022 = {
+  goal: 'õppija küsib teed, saab aru juhisest telefonis ja juhatab teed (otse, paremale, kuni ristmikuni, üle silla).',
+  core: 'Mäletad? (3) → sõnad (4) → KÜLM ÜLESANNE „Proovi kohe” ilma abita, õpetaja paneb kirja 3 märget (4) → Lena kõne 2× (8) → Märka (4) → lüngad (5) → paranda juhis (5) → hääldusnurk (5) → „Arva koht” paaris (5) → kaart A / B (10) → väljumine (2) → kodutöö ja enesekontroll (3).',
+  short: 'Proovi kohe → Lena kõne → Märka → lüngad → kaart A / B → väljumine; paranda juhis ja hääldusnurk koju.',
+  alt: 'kaardi asemel päris tee: õppija juhatab telefonis õpetajat koolimaja uksest lähima peatuseni, õpetaja „kõnnib” paberkaardil.',
+  extra: 'kuidas küsitakse teed õppija kodulinnas — kas inimesed juhatavad tänaval? Kolm lauset eesti keeles.',
+  errors: ['„kuni ristmik” → kuni ristmikuni', '„pööra paremal” → pööra paremale (kuhu?)', '„üle sild” → üle silla (mille?)', '„ristmikus” → ristmikul'],
+};
+const P023 = {
+  goal: 'õppija annab juhiseid käskivas kõneviisis (vali, vajuta, ära unusta; valige, vajutage, ärge unustage) ja juhatab kaaslast telefonis jaamast kooli.',
+  core: 'Mäletad? (3) → sõnad (4) → linna infoleht (8) → Märka (4) → Proovi kohe (4) → lüngad (5) → sina → teie (5) → etteütlus ja välted (6) → automaat paaris (5) → kõne jaamast VARJATUD INFOGA (10) → väljumine (2) → kodutöö ja enesekontroll (4).',
+  short: 'infoleht → Märka → lüngad → automaat paaris → kõne jaamast → väljumine; sina → teie ja etteütlus koju (Harjuta).',
+  alt: 'kõne asemel „Giid”: õppija juhatab õpetajat (turist, teie-vorm) pildi järgi automaadi juurest trammi.',
+  extra: 'kuidas osta piletit õppija kodulinnas — kolm käsku sina-vormis ja kolm teie-vormis.',
+  errors: ['„Ära unustage!” → Ärge unustage! (teie)', '„Minke” → Minge, „Tulke” → Tulge', '„Vajutage” võõrale, aga sõbrale „Vajuta”', '„Osta pilet!” võõrale → Ostke pilet!'],
+};
+const P024 = {
+  goal: 'õppija saab aru lahtiolekuaegadest, ütleb kella …st kella …ni ja esmaspäevast reedeni ning planeerib kaaslasega laupäeva käigud — ilma valmis fraasideta.',
+  core: 'Mäletad? (3) → sõnad (4) → automaatvastaja 2× (8) → Märka (4) → Proovi kohe (4) → lüngad (5) → silt → lause (6) → hääldusnurk: varjutamine (5) → juuksurisse broneerimine (5) → laupäeva järjekord pildi järgi (10) → väljumine ilma märkmeteta (2) → kodutöö ja enesekontroll (4).',
+  short: 'automaatvastaja → Märka → lüngad → laupäeva järjekord → väljumine; silt → lause ja hääldusnurk koju.',
+  alt: 'laupäeva järjekorra asemel päris nädal: õppija vaatab telefonis oma lähima poe ja raamatukogu lahtiolekuaja ja planeerib oma laupäeva.',
+  extra: 'millal on poed avatud õppija kodumaal — kas pühapäeval on poed lahti? Võrdle Eestiga.',
+  errors: ['„kella üheksa kuni kuus” → kella üheksast kuueni', '„esmaspäevast reedeni” — kaks lõppu: -st ja -ni', '„laupäeval on kinnine” → laupäeval on kinni / suletud'],
+};
+const P025 = {
+  goal: 'kontroll 5: neli oskust 10 punkti, toorpunktid, Harno skaala ja lävendid; võrdlus kontrolliga 4.',
+  core: 'kuidas punkte loetakse (2) → lugemine 1–2 (14) → kuulamine 1–2 (10) → kirjutamine (10) → rääkimine üks-ühele (5) → tulemus (4).',
+  short: 'kui aega on 35 minutit: lugemine, kuulamine ja kirjutamine tunnis, rääkimine järgmise tunni alguses (5 min).',
+  alt: 'rühmas: rääkimine paaris, õpetaja hindab kahte õppijat korraga sama juhendi järgi.',
+  extra: 'õppija vaatab oma kahte nõrgemat rida juhendis ja kirjutab, mida ta Harjutas kordab.',
+  errors: ['kuulamisel kirjutatakse terve lause — piisab 1–2 sõnast', 'kirjutamisel puudub üks neljast punktist'],
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 021 reading: where and why in town
+  'a2-021': retire(V4['a2-021'], {
+    title: 'Kuhu ja miks?',
+    canDo: 'Ma räägin, kuhu ma linnas lähen ja mida seal teen (lähen apteeki rohtu ostma), ja küsitlen kolme kaaslast nende nädala kohta.',
+    teacherPage: P021,
+    discover: [
+      teach(B.review('021_d_review', [['Mis on sinu maja kõrval? Mis on maja vastas?', 'a2-019'], ['Mis kell on sinu pood avatud? Millal on see kinni?', 'a2-012'], 'Kuhu sa täna pärast tundi lähed?']), planNote(P021)),
+      tag(v6(B.vocab('021_d_vocab', 'Tunni sõnad.', ['apteek — аптека', 'postkontor — почта', 'pank — банк', 'kino — кино', 'muuseum — музей', 'juuksur — парикмахер', 'rohi — лекарство', 'pakk — посылка', 'saatma — отправлять', 'kesklinn — центр города']),
+        { review: ['raamatukogu', 'avatud', 'nädalavahetus'] }), { topic: ['apteek', 'ujula', 'laenama'] }),
+      teach(tag(B.reading('021_d_list', 'Irina nädal linnas.', 'Loe Irina nädalast. Vasta ühe-kolme sõnaga.', 'Minu nädal linnas',
+        'Tere! Mina olen Irina. Ma elan Tallinnas, Mustamäel. Minu nädal on alati kiire.\n\nEsmaspäeval lähen ma pärast tööd postkontorisse pakki saatma. Pakk läheb minu emale Narva.\n\nTeisipäeval lähen ma raamatukokku raamatuid laenama. Raamatukogu on avatud kella seitsmeni.\n\nKolmapäeval sõidan ma bussiga panka uut kaarti tooma. Neljapäeval lähen ma ujulasse ujuma. Ujula on meie maja vastas.\n\nReedel lähen ma apteeki rohtu ostma, sest minu poeg on haige.\n\nNädalavahetusel läheme me kogu perega kinno filmi vaatama. Pärast kino läheme kohvikusse sööma. Pühapäeva õhtul olen ma kodus ja puhkan.',
+        [['Kuhu läheb Irina esmaspäeval?', 'postkontorisse'], ['Kellele pakk läheb?', 'emale|tema emale|emale Narva'], ['Mida Irina raamatukogus teeb?', 'laenab raamatuid|laenab'], ['Kus on ujula?', 'maja vastas|meie maja vastas'], ['Miks Irina apteeki läheb?', 'poeg on haige|sest poeg on haige'], ['Kuhu läheb pere nädalavahetusel?', 'kinno|kinno ja kohvikusse'], ['Mida pere pärast kino teeb?', 'läheb kohvikusse sööma|sööb kohvikus|läheb kohvikusse']]), { task: 'R13' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Vaata kõigepealt nädalapäevi.” Üks-ühele: õpilane ütleb enne lugemist, kuhu tema arvates Irina nädalas läheb; pärast lugemist kontrollib ja vastab. Lõpus küsi: „Kas sinu nädal on sarnane?” Vanad sõnad (raamatukogu, avatud, nädalavahetus) tulevad tekstis tagasi — küsi need üle.'),
+      B.notice('021_d_notice', 'Märka: kuhu ja mida tegema?', [
+        'Leia tekstist: Ma lähen **postkontorisse** pakki **saatma**.',
+        'Liikumine (minema, tulema, sõitma) + kuhu? + mida tegema? (-ma):',
+        'lähen **apteeki** rohtu **ostma** · lähen **ujulasse** **ujuma**',
+        'lähen **raamatukokku** raamatuid **laenama** · lähen **kinno** filmi **vaatama**',
+        'lähen kohvikusse **sööma** · sõidan panka raha võtma',
+        'ma ostan → **ostma** · ma saadan → **saatma** (d → t) · ma söön → **sööma**',
+        'Aga: ma tahan osta (tahtma + -da). Liikumise järel on -ma: lähen ostma.',
+        'Vene keeles „иду купить” — eesti keeles lähen ostma (-ma, mitte -da).',
+      ], 'full'),
+      teach(tag(B.rolecards('021_d_toomas', 'Proovi kohe: Toomase nädal.', 'A vaatab päevi E–K, B päevi N–L. Rääkige ja kirjutage.',
+        'Vaata pilti, ainult päevi E, T ja K (kata teine pool). Ütle iga päeva kohta üks lause: kuhu Toomas läheb ja mida tegema (Esmaspäeval läheb Toomas postkontorisse pakki saatma). Siis küsi B-lt päevi N, R ja L ja kirjuta vastused üles.',
+        'Vaata pilti, ainult päevi N, R ja L (kata teine pool). Kuula ja kirjuta A vastused. Siis ütle oma päevade kohta: kuhu Toomas läheb ja mida tegema. Lõpus vaadake koos kogu pilti ja kontrollige.',
+        ['Esmaspäeval läheb Toomas …', 'Kuhu ta neljapäeval läheb?'], ['Neljapäeval läheb ta …', 'Mida ta seal teeb?']), { task: 'S06' }),
+      'Üks-ühele: õpetaja vaatab päevi N–L, õpilane E–K; siis vahetage. Pildil on koht ja asi algvormis (postkontor + pakk), nii et õpilane peab ise tegema kuhu-vormi ja -ma: E postkontorisse pakki saatma, T panka raha võtma, K juuksurisse juukseid lõikama, N ujulasse ujuma, R apteeki rohtu ostma, L kinno filmi vaatama.'),
+    ],
+    practice: [
+      tag(B.gaps('021_p_gaps', 'Kuhu ja mida tegema?', 'Kirjuta koht ja tegevus õiges vormis.', [
+        'Mul on vaja rohtu. Ma lähen [apteeki] rohtu [ostma]. (apteek; ma ostan)',
+        'Neljapäeval läheb Toomas [ujulasse] [ujuma]. (ujula; ma ujun)',
+        'Kas sa tuled homme [raamatukokku|raamatukogusse] raamatuid [laenama]? (raamatukogu; ma laenan)',
+        'Laupäeval läheme [kinno] uut filmi [vaatama]. (kino; ma vaatan)',
+      ], '', 'half'), { task: 'G03' }),
+      teach(tag(v6(B.choice('021_p_pron', 'Hääldusnurk: pikk ja lühike.', 'Kuula õpetajat ja vali sõna. Siis varjuta üks lause.', [
+        ['Sõna 1', 'linna', 'lina'],
+        ['Sõna 2', 'kino', 'kinno'],
+        ['Sõna 3', 'saada', 'sada'],
+        ['Sõna 4', 'kolli', 'koli'],
+        ['Sõna 5', 'kotti', 'koti'],
+        ['Sõna 6', 'tulle', 'tule'],
+      ], 'half', 'g_listen'), { pronunciation: 'välted' }), { task: 'L01' }),
+      'Hääldusnurk, 5 min. Kõigepealt ütle koos õpilasega kolm pikkust: sada (100) – saada (ma tahan raha saada) – saada (saada mulle kiri!, ülipikk). Siis ütle igast reast võtmes oleva sõna (linna, kino, saada, kolli, kotti, tulle); õpilane valib. Lõpuks varjutamine: loe „Ma lähen postkontorisse pakki saatma.”, õpilane räägib kohe kaasa, kaks korda. Paranda ainult pikkust: saatma pika aa-ga.'),
+      teach(why(B.transformation('021_p_trans', 'Kuhu ja miks?', 'Kirjuta üks terve lause: kuhu ja mida tegema.', [
+        ['Ma tahan pakki saata. (postkontor)', 'Ma lähen …', 'Ma lähen postkontorisse pakki saatma.'],
+        ['Ma tahan süüa. (kohvik)', 'Ma lähen …', 'Ma lähen kohvikusse sööma.'],
+        ['Ta tahab raha võtta. (pank)', 'Ta läheb …', 'Ta läheb panka raha võtma.'],
+        ['Me tahame kala osta. (turg)', 'Me läheme …', 'Me läheme turule kala ostma.'],
+        ['Nad tahavad filmi vaadata. (kino)', 'Nad lähevad …', 'Nad lähevad kinno filmi vaatama.'],
+        ['Sa tahad ajalehti lugeda. (raamatukogu)', 'Sa lähed …', 'Sa lähed raamatukokku ajalehti lugema.|Sa lähed raamatukogusse ajalehti lugema.'],
+      ]), [
+        'postkontor → postkontorisse; saata → saatma.',
+        'kohvik → kohvikusse; süüa → sööma.',
+        'pank → panka (lühike vorm); võtta → võtma.',
+        'turg → turule (peal); osta → ostma.',
+        'kino → kinno; vaadata → vaatama.',
+        'raamatukogu → raamatukokku; lugeda → lugema.',
+      ]), 'Üks-ühele: õpilane kirjutab ja loeb lause ette; õpetaja küsib iga lause järel „Ja sina? Kuhu sina lähed …?” ja õpilane ütleb oma lause.'),
+      teach(tag(B.table('021_p_week', 'Minu nädal: kirjuta ja räägi.', 'Kirjuta oma nädal. Siis räägi paarilisele.', 'Päev, Kuhu? (koht), Mida tegema? (-ma)', [
+        'esmaspäev |  | ',
+        'teisipäev |  | ',
+        'kolmapäev |  | ',
+        'neljapäev |  | ',
+        'reede |  | ',
+        'laupäev |  | ',
+        'pühapäev |  | ',
+      ], 'g_use'), { task: 'S02', level: 3, fluency: true }),
+      'Üks-ühele: õpilane kirjutab igale päevale koha ja tegevuse, siis räägib oma nädala õpetajale kaks korda, teisel korral kiiremini ja ilma tabelit vaatamata (sujuvus). Õpetaja räägib oma nädala ja õpilane küsib: „Kuhu sa reedel lähed?” Paranda ainult kahte asja: kuhu-vorm (apteeki, kinno) ja -ma (ostma, mitte osta).'),
+    ],
+    transfer: [
+      B.text('021_t_sit', 'Olukord: meie rühma linnakaart', 'Teie rühm teeb linnakaardi: kuhu me linnas läheme ja miks? Täna küsitled kolme kaaslast. Kirjuta nende vastused tabelisse: nimi, koht, tegevus. Lõpus ütled rühmale, mis koht on teie rühmas kõige populaarsem. Kodus kirjutad oma nädalast.'),
+      teach(tag(v6(B.table('021_t_survey', 'Küsitlus: kuhu sa linnas lähed?', 'Küsi kolmelt kaaslaselt. Kirjuta vastused lühidalt tabelisse.', 'Küsimus, Kaaslane 1, Kaaslane 2, Kaaslane 3', [
+        'Nimi |  |  | ',
+        'Kuhu sa sel nädalal lähed? |  |  | ',
+        'Mida sa seal teed? |  |  | ',
+        'Kuhu sa lähed, kui sul on vaja raha või rohtu? |  |  | ',
+        'Mis koht on sinu kodu lähedal? |  |  | ',
+        'Kuhu sa nädalavahetusel lähed ja miks? |  |  | ',
+        'Mis koht sulle linnas kõige rohkem meeldib? |  |  | ',
+        'Kuidas sa sinna sõidad? |  |  | ',
+        'Kellega sa sinna lähed? |  |  | ',
+      ], 'g_use'), {
+        taskType: 'survey', realAddressee: 'kolm kaaslast',
+        support: ['Kuhu sa … lähed?', 'Ma lähen … (kuhu?) … (mida tegema?), sest …', 'Kolm inimest lähevad …'],
+        stretch: 'Küsi igalt kaaslaselt ka „Miks?” ja ütle lõpus üks erinevus kaaslaste vahel.',
+      }), { task: 'S09', main: true, level: 4 }),
+      'Üks-ühele: õpetaja vastab kolm korda kolme inimese nimel (kaardilt: üliõpilane, pensionär, ema kahe lapsega); õpilane küsib ja kirjutab vastused üles. Abikaart: kui õpilane jääb vait, näita kolme lausealgust (märgi, et seda kasutati). Lisaväljakutse: küsi „Miks?” ja võrdle.'),
+      homeTask(teach(tag(v6(B.writing('021_t_home', 'Kodus: minu nädal linnas.', 'Kirjuta 4–6 lauset. Siis Harjuta → moodul 5 (10 min).', [4, 6], ['lähen', 'sest'], 1), { lines: 12 }), { task: 'W06' }),
+        'Kodutöö: 4–6 lauset (25–45 sõna), iga päev üks koht ja üks tegevus (-ma). Harjuta → moodul 5: sõnad ja vormid. Järgmise tunni „Mäletad?” küsib seda.')),
+      half(exitCheck(tag(B.speaking('021_t_exit', 'Väljumine: meie rühma linn.', 'Ütle 30 sekundiga, kuhu kaaslased lähevad ja miks.', [
+        'Kuhu läheb kõige rohkem inimesi?',
+        'Mida nad seal teevad?',
+      ], [30, 45]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('021_t_self', ['Ma ütlen koha kuhu-vormis: apteeki, kinno, ujulasse.', 'Ma ütlen tegevuse -ma-vormis: ostma, saatma, ujuma.', 'Ma küsitlen kolme kaaslast ja ütlen tulemuse.'], 'Tund 21 on läbitud'), 'Üks-ühele: õpilane hindab end kolmel real; õpetaja ütleb oma hinde samale reale ja võrdlete. Õpilane kirjutab ühe oma lause tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 022 listening: asking and giving the way
+  'a2-022': retire(V4['a2-022'], {
+    title: 'Kuidas ma sinna saan?',
+    canDo: 'Ma küsin teed, saan aru teejuhisest telefonis ja juhatan teed (otse, paremale, kuni ristmikuni, üle silla).',
+    teacherPage: P022,
+    discover: [
+      teach(B.review('022_d_review', [['Kuhu sa sel nädalal lähed ja mida seal teed?', 'a2-021'], ['Mis kell sa hommikul kodust välja lähed?', 'a2-011'], 'Kuidas sa täna tundi tulid? Mis on sinu kodu lähedal?']), planNote(P022)),
+      tag(v6(B.vocab('022_d_vocab', 'Tunni sõnad.', ['otse — прямо', 'paremale — направо', 'vasakule — налево', 'ristmik — перекрёсток', 'nurk — угол', 'sild — мост', 'kirik — церковь', 'pöörama — поворачивать', 'kaugel — далеко', 'jalgsi — пешком'], '3'),
+        { review: ['kõrval', 'vastas', 'lähedal'] }), { topic: ['vasakule', 'ristmik', 'valgusfoor'] }),
+      teach(tag(B.speaking('022_d_say', 'Proovi kohe: juhata teed.', 'Juhata õpetajat klassist lähima poeni. Ilma abita.', [
+        'Kust sa alustad?',
+        'Kuhu ta läheb: otse, paremale või vasakule?',
+        'Mis on teel? Mis on poe kõrval või vastas?',
+      ], [45, 60]), { task: 'S13', level: 3 }),
+      'MOODULI KÜLM ÜLESANNE (2–3 min, enne kuulamist ja reeglit): õpilane juhatab ilma abita, õpetaja ei aita ega paranda. Pane kirja kolm märget: mitu sammu, kas suunad on õiged (paremale, vasakule), kas on kuni …-ni või üle …. Kontrolli 5 rääkimise 1. ülesanne on selle paralleel (uus tee, samad kriteeriumid) — võrdle.'),
+      half(twice(teach(tag(B.listening('022_d_way', 'Lena helistab Martinile.', 'Kuula kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Lena: Tere, Martin! Ma olen bussist väljas, Kase peatuses. Kuidas ma raamatukokku saan?',
+        'Martin: Tere! See ei ole kaugel, jalgsi viis minutit.',
+        'Martin: Mine kõigepealt otse kuni valgusfoorini.',
+        'Lena: Kuni valgusfoorini. Ja siis?',
+        'Martin: Valgusfoori juures pööra paremale.',
+        'Martin: Siis mine üle silla.',
+        'Lena: Üle silla. Kas raamatukogu on silla lähedal?',
+        'Martin: Jah. Pärast silda on ristmik. Ristmikul pööra vasakule.',
+        'Martin: Raamatukogu on kiriku vastas. See on suur hall maja.',
+        'Lena: Kiriku vastas. Selge! Kus sa mind ootad?',
+        'Martin: Ma ootan sind raamatukogu ees, pingil.',
+        'Lena: Aitäh! Ma tulen kohe.',
+      ], ['Lena on [Kase] peatuses.', 'Raamatukokku on jalgsi [viis|5] minutit.', 'Kõigepealt läheb Lena otse kuni [valgusfoorini].', 'Valgusfoori juures pöörab ta [paremale].', 'Siis läheb ta üle [silla].', 'Ristmikul pöörab ta [vasakule].', 'Raamatukogu on [kiriku] vastas.', 'Martin ootab raamatukogu ees, [pingil].']), { task: 'L04' }),
+      'Kuulamisstrateegia (enne esimest kuulamist): „Ennusta: mis sõnad tulevad? (otse, paremale …)” Esimesel korral kirjutab õpilane ainult suunad, teisel korral kohad. Vanad sõnad: lähedal, vastas.'))),
+      B.notice('022_d_notice', 'Märka: kuidas juhatada teed?', [
+        'Suund: mine **otse**, pööra **paremale** või **vasakule**',
+        'Kuni kuhu? -ni: kuni **valgusfoorini**, kuni **ristmikuni**, kuni **kirikuni**',
+        'Üle + mille?: mine üle **silla**, üle **tee**',
+        'Kus pöörata? **ristmikul**, valgusfoori **juures**',
+        'Vene keeles „до перекрёстка” — eesti keeles üks sõna: ristmikuni.',
+      ], 'half'),
+    ],
+    practice: [
+      tag(B.gaps('022_p_gaps', 'Juhata teed.', 'Kirjuta sulgudes olev sõna õiges vormis. Nool on suund.', [
+        'Mine otse kuni [ristmikuni]. (ristmik)',
+        '[Ristmikul] pööra [paremale]. (ristmik; →)',
+        'Siis mine üle [silla]. (sild)',
+        'Kõnni kuni [kirikuni] ja pööra [vasakule]. (kirik; ←)',
+        'Sõida kuni [valgusfoorini]. (valgusfoor)',
+        'Kohvik on [kiriku] juures. (kirik)',
+      ], '', 'half'), { task: 'G08' }),
+      teach(tag(v6(B.choice('022_p_pron', 'Hääldusnurk: õ, ä, ö, ü.', 'Kuula õpetajat ja vali sõna. Siis loe read paarilisele.', [
+        ['Sõna 1', 'sõda', 'süda', 'sööda'],
+        ['Sõna 2', 'käel', 'keel'],
+        ['Sõna 3', 'pööra', 'püüa'],
+        ['Sõna 4', 'üle', 'õle'],
+      ], 'half', 'g_listen'), { pronunciation: 'vokaalid' }), { task: 'G13' }),
+      'Hääldusnurk, 5 min. Näita suu kuju: õ — huuled laiad, keel taga; ö ja ü — huuled ümarad; ä — suu lahti. Ütle igast reast võtmes oleva sõna (sõda, käel, pööra, üle); õpilane valib. Siis loeb õpilane kõik read paarilisele ja varjutab kaks korda: „Valgusfoori juures pööra paremale.” Vene keelt kõnelejal: õ ei ole „ы”, ä on lahtisem kui „э”.'),
+      teach(why(B.errorfix('022_p_fix', 'Paranda juhis.', 'Igas juhises on üks viga. Kirjuta lause õigesti.', [
+        ['Mine otse kuni ristmik.', 'Mine otse kuni ristmikuni.'],
+        ['Pööra paremal.', 'Pööra paremale.'],
+        ['Mine üle sild.', 'Mine üle silla.'],
+        ['Ristmikus pööra vasakule.', 'Ristmikul pööra vasakule.'],
+        ['Kool on kirik vastas.', 'Kool on kiriku vastas.'],
+        ['Kõnni kuni valgusfoorile.', 'Kõnni kuni valgusfoorini.'],
+        ['Mine üle tänav.', 'Mine üle tänava.'],
+        ['Valgusfoori juures pööra vasakul.', 'Valgusfoori juures pööra vasakule.'],
+        ['Apteek on pank kõrval.', 'Apteek on panga kõrval.'],
+        ['Mine otse kuni kirikuni ja siis pööra paremal.', 'Mine otse kuni kirikuni ja siis pööra paremale.'],
+      ]), [
+        'kuni + -ni: ristmikuni.',
+        'kuhu? → paremale (-le).',
+        'üle + mille?: silla.',
+        'ristmik on „peal”: ristmikul.',
+        'mille? vastas: kiriku vastas.',
+        'kuni + -ni: valgusfoorini.',
+        'üle + mille?: tänava.',
+        'kuhu? → vasakule (-le).',
+        'mille? kõrval: panga kõrval (pank → panga).',
+        'kuhu? → paremale (-le).',
+      ]), 'Üks-ühele: õpilane parandab ja loeb lause ette; siis ütleb sama lause oma kodutänava kohta.'),
+      teach(tag(B.rolecards('022_p_roles', 'Arva koht.', 'A juhatab teed klassist, B arvab: mis koht see on?',
+        'Mõtle üks koht kooli lähedal (pood, peatus, apteek, park). Ära ütle nime. Juhata B-d klassist sinna 4–5 sammuga: otse, paremale, kuni …-ni, üle ….',
+        'Kuula ja küsi üle, kui sa ei saa aru (Kas paremale? Kas see on kaugel?). Joonista tee vihikusse lihtsa kaardina. Lõpus arva: mis koht see on? Kui arvasid valesti, küsi veel üks küsimus. Siis vahetage: nüüd sina juhatad.',
+        ['Mine otse kuni …', 'Siis pööra …'], ['Kas see on kaugel?', 'Kas see on … kõrval?']), { task: 'S07' }),
+      'Üks-ühele: õpetaja juhatab, õpilane arvab; siis vastupidi. Õpilane peab kasutama vähemalt üht kuni …-ni ja üht üle ….'),
+    ],
+    transfer: [
+      B.text('022_t_sit', 'Olukord: uus õppija ei tunne linna', 'Teie kursusel on uus õppija. Ta tahab minna linnas eri kohtadesse, aga ei tunne linna. Teil on sama kaart, aga kummalgi on kolm kohta puudu. Alustage alati bussipeatusest. Küsi ja juhata teed, kuni kõik kohad on kaardil. Vaata pilti.'),
+      teach(tag(v6(B.rolecards('022_t_map', 'Kaart: kus on apteek?', 'A vaatab kaarti A, B kaarti B. Küsige ja juhatage.',
+        'Sinu kaardil on apteek, pank ja kino. Sul puuduvad postkontor, ujula ja raamatukogu. Küsi B-lt teed bussipeatusest sinna ja kirjuta koht oma kaardile. Siis juhata B-d sinu kohtadesse.',
+        'Sinu kaardil on postkontor, ujula ja raamatukogu. Sul puuduvad apteek, pank ja kino. Juhata A-d bussipeatusest sinu kohtadesse. Siis küsi A-lt teed ja kirjuta kohad oma kaardile.',
+        [], []), {
+        taskType: 'infogap',
+        support: ['Vabandage, kuidas ma saan … (kuhu?)?', 'Mine otse kuni …, siis pööra …', 'Kas see on … kõrval või vastas?'],
+        stretch: 'Juhata teed ilma kaardita ja ütle, mitu minutit see jalgsi võtab.',
+      }), { task: 'S05', main: true, level: 4 }),
+      'Üks-ühele: õpetaja on B. Lõpus võrdlete kaarte: kas kõik kuus kohta on õigel kohal? Kaart A: apteek ristmiku ja valgusfoori vahel paremal, pank silla taga vasakul, kino kiriku kõrval. Kaart B: postkontor peatuse vastas, ujula pargi kõrval, raamatukogu kiriku vastas. Abikaart: kolm lausealgust, kui õpilane jääb vait (märgi kasutamine). Lisaväljakutse: juhatab ilma kaardita.'),
+      homeTask(teach(v6(B.planning('022_t_home', 'Kodus: minu eesti keele võrgustik.', 'Vaata üht eestikeelset lehte. Kirjuta kolm rida. Harjuta → moodul 5.', [
+        'Mida sa vaatasid? (nt „Tallinna ühistransport” https://transport.tallinn.ee või oma linna bussiliinide leht)',
+        'Üks uus sõna sellelt lehelt:',
+        'Üks lause sellest: mis buss või tramm sõidab sinu kodu lähedalt?',
+        'Kas sa soovitad seda lehte kaaslasele? Miks?',
+      ], 5), { mediaLog: true }),
+      'Meediapäevik „Minu eesti keele võrgustik” (mooduli kirje): õppija valib ühe päris eestikeelse lehe või saate ja kirjutab kolm rida. Järgmisel tunnil loeb ta oma lause ette. Harjuta → moodul 5: sõnad ja vormid (10 min).')),
+      half(exitCheck(tag(B.speaking('022_t_exit', 'Väljumine: juhata teed.', 'Juhata 30 sekundiga koolist bussipeatuseni. Siis veel kord, kiiremini.', [
+        'Kust ta alustab ja kuhu läheb?',
+        'Kus ta pöörab?',
+        'Mis on peatuse kõrval?',
+      ], [20, 40]), { task: 'S08', level: 3, fluency: true }))),
+      half(teach(selfcheck('022_t_self', ['Ma ütlen suuna: otse, paremale, vasakule.', 'Ma ütlen: kuni ristmikuni, üle silla.', 'Paariline leiab minu juhise järgi õige koha.'], 'Tund 22 on läbitud'), 'Üks-ühele: õpetaja on paariline, kes leidis (või ei leidnud) koha õpilase juhise järgi; õpilane hindab kolme rida ja kirjutab ühe oma juhise lause.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 023 reading: the imperative — tickets and instructions
+  'a2-023': retire(V4['a2-023'], {
+    title: 'Ostke pilet, minge üle tee!',
+    canDo: 'Ma annan juhiseid käskivas kõneviisis (vali, vajuta, ära unusta; valige, vajutage), selgitan suuliselt telefonis, kuidas jaamast keelekooli saab, ja kirjutan uuele õppijale juhendi.',
+    teacherPage: P023,
+    discover: [
+      teach(B.review('023_d_review', [['Kuidas sa saad koolist lähima poeni? Juhata.', 'a2-022'], ['Mida sa teed hommikul kõigepealt?', 'a2-011'], 'Kuidas sa ostad bussipiletit?']), planNote(P023)),
+      tag(v6(B.vocab('023_d_vocab', 'Tunni sõnad.', ['pilet — билет', 'ühiskaart — проездная карта', 'kaart — карта', 'peatus — остановка', 'tramm — трамвай', 'ekraan — экран', 'valima — выбирать', 'maksma — платить', 'väljuma — выходить', 'unustama — забывать']),
+        { review: ['kõigepealt', 'tavaliselt', 'lähedal'] }), { topic: ['ühiskaart', 'automaat', 'kiosk', 'lugeja', 'nupp', 'vajutama'] }),
+      teach(tag(B.reading('023_d_read', 'Linna infoleht.', 'Loe linna infolehte. Vasta ühe-kolme sõnaga.', 'Uus linnas? Nii sõidate bussi ja trammiga',
+        'Kõigepealt ostke ühiskaart. Kaart maksab kaks eurot. Selle saate osta kioskist või automaadist. Automaat on tavaliselt peatuse lähedal.\n\nAutomaadis valige keel ja vajutage nuppu „Pilet”. Siis valige pilet: üks tund või üks päev. Makske pangakaardiga. Ärge unustage pangakaarti automaati!\n\nTulge bussi eest uksest. Pange ühiskaart kohe lugeja vastu. Lugeja on ukse juures, see on väike hall kast. Ärge sõitke ilma piletita: bussis on tihti kontroll.\n\nKui te ei tea, kus väljuda, küsige juhilt või vaadake ekraani. Ekraanil on järgmise peatuse nimi. Bussist väljuge teisest uksest. Head sõitu!',
+        [['Kust saab ühiskaardi osta?', 'kioskist või automaadist|kioskist|automaadist'], ['Kui palju kaart maksab?', 'kaks eurot|2 eurot'], ['Millega te automaadis maksate?', 'pangakaardiga'], ['Mida ei tohi automaati unustada?', 'pangakaarti'], ['Mis uksest te tulete bussi?', 'eest|eest uksest'], ['Kust näete järgmise peatuse nime?', 'ekraanilt|ekraanil']]), { task: 'R15' }),
+      'Lugemisstrateegia (üks lause enne lugemist): „Otsi tegusõnu: mida peab tegema?” Üks-ühele: õpilane joonib alla kõik käsud (ostke, valige …) ja ütleb, mitu neid on (13). Siis vastab küsimustele. Vanad sõnad: kõigepealt, tavaliselt, lähedal.'),
+      B.notice('023_d_notice', 'Märka: käskiv kõneviis', [
+        'Sina (sõbrale): ma vaatan → **vaata**, ma valin → **vali**, ma vajutan → **vajuta**',
+        'Teie (võõrale, mitmele): **valige**, **vajutage**, **makske**, **ostke**',
+        'Erandid: ma lähen → **mine**, **minge** · ma tulen → **tule**, **tulge**',
+        'Eitus: **ära** unusta! · **ärge** unustage!',
+        'Vene keeles „не забудь” ja „не забудьте” — eesti keeles ära unusta ja ärge unustage.',
+      ], 'full'),
+      teach(tag(B.rolecards('023_d_machine', 'Proovi kohe: piletiautomaat.', 'Vaata pilti. A juhendab turisti, teie-vormis. B näitab pildil.',
+        'Sa töötad peatuses. Turist ei oska automaati kasutada. Ütle talle pildi järgi viis käsku (Valige keel. Vajutage …). Ütle ka üks „ärge”-lause (Ärge unustage …!).',
+        'Sa oled turist. Näita sõrmega pildil, mida sa teed. Kui sa ei saa aru, küsi (Mida ma nüüd vajutan?). Siis vahetage: sina räägid sõbrale sina-vormis.',
+        ['Kõigepealt valige …', 'Ärge unustage …!'], ['Mida ma nüüd teen?', 'Kas nii?']), { task: 'S10', level: 3 }),
+      'Üks-ühele: õpetaja on turist ja eksib korra (vajutab valet nuppu); õpilane parandab käsuga („Ei, vajutage …”). Siis vahetage: õpetaja juhendab sina-vormis.'),
+    ],
+    practice: [
+      tag(B.gaps('023_p_gaps', 'Sina või teie?', 'Kirjuta käsk. Vaata, kellele sa räägid.', [
+        'Sõbrale: [Vali] keel ja [vajuta] „Pilet”. (valima; vajutama)',
+        'Turistile: [Valige] keel ja [vajutage] „Pilet”. (valima; vajutama)',
+        'Emale: [Mine] eest uksest sisse. (minema)',
+        'Turistidele: [Minge] üle tee. (minema)',
+        'Lapsele: [Tule] siia ja [ära unusta] kotti! (tulema; unustama)',
+      ], '', 'full'), { task: 'G03' }),
+      teach((v6(tag(B.dictation('023_p_dict', 'Etteütlus ja hääldus: pikk ja lühike.', 'Kuula, korda ja kirjuta. Märka pikka häälikut.', [
+        'Osta pilet automaadist.',
+        'Pane kaart kohe lugeja vastu.',
+        'Sõida kolm peatust.',
+        'Ära unusta oma kotti!',
+        'Linna sõidab buss kell kaheksa.',
+      ], 5), { task: 'L08' }), { pronunciation: 'välted' })),
+      'Hääldusnurk + etteütlus, 6 min. Enne: ütle paarid kott – koti, linna – lina, sada – saada; õpilane kordab ja ütleb, kumb on pikem. Siis loe iga lause kaks korda; õpilane kordab valjusti ja kirjutab. Kontrolli topelttähti: kotti, linna, kaheksa (üks k).'),
+      teach(why(B.transformation('023_p_trans', 'Sina → teie.', 'Kirjuta sama käsk võõrale inimesele, teie-vormis.', [
+        ['Osta pilet!', 'Teie: …', 'Ostke pilet!'],
+        ['Maksa kaardiga!', 'Teie: …', 'Makske kaardiga!'],
+        ['Tule eest uksest!', 'Teie: …', 'Tulge eest uksest!'],
+        ['Ära unusta kaarti!', 'Teie: …', 'Ärge unustage kaarti!'],
+        ['Vaata ekraani!', 'Teie: …', 'Vaadake ekraani!'],
+        ['Mine järgmises peatuses välja!', 'Teie: …', 'Minge järgmises peatuses välja!'],
+      ]), [
+        'osta → ostke (-ke).',
+        'maksa → makske.',
+        'tule → tulge (-ge).',
+        'ära → ärge, unusta → unustage.',
+        'vaata → vaadake.',
+        'mine → minge.',
+      ]), 'Üks-ühele: õpilane kirjutab ja loeb käsud ette viisaka häälega; õpetaja on turist ja teeb käsu järgi.'),
+      teach(tag(B.speaking('023_p_try', 'Juhend sõbrale.', 'Ütle sõbrale kolme käsuga, kuidas automaadist piletit osta.', [
+        'Mida ta teeb kõigepealt?',
+        'Mida ta siis valib ja vajutab?',
+        'Mida ta ei tohi unustada?',
+      ], [45, 60], ['Kõigepealt vali …', 'Siis vajuta …', 'Ära unusta …!']), { task: 'S02', level: 3, fluency: true }),
+      'Üks-ühele: õpilane juhendab õpetajat (sina-vorm), õpetaja „vajutab” paberil. Siis teeb sama teie-vormis, nagu turistile.'),
+    ],
+    transfer: [
+      B.text('023_t_sit', 'Olukord: kaaslane helistab jaamast', 'Sinu kursusekaaslane tuleb esimest korda keelekooli. Ta tuleb rongiga Balti jaama ja helistab sulle. Keelekool on Narva maanteel, Hobujaama peatuse lähedal. Juhata teda telefonis: kust osta pilet, mis trammiga sõita, kus väljuda ja kuidas kooli leida. Kõik ei lähe nii, nagu plaanisite.'),
+      teach(tag(v6(B.phoneCards('023_t_call', 'Kaaslane helistab jaamast.', 'A on jaamas ja helistab, B juhatab. Siis vahetage.',
+        'Kaaslane on Balti jaamas. Keelekool on Narva maantee 7, Hobujaama peatuse lähedal.',
+        ['Kaaslane jaamas', ['Ütle, kus sa oled.', 'Küsi, kust osta pilet.', 'Küsi, mis trammiga sõita ja kus väljuda.', 'Küsi, kuidas peatusest kooli saab.', 'Korda juhis lõpus üle.']],
+        ['Sina juhatad', ['Ütle, kust pilet osta: automaat või kiosk.', 'Trammid 1 ja 2 sõidavad Hobujaama.', 'Ütle, kus väljuda.', 'Peatusest: üle tee, siis vasakule, maja number 7.', 'Palu tal juhis üle korrata.']], [60, 150]), {
+        taskType: 'phone', hiddenInfo: true,
+        support: ['Osta pilet … (kust?).', 'Sõida trammiga … ja välju …', 'Mine üle tee ja pööra …'],
+        stretch: 'Kaaslasel on suur kohver: paku teist teed (takso või buss) ja ütle, miks.',
+      }), { task: 'S04', main: true, level: 4 }),
+      'Üks-ühele: õpetaja on kaaslane jaamas. Varjatud info (ütle alles siis, kui õpilane on juhise andnud): automaat on katki ja tramm 2 täna ei sõida (teetööd). Õpilane peab kohanduma: pilet kioskist või telefonist, ainult tramm 1. Kui õpilane ei kontrolli („Kas sa said aru?”), küsi ise „Kas tramm 2?” ja vaata, kas ta parandab. Lõpus kordab õpilane kogu juhise. Siis vahetage: õpilane on jaamas, õpetaja juhatab ja teeb ühe vea, mida õpilane küsib üle.'),
+      homeTask(teach(tag(B.examWriting('023_t_home', 'Kodus: juhend uuele õppijale.', 'Kirjuta juhend 30–45 sõnaga. Siis Harjuta → moodul 5.', 'teade', {
+        situation: 'Teie kursusele tuleb uus õppija. Kirjuta talle sina-vormis, kuidas tulla jaamast keelekooli. Pane juhend kursuse vestlusesse.',
+        points: ['kust osta pilet', 'mis bussi või trammiga sõita', 'kus väljuda ja kuhu minna', 'mida ei tohi unustada'],
+        words: [30, 45], opening: 'Tere!',
+      }), { task: 'W04', main: true }),
+      'Kodutöö. Kontrolli 5 kirjutamine on selle paralleel (uus koht, samad neli punkti). Harjuta → moodul 5: käsud (10 min).')),
+      half(exitCheck(tag(B.speaking('023_t_exit', 'Väljumine: kolm käsku.', 'Ütle 30 sekundiga juhis: kuidas sinu kodust kesklinna saab.', [
+        'Mis bussi või trammiga ta sõidab?',
+        'Kus ta väljub ja mida ta ei tohi unustada?',
+      ], [20, 40]), { task: 'S16', level: 3, fluency: true }))),
+      half(teach(selfcheck('023_t_self', ['Ma annan käsu sina-vormis: vali, vajuta, mine.', 'Ma annan käsu teie-vormis: valige, minge, ärge unustage.', 'Kaaslane jõuab minu juhise järgi kooli.'], 'Tund 23 on läbitud'), 'Üks-ühele: õpetaja ütleb, kas ta „jõudis kooli” õpilase juhise järgi; õpilane hindab kolme rida ja kirjutab ühe oma käsu tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 024 listening: opening hours (the module's last teaching lesson)
+  'a2-024': retire(V4['a2-024'], {
+    title: 'Millal on avatud?',
+    canDo: 'Ma saan kuuldust aru, millal kohad on avatud, räägin kaaslasega laupäeva käikudest ja kirjutan talle ilma abita sõnumi.',
+    teacherPage: P024,
+    discover: [
+      teach(B.review('024_d_review', [['Ütle kolm käsku: kuidas osta piletit?', 'a2-023'], ['Mis kell sinu tööpäev algab ja lõpeb?', 'a2-012'], 'Mis kell on sinu lähim pood avatud?']), planNote(P024)),
+      tag(v6(B.vocab('024_d_vocab', 'Tunni sõnad.', ['lahti — открыто', 'avama — открывать', 'sulgema — закрывать', 'suletud — закрыто', 'puhkepäev — выходной', 'tööpäev — рабочий день', 'lõuna — обед', 'järjekord — очередь', 'kassa — касса', 'kuni — до'], '3'),
+        { review: ['avatud', 'kinni', 'nädalavahetus'] }), { topic: ['lahtiolekuaeg', 'lõunapaus', 'teeninduskeskus', 'broneerima', 'tööpäeviti'] }),
+      twice(teach(tag(B.listening('024_d_hours', 'Teeninduskeskuse automaatvastaja.', 'Kuula automaatvastajat kaks korda. Kirjuta lünka üks-kaks sõna.', [
+        'Automaat: Tere! Te helistasite Kase teeninduskeskusesse.',
+        'Automaat: Meie postkontor on avatud esmaspäevast reedeni kella üheksast kuueni.',
+        'Automaat: Laupäeval on postkontor avatud kella kümnest kaheni. Pühapäeval on postkontor kinni.',
+        'Automaat: Lõunapaus on iga päev kella ühest kaheni.',
+        'Automaat: Juuksur töötab teisipäevast laupäevani kella kümnest seitsmeni. Aja saab broneerida telefonis.',
+        'Automaat: Pank on avatud ainult tööpäeviti, kella kümnest viieni. Nädalavahetusel on pank suletud.',
+        'Automaat: Apteek on avatud iga päev kella kaheksast kümneni õhtul.',
+        'Automaat: Raamatukogu on avatud teisipäevast laupäevani kella üheteistkümnest kuueni.',
+        'Automaat: Teeninduskeskus asub Kase tänaval, bussipeatuse vastas.',
+        'Automaat: Kui teil on küsimusi, helistage tööpäeviti kella üheksast neljani. Aitäh!',
+      ], ['Postkontor on avatud esmaspäevast [reedeni].', 'Tööpäeval sulgub postkontor kell [kuus|6|18].', 'Laupäeval on postkontor avatud kella kümnest [kaheni|kella kaheni|14-ni].', 'Pühapäeval on postkontor [kinni|suletud].', 'Lõunapaus on kella ühest [kaheni|kella kaheni].', 'Juuksur töötab teisipäevast [laupäevani].', 'Juuksurisse saab aja broneerida [telefonis|telefoni teel].', 'Pank on avatud ainult [tööpäeviti|tööpäeval].']), { task: 'L06' }),
+      'Kuulamisstrateegia (enne esimest kuulamist): „Ennusta: mis numbrid ja päevad tulevad?” Esimesel korral kirjutab õpilane ainult numbrid, teisel korral sõnad. Vanad sõnad: avatud, kinni, nädalavahetusel.')),
+      B.notice('024_d_notice', 'Märka: mis kellast mis kellani?', [
+        'Mis kellast? -st: kella **üheksast**, kella **kümnest**, kella **ühest**',
+        'Mis kellani? -ni: kella **kuueni**, kella **kaheni**, kella **seitsmeni**',
+        'Mis päevast mis päevani? **esmaspäevast** **reedeni**, **teisipäevast** **laupäevani**',
+        '**tööpäeviti** = esmaspäevast reedeni',
+        'Vene keeles „с девяти до шести” — eesti keeles kella üheksast kuueni.',
+      ], 'half'),
+      half(teach(tag(B.speaking('024_d_ask', 'Proovi kohe: küsi aega.', 'Küsi paariliselt kolm küsimust. Vasta ka ise.', [
+        'Mis kellast mis kellani sa töötad või õpid?',
+        'Millal on sinu lähim pood avatud?',
+        'Mis päeval on sinu raamatukogu kinni?',
+      ], [45, 60]), { task: 'S01', level: 3, fluency: true }),
+      'Üks-ühele, ilma valmis fraasideta (mooduli viimane tund): õpilane küsib, õpetaja vastab; siis vastupidi, teisel korral kiiremini. Paranda ainult -st / -ni: kella üheksast kuueni.')),
+    ],
+    practice: [
+      teach(half(tag(B.table('024_p_rule', 'Leia reegel: mis kellast mis kellani?', 'Kirjuta silt sõnadega. Esimene rida on näide.', 'Silt, Mis kellast? / Mis päevast?, Mis kellani? / Mis päevani?', [
+        'Postkontor 9–18 | kella üheksast | kella kuueni',
+        'Raamatukogu 11–19 | kella [üheteistkümnest] | kella [seitsmeni/üheksateistkümneni]',
+        'Juuksur 10–15 | kella [kümnest] | kella [kolmeni/viieteistkümneni]',
+        'Lõunapaus 13–14 | kella [ühest/kolmeteistkümnest] | kella [kaheni/neljateistkümneni]',
+        'Pank E–R | [esmaspäevast] | [reedeni]',
+        'Juuksur T–L | [teisipäevast] | [laupäevani]',
+      ], 'g_notice'), { task: 'G02', level: 2 })),
+      'Üks-ühele: õpilane täidab tabeli ja ütleb reegli ise: mis kellast? -st, mis kellani? -ni; tüvi on sama mis „mitmes”: kuus → kuueni, kaks → kaheni, seitse → seitsmeni. Siis ütleb ta iga rea terve lausega.'),
+      teach(tag(v6(B.choice('024_p_pron', 'Hääldusnurk: kuula, vali ja varjuta.', 'Kuula õpetajat ja vali aeg. Siis räägi lause kaasa.', [
+        ['Lause 1', 'kella üheksast kuueni', 'kella üheteistkümnest kuueni', 'kella üheksast kaheni'],
+        ['Lause 2', 'kella kümnest kaheni', 'kella kümnest kaheksani', 'kella kahest kümneni'],
+        ['Lause 3', 'esmaspäevast reedeni', 'esmaspäevast neljapäevani', 'teisipäevast reedeni'],
+        ['Lause 4', 'kella ühest kaheni', 'kella ühest kaheksani', 'kella üheksast kaheni'],
+      ], 'half', 'g_listen'), { pronunciation: 'varjutamine' }), { task: 'L10' }),
+      'Hääldusnurk, 5 min. Loe automaatvastaja laused võtmes oleva ajaga (Postkontor on avatud kella üheksast kuueni …); õpilane valib aja. Siis loe iga lause uuesti ja õpilane räägib kohe kaasa (varjutamine), kaks korda. Lõpus küsib ta kaks küsimust („Mis kell te avate?”): eesti küsimus läheb lõpus alla, mitte üles nagu vene keeles.'),
+      teach(tag(why(B.transformation('024_p_signs2', 'Silt → lause.', 'Loe silti. Kirjuta terve lause.', [
+        ['Apteek · E–P 8–22', 'Apteek on …', 'Apteek on iga päev avatud kella kaheksast kümneni.'],
+        ['Pank · E–R 10–17', 'Pank on …', 'Pank on avatud tööpäeviti kella kümnest viieni.'],
+        ['Ujula · L 9–15', 'Laupäeval on ujula …', 'Laupäeval on ujula avatud kella üheksast kolmeni.'],
+        ['Postkontor · P suletud', 'Pühapäeval …', 'Pühapäeval on postkontor kinni.|Pühapäeval on postkontor suletud.'],
+        ['Juuksur · T–L 10–19', 'Juuksur töötab …', 'Juuksur töötab teisipäevast laupäevani kella kümnest seitsmeni.'],
+        ['Lõuna · 13–14', 'Lõunapaus on …', 'Lõunapaus on kella ühest kaheni.'],
+      ]), [
+        'E–P = iga päev; 8 → kaheksast, 22 → kümneni (õhtul; ka „kahekümne kaheni” on õige).',
+        'E–R = tööpäeviti; 17 → viieni.',
+        'L = laupäeval; 15 → kolmeni.',
+        'suletud = kinni.',
+        'T–L = teisipäevast laupäevani.',
+        '13–14 = kella ühest kaheni.',
+      ]), { task: 'R07' }), 'Üks-ühele: õpilane kirjutab ja loeb lause ette; õpetaja küsib „Kas see sobib sulle? Millal sa lähed?”.'),
+      teach(tag(B.rolecards('024_p_roles', 'Broneeri aeg.', 'A helistab juuksurisse, B vastab kaardi järgi. Siis vahetage.',
+        'Sa tahad juuksurisse laupäeval enne kella kahte. Küsi, millal juuksur avatud on ja kas aega on. Lepi aeg kokku ja ütle oma nimi.',
+        'Sa töötad juuksuris. Avatud T–R 10–19, L 10–15, P ja E kinni. Laupäeval on vaba ainult kell 10.30 ja kell 14. Paku aega ja küsi nime.',
+        [], []), { task: 'S04' }),
+      'Üks-ühele: ilma valmis fraasideta. Õpetaja on juuksur; aeg „enne kella kahte” sobib ainult kell 10.30 — õpilane peab küsima ja otsustama. Siis vahetage.'),
+    ],
+    transfer: [
+      B.text('024_t_sit', 'Olukord: laupäev on lühike', 'Laupäeval on sul ja kaaslasel aega neli tundi, kella kümnest kaheni. Teil on vaja käia viies kohas, iga koht võtab umbes pool tundi. Kõik kohad ei ole laupäeval kogu aeg avatud. Vaadake pilti ja otsustage, mis järjekorras te lähete ja mis jääb esmaspäevaks.'),
+      teach(tag(v6(B.ideaCard('024_t_route', 'Mis järjekorras me läheme?', 'Vaadake pilti. Pange kohad järjekorda ja põhjendage.',
+        'Laupäev, kella 10–14. Te lähete koos jalgsi. Juuksur on kell 12.',
+        ['postkontor: pakk ootab', 'juuksur: aeg kell 12', 'pank: uus pangakaart', 'turg: kala ja köögivili', 'raamatukogu: raamatud tagasi'],
+        'Mis järjekorras te lähete ja miks? Mis jääb esmaspäevaks?', [60, 150]), {
+        taskType: 'ranking',
+        support: ['Märksõnad: kõigepealt · siis · pärast seda · lõpuks', 'kella …st kella …ni · kinni · avatud', 'sest · aga · kas sobib?'],
+        stretch: 'Turg sulgub täna juba kell 12: tehke uus plaan ja ütle, mis muutus.',
+      }), { task: 'S12', main: true, level: 4 }),
+      'Üks-ühele, ilma valmis fraasideta: õpetaja on kaaslane ja tahab alguses minna panka (pank on laupäeval kinni — õpilane peab seda pildilt märkama). Õige lahendus: turg (kinni kell 13) ja postkontor (kinni kell 14) enne juuksurit või kohe pärast; raamatukogu avatakse alles kell 11; pank jääb esmaspäevaks. Abikaart on märksõnad, mitte laused (märgi kasutamine). Lisaväljakutse: turg sulgub kell 12.'),
+      homeTask(teach(tag(v6(B.examWriting('024_t_msg', 'Kodus: sõnum kaaslasele.', 'Kirjuta kaaslasele 30–45 sõna. Kaaslane vastab. Harjuta → moodul 5.', 'kutse', {
+        situation: 'Kutsu kaaslane laupäeval raamatukokku. Vaata enne lehelt „Tallinna Keskraamatukogu” (https://www.keskraamatukogu.ee) või oma linna raamatukogu lehelt, millal raamatukogu laupäeval avatud on. Saada sõnum kursuse vestlusesse.',
+        points: ['kuhu te lähete ja miks', 'millal raamatukogu laupäeval avatud on (kella …st kella …ni)', 'kus ja mis kell te kohtute', 'mida kaasa võtta'],
+        words: [30, 45],
+      }), { lines: 6, peerReply: true, realAddressee: 'kursusekaaslane (kursuse vestlus)' }), { task: 'W03', main: true }),
+      'Mooduli viimane tund: ilma antud alguse ja märksõnadeta. Kaaslase vastus (mooduli kaaslase vahetus): kaaslane loeb sõnumi ja vastab ühe küsimusega või „kaks tärni ja üks soov” (kas kõik neli punkti on olemas?). Järgmisel tunnil loeb õppija oma sõnumi ja kaaslase vastuse ette. Lehte avab õppija ise, leht on päris (lehte sisse ei kopeerita). Harjuta → moodul 5 (10 min).')),
+      half(exitCheck(tag(B.speaking('024_t_exit', 'Väljumine: meie laupäev.', 'Ütle 30 sekundiga ilma märkmeteta: kuhu ja mis kell te lähete.', [
+        'Kuhu te lähete kõigepealt ja mis kell?',
+        'Mis jääb esmaspäevaks ja miks?',
+      ], [20, 40]), { task: 'S07', level: 4, fluency: true }))),
+      half(teach(selfcheck('024_t_self', ['Ma saan aru, millal koht on avatud: kella …st kella …ni.', 'Ma planeerin kaaslasega laupäeva ja põhjendan järjekorda.', 'Ma räägin ja kirjutan ilma valmis fraasideta.'], 'Moodul 5: linn, kohad ja tee'), 'Üks-ühele: õpilane hindab kolme rida, õpetaja ütleb oma hinde; õpilane kirjutab ühe lause oma laupäeva plaanist tõendiks.')),
+    ],
+  }),
+
+  // ---------------------------------------------------------------- 025 control 5: one sheet, four skills
+  'a2-025': retire(V4['a2-025'], {
+    title: 'Kontroll 5 — linn ja tee',
+    assessment: true,
+    phases: checkSheet('Kontroll', 'Lugemine, kuulamine, kirjutamine ja rääkimine, igaüks 10 punkti (45 min)'),
+    canDo: 'Ma näitan ilma abita, et loen silte ja kutset, saan aru teejuhisest ja teadaandest, kirjutan teejuhise ja juhatan teed; ma tean oma punkte ja lävendeid.',
+    teacherPage: P025,
+    discover: [
+      teach(B.text('025_d_situation', 'Kontroll 5: kuidas punkte loetakse', `Kontrollis on neli osa, igas 10 punkti, kokku 40. Töötad 45 minutit ilma abita. Harno A2 eksamil on igas osas 20 punkti: korruta oma punktid kahega. ${THRESHOLDS} Lõpus võrdled tulemust kontrolliga 4 (tund 20).`), planNote(P025)),
+      teach(tag(B.choice('025_p_signs', 'Lugemine 1. Sildid linnas.', 'Mida silt tähendab? Vali üks vastus. (5 punkti)', [
+        ['Silt apteegi uksel: „Avatud E–P 8–22”', 'Apteek on avatud iga päev.', 'Apteek on pühapäeval kinni.', 'Apteek on avatud ainult õhtul.'],
+        ['Silt peatuses: „Pilet automaadist või kioskist”', 'Pileti saab osta automaadist.', 'Piletit ei ole vaja.', 'Pileti saab ainult bussijuhilt.'],
+        ['Silt pargis: „Tee on suletud. Minge üle silla.”', 'Pargi tee on kinni, tuleb minna üle silla.', 'Sild on kinni.', 'Park on suletud.'],
+        ['Silt postkontoris: „Lõuna 13–14”', 'Kella ühest kaheni ei saa pakki saata.', 'Postkontor sulgub kell üks.', 'Lõunat saab süüa postkontoris.'],
+        ['Silt trepikojas: „Lift ei tööta. Kasutage treppi.”', 'Tuleb minna trepist.', 'Lift on uus.', 'Trepp on remondis.'],
+      ], 'full', 'g_read'), { task: 'R01' }),
+      'Varasemast: 5. küsimus (lift, trepp) on moodulist 4. Iga õige vastus 1 punkt.'),
+      teach(tag(B.reading('025_d_read', 'Lugemine 2. Kutse.', 'Loe sõbra sõnumit. Vasta ühe-kolme sõnaga. (5 punkti)', 'Tule laupäeval külla!',
+        'Tere! Tule laupäeval meile külla, kell neli. Me elame nüüd Kase tänaval, maja number 12, kolmandal korrusel. Meie uus korter on väike, aga väga hele. Lift on, aga see on vana, nii et mine parem trepist.\n\nKuidas siia saada? Sõida kesklinnast bussiga number 5 ja välju Kase peatuses. Sõit kestab umbes kakskümmend minutit. Peatusest mine otse kuni valgusfoorini. Valgusfoori juures pööra vasakule ja mine üle väikese silla. Meie maja on pargi vastas, apteegi kõrval.\n\nKui sa tahad lilli tuua, siis lillepood on peatuse kõrval. See on laupäeval avatud kella kümnest kolmeni, nii et osta lilled enne kolme. Kooki ära too, mina teen koogi ise! Teisi külalisi tuleb ka, kokku oleme kuuekesi.\n\nKui sa eksid, helista mulle: 5123 4567. Ootan sind! Kati',
+        [['Mitmendal korrusel Kati elab?', 'kolmandal|kolmandal korrusel|3.'], ['Mis bussiga tuleb sõita?', 'number 5|bussiga number 5|5'], ['Kus tuleb pöörata vasakule?', 'valgusfoori juures|valgusfoori juures'], ['Mis on Kati maja kõrval?', 'apteek'], ['Mis kellani on lillepood laupäeval avatud?', 'kolmeni|kella kolmeni|15-ni']]), { task: 'R15' }),
+      'Varasemast: 1. küsimus (mitmendal korrusel) on moodulist 4. Harno-pikkune tekst (≈ 130 sõna).'),
+      twice(teach(tag(B.listening('025_p_listen', 'Kuulamine 1. Tee muuseumi.', 'Kuula Pille juhist kaks korda. Kirjuta lünka üks-kaks sõna. (5 punkti)', [
+        'Andres: Tere, Pille! Siin Andres. Ma olen trammipeatuses, aga ma ei tea, kuidas muuseumi saada.',
+        'Pille: Tere! See on lihtne. Mine otse kuni ristmikuni.',
+        'Pille: Ristmikul pööra paremale ja mine mööda tänavat kuni kirikuni.',
+        'Pille: Kiriku juures mine üle tee. Muuseum on kiriku vastas, suur valge maja.',
+        'Andres: Kas see on kaugel?',
+        'Pille: Ei, jalgsi kümme minutit. Muuseum on avatud kella kuueni. Ma ootan sind ukse ees.',
+      ], ['Andres on [trammipeatuses].', 'Ristmikul pöörab ta [paremale].', 'Ta läheb kuni [kirikuni].', 'Muuseum on kiriku [vastas].', 'Muuseum on avatud kella [kuueni|kuus|6|18].']), { task: 'L03' }),
+      'Varasemast pole (mooduli 5 juhis). Iga õige lünk 1 punkt; kirjaviga ei loe, kui sõna on arusaadav.'), true),
+      twice(teach(tag(B.examListen('025_p_listen2', 'Kuulamine 2. Teadaanne keskuses.', 'Kuula kaks korda. Õige või vale? (5 punkti)', 'truefalse', [
+        'Teadaanne: Head kliendid! Kase keskus on täna avatud kella kümnest kaheksani.',
+        'Teadaanne: Postkontor on teisel korrusel. Täna sulgub postkontor juba kell neli.',
+        'Teadaanne: Apteek on esimesel korrusel, panga kõrval. Apteek on avatud kuni kaheksani.',
+        'Teadaanne: Juuksur on täna kinni.',
+        'Teadaanne: Bussid kesklinna sõidavad keskuse eest iga viieteistkümne minuti järel. Ilusat päeva!',
+      ], [
+        ['Keskus on täna avatud kella kümnest kaheksani.', true],
+        ['Postkontor on esimesel korrusel.', false],
+        ['Apteek on panga kõrval.', true],
+        ['Juuksur töötab täna kella neljani.', false],
+        ['Buss kesklinna sõidab iga viieteistkümne minuti järel.', true],
+      ], 'g_listen'), { task: 'L05' }),
+      'Varasemast: 2. väide (teisel korrusel) on moodulist 4, 5. väide (iga viieteistkümne minuti järel) moodulist 3.'), true),
+      teach(tag(B.examWriting('025_t_write', 'Kirjutamine. Teejuhis sõbrale.', 'Kirjuta sõbrale teejuhis, 25–40 sõna, kõigist neljast punktist. (10 punkti)', 'teade', {
+        situation: 'Sõber tuleb rongiga sinu linna ja tahab tulla sinu juurde. Kirjuta talle juhis.',
+        points: ['mis bussi või trammiga sõita ja kus väljuda', 'kuidas peatusest sinu majani saab (2–3 sammu)', 'mis on sinu maja lähedal', 'mis kell ta võib tulla ja mida ta ei tohi unustada'],
+        words: [25, 40],
+      }), { task: 'W04' }),
+      'Üks-ühele: õpilane kirjutab üksi, ilma abita. See on tunni 23 kodutöö („Juhend uuele õppijale”) paralleel: sama neli punkti, uus koht. Hinda allpool oleva juhendi järgi (kirjutamise viis rida).'),
+      teach(tag(B.speaking('025_t_voice', 'Rääkimine. Juhata teed ja küsi aega.', 'Juhata õpetajat ja küsi kaks küsimust. (10 punkti)', [
+        'Juhata õpetajat sinu kodust lähima bussipeatuseni (4–5 sammu).',
+        'Mis on sinu kodu lähedal ja mida sa seal teed?',
+        'Küsi õpetajalt kaks küsimust: millal tema pood või raamatukogu avatud on.',
+      ], [45, 75]), { task: 'S01' }),
+      'Üks-ühele: õpetaja on eksamineerija. 1. osa on tunni 22 külma ülesande („Proovi kohe: juhata teed”) paralleel — uus tee, samad kriteeriumid; võrdle oma märkmetega. Ära aita. Varasemast: „mis on kodu lähedal” (moodul 4). Hinda allpool oleva juhendi järgi.'),
+      teach(B.table('025_t_route', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja annab igale reale 0, 1 või 2 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja sõber leiab tee; 1 = alla 25 sõna või osa on segane; 0 = juhisest ei saa aru. | ',
+        'Kirjutamine, juhis: 2 = käsud ja suunad õiged (mine, pööra, kuni …-ni, üle …); 1 = mitu viga, aga tee on selge; 0 = suunda ei saa aru. | ',
+        'Kirjutamine, sõnavara: 2 = kohad ja tee sõnad õiged; 1 = mõni sõna puudub või on vale; 0 = sõnu on väga vähe. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, juhis: 2 = 4–5 selget sammu; 1 = 2–3 sammu; 0 = üks samm või vähem. | ',
+        'Rääkimine, vormid: 2 = paremale, kuni …-ni, üle …, kuhu-vormid peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = raske aru saada. | ',
+        'Rääkimine, küsimused: 2 = kaks arusaadavat küsimust aja kohta; 1 = üks; 0 = ei ühtegi. | ',
+        'Rääkimine, sõnavara: 2 = kohad ja tee sõnad õiged; 1 = mõni sõna puudub; 0 = sõnu on väga vähe. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10). Lugemine 5 + 5 küsimust ja kuulamine 5 + 5 küsimust, iga õige vastus 1 punkt — kokku 10 + 10 + 10 + 10 = 40.'),
+      teach(B.table('025_t_result', 'Minu tulemus: moodul 5.', 'Kirjuta oma punktid ja korruta need kahega. Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 4 (%), Mida harjutada?', [
+        'Lugemine |  |  |  | ',
+        'Kuulamine |  |  |  | ',
+        'Kirjutamine |  |  |  | ',
+        'Rääkimine |  |  |  | ',
+        'Kokku (/40) |  |  |  | ',
+      ]), 'Õpetajale: Harno järgi sooritatud = kokku ≥ 24/40 (60 %) ja ükski osa ei ole 0. KeeleSepa sisemine lävi: eksamiks valmis ≥ 28/40 (70 %), sertifikaat ≥ 32/40 (80 %). Kui osa on alla 6/10, anna üks parandusülesanne: lugemine → Harjuta „Lugemine” (moodul 5), kuulamine → tunni 22 või 24 salvestis uuesti ilma tekstita, kirjutamine → sama juhis parandatult, rääkimine → uus salvestus „Minu tee bussipeatusse”. Varasemast (moodulid 1–4) on 4 küsimust 20-st (20 %): lugemine 1.5, lugemine 2.1, kuulamine 2.2 ja 2.5.'),
+    ],
+  }),
 }, {
-  'a2-021': 'AVAS L→S', 'a2-022': 'LUGU R→W', 'a2-023': 'PROB R→S', 'a2-024': 'KUUL L→W', 'a2-025': 'EKS',
+  'a2-021': 'AVAS R→S', 'a2-022': 'RÄÄK L→S', 'a2-023': 'KIRJ R→W', 'a2-024': 'KUUL L→W', 'a2-025': 'EKS',
 });
