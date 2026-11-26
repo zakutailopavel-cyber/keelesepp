@@ -69,7 +69,7 @@ export const LESSONS = withShapes({
     title: 'Teated trepikojas',
     canDo: 'Ma loen maja ja tänava teateid, seletan neid uuele naabrile ning helistan värvifirmasse ja küsin umbisikulise vormiga, millal ja kuidas töid tehakse.',
     discover: [
-      B.review('081_d_review', [['Millised kolm ettepanekut olid Männi 8 elanikel hoovi jaoks?', 'a2b1-079'], ['Mis oli Tõnu plaaniga valesti ja mida sa talle soovitaksid?', 'a2b1-074'], 'Milliseid teateid sa viimati oma majas või töö juures lugesid?']),
+      B.review('081_d_review', [['Mida tahtsid naabrid hoovi rahaga teha ja milline kompromiss sulle sobis?', 'a2b1-079'], ['Mis oli Tõnu plaaniga valesti ja mida sa talle soovitaksid?', 'a2b1-074'], 'Milliseid teateid sa viimati oma majas või töö juures lugesid?']),
       B.topicOpener('081_d_open', 'Teema avaleht: asjaajamine Eestis', [
         'Eestis saab suure osa asjadest riigi ja linnaga ajada internetis. Riigiportaali eesti.ee esimesed kasutajad logisid sisse 2003. aastal ja portaali haldab Riigi Infosüsteemi Amet. Portaali sisenetakse ID-kaardi, mobiil-ID või Smart-ID-ga. Seal saab vaadata oma andmeid, esitada taotlusi ja leida teiste asutuste e-teenuseid. Paljudel asutustel on ka oma iseteenindus, näiteks Sotsiaalkindlustusametil, kus vaadatakse ja hallatakse pensioni ja peretoetusi.',
         'Riik saadab inimesele ka ise teateid. Alates 2021. aastast saadab eesti.ee teavituse e-posti aadressile või telefoninumbrile, mis on rahvastikuregistris kirjas. Nii antakse teada näiteks sellest, et juhiluba hakkab aeguma. Seepärast tasub oma kontaktandmed aeg-ajalt üle vaadata. Riigiportaali postkasti kirju saab suunata ka oma tavalisele e-posti aadressile.',

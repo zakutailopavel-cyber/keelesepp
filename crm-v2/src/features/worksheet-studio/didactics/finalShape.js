@@ -347,9 +347,15 @@ function goalProblems(lessons, out, P = PROFILES.b1) {
     const goals = Object.keys(l.goals || {});
     const tasks = lessonTasks(l);
     tasks.filter(({ b }) => goals.length && !goals.includes(b.goal)).forEach(({ b, phase }) => out.push({ rule: 'V9', check: 'V9-goal', lesson: l, phase, text: `${b.id}: eesmärk ${b.goal || '—'} pole tunni eesmärkide hulgas` }));
+    // methodology v5 (docs/METHODOLOGY_B1_B2_V5.md §3): one input a lesson, so a v5 lesson's g_listen rests on its one
+    // recording (as listeningGoal.test.js allows) and that recording is the lesson's comprehension input: it counts for
+    // g_read too — a v5 lesson has ≈ 8 tasks, two per sub-goal, and could not score listening as g_listen otherwise
+    const v5 = Object.values(l.sheets || {}).some((d) => d?.meta?.methodV5);
     goals.forEach((g) => {
-      const n = tasks.filter(({ b }) => b.goal === g).length;
-      if (n < 2) out.push({ rule: 'V9', check: `V9-thin-${g}`, lesson: l, phase: '*', text: `eesmärki ${g} harjutab ${n} ülesannet (vähemalt 2)` });
+      const own = tasks.filter(({ b }) => b.goal === g).length;
+      const n = v5 && g === 'g_read' ? own + tasks.filter(({ b }) => b.goal === 'g_listen').length : own;
+      const min = v5 && g === 'g_listen' ? 1 : 2;
+      if (n < min) out.push({ rule: 'V9', check: `V9-thin-${g}`, lesson: l, phase: '*', text: `eesmärki ${g} harjutab ${n} ülesannet (vähemalt ${min})` });
     });
     const main = mainTask(l);
     if (!main) out.push({ rule: 'V9', check: 'V9-main', lesson: l, phase: 'transfer', text: 'Kasuta: põhiülesanne (rääkimine või kirjutamine) puudub' });
