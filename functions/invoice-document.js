@@ -131,7 +131,8 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails: given = {}, pa
   const isParentInvoice = invoice.invoiceTargetType === "parent";
   const studentName = invoice.studentName || student.name || "";
   // the subject is stored on the invoice (owner 2026-10-12: one student, two subjects = two cards); older invoices: the card
-  const subject = String(invoice.subject || student.subject || "").trim();
+  // „Muu” invoice (noSubject): the description alone, no subject of the card
+  const subject = invoice.noSubject ? "" : String(invoice.subject || student.subject || "").trim();
 
   return new Promise((resolve, reject) => {
     const document = new PDFDocument({
