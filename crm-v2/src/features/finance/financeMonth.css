@@ -128,3 +128,8 @@
 .finance-month-cash > summary { cursor: pointer; padding: 16px 20px; font-weight: 800; color: var(--ink, var(--ink)); list-style-position: inside; }
 .finance-month-cash[open] > summary { border-bottom: 1px solid var(--border, var(--border)); }
 .finance-month-cash .financial-analytics { border: 0; box-shadow: none; margin: 0; }
+
+/* „Peida” on the invoice list (the same look as the dashboard's fd-toggle) */
+.finance-month-ledger__side { display: flex; align-items: center; gap: 12px; color: var(--gray-500); font-size: .84rem; font-variant-numeric: tabular-nums; }
+.fm-ledger-toggle { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e5e9e5;border:1px solid light-dark(#e5e9e5,#333941); border-radius: var(--radius-pill); background: var(--surface); padding: 6px 12px; font: inherit; font-size: .82rem; font-weight: 700; color: var(--gray-700); cursor: pointer; white-space: nowrap; }
+.fm-ledger-toggle:hover { border-color: #93c6b2;border-color:light-dark(#93c6b2,#2a5a4a); }
