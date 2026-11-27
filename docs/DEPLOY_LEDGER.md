@@ -25,7 +25,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 
 | Target | Live since | Commit | How verified |
 | --- | --- | --- | --- |
-| Firestore rules (`firestore.rules`) | 2026-11-24 23:32 | #1304 + this PR (board gaps: `fills`; student may change only `fills` + meta). Via Rules API (CLI gave 409); **compiled size is at Firestore's 256 kB limit** — keep rule changes minimal | live ruleset compared with the repo file: equal |
+| Firestore rules (`firestore.rules`) | 2026-11-27 20:52 | `d024acb` (#1361 `trainingCourses`: admin read / create / update; four redundant `if false` matches dropped to make room). Via the Rules API (ruleset `fa91f7cc`); `firebase deploy` hides the size refusal as 503 / 409. **Compiled size is at Firestore's 256 kB limit** (256 050 B was refused) — a new rule needs room freed elsewhere | live ruleset content compared with the repo file: equal (212 850 chars) |
 | Storage rules (`storage.rules`) | 2026-11-19 ~14:5x | `05884e2` (#1285 fail kandele: `financial/accounting-entries/{entryId}/{documentId}`) | `firebase deploy --only storage` „Deploy complete” |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
 | Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-15 11:59 release commit | `dbdf512` `[deploy] Release 2026-11-15 11:59 UTC` | release commit on main; Vercel status success |
@@ -57,6 +57,7 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-27 20:52 · Firestore rules · `d024acb` · Claude (owner OK) · #1361 Kursused ja EHIS: `match /trainingCourses`; first tries 20:34–20:43 refused („Total size of compiled executables must be smaller than 256000 bytes (actual: 256050 bytes)”, shown by the CLI as 503 / 409), then four redundant `allow read, write: if false` matches removed (owner OK) and released through the Rules API; live = repo verified
 - 2026-11-18 13:31 · hosting (release.yml) · `9d7c925` · Claude (owner OK) · #1264 group / individual directions UI, #1265 k04 + table-cell fix, B1→B2 modules 3–4; after the rules + functions below; Vercel success
 - 2026-11-18 13:2x · functions financeApi, invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders, syncLessonTokens, staffOperationsApi · `cd0e70a` · Claude (owner OK, owner re-logged firebase) · #1264; „Deploy complete”. First attempt earlier the same day failed on expired CLI credentials (nothing deployed); release.yml was disabled meanwhile and re-enabled after
 - 2026-11-18 08:13 · Firestore rules · `cd0e70a` · Claude (owner OK) · #1264 `studentRevenuePlans.groupPrices`; two transient 409/503 errors before success; live = repo verified
