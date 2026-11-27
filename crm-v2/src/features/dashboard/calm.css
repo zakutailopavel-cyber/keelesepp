@@ -10,7 +10,11 @@
 .calm-nudge a:hover b { text-decoration: none; }
 .calm-nudge__close { display: inline-flex; flex: 0 0 auto; padding: 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; cursor: pointer; }
 .calm-nudge__close:hover { background: #fef0c7;background:light-dark(#fef0c7,#241a00); }
-.calm-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+/* owner 2026-11-26: „Vajab tähelepanu” and „Täna” are the same height — the shorter card stretches to the taller one,
+   its last line („+ veel …”, „Läbi … / Näita kõiki”) stays at the bottom */
+.calm-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.calm-top > * { display: flex; flex-direction: column; }
+.calm-top > * > .calm-more, .calm-top > * > .calm-today__foot { margin-top: auto; padding-top: 8px; }
 .calm-top--single { grid-template-columns: minmax(0, 720px); }
 .calm-card { padding: 18px 20px; }
 .calm-card__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }

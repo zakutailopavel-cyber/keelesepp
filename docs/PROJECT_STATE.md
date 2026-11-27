@@ -1,3 +1,12 @@
+## 2026-11-26 — Avaleht: „Vajab tähelepanu” ja „Täna” ühekõrgused (agent/home-equal-columns)
+
+- Main kontrollitud: 75ae303 (2026-11-26, release 14:44 UTC). Haru `agent/home-equal-columns`, PR „Home: Vajab tähelepanu and Täna are the same height”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-26, ekraanipildid: „левая и правая колонки должны быть одинаковые по высоте”): avalehel oli vasak kaart lühem kui parem ja selle all tühi ala.
+- Tehtud (ainult CSS, `crm-v2/src/features/dashboard/calm.css`): `.calm-top` `align-items: start` → `stretch`; kaart on veerg (`flex`), viimane rida („+ veel … teemat”, „Läbi … / Näita kõiki”) jääb kaardi alla serva. Avalehe ülesehitust ei muudetud (omaniku otsus 2026-11-24: praegune avaleht jääb). JSX-i, andmeid ega lepinguid ei muudetud.
+- Uus test `crm-v2/src/features/dashboard/calmColumns.test.js` (CSS-reeglid; jsdom ei paiguta).
+- Kontrollid: `npx vitest run src/features/dashboard` läbi (arv PR-is); `npx eslint --quiet src/features/dashboard` puhas. Brauseris (staatiline leht päris `index.css` + avalehe CSS-iga, 1400 px): 5 teemat vs 11 tundi → 757 / 757 px; 5 teemat vs 1 tund → 394 / 394 px; 375 px: kaardid üksteise all, loomulik kõrgus, horisontaalset kerimist pole. Päris avaleht sisselogituna ja kogu `npx vitest run` — käivitamata.
+- Riskid: andme- ega turvariski pole. Kui „Täna” on väga pikk („Näita kõiki”), venib ka vasak kaart sama pikaks.
+- Järgmine samm: pärast ühendamist ja release'i vaadata päris avalehte.
 ## 2026-11-26 — Kassa: kirjete read ühes joones (agent/kassa-rows-align)
 
 - Main kontrollitud: 75ae303 (2026-11-26, release 14:44 UTC). Haru `agent/kassa-rows-align`, draft-PR „Kassa: entries rows share one column grid”. Deploy'd ega production'i kirjutusi ei tehtud.
