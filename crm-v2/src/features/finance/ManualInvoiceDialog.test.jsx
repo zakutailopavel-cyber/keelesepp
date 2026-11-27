@@ -98,15 +98,15 @@ describe('ManualInvoiceDialog', () => {
     api.create.mockClear();
     api.create.mockResolvedValue({ invoice: { id: 'inv-3' } });
     const cards = [
-      { id: 't-en', name: 'Timur Varik', subject: 'Inglise keel' },
+      { id: 't-en', name: 'Toomas Vaher', subject: 'Inglise keel' },
       { id: 'b', name: 'Anna', subject: 'Eesti keel' },
       { id: 'c', name: 'Mark', subject: 'Matemaatika' },
     ];
     render(<ManualInvoiceDialog studentCards={cards} />);
     fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
-    await screen.findByRole('option', { name: /Timur Varik/ });
+    await screen.findByRole('option', { name: /Toomas Vaher/ });
     expect(screen.queryByLabelText('Mille eest')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Timur Varik' } });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Toomas Vaher' } });
     const choice = screen.getByLabelText('Mille eest');
     expect([...choice.options].map((option) => option.textContent)).toEqual(['Inglise keel (õpilase aine)', 'Eesti keel', 'Matemaatika', 'Muu — kirjutan ise']);
     fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Õppematerjalid' } });

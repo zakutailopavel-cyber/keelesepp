@@ -11,6 +11,15 @@
 - Tegemata (omanikuga kokku lepitud järgmised PR-id): filtrid õpetaja / aine / tunni tüübi järgi; stsenaariumid „Mis siis, kui…”; kirje „Mis uut” lehel.
 - Järgmine samm: omanik vaatab PR-i pilti; pärast luba ühendamine ja release, siis päris lehe ülevaatus ja filtrite PR.
 
+## 2026-11-27 — Finantsid: „Peida” arvete nimekirjal ja FIE arvete ploki kujundus (agent/finance-list-hide)
+
+- Main kontrollitud: f332a57 (2026-11-27, release 21:17 UTC). Haru `agent/finance-list-hide`, draft-PR „Finance: „Peida” on the invoice list; FIE invoices panel styled”. Deploy'd ega production'i kirjutusi ei tehtud. Ainult klient ja CSS.
+- Eesmärk (omanik 2026-11-27, ekraanipildid): 1) „тут нет кнопки peida, чтобы не приходилось крутить вниз” — Finantside lehel tuli kuu arvete nimekirjast mööda kerida, et jõuda alumiste plokkideni; 2) „визуал недоделан” — FIE arvete plokk oli kujundamata (kokkuvõte loendina, tabel ja nupud brauseri vaikestiilis: klassidel `fie-panel__totals`, `table`, `link-button` polnud CSS-i).
+- Tehtud: `FinanceMonthPage.jsx` — nimekirja päises nupp „Peida” / „Näita” (sama välimus mis „Tulu ja prognoos” plokil); peidetud olek jääb seadmesse meelde (`localStorage` `keelesepp.financeMonth.ledgerHidden`); nimekirja vahekaardi (Arveid / Laekunud / Laekumata) valimine avab selle uuesti. `fie/fie.css` (uus, imporditud `FiePanel.jsx`-is): kokkuvõte plaatidena, tabel, nupud; kuupäev kujul PP.KK.AAAA.
+- Failid: `crm-v2/src/features/finance/FinanceMonthPage.jsx` (+ test), `financeMonth.css`, `fie/FiePanel.jsx`, `fie/fie.css`.
+- Kontrollid: `npx vitest run src/features/finance` → 49 faili, 335 testi läbi; `npx eslint --quiet src/features/finance` puhas. Brauseris (ajutine eelvaateleht näidisandmetega, 1300 px): „Peida” voldib nimekirja kokku (päis jääb), „Näita” avab; FIE plokk plaatide, tabeli ja nuppudega.
+- Riskid: andme- ega turvariski pole. Tegemata: „Ärinäitajad” ploki (palju teksti) ümberkujundus — omanik nimetas ka seda arusaamatuks; vajab enne maketti ja omaniku OK-d.
+- Järgmine samm: omaniku luba → ühendamine → release; „Ärinäitajad” makett eraldi.
 ## 2026-11-27 — Võlgade vanus: käsitsi „Makstud” vana arve ei ole võlg (agent/aged-debt-paid-by-hand)
 
 - Main kontrollitud: f332a57 (2026-11-27, release 21:17 UTC). Haru `agent/aged-debt-paid-by-hand`, draft-PR „Aged debt: an old invoice marked paid by hand is not a debt”. Deploy'd ega production'i kirjutusi ei tehtud.
