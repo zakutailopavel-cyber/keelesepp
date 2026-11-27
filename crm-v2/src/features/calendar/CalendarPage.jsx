@@ -31,7 +31,7 @@ import { canQuickCompleteLesson, isPastLesson, tallinnClock } from './quickAtten
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { LESSON_MARKS, LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
-import { calendarTones, canMove, cleanPersonalColors, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
+import { calendarTones, canMove, cleanPersonalColors, excludeDateOps, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid, { LessonKindsLegend } from './TimeGrid.jsx';
@@ -601,7 +601,7 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
       return created;
     }
     for (const op of ops) {
-      if (op.op === 'patch') await scheduleRepository.patch(op.id, op.fields);
+      if (op.op === 'patch') await (op.delta ? scheduleRepository.patch(op.id, op.fields, op.delta) : scheduleRepository.patch(op.id, op.fields));
       else if (op.op === 'create') created[op.key] = (await scheduleRepository.create(op.data)).id;
       else if (op.op === 'remove' && created[op.key]) await scheduleRepository.remove(created[op.key]);
       else if (op.op === 'delete') await scheduleRepository.remove(op.id);
@@ -761,9 +761,9 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
     setPanelSaving(true); setPanelError('');
     try {
       if (item.recurring) {
-        const excluded = item.excludedDates || [];
-        await scheduleRepository.patch(item.id, { excludedDates: [...new Set([...excluded, item.occurrenceDate])] });
-        setUndo({ label: `${item.studentName} tühistatud ${item.occurrenceDate}`, plan: { undo: [{ op: 'patch', id: item.id, fields: { excludedDates: excluded } }] }, created: {}, item });
+        const exclude = excludeDateOps(item, item.occurrenceDate);
+        await scheduleRepository.patch(item.id, exclude.apply.fields, exclude.apply.delta);
+        setUndo({ label: `${item.studentName} tühistatud ${item.occurrenceDate}`, plan: { undo: [exclude.undo] }, created: {}, item });
       } else {
         await scheduleRepository.cancel(item.id, item);
         setUndo({ label: `${item.studentName} tühistatud ${item.occurrenceDate}`, plan: { undo: [{ op: 'patch', id: item.id, fields: { status: item.status || 'Planeeritud' } }] }, created: {}, item });

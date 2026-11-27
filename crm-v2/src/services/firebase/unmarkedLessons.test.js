@@ -23,7 +23,7 @@ describe('unmarkedLessonsService', () => {
 
   it('cancels one lesson of a series by excluding its date, never deleting', async () => {
     await unmarkedLessonsService.cancel({ id: 'w', recurring: true, occurrenceDate: '2026-11-02' }, { id: 'w', excludedDates: ['2026-10-26'] });
-    expect(scheduleService.patch).toHaveBeenCalledWith('w', { excludedDates: ['2026-10-26', '2026-11-02'] });
+    expect(scheduleService.patch).toHaveBeenCalledWith('w', { excludedDates: ['2026-10-26', '2026-11-02'] }, { excludeAdd: ['2026-11-02'] });
     expect(scheduleService.cancel).not.toHaveBeenCalled();
   });
 
