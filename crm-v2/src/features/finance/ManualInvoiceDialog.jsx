@@ -20,11 +20,15 @@ function nextDueDate() {
 // „Kõik ained ühel arvel”: one invoice with a line per subject card of the same student, each with its own amount
 // (owner 2026-10-12: one amount per subject; 2026-10-14: one invoice, not one per subject)
 const ALL_SUBJECTS = '__all__';
+// „Mille eest” (owner 2026-11-27): bill another subject than the card's, or „Muu” — no subject, the description alone
+const OTHER = '__other__';
 
 const emptyForm = () => ({
   studentId: '',
   amounts: {},
   description: '',
+  billFor: '',
+  billForCard: '',
   amount: '',
   due: nextDueDate(),
   note: '',
@@ -134,6 +138,12 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   const bothTotal = bothLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
   // the payer the server will store (functions/invoice-payer-core.js): a combined invoice takes its first card
   const payerCard = allSubjects ? bothLines[0]?.card : selectedStudent;
+  // the choice belongs to the card it was made for: another student starts from that card's own subject again
+  const cardSubject = selectedStudent ? subjectOf(selectedStudent) : '';
+  const billFor = selectedStudent && !allSubjects && form.billForCard === form.studentId ? form.billFor : '';
+  const noSubject = billFor === OTHER;
+  const lineSubject = noSubject ? '' : billFor || cardSubject;
+  const otherSubjects = useMemo(() => [...new Set(students.map(subjectOf).filter(Boolean))].filter((subject) => subject !== cardSubject).sort((a, b) => a.localeCompare(b, 'et')), [students, cardSubject]);
   const payer = payerCard ? payerCard.payer || invoicePayerPreview(payerCard) : null;
   const pickName = (value) => {
     setError('');
@@ -160,7 +170,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
     event.preventDefault();
     setError('');
     if (!form.studentId) return setError(pickedName && sameName.length > 1 ? 'Vali aine.' : 'Vali õpilane.');
-    if (!form.description.trim()) return setError('Lisa arve kirjeldus.');
+    if (!form.description.trim()) return setError(noSubject ? 'Kirjuta makse selgitus.' : 'Lisa arve kirjeldus.');
     if (allSubjects) {
       if (bothLines.some((line) => !(Number(line.amount) > 0))) return setError('Lisa summa igale ainele.');
     } else if (!(Number(form.amount) > 0)) return setError('Lisa korrektne summa.');
@@ -193,7 +203,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
 
     setSaving(true);
     try {
-      const result = await manualInvoiceApi.create({ ...form, note: '' });
+      const result = await manualInvoiceApi.create({ ...form, note: '', subject: noSubject ? '' : billFor, noSubject });
       const invoice = result.invoice;
       const noted = await saveCreationNote(notesRepository, invoice, form.note);
       if (downloadPdf) downloadDocument(await deliveryApi.pdf(invoice.id));
@@ -277,10 +287,22 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               <option value={ALL_SUBJECTS}>Kõik ained ühel arvel ({sameName.length})</option>
             </Select>
           ) : null}
+          {selectedStudent && !allSubjects ? (
+            <Select
+              className="form-grid__wide"
+              label="Mille eest"
+              value={billFor}
+              onChange={(event) => { setError(''); setForm({ ...form, billFor: event.target.value, billForCard: form.studentId }); }}
+            >
+              <option value="">{cardSubject ? `${cardSubject} (õpilase aine)` : 'Õpilase aine'}</option>
+              {otherSubjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}
+              <option value={OTHER}>Muu — kirjutan ise</option>
+            </Select>
+          ) : null}
           <Input
             className="form-grid__wide"
-            label="Kirjeldus"
-            placeholder="Näiteks: õppematerjalid või eksamitasu"
+            label={noSubject ? 'Makse selgitus (läheb arvele)' : 'Kirjeldus'}
+            placeholder={noSubject ? 'Näiteks: B1 eksami proovitest' : 'Näiteks: õppematerjalid või eksamitasu'}
             value={form.description}
             onChange={(event) => setForm({ ...form, description: event.target.value })}
             required
@@ -335,7 +357,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
           ) : null}
           {selectedStudent ? (
             <p className="form-hint form-grid__wide">
-              Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong>{subjectOf(selectedStudent) ? <> ({subjectOf(selectedStudent)})</> : null} ja lisatakse kohe arvete nimekirja.
+              Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong>{lineSubject ? <> ({lineSubject})</> : noSubject ? <> (ilma aineta)</> : null} ja lisatakse kohe arvete nimekirja.
             </p>
           ) : null}
           {payer ? (
@@ -366,7 +388,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             <div className="manual-invoice-paper__line">
               <span>Nimetus</span><span>Kogus</span><span>Summa</span>
               {allSubjects ? bothLines.map((line) => <Fragment key={line.card.id}><strong>{form.description.trim() || 'Arve kirjeldus'} · {subjectOf(line.card)}</strong><span>1</span><strong>{formatMoney(line.amount)}</strong></Fragment>)
-                : <><strong>{form.description.trim() || 'Arve kirjeldus'}{selectedStudent && subjectOf(selectedStudent) ? ` · ${subjectOf(selectedStudent)}` : ''}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong></>}
+                : <><strong>{form.description.trim() || (noSubject ? 'Makse selgitus' : 'Arve kirjeldus')}{lineSubject ? ` · ${lineSubject}` : ''}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong></>}
             </div>
             <div className="manual-invoice-paper__total"><span>{allSubjects ? `Kokku (${sameName.length} ainet)` : 'Summa tasumiseks'}</span><strong>{formatMoney(allSubjects ? bothTotal : form.amount)}</strong></div>
             <footer><span>Makseinfo lisatakse ettevõtte seadetest.</span><span>PDF luuakse pärast arve salvestamist.</span></footer>

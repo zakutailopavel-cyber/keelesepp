@@ -83,6 +83,8 @@ export const manualInvoiceApi = {
       note: values.note || '',
       requestId: values.requestId || financeRequestId('manual_invoice'),
       ...issuerOf(values.issuer),
+      // „Mille eest”: another subject than the card's, or „Muu” — no subject, the description alone
+      ...(values.noSubject ? { noSubject: true } : values.subject ? { subject: values.subject } : {}),
     });
   },
   // afterSending: the invoice was already e-mailed (wrong address, wrong invoice); the admin confirmed it

@@ -94,6 +94,36 @@ describe('ManualInvoiceDialog', () => {
     await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'a-en' })));
   });
 
+  it('bills the card\'s subject by default, another subject on choice, and „Muu” with the description alone', async () => {
+    api.create.mockClear();
+    api.create.mockResolvedValue({ invoice: { id: 'inv-3' } });
+    const cards = [
+      { id: 't-en', name: 'Timur Varik', subject: 'Inglise keel' },
+      { id: 'b', name: 'Anna', subject: 'Eesti keel' },
+      { id: 'c', name: 'Mark', subject: 'Matemaatika' },
+    ];
+    render(<ManualInvoiceDialog studentCards={cards} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: /Timur Varik/ });
+    expect(screen.queryByLabelText('Mille eest')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Timur Varik' } });
+    const choice = screen.getByLabelText('Mille eest');
+    expect([...choice.options].map((option) => option.textContent)).toEqual(['Inglise keel (õpilase aine)', 'Eesti keel', 'Matemaatika', 'Muu — kirjutan ise']);
+    fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Õppematerjalid' } });
+    expect(screen.getByText('Õppematerjalid · Inglise keel')).toBeInTheDocument();
+    fireEvent.change(choice, { target: { value: 'Eesti keel' } });
+    expect(screen.getByText('Õppematerjalid · Eesti keel')).toBeInTheDocument();
+
+    fireEvent.change(choice, { target: { value: '__other__' } });
+    fireEvent.change(screen.getByLabelText('Makse selgitus (läheb arvele)'), { target: { value: 'B1 eksami proovitest' } });
+    expect(screen.getByText('B1 eksami proovitest')).toBeInTheDocument();
+    expect(screen.queryByText(/proovitest · /)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Summa (€)'), { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    if (screen.queryByRole('alert')) fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 't-en', description: 'B1 eksami proovitest', noSubject: true, subject: '' })));
+  });
+
   it('makes ONE invoice with a line per subject for a student with two subjects', async () => {
     api.create.mockReset();
     api.createCombined = vi.fn(async () => ({ invoice: { id: 'inv-combined' } }));

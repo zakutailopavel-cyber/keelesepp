@@ -79,6 +79,21 @@ test('manualInvoiceRecord stores the full snapshot', () => {
   assert.equal(record.billingMode, 'manual_charge_v1');
 });
 
+test('a manual invoice takes the chosen subject, or none for „Muu”; without a choice the card\'s subject', () => {
+  const base = { studentId: 's1', description: 'B1 eksami proovitest', amount: 30, due: '2026-12-10' };
+  const student = { name: 'Timur Varik', subject: 'Inglise keel' };
+  const record = (values) => manualInvoiceRecord({ input: manualInvoiceInput(values), invoiceNum: 'KS-2026-700', nowIso: '2026-11-27T10:00:00Z', actor: 'admin', requestId: 'r', signature: 's', student });
+  assert.deepEqual(manualInvoiceInput(base), { studentId: 's1', description: 'B1 eksami proovitest', amountCents: 3000, amount: 30, due: '2026-12-10', note: '' });
+  assert.equal(record(base).subject, 'Inglise keel');
+  assert.equal('noSubject' in record(base), false);
+  assert.equal(record({ ...base, subject: ' Eesti keel ' }).subject, 'Eesti keel');
+  const other = record({ ...base, subject: 'Eesti keel', noSubject: true });
+  assert.equal(other.subject, '');
+  assert.equal(other.noSubject, true);
+  assert.equal(other.lines[0].description, 'B1 eksami proovitest');
+  assert.equal(record({ ...base, noSubject: 'yes' }).subject, 'Inglise keel');
+});
+
 test('createManualInvoice reads the linked parent account only when the card has no e-mail, and stores it', async () => {
   const api = rewire('./manual-invoice-api.js');
   const writes = [];
