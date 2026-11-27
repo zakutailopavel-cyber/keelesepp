@@ -40,3 +40,26 @@ describe('GroupRoom recording', () => {
     expect(await screen.findByText(/Salvestan \(1\)/)).toBeInTheDocument();
   });
 });
+
+describe('GroupRoom prepared worksheets (2026-11-27: Anna and Timur)', () => {
+  const invitations = [
+    { id: 'inv-mari', studentId: 's-mari', studentUid: 'u-mari', roomKey: 'room-1', status: 'accepted' },
+    { id: 'inv-jaan', studentId: 's-jaan', studentUid: 'u-jaan', roomKey: 'room-1', status: 'accepted' },
+  ];
+  const props = { roomId: 'room-1', user: { uid: 't1', displayName: 'Pavel' }, service, boardService: board, library: { list: async () => ({ curriculumLessons: [] }) }, callOptions: { turnService: null } };
+
+  it("moves each joined student's prepared sheets into that student's own lesson", async () => {
+    const homework = { adoptPreparedWorksheets: vi.fn(async () => 1) };
+    render(<GroupRoom {...props} role="teacher" invitations={invitations} homework={homework} />);
+    await waitFor(() => expect(homework.adoptPreparedWorksheets).toHaveBeenCalledTimes(2));
+    expect(homework.adoptPreparedWorksheets).toHaveBeenCalledWith({ studentId: 's-mari', fromKey: 'prep_s-mari', toKey: 'inv-mari' });
+    expect(homework.adoptPreparedWorksheets).toHaveBeenCalledWith({ studentId: 's-jaan', fromKey: 'prep_s-jaan', toKey: 'inv-jaan' });
+  });
+
+  it('a student in the group room moves nothing', async () => {
+    const homework = { adoptPreparedWorksheets: vi.fn(async () => 1) };
+    render(<GroupRoom {...props} role="student" invitations={invitations} myInvitation={invitations[0]} homework={homework} />);
+    await screen.findByRole('region', { name: 'Grupitund' });
+    expect(homework.adoptPreparedWorksheets).not.toHaveBeenCalled();
+  });
+});

@@ -1,4 +1,4 @@
-import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
+import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices, sheetRoomKey, groupPrepMoves, groupStudentSheetChoices } from './roomWorksheetChoices.js';
 
 const doc = { blocks: [{ id: 'b', type: 'text' }], meta: { title: 'Vana leht' } };
 
@@ -120,3 +120,43 @@ describe('worksheets for the lesson board', () => {
   });
 });
 
+
+describe('group lesson worksheets (2026-11-27: Anna and Timur)', () => {
+  const sheet = { blocks: [{ id: 'b', type: 'text' }] };
+
+  it("keeps each student's sheets in their own invitation, also in a group room", () => {
+    expect(sheetRoomKey({ id: 'inv-1', roomKey: 'inv-1' })).toBe('inv-1');
+    expect(sheetRoomKey({ id: 'DkzKazZIx5QNzqhjt83v', roomKey: 'group-room-1' })).toBe('DkzKazZIx5QNzqhjt83v');
+  });
+
+  it("moves every joined member's prepared sheets into that member's lesson", () => {
+    expect(groupPrepMoves([
+      { id: 'inv-anna', studentId: 'anna', roomKey: 'g1', status: 'accepted' },
+      { id: 'inv-timur', studentId: 'timur', roomKey: 'g1', status: 'accepted' },
+      { id: 'inv-mari', studentId: 'mari', roomKey: 'g1', status: 'pending' },
+      { id: 'inv-anna-2', studentId: 'anna', roomKey: 'g1', status: 'accepted' },
+    ])).toEqual([
+      { studentId: 'anna', fromKey: 'prep_anna', toKey: 'inv-anna' },
+      { studentId: 'timur', fromKey: 'prep_timur', toKey: 'inv-timur' },
+    ]);
+    expect(groupPrepMoves()).toEqual([]);
+  });
+
+  it("offers every member's unfinished sheets, each going into its owner's lesson", () => {
+    const choices = groupStudentSheetChoices([
+      { studentId: 'anna', studentName: 'Anna', roomKey: 'inv-anna', assignments: [
+        { id: 'a1', title: 'Perekond', status: 'new', worksheetDoc: sheet, liveRoomKey: 'prep_anna' },
+        { id: 'a2', title: 'Juba tahvlil', status: 'new', worksheetDoc: sheet, liveRoomKey: 'inv-anna' },
+        { id: 'a3', title: 'Valmis', status: 'done', worksheetDoc: sheet },
+      ] },
+      { studentId: 'timur', studentName: 'Timur', roomKey: 'inv-timur', assignments: [
+        { id: 't1', title: 'Perekond', status: 'new', worksheetDoc: sheet },
+      ] },
+    ]);
+    expect(choices.map((choice) => [choice.key, choice.assignmentId, choice.studentId, choice.roomKey])).toEqual([
+      ['anna:assignment:a1', 'a1', 'anna', 'inv-anna'],
+      ['timur:assignment:t1', 't1', 'timur', 'inv-timur'],
+    ]);
+    expect(filterChoices(choices, { query: 'timur' }).map((choice) => choice.assignmentId)).toEqual(['t1']);
+  });
+});

@@ -14,6 +14,20 @@ export const PHASES = [
 // the room key a worksheet carries while the teacher prepares the lesson before inviting (taken over by the room)
 export const prepRoomKey = (studentId) => `prep_${studentId}`;
 
+// The room key of one student's sheets in a lesson: the student's own invitation id. A 1:1 invitation's roomKey is its
+// own id; a group invitation's roomKey is the shared group room id, so in a group lesson each member's sheets stay in
+// that member's own lesson (owner 2026-11-27: Anna and Timur's prepared sheets did not come into the group lesson).
+export const sheetRoomKey = (invitation = {}) => invitation.id || invitation.roomKey || '';
+
+// Group lesson: the prepared sheets (`prep_<student>`) of every member who joined move into that member's lesson.
+export function groupPrepMoves(invitations = []) {
+  const seen = new Set();
+  return invitations
+    .filter((item) => item?.status === 'accepted' && item.studentId && item.id)
+    .filter((item) => (seen.has(item.studentId) ? false : seen.add(item.studentId)))
+    .map((item) => ({ studentId: item.studentId, fromKey: prepRoomKey(item.studentId), toKey: sheetRoomKey(item) }));
+}
+
 const norm = (value) => String(value || '').toLocaleLowerCase('et').normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 export function studentSheetChoices(assignments = [], roomKey = '') {
@@ -28,6 +42,20 @@ export function studentSheetChoices(assignments = [], roomKey = '') {
       level: item.level || '',
       search: norm(`${item.title} ${item.level} ${item.topic}`),
     }));
+}
+
+// Group lesson: the unfinished sheets of every member, each with the member it belongs to and that member's room key,
+// so the teacher can put any student's sheet on the board (it goes into that student's own lesson).
+// members: [{ studentId, studentName, roomKey, assignments }]
+export function groupStudentSheetChoices(members = []) {
+  return members.flatMap((member) => studentSheetChoices(member.assignments || [], member.roomKey || '').map((choice) => ({
+    ...choice,
+    key: `${member.studentId}:${choice.key}`,
+    studentId: member.studentId,
+    studentName: member.studentName || '',
+    roomKey: member.roomKey || '',
+    search: `${choice.search} ${norm(member.studentName)}`,
+  })));
 }
 
 // what a teacher may remember of a lesson besides its title: the topic, the grammar, the goal, the module's goal
