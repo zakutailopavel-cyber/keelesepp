@@ -1,3 +1,15 @@
+## 2026-11-27 — Kursused ja EHIS-e aruanne CRM-is (agent/ehis-training-courses)
+
+- Main kontrollitud: a23f9c1 (2026-11-27, release 05:29 UTC). Haru `agent/ehis-training-courses`, draft-PR „Kursused ja EHIS: course runs, certificates and the yearly EHIS figures”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-27: „надо сделать так чтобы мы могли хранить это все в нашей CRM системе … сразу визуально его сделай в нашем стиле и делай сразу”): kool on EHIS-es täienduskoolitusasutus (majandustegevusteade 261556 alates 22.02.2026, „Keeleõpe”) ja esitab 31. märtsiks eelmise aasta tegevusnäitajad; kursuste, õppijate, lõputestide ja tunnistuste andmed peavad olema CRM-is.
+- Tehtud: uus administraatori leht `/taienduskoolitus` („Kursused ja EHIS”, menüü „Inimesed”): kursus (õppekava, maht ak t, kuupäevad, koolitaja, grupp, seis), õppijad (osalus %, lõputest %, tunnistus või tõend jooksva numbriga), „Loe osalus tundidest” (loeb `lessons` märkeid, ei muuda neid), aasta näitajad lõppenud kursustest ja „Kopeeri aruanne”.
+- Failid: `crm-v2/src/features/training/*` (mudel, leht, CSS, testid), `services/firebase/trainingCourses.js` (+ `index.js`), `app/routes.jsx`, `app/accessPolicy.js` (+ test), `app/navigation.js`, `firestore.rules` (`trainingCourseValid`, `match /trainingCourses`), `functions/training-courses-rules-emulator.integration.js` (+ `functions/package.json` `test:emulator`), `docs/TRAINING_COURSES.md`, `ARCHITECTURE.md`.
+- Uus andmeobjekt: kollektsioon `trainingCourses` (ainult admin loeb ja kirjutab, kustutada ei saa). Olemasolevaid kollektsioone ei muudeta.
+- Kontrollid: `npx vitest run src/features/training src/app/accessPolicy.test.js` → 3 faili, 19 testi läbi; `npx eslint --quiet src/features/training src/services/firebase/trainingCourses.js src/app` puhas; `npx vite build` läbi. Brauseris (ajutine eelvaateleht näidisandmetega, 1300 px): nimekiri, näitajad, kursuse vorm, tõendi väljastamine numbriga 2026-016 ja tunnistuse pakkumine pärast lõputesti 72 %. Reeglite emulaatoritesti kohapeal EI käivitatud (masinas Java 8); see jookseb CI-s.
+- Riskid ja väravad: leht vajab enne release'i `firestore.rules` deploy'd (omaniku luba; `docs/DEPLOY_LEDGER.md`) — ilma selleta annab leht õiguste vea. Õppijate tulemused on isikuandmed: loeb ainult admin. Dokumendi number arvutatakse brauseris (kaks adminni samal ajal võiksid saada sama numbri).
+- Tegemata: tunnistuse PDF; isikukood / sünniaeg õpilase kaardil; kinnitatud õppekavade ja õppekorralduse dokumentide avaldamine veebilehel (mustandid on omaniku arvutis kaustades `ehis-oppekavad/` ja `tegevusluba-b1/`, repositooriumis neid ei ole); kirje „Mis uut” lehel.
+- Järgmine samm: omanik vaatab PR-i; pärast luba `firestore.rules` deploy, siis ühendamine ja release; seejärel sisestada 2026. aasta kursused.
+
 ## 2026-11-26 — Avaleht: „Vajab tähelepanu” ja „Täna” ühekõrgused (agent/home-equal-columns)
 
 - Main kontrollitud: 75ae303 (2026-11-26, release 14:44 UTC). Haru `agent/home-equal-columns`, PR „Home: Vajab tähelepanu and Täna are the same height”. Deploy'd ega production'i kirjutusi ei tehtud.

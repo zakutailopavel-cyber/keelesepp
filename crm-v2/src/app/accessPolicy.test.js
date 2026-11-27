@@ -6,18 +6,18 @@ import { ROLES } from '../utils/roles.js';
 const roleCases = [
   {
     role: ROLES.ADMIN,
-    allowed: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/settings', '/homework', '/messages', '/finance', '/finance/seaded', '/finance/vana', '/finance/payroll', '/finance/expenses'],
+    allowed: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/settings', '/homework', '/messages', '/finance', '/finance/seaded', '/finance/vana', '/finance/payroll', '/finance/expenses', '/taienduskoolitus'],
     denied: ['/parent', '/student'],
   },
   {
     role: ROLES.TEACHER,
     allowed: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/settings', '/homework', '/messages'],
-    denied: ['/teachers', '/finance', '/finance/payroll', '/finance/expenses', '/parent', '/student'],
+    denied: ['/teachers', '/finance', '/finance/payroll', '/finance/expenses', '/taienduskoolitus', '/parent', '/student'],
   },
   {
     role: ROLES.FINANCE,
     allowed: ['/', '/settings', '/finance', '/finance/seaded', '/finance/vana'],
-    denied: ['/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/homework', '/messages', '/finance/payroll', '/finance/expenses', '/parent', '/student'],
+    denied: ['/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/homework', '/messages', '/finance/payroll', '/finance/expenses', '/taienduskoolitus', '/parent', '/student'],
   },
   {
     role: ROLES.PARENT,

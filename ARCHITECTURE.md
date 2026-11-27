@@ -461,6 +461,14 @@ tokens follow the direction + format. One card may hold Eesti keel individually 
   - card merge (`student-card-merge-core groupPricesMerge`): the other card's group prices join the kept plan for the
     subjects it has none for; a different price for the same subject is a conflict (`group_price`, the kept one stays).
 
+### Continuing education courses and EHIS figures
+
+`/taienduskoolitus` („Kursused ja EHIS”, administrator only) keeps one `trainingCourses` document per run of a
+confirmed curriculum: volume in academic hours, dates, teacher and up to 40 participants with attendance, the final
+test and the numbered certificate or statement. Attendance can be read from the existing `lessons` marks (read only).
+The yearly EHIS activity indicators are computed in the browser from the finished courses of the chosen year and are
+never written back. Records are archived, not deleted. Contract: `docs/TRAINING_COURSES.md`.
+
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common

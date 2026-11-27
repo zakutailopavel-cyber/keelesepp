@@ -58,6 +58,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/messages': ACCESS.MESSAGES,
   '/messages/teated': ACCESS.ADMIN,
   '/kampaaniad': ACCESS.ADMIN,
+  '/taienduskoolitus': ACCESS.ADMIN,
   '/board': ACCESS.BOARD,
   '/board/:studentId': ACCESS.STAFF,
   '/leads': ACCESS.LEADS,
