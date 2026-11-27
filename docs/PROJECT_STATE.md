@@ -6,7 +6,8 @@
 - Tehtud: `agedDebt` jätab välja arve, mille `status` on „Makstud” ja mille kohta pole ühtegi makse kirjet (ka tühistatud kirje loeb kirjeks: siis otsustavad kirjed). Test `financial-analytics-core.test.js`.
 - Failid: `functions/financial-analytics-core.js`, `functions/financial-analytics-core.test.js`.
 - Kontrollid: `cd functions && npm test` → 684/684. Emulaatorit kohapeal ei käivitatud (jookseb CI-s). Production'i andmeid skriptiga ei loetud; arve seis on nähtud ainult CRM-i lehelt.
-- Riskid ja väravad: vajab `firebase deploy --only functions:financeApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`); kuni selleni näitab „Võlgade vanus” seda arvet edasi. Veebi release'i pole vaja. Eeldus: see arve on just selline (käsitsi „Makstud”, makse kirjeteta) — kui pärast deploy'd on see ikka nimekirjas, on põhjus muu ja tuleb arve kirje üle vaadata.
+- Deploy (omaniku „Да, выкладывай” 2026-11-27): `financeApi` 2026-11-27 21:35 UTC commit'ist `5d9d7a3`, „Deploy complete” (`docs/DEPLOY_LEDGER.md`).
+- Riskid ja väravad: vajas `firebase deploy --only functions:financeApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`); kuni selleni näitab „Võlgade vanus” seda arvet edasi. Veebi release'i pole vaja. Eeldus: see arve on just selline (käsitsi „Makstud”, makse kirjeteta) — kui pärast deploy'd on see ikka nimekirjas, on põhjus muu ja tuleb arve kirje üle vaadata.
 - Järgmine samm: omaniku luba → ühendamine → `financeApi` deploy → vaadata „Võlgade vanus” üle.
 
 ## 2026-11-27 — Kursused ja EHIS-e aruanne CRM-is (agent/ehis-training-courses)

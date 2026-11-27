@@ -37,6 +37,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 | Function | Last deployed | Commit |
 | --- | --- | --- |
 | manualInvoiceApi, invoiceApi, linkpayApi, sendInvoicePaymentReminders | 2026-11-27 20:45 | `38766a5` (#1362 „Lisa arve”: `subject` / `noSubject` in `/create`; PDF takes no card subject for a „Muu” invoice). Deployed from the PR branch = `a23f9c1` main + this PR, „Deploy complete” |
+| financeApi | 2026-11-27 21:35 | `5d9d7a3` (#1366 aged debt: an old invoice marked „Makstud” by hand, with no payment records, is not a debt). Deployed from the PR branch = `f332a57` main + this PR, „Deploy complete” |
 | financeApi | 2026-11-26 12:35 | `90b5160` (#1353 Minu kassa: õpetaja märgib saadud sularaha, `/cash/teacher-receipt`; `source: "teacher"` raamatupidamisest väljas) |
 | financeApi | 2026-11-19 ~15:0x | `05884e2` (#1285 `/accounting/entries/documents` — fail kandele) |
 | financeApi, invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders, syncLessonTokens, staffOperationsApi | 2026-11-18 13:2x | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp — group price, group packages, card merge) |
