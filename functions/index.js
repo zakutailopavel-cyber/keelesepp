@@ -4837,6 +4837,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
 // Cash box (owner 2026-10-18; functions/cash-core.js): any staff member records cash they took and hands it over;
 // an administrator links a receipt to an invoice (an ordinary payment with method „cash”) or voids an entry.
 const cashCore = require("./cash-core");
+const { invoiceEmailSendLocked } = require("./invoice-email-lock-core");
 
 function cashActor(actor) {
   return {
@@ -6252,7 +6253,8 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
   await db.runTransaction(async transaction => {
     const current = await transaction.get(invoice.ref);
     if (!current.exists || current.data().status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot be sent");
-    if (current.data().emailStatus === "sending") throw httpError(409, "Invoice email is already being sent");
+    // the mark expires after 10 minutes: a send that died half-way must not block the invoice for ever
+    if (invoiceEmailSendLocked(current.data(), nowIso)) throw httpError(409, "Invoice email is already being sent");
     transaction.update(invoice.ref, { emailStatus: "sending", emailUpdatedAt: nowIso, emailLastType: type });
   });
 

@@ -1,3 +1,11 @@
+## 2026-11-28 — Audit fix: the invoice e-mail „sending” mark expires after 10 minutes (agent/audit-invoice-email-lock)
+
+- Main checked: feaf08d (2026-11-27, #1367 merged). Branch `agent/audit-invoice-email-lock`, draft PR. **Not deployed**; no production writes.
+- Why (audit 2026-11-28): before sending, `functions/index.js` marks the invoice `emailStatus: "sending"`. If the function timed out or crashed between the mark and the result (a batch sends one by one), the mark stayed for ever: every later try answered 409 „Invoice email is already being sent” and the invoice counted as sent (`invoice-cancellation-core.js wasSent`).
+- Done: `functions/invoice-email-lock-core.js invoiceEmailSendLocked(invoice, nowIso)` — the mark blocks only for 10 minutes from `emailUpdatedAt` (longer than any function timeout); `index.js` uses it in the send transaction. Test `invoice-email-lock-core.test.js`.
+- Checks: `cd functions && npm test` → 687/687. Emulator tests not run locally (CI).
+- Risks and gates: needs a functions deploy (the functions that send invoice e-mails: `financeApi`, `staffOperationsApi`, the reminder schedule) — owner's permission, `docs/DEPLOY_LEDGER.md`. No web release needed. Invoices already stuck in „sending” in production (if any) become sendable again after the deploy; nothing is rewritten.
+- Next step: owner review → merge → functions deploy.
 ## 2026-11-28 — „Tulu ja prognoos”: selgem paigutus (agent/finance-overview-clear)
 
 - Main kontrollitud: 56a779e (2026-11-27, #1364; haru sellega ühendatud). Haru `agent/finance-overview-clear`, draft-PR „Tulu ja prognoos: one sentence, four numbers, bars and a work list”. Deploy'd ega production'i kirjutusi ei tehtud. Finantsi-PR-ide #1364 (nüüd main'is) ja #1365 (avatud) faile ei puudutatud.
