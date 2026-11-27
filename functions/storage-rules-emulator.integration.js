@@ -31,7 +31,13 @@ async function account(role) {
 }
 
 const auth = (who) => ({ Authorization: `Firebase ${who.token}` });
-const upload = async (who, path, type = 'image/png') => (await fetch(`http://${storageHost}/v0/b/${BUCKET}/o?name=${encodeURIComponent(path)}`, { method: 'POST', headers: { ...auth(who), 'Content-Type': type }, body: Buffer.from('emulator file') })).status;
+// a multipart upload, as the web SDK sends it: the metadata part carries the content type the rules look at
+const upload = async (who, path, type = 'image/png') => {
+  const boundary = 'emulatorboundary';
+  const body = [`--${boundary}`, 'Content-Type: application/json; charset=utf-8', '', JSON.stringify({ name: path, contentType: type }), `--${boundary}`, `Content-Type: ${type}`, '', 'emulator file', `--${boundary}--`, ''].join('\r\n');
+  const response = await fetch(`http://${storageHost}/v0/b/${BUCKET}/o?name=${encodeURIComponent(path)}`, { method: 'POST', headers: { ...auth(who), 'Content-Type': `multipart/related; boundary=${boundary}`, 'X-Goog-Upload-Protocol': 'multipart' }, body });
+  return response.status;
+};
 const read = async (who, path) => (await fetch(`http://${storageHost}/v0/b/${BUCKET}/o/${encodeURIComponent(path)}`, { headers: auth(who) })).status;
 
 test('student files: only the student\'s own teachers, the administrator and the student\'s account', async () => {
@@ -48,6 +54,7 @@ test('student files: only the student\'s own teachers, the administrator and the
   await admin.firestore().doc(`users/${learner.uid}`).set({ role: 'student', linkedStudentIds: [studentId] });
 
   // the ground first: the role lookup works (shared material), then the administrator on a student's folder
+  assert.equal(await upload(boss, 'eesti_soned.json', 'application/json'), 200, 'the role lookup works: the administrator writes the word list (no content check)');
   assert.equal(await upload(boss, 'curriculum/base-admin.png'), 200, 'the administrator adds course material');
   assert.equal(await upload(own, 'curriculum/base-teacher.png'), 200, 'a teacher adds course material');
   assert.equal(await upload(boss, `homework/${studentId}/by-admin.png`), 200, 'the administrator writes into a student folder');
