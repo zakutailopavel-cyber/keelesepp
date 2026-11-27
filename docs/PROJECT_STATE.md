@@ -6,7 +6,8 @@
 - Leping: `manualInvoiceApi POST /create` võtab valikulised `subject` (kuni 80 märki) ja `noSubject: true`. Ilma nendeta on tulemus ja `creationSignature` sama mis enne. Arve kirjel on `subject` (valitud aine või '') ja „Muu” korral `noSubject: true`; `invoice-document.js` ei võta siis ainet õpilase kaardilt.
 - Failid: `functions/manual-invoice-core.js`, `functions/invoice-document.js`, `functions/invoice-payer-core.test.js`, `crm-v2/src/features/finance/ManualInvoiceDialog.jsx` (+ test), `crm-v2/src/services/firebase/manualInvoiceApi.js`.
 - Kontrollid: `cd functions && npm test` → 683/683; `npx vitest run src/features/finance src/features/payments src/services/firebase` → 92 faili, 606 testi läbi; eslint muudetud failidel puhas. Brauseris (ajutine eelvaateleht näidiskaartidega): väli „Mille eest” nelja valikuga, „Muu” muudab sildi ja vihje („ilma aineta”). Päris arvet ei loodud; PDF-i „Muu” arvega käsitsi ei vaadatud (kaetud ainult koodireaga).
-- Riskid ja väravad: vajab `firebase deploy --only functions:manualInvoiceApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`) ENNE veebi release'i — vana funktsioon eirab uusi välju ja paneks arvele kaardi aine. „Muu” arvel pole ainet: ainepõhistes vaadetes on see aineta.
+- Deploy (omaniku „Да, выпускай” 2026-11-27): `manualInvoiceApi`, `invoiceApi`, `linkpayApi`, `sendInvoicePaymentReminders` 2026-11-27 20:45 UTC commit'ist `38766a5`, „Deploy complete” (`docs/DEPLOY_LEDGER.md`).
+- Riskid ja väravad: vajas `firebase deploy --only functions:manualInvoiceApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`) ENNE veebi release'i — vana funktsioon eirab uusi välju ja paneks arvele kaardi aine. „Muu” arvel pole ainet: ainepõhistes vaadetes on see aineta.
 - Järgmine samm: omaniku luba funktsiooni deploy'ks → ühendamine → release → üks „Muu” arve PDF üle vaadata.
 
 ## 2026-11-26 — Avaleht: „Vajab tähelepanu” ja „Täna” ühekõrgused (agent/home-equal-columns)
