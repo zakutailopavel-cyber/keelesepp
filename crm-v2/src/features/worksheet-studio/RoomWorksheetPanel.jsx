@@ -10,7 +10,7 @@ import { libraryService } from '../../services/firebase/library.js';
 import { publishedPhaseDoc } from './bookProgram.js';
 import RepeatAssignmentChoice from '../homework/RepeatAssignmentChoice.jsx';
 import { REPEAT_CHOICE } from '../homework/assignmentRepeats.js';
-import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
+import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, sheetRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 
 // the worksheet itself (every block's views and rules) downloads when a sheet is on the board, not with the room
 const DocWorksheetPlayer = lazyComponent(() => import('./DocWorksheetPlayer.jsx'));
@@ -219,7 +219,7 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
 // `showSheet`: false when the room shows the worksheet on the board and this panel only picks/announces it.
 // onSheetsChange: every worksheet of this room, newest first (the board shows each on its own page).
 export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, lessons = lessonsService, onCurrentChange, onSheetsChange, showSheet = true }) {
-  const roomKey = invitation.roomKey || invitation.id;
+  const roomKey = sheetRoomKey(invitation);
   const [items, setItems] = useState(null);
   const [error, setError] = useState('');
 

@@ -12,6 +12,8 @@ import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import { groupBoardService } from '../../services/firebase/studentBoard.js';
 import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { groupPrepMoves } from '../worksheet-studio/roomWorksheetChoices.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { fileKind } from './roomMaterials.js';
 import { useGroupCall } from './useGroupCall.js';
@@ -89,7 +91,7 @@ function GroupChat({ messages, me, closed, onSend }) {
 export default function GroupRoom({
   roomId, role, user, onLeave, onEnd, turnInvitationId = '', service = liveGroupRoomsService, boardService = groupBoardService,
   library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService, countdownService, pollService, boardCopies,
-  momentsService, deviceCheck,
+  momentsService, deviceCheck, homework = homeworkService,
 }) {
   const teacher = role === 'teacher';
   // no page reload during the lesson (staleBuild.js): it would drop the call
@@ -155,6 +157,15 @@ export default function GroupRoom({
   const hintMembers = members.map((member) => ({ studentId: member.studentId, name: member.studentName, invitationId: invitations.find((item) => item.studentId === member.studentId)?.id || '' }));
   const [deviceNoticeHidden, setDeviceNoticeHidden] = useState(false);
   const anyoneConnected = call.tiles.some((tile) => tile.stream);
+  // the sheets the teacher prepared for each member's next lesson (`prep_<student>`) come into that member's own lesson
+  // (key = his invitation id), as in a 1:1 room (owner 2026-11-27: Anna and Timur's sheets stayed in preparation)
+  const prepMoves = useMemo(() => (teacher ? groupPrepMoves(invitations) : []), [teacher, invitations]);
+  const prepMovesKey = prepMoves.map((move) => `${move.studentId}>${move.toKey}`).join('|');
+  useEffect(() => {
+    if (!prepMoves.length || !homework?.adoptPreparedWorksheets) return;
+    prepMoves.forEach((move) => { Promise.resolve().then(() => homework.adoptPreparedWorksheets(move)).catch(() => {}); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per joined member, not on every invitation tick
+  }, [homework, prepMovesKey]);
 
   const place = async (file) => {
     const kind = fileKind(file);

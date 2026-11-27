@@ -3,6 +3,7 @@ import { Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { Button, LoadingState } from '../../components/ui/index.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { libraryService } from '../../services/firebase/library.js';
+import { sheetRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
 import { WARMUP_MAX, pickWarmupItems, warmupWorksheet } from './warmup.js';
 import './warmup.css';
 
@@ -46,7 +47,7 @@ function WarmupEditor({ picked, invitation, user, student, library, homework, on
       const result = await library.assign({ item, students: [{ id: invitation.studentId, name: invitation.studentName || '' }], note: 'Live Classroom: soojendus', user });
       const assignmentId = result?.assignments?.[0]?.id;
       if (!assignmentId) throw new Error('Soojendust ei saanud tahvlile panna.');
-      await homework.openWorksheetInRoom({ assignmentId, roomKey: invitation.roomKey || invitation.id });
+      await homework.openWorksheetInRoom({ assignmentId, roomKey: sheetRoomKey(invitation) });
       setDone('Soojendus on tahvlil. „Näita vastust” avab õige lause ühe kaupa.');
       onPlaced?.(assignmentId);
     } catch (err) {

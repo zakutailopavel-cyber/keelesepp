@@ -30,6 +30,15 @@ function homeworkRepo() {
 }
 
 describe('RoomWorksheetPanel', () => {
+  it("a group invitation keeps the student's sheets in the student's own lesson (its id), not the shared room", async () => {
+    const homework = { ...homeworkRepo(), adoptPreparedWorksheets: vi.fn().mockResolvedValue(0), listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([]) };
+    const library = { list: vi.fn().mockResolvedValue({ curriculumLessons: [] }), assign: vi.fn() };
+    render(<MemoryRouter><RoomWorksheetPanel invitation={{ ...invitation, id: 'inv-anna', roomKey: 'group-1', studentId: 'anna' }} role="teacher" user={user} homework={homework} library={library} lessonWorksheets={{ list: vi.fn() }} /></MemoryRouter>);
+    expect(homework.subscribeRoomWorksheets).toHaveBeenCalledWith({ studentId: 'anna', roomKey: 'inv-anna' }, expect.any(Function), expect.any(Function));
+    expect(homework.adoptPreparedWorksheets).toHaveBeenCalledWith({ studentId: 'anna', fromKey: 'prep_anna', toKey: 'inv-anna' });
+    await screen.findByText(/Õppekava/);
+  });
+
   it('lets the teacher search the curriculum and the student\'s own sheets and put them on the board', async () => {
     const homework = { ...homeworkRepo(), adoptPreparedWorksheets: vi.fn().mockResolvedValue(0), listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([
       { id: 'own-1', studentId: 'st-1', title: 'Isiklik: perekond', status: 'new', worksheetDoc, source: 'student_private_worksheet' },
