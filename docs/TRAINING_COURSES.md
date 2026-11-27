@@ -22,8 +22,9 @@ tegevusnäitajad (täiskasvanute koolituse seadus § 8 lg 4). Andmed peavad olem
 
 ## Andmed
 
-Kollektsioon `trainingCourses` (`firestore.rules` → `trainingCourseValid`): loeb, loob ja muudab ainult
-administraator; autor ja loomise aeg ei muutu; kustutada ei saa (arhiiv). Väljad: `title`, `curriculum`,
+Kollektsioon `trainingCourses` (`firestore.rules`): loeb, loob ja muudab ainult administraator; kustutada ei saa
+(arhiiv). Reegel on üherealine, sest kompileeritud reeglid on Firestore'i 256 kB piiril; väljad kontrollib klient
+(`validateCourse`, `recordOf`). Väljad: `title`, `curriculum`,
 `curriculumName`, `contactHours`, `independentHours`, `startDate`, `endDate`, `teacherName`, `groupId`, `status`,
 `participants[]` (kuni 40: `studentId`, `name`, `startedOn`, `attendancePct`, `finalTestPct`, `document`,
 `documentNumber`, `documentDate`; protsent −1 = teadmata), `notes`, `createdAt`, `createdByUid`, `createdByName`,

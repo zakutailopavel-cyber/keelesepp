@@ -3456,33 +3456,10 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if false;
     }
-    // „Täienduskoolitus (EHIS)” (owner 2026-11-27): course runs of the confirmed curricula with their participants and
-    // numbered certificates; the yearly EHIS activity indicators are counted from them. Administrator only (personal
-    // results of learners); archived, never deleted.
-    function trainingCourseValid(data) {
-      return data.keys().hasOnly(['title', 'curriculum', 'curriculumName', 'contactHours', 'independentHours', 'startDate', 'endDate',
-          'teacherName', 'groupId', 'status', 'participants', 'notes', 'createdAt', 'createdByUid', 'createdByName', 'updatedAt'])
-        && data.title is string && data.title.size() > 0 && data.title.size() <= 120
-        && data.curriculum in ['A2', 'B1', 'B2', 'C1', 'other']
-        && data.curriculumName is string && data.curriculumName.size() > 0 && data.curriculumName.size() <= 200
-        && data.contactHours is int && data.contactHours > 0 && data.contactHours <= 2000
-        && data.independentHours is int && data.independentHours >= 0 && data.independentHours <= 2000
-        && data.startDate is string && data.startDate.size() == 10
-        && data.endDate is string && data.endDate.size() <= 10
-        && data.teacherName is string && data.teacherName.size() <= 120
-        && data.groupId is string && data.groupId.size() <= 128
-        && data.status in ['active', 'finished', 'archived']
-        && data.participants is list && data.participants.size() <= 40
-        && data.notes is string && data.notes.size() <= 2000
-        && data.createdAt is string && data.createdByUid is string && data.createdByName is string && data.updatedAt is string;
-    }
+    // „Kursused ja EHIS” (owner 2026-11-27): course runs, participants' results and numbered certificates. Admin only;
+    // no delete. Kept to one line: the compiled rules are at Firestore's 256 kB limit; the client validates the fields.
     match /trainingCourses/{courseId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin() && trainingCourseValid(request.resource.data) && request.resource.data.createdByUid == uid();
-      allow update: if isAdmin() && trainingCourseValid(request.resource.data)
-        && request.resource.data.createdByUid == resource.data.createdByUid
-        && request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if false;
+      allow read, create, update: if isAdmin();
     }
     match /plannerBatches/{batchId} {
       allow read: if isAdmin();

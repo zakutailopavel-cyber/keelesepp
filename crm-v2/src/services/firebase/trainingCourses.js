@@ -2,7 +2,7 @@ import { collection, doc, getDocs, query, setDoc, updateDoc, where } from 'fireb
 import { requireFirebaseClient } from './client.js';
 import { normalizeCourse, recordOf, validateCourse } from '../../features/training/trainingModel.js';
 
-// „Täienduskoolitus (EHIS)” (admin only, firestore.rules trainingCourseValid): course runs, participants and the
+// „Täienduskoolitus (EHIS)” (admin only by firestore.rules; the fields are validated here): course runs, participants and the
 // register of numbered certificates; archived, never deleted
 const adminOnly = (user, message) => { if (!user?.roles?.includes('admin')) throw new Error(message); };
 const chunks = (values, size) => Array.from({ length: Math.ceil(values.length / size) }, (_, index) => values.slice(index * size, (index + 1) * size));

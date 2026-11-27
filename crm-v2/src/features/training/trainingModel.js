@@ -74,7 +74,7 @@ export function normalizeCourse(id, data = {}) {
   };
 }
 
-// the stored fields (firestore.rules trainingCourseValid); the service adds createdAt / createdBy* / updatedAt
+// the stored fields (the rules do not validate them: 256 kB limit); the service adds createdAt / createdBy* / updatedAt
 export function recordOf(course) {
   const { id: _id, createdAt: _createdAt, createdByUid: _uid, createdByName: _name, updatedAt: _updatedAt, ...value } = normalizeCourse('', course);
   return value;

@@ -1,6 +1,6 @@
 'use strict';
-// „Täienduskoolitus (EHIS)” (trainingCourses) against the real Firestore rules: only the administrator creates (fixed
-// keys, own uid, valid curriculum, hours and status), reads and updates (author and creation time kept); nobody deletes.
+// „Täienduskoolitus (EHIS)” (trainingCourses) against the real Firestore rules: only the administrator creates, reads and
+// updates; nobody deletes. The fields are validated by the client: the compiled rules are at Firestore's 256 kB limit.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const admin = require('firebase-admin');
@@ -56,19 +56,12 @@ test('trainingCourses: only the administrator creates, reads and updates; never 
 
   assert.equal(await put(teacher, `${id}-t`, course(teacher.uid)), 403, 'teacher cannot create');
   assert.equal(await put(learner, `${id}-s`, course(learner.uid)), 403, 'student cannot create');
-  assert.equal(await put(boss, `${id}-u`, course(teacher.uid)), 403, 'author is the writer');
-  assert.equal(await put(boss, `${id}-k`, course(boss.uid, { secret: 'x' })), 403, 'fixed keys');
-  assert.equal(await put(boss, `${id}-n`, course(boss.uid, { title: '' })), 403, 'a title');
-  assert.equal(await put(boss, `${id}-c`, course(boss.uid, { curriculum: 'Z9' })), 403, 'known curriculum');
-  assert.equal(await put(boss, `${id}-h`, course(boss.uid, { contactHours: 0 })), 403, 'contact hours');
-  assert.equal(await put(boss, `${id}-st`, course(boss.uid, { status: 'deleted' })), 403, 'known status');
   assert.equal(await put(boss, id, course(boss.uid)), 200, 'admin creates');
   assert.equal(await get(boss, id), 200, 'admin reads');
   assert.equal(await get(teacher, id), 403, 'teacher does not read');
   assert.equal(await get(bookkeeper, id), 403, 'bookkeeper does not read');
   assert.equal(await get(learner, id), 403, 'student does not read');
   assert.equal(await put(boss, id, course(boss.uid, { status: 'finished', endDate: '2026-11-20' })), 200, 'admin updates');
-  assert.equal(await put(boss, id, course(boss.uid, { createdAt: '2020-01-01' })), 403, 'creation time kept');
   assert.equal(await put(teacher, id, course(boss.uid, { status: 'archived' })), 403, 'teacher cannot update');
   assert.equal(await del(boss, id), 403, 'never deleted');
 });
