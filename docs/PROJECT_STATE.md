@@ -1,3 +1,14 @@
+## 2026-11-27 — Võlgade vanus: käsitsi „Makstud” vana arve ei ole võlg (agent/aged-debt-paid-by-hand)
+
+- Main kontrollitud: f332a57 (2026-11-27, release 21:17 UTC). Haru `agent/aged-debt-paid-by-hand`, draft-PR „Aged debt: an old invoice marked paid by hand is not a debt”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-27, ekraanipilt „Raha liikumine → Võlgade vanus”): üks juunikuu arve oli seal „154 p üle”, kuigi arvete nimekirjas on see „Makstud”, jääk 0. Arvet ei kustutatud ega muudetud.
+- Põhjus: `functions/financial-analytics-core.js agedDebt` arvutab jäägi ainult makse kirjetest. Vana arve, mis on käsitsi märgitud „Makstud” ja millel pole ühtegi makse kirjet, jäi võlaks. Arvete nimekiri loeb sellise arve makstuks (`crm-v2 financeRows.js legacyPaid`), teavitused samuti (`staff-operations-core.js`: `status === "Makstud"`).
+- Tehtud: `agedDebt` jätab välja arve, mille `status` on „Makstud” ja mille kohta pole ühtegi makse kirjet (ka tühistatud kirje loeb kirjeks: siis otsustavad kirjed). Test `financial-analytics-core.test.js`.
+- Failid: `functions/financial-analytics-core.js`, `functions/financial-analytics-core.test.js`.
+- Kontrollid: `cd functions && npm test` → 684/684. Emulaatorit kohapeal ei käivitatud (jookseb CI-s). Production'i andmeid skriptiga ei loetud; arve seis on nähtud ainult CRM-i lehelt.
+- Riskid ja väravad: vajab `firebase deploy --only functions:financeApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`); kuni selleni näitab „Võlgade vanus” seda arvet edasi. Veebi release'i pole vaja. Eeldus: see arve on just selline (käsitsi „Makstud”, makse kirjeteta) — kui pärast deploy'd on see ikka nimekirjas, on põhjus muu ja tuleb arve kirje üle vaadata.
+- Järgmine samm: omaniku luba → ühendamine → `financeApi` deploy → vaadata „Võlgade vanus” üle.
+
 ## 2026-11-27 — Kursused ja EHIS-e aruanne CRM-is (agent/ehis-training-courses)
 
 - Main kontrollitud: a23f9c1 (2026-11-27, release 05:29 UTC). Haru `agent/ehis-training-courses`, draft-PR „Kursused ja EHIS: course runs, certificates and the yearly EHIS figures”. Deploy'd ega production'i kirjutusi ei tehtud.

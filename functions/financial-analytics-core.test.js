@@ -27,6 +27,21 @@ test("analytics separates cash flow, accrual margin, forecast, and aged debt", (
   assert.equal(snapshot.breakdown.subjects[0].amountCents, 10000);
 });
 
+test("aged debt leaves out an old invoice marked paid by hand, with no payment records", () => {
+  const { agedDebt } = require("./financial-analytics-core");
+  const invoices = [
+    { id: "old", num: "KS-1", date: "2026-06-12", due: "2026-06-26", amountCents: 6000, status: "Makstud", studentName: "Mari" },
+    { id: "open", num: "KS-2", date: "2026-11-01", due: "2026-11-15", amountCents: 11000, status: "Ootel", studentName: "Jaan" },
+    { id: "part", num: "KS-3", date: "2026-11-02", due: "2026-11-10", amountCents: 8000, status: "Makstud", studentName: "Liis" },
+  ];
+  // "part" says Makstud but its only payment record is voided: the records decide, it is still owed
+  const payments = [{ id: "p1", invoiceId: "part", paidAt: "2026-11-05", amountCents: 8000, status: "voided" }];
+  const result = agedDebt({ invoices, payments }, "2026-11-27");
+  assert.deepEqual(result.rows.map(row => row.number).sort(), ["KS-2", "KS-3"]);
+  assert.equal(result.balanceCents, 19000);
+  assert.equal(result.buckets.find(item => item.id === "days_61_plus").invoiceCount, 0);
+});
+
 test("analytics avoids double-counting bank-linked and credit-sourced payments", () => {
   const snapshot = financialAnalyticsSnapshot({
     month: "2026-07",
