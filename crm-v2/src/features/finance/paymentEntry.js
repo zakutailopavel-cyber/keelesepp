@@ -1,3 +1,4 @@
+import { tallinnToday } from '../accounting/accountingPeriod.js';
 // The date of a payment typed in by hand (October 2026 accounting audit): the receipt is booked on this date
 // (functions/accounting-core.js), so a backlog payment entered weeks later with the default „today” landed in the
 // wrong month. The field stays editable; these checks only warn and show what is known about the invoice.
@@ -25,7 +26,7 @@ export function earlierPaymentDate(invoice = {}, payments = []) {
   return dates.at(-1) || '';
 }
 
-export function paymentDateCheck({ invoice = {}, payments = [], paidAt = '', method = 'bank', today = new Date().toISOString().slice(0, 10) } = {}) {
+export function paymentDateCheck({ invoice = {}, payments = [], paidAt = '', method = 'bank', today = tallinnToday() } = {}) {
   const dueDate = isoDay(invoice.due || invoice.dueDate);
   const earlier = earlierPaymentDate(invoice, payments);
   const facts = [

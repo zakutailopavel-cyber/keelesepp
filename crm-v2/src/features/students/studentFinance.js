@@ -3,7 +3,26 @@ function finiteNumber(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
+// One rule for "how much of this invoice is still owed" (audit 2026-11-28): the invoice list (finance/financeRows.js),
+// the home page, the student card, the parent page, the bell and bank matching all read it from here.
+export function invoiceIsCancelled(invoice = {}) {
+  return invoice.status === 'Tühistatud' || invoice.status === 'cancelled';
+}
+
+export function invoiceIsCredited(invoice = {}) {
+  return invoice.credited === true || invoice.status === 'credited' || invoice.status === 'Krediteeritud' ||
+    invoice.paymentStatus === 'credited' || invoice.correctionStatus === 'fully_credited' ||
+    invoice.type === 'credit-note' || invoice.kind === 'credit-note';
+}
+
+// an old invoice marked „Makstud” by hand (no payment records, no paid amount) is paid in full
+export function invoiceIsLegacyPaid(invoice = {}) {
+  return invoice.status === 'Makstud' && !Array.isArray(invoice.payments) &&
+    invoice.paidAmountCents === undefined && invoice.paidAmount === undefined;
+}
+
 export function invoiceBalanceCents(invoice = {}) {
+  if (invoiceIsCancelled(invoice) || invoiceIsCredited(invoice) || invoiceIsLegacyPaid(invoice)) return 0;
   if (Number.isFinite(Number(invoice.balanceDueCents))) return Math.max(0, Number(invoice.balanceDueCents));
   if (Number.isFinite(Number(invoice.amountCents))) {
     return Math.max(0, Number(invoice.amountCents) - finiteNumber(invoice.paidAmountCents));
