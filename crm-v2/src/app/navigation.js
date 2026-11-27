@@ -1,4 +1,4 @@
-import { Award, Dumbbell, BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HandCoins, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
+import { Award, ClipboardCheck, Dumbbell, BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HandCoins, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -26,6 +26,8 @@ export const navigation = [
   { to: '/kampaaniad', label: 'Kampaaniad', icon: Megaphone, roles: ACCESS.ADMIN, group: 'Suhtlus ja raha' },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
   { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
+  // „Kuu võrdlus” (owner 2026-11-26): is the month's money in? — admin only
+  { to: '/kuu-vordlus', label: 'Kuu võrdlus', icon: ClipboardCheck, roles: ACCESS.ADMIN, group: 'Suhtlus ja raha' },
   // „Minu kassa”: every teacher (AppShell `onlyWith`; since 2026-11-26 the teacher records cash there too); an admin has Kassa
   { to: '/kassa/minu', label: 'Minu kassa', icon: HandCoins, roles: ACCESS.STAFF, group: 'Suhtlus ja raha', onlyWith: 'myCash' },
 ];
