@@ -47,6 +47,11 @@ test('student files: only the student\'s own teachers, the administrator and the
   await admin.firestore().doc(`students/${studentId}`).set({ name: 'Storage Student', teacherUid: own.uid, teacherUids: [own.uid, second.uid], linkedUserId: learner.uid, studentUid: learner.uid });
   await admin.firestore().doc(`users/${learner.uid}`).set({ role: 'student', linkedStudentIds: [studentId] });
 
+  // the ground first: the role lookup works (shared material), then the administrator on a student's folder
+  assert.equal(await upload(boss, 'curriculum/base-admin.png'), 200, 'the administrator adds course material');
+  assert.equal(await upload(own, 'curriculum/base-teacher.png'), 200, 'a teacher adds course material');
+  assert.equal(await upload(boss, `homework/${studentId}/by-admin.png`), 200, 'the administrator writes into a student folder');
+
   for (const folder of [`homework/${studentId}`, `lessons/${studentId}`, `student-worksheets/${studentId}`, `whiteboards/${studentId}/materials`]) {
     const path = `${folder}/file.png`;
     assert.equal(await upload(other, path), 403, `${folder}: another teacher does not write`);
