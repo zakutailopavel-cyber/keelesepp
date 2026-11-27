@@ -1,0 +1,18 @@
+/* FIE invoices panel (owner 2026-11-27: „визуал недоделан”): the totals as tiles, a real table, real buttons */
+.fie-panel { display: grid; gap: 16px; }
+.fie-panel .section-heading { margin: 0; }
+.fie-panel__totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0; }
+.fie-panel__totals > div { padding: 12px 14px; border-radius: var(--radius-lg); background: #f3f7f5;background:light-dark(#f3f7f5,#171c22); }
+.fie-panel__totals dt { font-size: .8rem; font-weight: 700; color: var(--gray-700); }
+.fie-panel__totals dd { margin: 4px 0 0; font: 700 1.3rem/1.2 Manrope, 'DM Sans', sans-serif; color: #123f37;color:light-dark(#123f37,#bfd3ce); font-variant-numeric: tabular-nums; }
+.fie-panel .table-wrap { overflow-x: auto; }
+.fie-panel .table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.fie-panel .table th { padding: 10px 12px; text-align: left; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--gray-500); background: #f6f8f7;background:light-dark(#f6f8f7,#171c22); white-space: nowrap; }
+.fie-panel .table td { padding: 12px; border-top: 1px solid #eef2f0;border-top:1px solid light-dark(#eef2f0,#2e353c); vertical-align: middle; font-variant-numeric: tabular-nums; }
+.fie-panel .table th:nth-child(n+4):nth-child(-n+6), .fie-panel .table td:nth-child(n+4):nth-child(-n+6) { text-align: right; white-space: nowrap; }
+.fie-panel .table td:first-child { font-weight: 700; white-space: nowrap; }
+.fie-panel__sent { display: inline-block; margin-left: 8px; color: var(--gray-500); font-size: .78rem; white-space: nowrap; }
+.fie-panel__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.fie-panel .link-button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); background: var(--surface); color: inherit; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.fie-panel .link-button:hover:not(:disabled) { border-color: #93c6b2;border-color:light-dark(#93c6b2,#2a5a4a); }
+.fie-panel .link-button:disabled { opacity: .55; cursor: default; }
