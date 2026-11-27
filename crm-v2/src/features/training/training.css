@@ -1,0 +1,33 @@
+.tr-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 18px; padding: 14px; box-shadow: none; }
+.tr-toolbar .field { min-width: 150px; }
+.tr-toolbar .form-hint { flex: 1 1 260px; margin: 0 0 10px; }
+.tr-buckets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: 18px 0; padding: 12px 16px; box-shadow: none; font-size: .86rem; color: var(--gray-700); }
+.tr-buckets strong { color: #123f37;color:light-dark(#123f37,#bfd3ce); }
+.tr-buckets b { font-weight: 700; }
+.tr-table td > span:not(.badge) { display: block; color: var(--gray-500); font-size: .78rem; }
+.students-table.tr-table td .badge { display: inline-flex; width: auto; margin: 2px 6px 2px 0; font-size: .76rem; }
+.tr-open { display: grid; gap: 2px; text-align: left; border: 0; background: none; padding: 0; font: inherit; cursor: pointer; color: #123f37;color:light-dark(#123f37,#bfd3ce); }
+.tr-open span { color: var(--gray-500); font-size: .8rem; }
+.tr-open:hover strong { text-decoration: underline; }
+.tr-editor form { display: grid; gap: 12px; }
+.tr-editor__head { display: flex; align-items: center; justify-content: flex-start; gap: 12px; }
+.tr-editor__head h2 { margin: 0; }
+.tr-editor h3 { margin: 8px 0 0; font-size: 1rem; color: #123f37;color:light-dark(#123f37,#bfd3ce); }
+.tr-editor h3 small { font-weight: 400; color: var(--gray-500); font-size: .8rem; }
+.tr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.tr-table .field__input { min-width: 0; width: 100%; min-height: 38px; padding: 0 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); background: var(--surface); color: inherit; font: inherit; }
+.tr-table .tr-percent { width: 76px; }
+.tr-document { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.students-table.tr-table td .tr-document { display: inline-flex; }
+.students-table.tr-table td .tr-document small { display: inline; }
+.tr-document small, .tr-muted { color: var(--gray-500); font-size: .78rem; }
+.tr-link { border: 0; background: none; padding: 0; font: inherit; font-size: .78rem; color: var(--gray-700); text-decoration: underline; cursor: pointer; }
+.tr-icon { border: 1px solid var(--gray-300); background: var(--surface); border-radius: var(--radius-md); padding: 6px 8px; cursor: pointer; display: inline-flex; }
+.tr-add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.tr-add .field { flex: 1 1 220px; max-width: 320px; }
+.tr-text { display: grid; gap: 4px; font-size: .82rem; font-weight: 700; color: var(--gray-700); }
+.tr-text textarea { font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); resize: vertical; }
+.tr-actions { display: flex; gap: 8px; }
+@media (max-width: 640px) { .tr-toolbar .form-hint { margin: 0; } .tr-table .tr-percent { width: 60px; } }
+/* the app has no global warning badge tone (see cash/myCash.css): give it one on this page */
+.training-page .badge--warning { background: var(--warning-soft); color: var(--warning-text); }

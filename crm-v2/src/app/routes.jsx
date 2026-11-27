@@ -61,6 +61,7 @@ const TeacherLoadPage = lazyComponent(() => import('../features/teachers/Teacher
 const TrashPage = lazyComponent(() => import('../features/trash/TrashPage.jsx'));
 const AnnouncementsAdminPage = lazyComponent(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
 const CampaignsPage = lazyComponent(() => import('../features/campaigns/CampaignsPage.jsx'));
+const TrainingPage = lazyComponent(() => import('../features/training/TrainingPage.jsx'));
 // „Minu areng”: the course and all results load only when the student opens them, not with his home page
 const StudentProgressPage = lazyComponent(() => import('../features/students/StudentProgressPage.jsx'));
 const LiveObserverPage = lazyComponent(() => import('../features/live-classroom/LiveObserverPage.jsx'));
@@ -164,6 +165,7 @@ export default function AppRoutes() {
             <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
             {/* „Kampaaniad” (owner 2026-10-27): offers, ad campaigns and events prepared here, posted by hand */}
             <Route path="kampaaniad" element={staffPage(<CampaignsPage />)} />
+            <Route path="taienduskoolitus" element={staffPage(<TrainingPage />)} />
             {/* the ChatGPT plugin „KeeleSepp AI” asks the administrator for access (OAuth, functions/keelesepp-ai-mcp.js) */}
             <Route path="ai/connect" element={staffPage(<AiConnectPage />)} />
           </Route>

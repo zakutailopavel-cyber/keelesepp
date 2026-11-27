@@ -3456,6 +3456,11 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if false;
     }
+    // „Kursused ja EHIS” (owner 2026-11-27): course runs, participants' results and numbered certificates. Admin only;
+    // no delete. Kept to one line: the compiled rules are at Firestore's 256 kB limit; the client validates the fields.
+    match /trainingCourses/{courseId} {
+      allow read, create, update: if isAdmin();
+    }
     match /plannerBatches/{batchId} {
       allow read: if isAdmin();
       allow create: if isAdmin()
@@ -4270,12 +4275,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Cloud lesson content is accessed only through the authenticated trusted API.
-    match /interactiveAssignments/{assignmentId} { allow read, write: if false; }
-    match /lessonDrafts/{id} { allow read, write: if false; }
-    match /lessonVersions/{id} { allow read, write: if false; }
-    match /publishedLessons/{id} { allow read, write: if false; }
-
+    // Cloud lesson content (interactiveAssignments, lessonDrafts, lessonVersions, publishedLessons) is accessed only
+    // through the authenticated trusted API: no rule names them, so the deny below applies (their explicit „if false”
+    // lines were dropped 2026-11-27, owner OK, to keep the compiled rules under Firestore's 256 kB limit).
     match /{document=**} {
       allow read, write: if false;
     }
