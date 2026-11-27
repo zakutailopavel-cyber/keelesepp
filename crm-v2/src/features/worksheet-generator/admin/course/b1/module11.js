@@ -160,7 +160,7 @@ export const LESSONS = withShapes({
         'Kuues lõik: „ilma tšekita ei saa kaupa tagastada ega vahetada”.',
         'Kuues lõik: „Kasutamata kauba võib tagastada 30 päeva jooksul.”',
       ]), 'Enne kui sa ise poes ostad, loed, mis on soodushinnaga ja mis tingimustel.'), { task: 'R07' }),
-      teach(tag(purpose(B.speaking('051_d_ask', 'Mis on soodsam? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('051_d_ask', 'Mis on soodsam? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega. Siis vahetage.', [
         'Kui palju maksab talvejope sel nädalal? Arvutage koos.',
         'Mis on poole hinnaga ja millel soodustust ei ole?',
         'Kas sina ostad sel nädalal Kodupoest midagi? Mida ja miks?',
@@ -397,7 +397,7 @@ export const LESSONS = withShapes({
         'Tarmo: „Vahul viis aastat.”',
         'Tarmo: „Vahu tuleb alles kahe nädala pärast.”',
       ]), 'Enne kui sa ise nõu annad, kuuled, kuidas müüja kahte masinat võrdleb. Eksamil (Harno B1 kuulamine 3b) on sama ülesanne.'), { task: 'L04' }),
-      teach(tag(purpose(B.speaking('052_d_retell', 'Kumb on parem? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('052_d_retell', 'Kumb on parem? Küsi paariliselt.', 'Küsi paariliselt kõne järgi. B vastab terve lausega. Siis vahetage.', [
         'Mille poolest on Vahu Lainest parem?',
         'Miks võiks klient ikkagi Laine valida?',
         'Kumma sina valid ja miks?',
@@ -706,7 +706,7 @@ export const LESSONS = withShapes({
         'kehtima | ',
       ], 'g_notice'), 'Leiad tekstist ise vormi, mida kaebuses vajad: nii jääb reegel paremini meelde.'), { task: 'G02' }),
       'Õpilane otsib pärast lugemist tekstist kuus kesksõna (3 min) ja ütleb siis ise reegli: mis on tehtud → -tud / -dud; mis kehtib praegu → -v. Üks-ühele: õpilane leiab, sina küsid „Kas see sõna muutub?”.'),
-      teach(tag(purpose(B.speaking('053_d_retell', 'Mida teha? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('053_d_retell', 'Mida teha? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega. Siis vahetage.', [
         'Mida tuleb teha, kui tellitud jope suurus on vale?',
         'Kes maksab saatmise eest ja miks?',
         'Kas need tingimused on sinu arvates head? Miks?',

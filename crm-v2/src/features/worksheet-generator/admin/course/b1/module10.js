@@ -159,7 +159,7 @@ export const LESSONS = withShapes({
         'Teenindaja: „Ratta saab panna bussi pagasiruumi, kui seal on ruumi.”',
         'Teenindaja: „Viimane buss väljub Pärnust tagasi kell kümme õhtul.”',
       ]), 'Enne kui sa ise sõiduinfot annad, kuuled, kuidas reisiinfo töötaja ütleb, kust ja kuhu sõidetakse. Eksamil (Harno B1 kuulamine 3b) on sama ülesanne.'), { task: 'L04', harno: 'L3b' }),
-      teach(tag(purpose(B.speaking('046_d_retell', 'Kuidas sinna saab? Küsi paarilisel.', 'Küsi paarilisel kõnede järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('046_d_retell', 'Kuidas sinna saab? Küsi paariliselt.', 'Küsi paariliselt kõnede järgi. B vastab terve lausega. Siis vahetage.', [
         'Kust ja mis kell väljub otserong? Mis kell see Tartusse jõuab?',
         'Miks Merle bussi ei olnud ja kust väljub asendusbuss?',
         'Millega sina kõige meelsamini teise linna sõidad? Miks?',
@@ -494,7 +494,7 @@ export const LESSONS = withShapes({
         'Viies lõik: „Auto on hea, kui sõidab neli inimest”.',
         'Viimane lõik: „pigem buss, kui raha on vähe”.',
       ]), 'Enne kui sa ise valid, loed, mis on iga reisiviisi pluss ja miinus.'), { task: 'R15' }),
-      teach(tag(purpose(B.speaking('047_d_retell', 'Pluss ja miinus. Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('047_d_retell', 'Pluss ja miinus. Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega. Siis vahetage.', [
         'Mis on bussi pluss ja mis on miinus?',
         'Miks valib keegi rongi, kuigi see on aeglasem?',
         'Kas lennuk on sinu arvates Riiga sõiduks hea mõte? Miks?',
@@ -769,7 +769,7 @@ export const LESSONS = withShapes({
         'Tiit: „üks talu pakkus meile ööbimiseks väikest saunamaja” — mitte hotell.',
         'Tiit: „matkarada, mida me kaardil polnud näinud”.',
       ]), 'Enne kui sa ise jutustad, kuuled, kuidas üks reisilugu räägib, mis juhtus enne ja mis pärast. Eksamil (Harno B1 kuulamine 4) on sama ülesanne.'), { task: 'L05', harno: 'L4' }),
-      teach(tag(purpose(B.speaking('048_d_retell', 'Mis oli enne juhtunud? Küsi paarilisel.', 'Küsi paarilisel raadioloo järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('048_d_retell', 'Mis oli enne juhtunud? Küsi paariliselt.', 'Küsi paariliselt raadioloo järgi. B vastab terve lausega. Siis vahetage.', [
         'Mis oli juhtunud, kui pere sadamasse jõudis?',
         'Mis selgus saarel ja miks see juhtus?',
         'Kas sinuga on reisil midagi sarnast juhtunud?',
@@ -1031,7 +1031,7 @@ export const LESSONS = withShapes({
         'Viies lõik: „Olime unustanud, et esmaspäeval on muuseumid kinni!”',
         'Kuues lõik: „sest Tartus kõnnime palju”.',
       ]), 'Enne kui sa ise kirjutad, näed, kuidas sõbrale plaani ja nõuandeid kirjutatakse.'), { task: 'R12' }),
-      teach(tag(purpose(B.speaking('049_d_retell', 'Mis plaanis on? Küsi paarilisel.', 'Küsi paarilisel kirja järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('049_d_retell', 'Mis plaanis on? Küsi paariliselt.', 'Küsi paariliselt kirja järgi. B vastab terve lausega. Siis vahetage.', [
         'Kuidas Elina Tartusse sõidab ja kus ta ööbib?',
         'Mida nad laupäeval teevad?',
         'Mis juhtus eelmisel korral ja mida Kristiina sellest õppis?',

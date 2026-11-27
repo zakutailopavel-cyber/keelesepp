@@ -142,7 +142,7 @@ export const LESSONS = withShapes({
         'Neljas lõik: kell kolm + poolteist tundi = pool viis (16.30).',
         'Kontsert lõpeb pool viis, proov algab kolmveerand viis: vahel on veerand tundi.',
       ]), 'Enne kui sa oma laupäeva plaani teed, tead, mis kell midagi algab ja kui kaua see kestab.'), { task: 'R02' }),
-      teach(tag(purpose(B.speaking('016_d_ask', 'Mis kell? Kui kaua? Küsi paarilisel.', 'Küsi paarilisel kava järgi. B vastab terve lausega: kellaaeg ja kestus. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('016_d_ask', 'Mis kell? Kui kaua? Küsi paariliselt.', 'Küsi paariliselt kava järgi. B vastab terve lausega: kellaaeg ja kestus. Siis vahetage.', [
         'Mis kell algab kontsert ja kui kaua see kestab?',
         'Kellast kellani on tantsutund?',
         'Mida saab teha enne kontserti?',
@@ -443,7 +443,7 @@ export const LESSONS = withShapes({
         '„pead mulle helistama hiljemalt kell kuus hommikul”.',
         '„Laupäeval võid minna koju juba kell kaks.”',
       ]), 'Pärast kuulamist tead, mida uus töötaja peab, võib ja ei tohi teha.'), { task: 'L03' }),
-      teach(tag(purpose(B.speaking('017_d_tell', 'Mida Mart peab, võib ja ei tohi?', 'Küsi paarilisel. B vastab terve lausega: peab, võib, ei pea või ei tohi.', [
+      teach(tag(purpose(B.speaking('017_d_tell', 'Mida Mart peab, võib ja ei tohi?', 'Küsi paariliselt. B vastab terve lausega: peab, võib, ei pea või ei tohi.', [
         'Mis kell peab Mart tulema ja mida ta ei pea tooma?',
         'Mida ta köögis ei tohi ja mida ta võib tasuta teha?',
         'Mida ta peab tegema, kui ta jääb haigeks?',
@@ -723,7 +723,7 @@ export const LESSONS = withShapes({
         'Viies lõik: sõbranna jäi haigeks, kino jääb ära.',
         'Viimane lõik: „Ma ei pea kõike meeles pidama.”',
       ]), 'Enne kui sa ise otsustad, näed, kuidas inimene oma nädala tööd järjestab.'), { task: 'R15' }),
-      teach(tag(purpose(B.speaking('018_d_retell', 'Mis on kiire? Räägi teksti järgi.', 'Küsi paarilisel teksti järgi. B vastab terve lausega ja kasutab ühendverbi (ära maksma, läbi lugema, edasi lükkama, ära jääma). Siis vahetage.', [
+      teach(tag(purpose(B.speaking('018_d_retell', 'Mis on kiire? Räägi teksti järgi.', 'Küsi paariliselt teksti järgi. B vastab terve lausega ja kasutab ühendverbi (ära maksma, läbi lugema, edasi lükkama, ära jääma). Siis vahetage.', [
         'Mida peab Kertu täna ära tegema? Miks?',
         'Mida ta lükkab edasi ja miks?',
         'Mis jääb neljapäeval ära ja mida nad teevad?',
@@ -950,7 +950,7 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(teach(tag(purpose(B.speaking('019_d_poll', 'Millal sul aega on?', 'Küsi paarilisel, millal tal aega on. Leidke aeg, mis sobib mõlemale.', [
+      station(teach(tag(purpose(B.speaking('019_d_poll', 'Millal sul aega on?', 'Küsi paariliselt, millal tal aega on. Leidke aeg, mis sobib mõlemale.', [
         'Millal sul järgmisel nädalal aega on?',
         'Mis päeval sa kindlasti ei saa? Miks?',
         'Ütle ilma märkmeteta üks lause: mida sa pead sel nädalal ära tegema?',

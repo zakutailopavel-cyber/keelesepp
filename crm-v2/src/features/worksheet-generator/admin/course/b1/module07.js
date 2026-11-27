@@ -147,7 +147,7 @@ export const LESSONS = withShapes({
         'Neljas lõik: „Kui haigus läheb väga hulluks ja inimesel on raske hingata, helista kohe … 112.”',
         'Neljas lõik: „ära tee kohe liiga palju tööd”.',
       ]), 'Enne kui sa ise juhile kirjutad, näed, mida teha ja kellele öelda, kui jääd haigeks.'), { task: 'R13' }),
-      teach(tag(purpose(B.speaking('031_d_retell', 'Mida teha? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('031_d_retell', 'Mida teha? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega. Siis vahetage.', [
         'Mida teha, kui kurk hakkab valutama?',
         'Millal helistada perearstikeskusesse või numbrile 1220?',
         'Mida teha, kui sa ei saa haigena tööle minna?',
@@ -472,7 +472,7 @@ export const LESSONS = withShapes({
         'Registraator: „Niisiis täna kell kolm, pereõde, tuba kaksteist.”',
         'Registraator: „kui hingamine läheb hullemaks, helistage kohe numbrile 112”.',
       ]), 'Enne kui sa ise helistad, kuuled, kuidas patsient räägib, mis muutus, ja aja kokku lepib.'), { task: 'L01' }),
-      teach(tag(purpose(B.speaking('032_d_retell', 'Mida patsient ütles? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('032_d_retell', 'Mida patsient ütles? Küsi paariliselt.', 'Küsi paariliselt kõne järgi. B vastab terve lausega. Siis vahetage.', [
         'Miks patsient helistas ja kuidas tema köha muutus?',
         'Mis juhtus eile õhtul?',
         'Mis aja ta lõpuks sai ja miks mitte homme hommikul?',
@@ -771,7 +771,7 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(teach(tag(purpose(half(B.speaking('033_d_warm', 'Kuidas sa eile magasid?', 'Küsi paarilisel. Siis vahetage. Kes magas kõige paremini?', [
+      station(teach(tag(purpose(half(B.speaking('033_d_warm', 'Kuidas sa eile magasid?', 'Küsi paariliselt. Siis vahetage. Kes magas kõige paremini?', [
         'Kuidas sa eile magasid? Mis kell sa magama läksid ja mis kell ärkasid?',
         'Ütle ilma märkmeteta: kuidas sinu viimane haigus muutus (läks hullemaks, sain terveks)?',
       ], [60, 90])), 'Sinu eilne öö on tänase tunni algus: lõpus annad paarilisele nõu, kuidas paremini magada.'), { task: 'S02', harno: 'S1a', fluency: true }),
@@ -810,7 +810,7 @@ export const LESSONS = withShapes({
         'Nõuanne 5: „Tehke magamistuba pimedaks, vaikseks ja jahedaks.”',
         'Lõpp: „Kui uni ei lähe paremaks ka kuu aja pärast, rääkige oma perearstiga.”',
       ]), 'Enne kui sa ise nõu annad, näed, kuidas tekst nõu annab: mida teha ja mida mitte.'), { task: 'R15', voice: 'popsci' }),
-      teach(tag(purpose(B.speaking('033_d_retell', 'Mida tekst soovitab? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab sina-vormis (Mine …, Ära joo …). Siis vahetage.', [
+      teach(tag(purpose(B.speaking('033_d_retell', 'Mida tekst soovitab? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab sina-vormis (Mine …, Ära joo …). Siis vahetage.', [
         'Mitu tundi peab täiskasvanu magama?',
         'Mida ei tohi pärast kella kolme juua?',
         'Mida teha telefoniga enne und?',
@@ -1166,7 +1166,7 @@ export const LESSONS = withShapes({
         'Marina: „Mina käin nüüd kaks korda nädalas ujumas.”',
         'Marina: „Siis panin trenni kalendrisse nagu koosoleku.”',
       ]), 'Enne kui sa ise kirjutad, kuuled, kuidas teised räägivad oma harjumuse muutmisest. Eksamil (Harno B1 kuulamine 3) on sama ülesanne.'), { task: 'L04', harno: 'L3b' }),
-      teach(tag(purpose(B.speaking('034_d_retell', 'Mida kuulajad muutsid? Küsi paarilisel.', 'Küsi paarilisel saate järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('034_d_retell', 'Mida kuulajad muutsid? Küsi paariliselt.', 'Küsi paariliselt saate järgi. B vastab terve lausega. Siis vahetage.', [
         'Mida Tiiu muutis ja kuidas see läks?',
         'Millest Andres loobus ja mis muutus?',
         'Kus Marina käib, millega ta tegeleb ja mida nad soovitavad alustajale?',

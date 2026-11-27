@@ -133,7 +133,7 @@ export const LESSONS = withShapes({
         'Reede: „Palun vaata see homme hommikul üle, siis saadame selle koos.”',
         'Mõtle ise: kliendile lubati pakkumine reedeks, see ootab ainult Reinu.',
       ]), 'Enne kui sa ise kirjutad, näed, kuidas kolleeg nädala sündmustest kirjutab.'), { task: 'R13' }),
-      teach(tag(purpose(B.speaking('021_d_retell', 'Mis juhtus? Küsi paarilisel.', 'Küsi paarilisel kirja järgi. B vastab terve lausega: mida nad tegid ja mida ei teinud. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('021_d_retell', 'Mis juhtus? Küsi paariliselt.', 'Küsi paariliselt kirja järgi. B vastab terve lausega: mida nad tegid ja mida ei teinud. Siis vahetage.', [
         'Mida nad esmaspäeval tegid?',
         'Mis juhtus teisipäeval ja mida nad ei teinud?',
         'Mida Maarja kliendile lubas?',
@@ -393,7 +393,7 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(teach(tag(purpose(half(B.speaking('022_d_survey', 'Mida sa nädalavahetusel tegid?', 'Küsi paarilisel. Siis vahetage. Kes tegi kõige huvitavama asja?', [
+      station(teach(tag(purpose(half(B.speaking('022_d_survey', 'Mida sa nädalavahetusel tegid?', 'Küsi paariliselt. Siis vahetage. Kes tegi kõige huvitavama asja?', [
         'Mida sa laupäeval tegid? Aga pühapäeval?',
         'Ütle ilma märkmeteta üks lause: mida sa sel nädalal ei jõudnud teha? Miks?',
       ], [60, 90])), 'Sinu nädalavahetus on tänase tunni algus: lõpus arutad, kumb nädalavahetus oli parem puhkus.'), { task: 'S09', fluency: true }),
@@ -424,7 +424,7 @@ export const LESSONS = withShapes({
         'Kalle: „Laupäeval käisime sõpradega linnas muuseumiööl.”',
         'Kalle: „Koju jõudsin alles öösel.”',
       ]), 'Pärast kuulamist tead, kes mida tegi ja kes puhkas kõige rohkem.'), { harno: 'L1', task: 'L01' }),
-      teach(tag(purpose(half(B.speaking('022_d_tell', 'Kes mida tegi? Räägi paarilisele.', 'Küsi paarilisel raadio järgi. B vastab terve lausega ja alustab ajasõnaga. Siis vahetage.', [
+      teach(tag(purpose(half(B.speaking('022_d_tell', 'Kes mida tegi? Räägi paarilisele.', 'Küsi paariliselt raadio järgi. B vastab terve lausega ja alustab ajasõnaga. Siis vahetage.', [
         'Mida tegi Tiit laupäeval ja pühapäeval?',
         'Miks ütleb Merle, et ta ei teinud midagi?',
         'Kus käis Kalle ja mida ta seal tegi?',

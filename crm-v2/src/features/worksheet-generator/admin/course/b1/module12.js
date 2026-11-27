@@ -1317,7 +1317,7 @@ export const LESSONS = withShapes({
         'Meie |  |  | ',
       ], 'g_read'), 'Teie tabel näitab, kuidas hea arvamus on üles ehitatud, ja annab koosolekuks sinu enda ettepaneku.'), { task: 'R11' }),
       'Paarid kirjutavad koos 6–8 minutit. Viimases reas peavad nad ise kokku leppima ühe ettepaneku koos põhjuse ja näitega. Üks-ühele: õpilane kirjutab kolm rida, viimase rea mõtlete koos välja.'),
-      teach(tag(purpose(B.speaking('059_d_ask', 'Kellega sa nõustud? Küsi paarilisel.', 'Küsi paarilisel foorumi järgi. B vastab terve lausega: arvamus, põhjus ja näide. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('059_d_ask', 'Kellega sa nõustud? Küsi paariliselt.', 'Küsi paariliselt foorumi järgi. B vastab terve lausega: arvamus, põhjus ja näide. Siis vahetage.', [
         'Kelle ettepanekuga sa nõustud ja miks?',
         'Millest võiks teie hoovis loobuda?',
         'Mis on sinu oma ettepanek? Too üks näide.',

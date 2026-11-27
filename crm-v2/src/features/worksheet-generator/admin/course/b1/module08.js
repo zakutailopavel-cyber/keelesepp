@@ -158,7 +158,7 @@ export const LESSONS = withShapes({
         'Kolmas lõik: „võib ta abi paluda õpetajalt”.',
         'Kolmas lõik: „Hinne sõltub sageli sellest, kui palju laps kodus harjutab.”',
       ]), 'Enne kui sa ise huvijuhile helistad, tead, kuidas kool ja huviringid Eestis käivad.'), { task: 'R13' }),
-      teach(tag(purpose(B.speaking('036_d_retell', 'Kuidas Eesti koolis on? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('036_d_retell', 'Kuidas Eesti koolis on? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega. Siis vahetage.', [
         'Mis hinded on Eesti koolis ja mis on kõige parem?',
         'Mida teeb klassijuhataja ja mida teeb huvijuht?',
         'Kellelt saab laps abi paluda ja millest sõltub hinne?',
@@ -532,7 +532,7 @@ export const LESSONS = withShapes({
         'Tõnu: „Neljapäeviti lähen keelekohvikusse rääkima.”',
         'Tõnu: „Pool tundi iga päev on parem kui kolm tundi kord nädalas.”',
       ]), 'Enne kui sa ise kirjutad, kuuled, kuidas teised oma õppimisest räägivad. Eksamil (Harno B1 kuulamine 2) on sama ülesanne.'), { task: 'L02', harno: 'L2' }),
-      teach(tag(purpose(B.speaking('037_d_retell', 'Kuidas nad õpivad? Küsi paarilisel.', 'Küsi paarilisel saate järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('037_d_retell', 'Kuidas nad õpivad? Küsi paariliselt.', 'Küsi paariliselt saate järgi. B vastab terve lausega. Siis vahetage.', [
         'Mida Irina peab tegema ja mida ta tahab?',
         'Kuidas Irina õpib ja mis on talle raske?',
         'Miks Tõnu õpib ja kuhu ta neljapäeviti läheb?',
@@ -795,7 +795,7 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(teach(tag(purpose(half(B.speaking('038_d_warm', 'Miks sa eesti keelt õpid?', 'Küsi paarilisel. Siis vahetage. Kellel on kõige rohkem põhjusi?', [
+      station(teach(tag(purpose(half(B.speaking('038_d_warm', 'Miks sa eesti keelt õpid?', 'Küsi paariliselt. Siis vahetage. Kellel on kõige rohkem põhjusi?', [
         'Miks sa eesti keelt õpid? Ütle kaks põhjust.',
         'Ütle ilma märkmeteta: mida sa pead ja mida tahad sel nädalal õppida?',
       ], [60, 90])), 'Sinu põhjused on tänase tunni algus: lõpus arutate, kuidas on kõige parem õppida.'), { task: 'S02', harno: 'S1a', fluency: true }),
@@ -832,7 +832,7 @@ export const LESSONS = withShapes({
         'Pille: „Aju vajab kordamist ja und.”',
         'Pille: „Vead on õppimise osa.”',
       ]), 'Enne kui sa ise arutad, kuuled, kuidas keeleõpetaja põhjendab: sest, kuna, seepärast.'), { task: 'L04', voice: 'popsci' }),
-      teach(tag(purpose(B.speaking('038_d_retell', 'Miks? Küsi paarilisel.', 'Küsi paarilisel. B vastab terve lausega: sest … või kuna … Siis vahetage.', [
+      teach(tag(purpose(B.speaking('038_d_retell', 'Miks? Küsi paariliselt.', 'Küsi paariliselt. B vastab terve lausega: sest … või kuna … Siis vahetage.', [
         'Miks on kursus hea ja miks on äpp mugav?',
         'Miks on parem õppida iga päev natuke?',
         'Mis sa arvad, kas vigu tasub karta? Miks?',

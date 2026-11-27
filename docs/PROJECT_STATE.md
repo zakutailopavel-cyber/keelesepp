@@ -1,3 +1,10 @@
+## 2026-11-28 — Audit fix: Estonian slips in course instructions (agent/audit-course-language-slips)
+
+- Main checked: feaf08d (2026-11-27). Branch `agent/audit-course-language-slips`, draft PR. No deploy, no production writes. Text only; no lesson structure, keys, audio or baselines changed. (Course rewriting stays paused; this is a correction of errors, owner 2026-11-28: fix without waiting.)
+- Done: „Küsi paarilisel” → „Küsi paariliselt” (küsima kelleLT) in pair-task titles and instructions of B1 modules 4–13 (37 lines; archive untouched); „Mille eest sa täna ütled?” → „Mille eest sa tänad?” (`a2/module14.js`, `a2/module15.js`); teie / sina mixed in one sentence → „teie vastuväidet” (`c1/module05.js`).
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
+- Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
+- Next step: owner review → merge → release; then wire the speller into CI.
 ## 2026-11-28 — „Tulu ja prognoos”: selgem paigutus (agent/finance-overview-clear)
 
 - Main kontrollitud: 56a779e (2026-11-27, #1364; haru sellega ühendatud). Haru `agent/finance-overview-clear`, draft-PR „Tulu ja prognoos: one sentence, four numbers, bars and a work list”. Deploy'd ega production'i kirjutusi ei tehtud. Finantsi-PR-ide #1364 (nüüd main'is) ja #1365 (avatud) faile ei puudutatud.
