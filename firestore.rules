@@ -4275,12 +4275,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Cloud lesson content is accessed only through the authenticated trusted API.
-    match /interactiveAssignments/{assignmentId} { allow read, write: if false; }
-    match /lessonDrafts/{id} { allow read, write: if false; }
-    match /lessonVersions/{id} { allow read, write: if false; }
-    match /publishedLessons/{id} { allow read, write: if false; }
-
+    // Cloud lesson content (interactiveAssignments, lessonDrafts, lessonVersions, publishedLessons) is accessed only
+    // through the authenticated trusted API: no rule names them, so the deny below applies (their explicit „if false”
+    // lines were dropped 2026-11-27, owner OK, to keep the compiled rules under Firestore's 256 kB limit).
     match /{document=**} {
       allow read, write: if false;
     }
