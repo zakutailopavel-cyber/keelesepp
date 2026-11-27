@@ -1,3 +1,15 @@
+## 2026-11-27 — „Lisa arve”: väli „Mille eest” — teine aine või „Muu” (agent/manual-invoice-subject)
+
+- Main kontrollitud: a23f9c1 (2026-11-27, release 05:29 UTC). Haru `agent/manual-invoice-subject`, draft-PR „Lisa arve: choose the subject or „Muu” with a free payment purpose”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-27, ekraanipilt aknast „Lisa arve”: „надо сделать так чтобы можно было выбирать еще и предмет самому или выставлять счет за что то другое, нажимаешь например muu и вписываешь что будет в описании платежа”). Seni võeti käsitsi arve aine alati õpilase kaardilt ja lisati kirjeldusele („Kirjeldus · Inglise keel”).
+- Tehtud: aknas „Lisa arve” on ühe kaardi arvel väli „Mille eest”: kaardi aine (vaikimisi, nagu enne), teised kooli ained (õpilaskaartidelt), „Muu — kirjutan ise”. „Muu” korral on väli „Makse selgitus (läheb arvele)” ja arvele läheb ainult see tekst, ilma aineta. „Kõik ained ühel arvel” ei muutunud.
+- Leping: `manualInvoiceApi POST /create` võtab valikulised `subject` (kuni 80 märki) ja `noSubject: true`. Ilma nendeta on tulemus ja `creationSignature` sama mis enne. Arve kirjel on `subject` (valitud aine või '') ja „Muu” korral `noSubject: true`; `invoice-document.js` ei võta siis ainet õpilase kaardilt.
+- Failid: `functions/manual-invoice-core.js`, `functions/invoice-document.js`, `functions/invoice-payer-core.test.js`, `crm-v2/src/features/finance/ManualInvoiceDialog.jsx` (+ test), `crm-v2/src/services/firebase/manualInvoiceApi.js`.
+- Kontrollid: `cd functions && npm test` → 683/683; `npx vitest run src/features/finance src/features/payments src/services/firebase` → 92 faili, 606 testi läbi; eslint muudetud failidel puhas. Brauseris (ajutine eelvaateleht näidiskaartidega): väli „Mille eest” nelja valikuga, „Muu” muudab sildi ja vihje („ilma aineta”). Päris arvet ei loodud; PDF-i „Muu” arvega käsitsi ei vaadatud (kaetud ainult koodireaga).
+- Deploy (omaniku „Да, выпускай” 2026-11-27): `manualInvoiceApi`, `invoiceApi`, `linkpayApi`, `sendInvoicePaymentReminders` 2026-11-27 20:45 UTC commit'ist `38766a5`, „Deploy complete” (`docs/DEPLOY_LEDGER.md`).
+- Riskid ja väravad: vajas `firebase deploy --only functions:manualInvoiceApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`) ENNE veebi release'i — vana funktsioon eirab uusi välju ja paneks arvele kaardi aine. „Muu” arvel pole ainet: ainepõhistes vaadetes on see aineta.
+- Järgmine samm: omaniku luba funktsiooni deploy'ks → ühendamine → release → üks „Muu” arve PDF üle vaadata.
+
 ## 2026-11-26 — Avaleht: „Vajab tähelepanu” ja „Täna” ühekõrgused (agent/home-equal-columns)
 
 - Main kontrollitud: 75ae303 (2026-11-26, release 14:44 UTC). Haru `agent/home-equal-columns`, PR „Home: Vajab tähelepanu and Täna are the same height”. Deploy'd ega production'i kirjutusi ei tehtud.

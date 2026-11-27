@@ -29,6 +29,10 @@ function manualInvoiceInput(values = {}) {
   if (!description) throw new Error('Description required');
   const amountCents = toCents(values.amount, 'amount');
   const due = validIsoDate(values.due, 'due date');
+  // „Mille eest” (owner 2026-11-27): the admin may bill another subject than the card's, or „Muu” — no subject at all,
+  // the description alone is the invoice line and the payment purpose. Absent = the card's subject, as before.
+  const noSubject = values.noSubject === true;
+  const subject = noSubject ? '' : cleanText(values.subject, 80);
   return {
     studentId,
     description,
@@ -36,6 +40,7 @@ function manualInvoiceInput(values = {}) {
     amount: amountCents / 100,
     due,
     note: cleanText(values.note, 500),
+    ...(noSubject ? { noSubject: true } : subject ? { subject } : {}),
   };
 }
 
@@ -53,7 +58,9 @@ function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, reques
     invoiceTargetType: 'student',
     studentId: input.studentId,
     studentName: payer.studentName,
-    subject: String(student.subject || '').trim().slice(0, 80),
+    subject: input.noSubject ? '' : (input.subject || String(student.subject || '').trim().slice(0, 80)),
+    // „Muu”: the PDF must not fall back to the card's subject
+    ...(input.noSubject ? { noSubject: true } : {}),
     parentUid: payer.parentUid,
     linkedParentId: payer.linkedParentId,
     guardianUid: payer.guardianUid,
