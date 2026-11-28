@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Tegusõna valib käände: huvituma millest, mõtlema millele, armastama keda, kohtuma kellega">
+<title>Tegusõna valib käände: huvituma millest, mõtlema millele, armastama keda, kohtuma kellega</title>
+<rect width="900" height="600" fill="#fff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1E1E1E"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif" stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="450" cy="300" rx="420" ry="260" fill="#E8F9B0"/>
+<text x="450" y="44" font-size="30" font-weight="700" text-anchor="middle" fill="#1E1E1E">Tegusõna valib käände</text>
+<rect x="30" y="90" width="430" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="48" y="134" font-size="18" font-weight="700" text-anchor="start" fill="#1E1E1E">huvituma, sõltuma, unistama, rääkima</text>
+<line x1="462" y1="127" x2="538" y2="127" stroke="#1E1E1E" stroke-width="4" marker-end="url(#ah)"/>
+<rect x="545" y="90" width="325" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="565" y="122" font-size="19" font-weight="700" text-anchor="start" fill="#1E1E1E">-st  (millest? kellest?)</text>
+<text x="565" y="150" font-size="17" text-anchor="start" fill="#1E1E1E">Ma huvitun muusikast.</text>
+<rect x="30" y="188" width="430" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="48" y="232" font-size="18" font-weight="700" text-anchor="start" fill="#1E1E1E">mõtlema, helistama, meeldima, vastama</text>
+<line x1="462" y1="225" x2="538" y2="225" stroke="#1E1E1E" stroke-width="4" marker-end="url(#ah)"/>
+<rect x="545" y="188" width="325" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="565" y="220" font-size="19" font-weight="700" text-anchor="start" fill="#1E1E1E">-le  (millele? kellele?)</text>
+<text x="565" y="248" font-size="17" text-anchor="start" fill="#1E1E1E">Helista emale!</text>
+<rect x="30" y="286" width="430" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="48" y="330" font-size="18" font-weight="700" text-anchor="start" fill="#1E1E1E">armastama, ootama, aitama, vajama</text>
+<line x1="462" y1="323" x2="538" y2="323" stroke="#1E1E1E" stroke-width="4" marker-end="url(#ah)"/>
+<rect x="545" y="286" width="325" height="74" rx="14" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<text x="565" y="318" font-size="19" font-weight="700" text-anchor="start" fill="#1E1E1E">osastav  (keda? mida?)</text>
+<text x="565" y="346" font-size="17" text-anchor="start" fill="#1E1E1E">Ma aitan ema.</text>
+<rect x="30" y="384" width="430" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="48" y="428" font-size="18" font-weight="700" text-anchor="start" fill="#1E1E1E">kohtuma, nõustuma, abielluma</text>
+<line x1="462" y1="421" x2="538" y2="421" stroke="#1E1E1E" stroke-width="4" marker-end="url(#ah)"/>
+<rect x="545" y="384" width="325" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="565" y="416" font-size="19" font-weight="700" text-anchor="start" fill="#1E1E1E">-ga  (kellega? millega?)</text>
+<text x="565" y="444" font-size="17" text-anchor="start" fill="#1E1E1E">Ma kohtun sõbraga.</text>
+<rect x="30" y="482" width="430" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="48" y="526" font-size="18" font-weight="700" text-anchor="start" fill="#1E1E1E">saama (= становиться)</text>
+<line x1="462" y1="519" x2="538" y2="519" stroke="#1E1E1E" stroke-width="4" marker-end="url(#ah)"/>
+<rect x="545" y="482" width="325" height="74" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="565" y="514" font-size="19" font-weight="700" text-anchor="start" fill="#1E1E1E">-ks  (kelleks? milleks?)</text>
+<text x="565" y="542" font-size="17" text-anchor="start" fill="#1E1E1E">Ta sai arstiks.</text>
+</g>
+</svg>

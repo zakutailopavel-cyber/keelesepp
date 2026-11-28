@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" width="900" height="640" role="img" aria-label="Väliskohakäänded: lauale, laual, laualt; inimene, omamine, aeg ja koht">
+<title>Väliskohakäänded: lauale, laual, laualt; inimene, omamine, aeg ja koht</title>
+<rect width="900" height="640" fill="#fff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1E1E1E"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif" stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="450" cy="290" rx="420" ry="250" fill="#E8F9B0"/>
+<text x="450" y="44" font-size="30" font-weight="700" text-anchor="middle" fill="#1E1E1E">Peal: kuhu? → kus? • kust? ←</text>
+<line x1="90" y1="200" x2="260" y2="200" stroke="#1E1E1E" stroke-width="5"/><line x1="105" y1="200" x2="105" y2="270" stroke="#1E1E1E" stroke-width="3"/><line x1="245" y1="200" x2="245" y2="270" stroke="#1E1E1E" stroke-width="3"/>
+<rect x="152" y="90" width="46" height="30" rx="3" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/><line x1="160" y1="105" x2="190" y2="105" stroke="#1E1E1E" stroke-width="2"/>
+<path d="M175 126 L175 186" fill="none" stroke="#1E1E1E" stroke-width="5" marker-end="url(#ah)"/>
+<text x="175" y="310" font-size="28" font-weight="700" text-anchor="middle" fill="#1E1E1E">KUHU?</text>
+<text x="175" y="342" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">-le</text>
+<text x="175" y="378" font-size="22" font-weight="700" text-anchor="middle" fill="#1E1E1E">lauale</text>
+<line x1="370" y1="200" x2="540" y2="200" stroke="#1E1E1E" stroke-width="5"/><line x1="385" y1="200" x2="385" y2="270" stroke="#1E1E1E" stroke-width="3"/><line x1="525" y1="200" x2="525" y2="270" stroke="#1E1E1E" stroke-width="3"/>
+<rect x="432" y="168" width="46" height="30" rx="3" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/><line x1="440" y1="183" x2="470" y2="183" stroke="#1E1E1E" stroke-width="2"/>
+<text x="455" y="310" font-size="28" font-weight="700" text-anchor="middle" fill="#1E1E1E">KUS?</text>
+<text x="455" y="342" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">-l</text>
+<text x="455" y="378" font-size="22" font-weight="700" text-anchor="middle" fill="#1E1E1E">laual</text>
+<line x1="650" y1="200" x2="820" y2="200" stroke="#1E1E1E" stroke-width="5"/><line x1="665" y1="200" x2="665" y2="270" stroke="#1E1E1E" stroke-width="3"/><line x1="805" y1="200" x2="805" y2="270" stroke="#1E1E1E" stroke-width="3"/>
+<rect x="780" y="92" width="46" height="30" rx="3" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/><line x1="788" y1="107" x2="818" y2="107" stroke="#1E1E1E" stroke-width="2"/>
+<path d="M730 190 Q750 120 790 128" fill="none" stroke="#1E1E1E" stroke-width="5" marker-end="url(#ah)"/>
+<text x="735" y="310" font-size="28" font-weight="700" text-anchor="middle" fill="#1E1E1E">KUST?</text>
+<text x="735" y="342" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">-lt</text>
+<text x="735" y="378" font-size="22" font-weight="700" text-anchor="middle" fill="#1E1E1E">laualt</text>
+<rect x="50" y="410" width="800" height="210" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<rect x="70" y="426" width="130" height="34" rx="17" fill="#C9F03D" stroke="#1E1E1E" stroke-width="2"/>
+<text x="135" y="450" font-size="19" font-weight="700" text-anchor="middle" fill="#1E1E1E">Inimene</text>
+<text x="220" y="450" font-size="19" text-anchor="start" fill="#1E1E1E">Ma helistan emale. · Emal on auto. · Ma sain emalt kirja.</text>
+<rect x="70" y="472" width="130" height="34" rx="17" fill="#C9F03D" stroke="#1E1E1E" stroke-width="2"/>
+<text x="135" y="496" font-size="19" font-weight="700" text-anchor="middle" fill="#1E1E1E">Omamine</text>
+<text x="220" y="496" font-size="19" text-anchor="start" fill="#1E1E1E">Mul on koer. Sul ei ole aega. (mina → mulle, mul, minult)</text>
+<rect x="70" y="518" width="130" height="34" rx="17" fill="#C9F03D" stroke="#1E1E1E" stroke-width="2"/>
+<text x="135" y="542" font-size="19" font-weight="700" text-anchor="middle" fill="#1E1E1E">Aeg</text>
+<text x="220" y="542" font-size="19" text-anchor="start" fill="#1E1E1E">esmaspäeval, hommikul, õhtul, suvel, talvel</text>
+<rect x="70" y="564" width="130" height="34" rx="17" fill="#C9F03D" stroke="#1E1E1E" stroke-width="2"/>
+<text x="135" y="588" font-size="19" font-weight="700" text-anchor="middle" fill="#1E1E1E">Koht</text>
+<text x="220" y="588" font-size="19" text-anchor="start" fill="#1E1E1E">tööl, turul, staadionil, maal, Saaremaal</text>
+</g>
+</svg>
