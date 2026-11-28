@@ -1425,7 +1425,7 @@ export const LESSONS = withShapes({
         'soovitama → soovitaksite.',
         'võima → võiksite + da: teha.',
       ]), 'Kaheksa lauset näitavad, kas tingiva kõneviisi vorm on käes.'), { task: 'G14' }),
-      teach(tag(purpose(B.speaking('062_p_would', 'Paaris: mida sa teeksid?', 'Küsi paarilisel ja vasta ise tingiva kõneviisiga koos põhjusega: Ma helistaksin … , sest … Siis vahetage.', [
+      teach(tag(purpose(B.speaking('062_p_would', 'Paaris: mida sa teeksid?', 'Küsi paariliselt ja vasta ise tingiva kõneviisiga koos põhjusega: Ma helistaksin … , sest … Siis vahetage.', [
         'Sinu hotellitoas ei ole sooja vett. Mida sa teeksid ja mida sa ütleksid?',
         'Kuller tõi paki valele aadressile. Kellele sa helistaksid ja mida sa paluksid?',
         'Restoranis on sinu toit külm. Kas sa ütleksid midagi? Mida?',
@@ -1554,7 +1554,7 @@ export const LESSONS = withShapes({
         ' | ',
       ], 'g_read'), 'Teie tabel näitab, kuidas kuulujutt ja tegelikkus erinevad — sama vahet teed oma loos.'), { task: 'G02' }),
       'Paarid kirjutavad koos 6–8 minutit: A kirjutab kolm esimest rida, B kolm viimast. Kontrolli, et paremas veerus on kindel kõneviis (Tegelikult pood remonditakse / omanik ei müü midagi) ja viimases reas on vasakul -vat-vorm. Üks-ühele: õpilane kirjutab, sina loed ühe kuulujutu nagu fakti („Omanik müüs maja.”) ja õpilane parandab: „Omanik olevat …”.'),
-      teach(tag(purpose(B.speaking('063_d_opinion', 'Paaris: miks me kuulujutte usume?', 'Küsi paarilisel ja vasta ise kahe-kolme lausega. Ütle oma arvamus ja põhjus. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('063_d_opinion', 'Paaris: miks me kuulujutte usume?', 'Küsi paariliselt ja vasta ise kahe-kolme lausega. Ütle oma arvamus ja põhjus. Siis vahetage.', [
         'Mis sa arvad: miks levivad kuulujutud nii kiiresti?',
         'Kas sina kontrollid uudist enne, kui selle edasi saadad? Kuidas?',
         'Kas Eestis ja sinu kodumaal räägitakse naabritest samamoodi? Too näide.',
@@ -1735,7 +1735,7 @@ export const LESSONS = withShapes({
         'Kes kirjutab juhatajale ja millal? |  | ',
       ], 'g_read'), 'Teie tabel on kirja plaan: probleem, arvamused ja kokkulepe. Tunni lõpus kirjutad selle järgi juhatajale kirja, nii et iga rida on üks lause sinu kirjas.'), { task: 'L03' }),
       'Paarid kirjutavad koos 6–8 minutit: A kirjutab Kerli ja Rasmuse read, B Toomase ja Eva read, viimase rea koos. Kontrolli, et pärast „… sõnul” tuleb tegusõna kohe (Kerli sõnul ei saa ta keskenduda) ja nimi on omastavas (Rasmuse arvates). Üks-ühele: õpilane kirjutab, sina ütled ühe rea valesti („Toomas tahab vaikset aega”) ja õpilane parandab salvestise järgi.'),
-      teach(tag(purpose(B.speaking('064_d_survey', 'Paaris: kellega sa nõustud?', 'Küsi paarilisel ja vasta ise kahe-kolme lausega: … sõnul, … arvates ja sinu arvamus. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('064_d_survey', 'Paaris: kellega sa nõustud?', 'Küsi paariliselt ja vasta ise kahe-kolme lausega: … sõnul, … arvates ja sinu arvamus. Siis vahetage.', [
         'Kumma mure on sinu arvates suurem, Kerli või Rasmuse oma?',
         'Mida arvad Toomase ettepanekust kõrvaklappide kohta?',
         'Miks oli Rasmus lõpuks nõus vaikse ajaga?',

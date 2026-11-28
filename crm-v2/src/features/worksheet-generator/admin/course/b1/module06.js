@@ -135,7 +135,7 @@ export const LESSONS = withShapes({
         'Lõpp: „küsime kõigepealt, kes mida ei söö. Siis arvutame kogused inimeste arvu järgi.”',
         'Mõtle ise: enne umbes kuussada, nüüd umbes viissada eurot — vahe on sada.',
       ]), 'Enne kui sa ise nimekirja kirjutad, näed, kuidas pere koguseid kirja paneb.'), { task: 'R13' }),
-      teach(tag(purpose(B.speaking('026_d_retell', 'Mida ja kui palju? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega ja ütleb koguse. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('026_d_retell', 'Mida ja kui palju? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega ja ütleb koguse. Siis vahetage.', [
         'Mida pere enne poodi teeb?',
         'Mis on nende nimekirjas? Too kaks näidet kogusega.',
         'Mida nad ostavad turult ja miks?',
@@ -461,7 +461,7 @@ export const LESSONS = withShapes({
         'Teenindaja: „meil on kõrvitsasupp ja köögiviljavokk”.',
         'Teenindaja: „Šokolaadikoogis on pähklid.”',
       ]), 'Enne kui sa ise helistad, kuuled, kuidas klient viisakalt lauda broneerib ja toidu kohta küsib.'), { task: 'L01', harno: 'L1' }),
-      teach(tag(purpose((B.speaking('027_d_retell', 'Mida klient broneeris? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose((B.speaking('027_d_retell', 'Mida klient broneeris? Küsi paariliselt.', 'Küsi paariliselt kõne järgi. B vastab terve lausega. Siis vahetage.', [
         'Mis päevaks ja mitmele inimesele klient laua broneeris?',
         'Miks nad ei saa tulla kell seitse?',
         'Mida saab tellida kliendi õde? Aga poeg magustoiduks?',
@@ -705,7 +705,7 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(teach(tag(purpose(half(B.speaking('028_d_warm', 'Mida sa eile õhtul sõid?', 'Küsi paarilisel. Siis vahetage. Kes sõi kõige huvitavamat toitu?', [
+      station(teach(tag(purpose(half(B.speaking('028_d_warm', 'Mida sa eile õhtul sõid?', 'Küsi paariliselt. Siis vahetage. Kes sõi kõige huvitavamat toitu?', [
         'Mida sa eile õhtul sõid? Kas sõid kõik ära või jäi midagi üle? Miks?',
         'Ütle ilma märkmeteta üks viisakas lause, millega tellid restoranis joogi.',
       ], [60, 90])), 'Sinu eilne õhtusöök on tänase tunni algus: lõpus arutad, kuidas vähem toitu ära visata.'), { task: 'S02', harno: 'S1a', fluency: true }),
@@ -744,7 +744,7 @@ export const LESSONS = withShapes({
         'Pühapäev: „Tegin pehmetest tomatitest kastme.”',
         'Pühapäev: „Järgmisel nädalal teen väiksema poti suppi!” — supp jäi üle ja läks hapuks.',
       ]), 'Enne kui sa ise räägid, näed, kuidas pere nädala jooksul toitu ostab, sööb ja ära viskab.'), { task: 'R15' }),
-      teach(tag(purpose(B.speaking('028_d_retell', 'Mis supiga juhtus? Küsi paarilisel.', 'Küsi paarilisel päeviku järgi. B vastab terve lausega: mida nad sõid ära ja mida mitte. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('028_d_retell', 'Mis supiga juhtus? Küsi paariliselt.', 'Küsi paariliselt päeviku järgi. B vastab terve lausega: mida nad sõid ära ja mida mitte. Siis vahetage.', [
         'Mida kirjutaja esmaspäeval ostis ja tegi?',
         'Kas nad sõid supi ära? Mis supiga lõpuks juhtus?',
         'Mida poeg kolmapäeval ära sõi ja jõi?',
@@ -1019,7 +1019,7 @@ export const LESSONS = withShapes({
         'Teenindaja: „Raha tuleb teie kaardile kolme tööpäeva jooksul.”',
         'Teenindaja: „teie järgmine tellimus on kümme protsenti odavam”.',
       ]), 'Enne kui sa ise kirjutad, kuuled, kuidas klient rahulikult ja viisakalt kaebab.'), { task: 'L07' }),
-      teach(tag(purpose(half(B.speaking('029_d_retell', 'Mis juhtus? Küsi paarilisel.', 'Küsi paarilisel kõne järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(half(B.speaking('029_d_retell', 'Mis juhtus? Küsi paariliselt.', 'Küsi paariliselt kõne järgi. B vastab terve lausega. Siis vahetage.', [
         'Mida klient tellis ja mida ta sai?',
         'Mis veel valesti läks?',
         'Mida klient palus?',

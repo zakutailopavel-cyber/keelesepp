@@ -149,7 +149,7 @@ export const LESSONS = withShapes({
         'Viies lõik: „Varem töötas ta poes müüjana”.',
         'Viies lõik: „läks ta kursusele ja sai tõstukijuhiks”.',
       ]), 'Enne kui sa ise oma tööst räägid, loed, kuidas neli inimest oma tööd teevad.'), { task: 'R15' }),
-      teach(tag(purpose(B.speaking('041_d_retell', 'Kes mida teeb? Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('041_d_retell', 'Kes mida teeb? Küsi paariliselt.', 'Küsi paariliselt teksti järgi. B vastab terve lausega. Siis vahetage.', [
         'Kellena Rasmus töötab ja mille eest ta vastutab?',
         'Kelle eest Ljudmila hoolitseb ja mis on tema arvates kõige tähtsam?',
         'Millega tegelevad Karl ja Merilin?',
@@ -446,7 +446,7 @@ export const LESSONS = withShapes({
         'Administraator: „Ta tuleb söömast kella poole kaheks.”',
         'Peeter: „Mul on üks arve veel maksmata”.',
       ]), 'Enne kui sa ise telefonile vastad, kuuled, kuidas administraator ütleb, kus kolleeg on.'), { task: 'L04' }),
-      teach(tag(purpose(B.speaking('042_d_retell', 'Kus nad on? Küsi paarilisel.', 'Küsi paarilisel kõnede järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('042_d_retell', 'Kus nad on? Küsi paariliselt.', 'Küsi paariliselt kõnede järgi. B vastab terve lausega. Siis vahetage.', [
         'Kus Tõnis praegu on ja millal ta tagasi tuleb?',
         'Kuhu Rainer läks ja mida ta seal teeb?',
         'Kus sina tavaliselt lõunat sööd? Millal tuled söömast tagasi?',
@@ -488,7 +488,7 @@ export const LESSONS = withShapes({
         ['Kas hinnapakkumine on juba saadetud?', 'Kahjuks on see veel saatmata.'], ['Kas printer on juba korras?', 'Ei, meister tuleb alles homme.'],
         ['Kus Markus praegu on?', 'Ta läks just lõunat sööma.'], ['Kas teil on uus administraator juba olemas?', 'Veel mitte, ta alustab neljapäeval.'],
       ], 'full', 'g_vocab'), V5_DRILL),
-      hide(teach(tag(B.speaking('042_d_survey', 'Kus sa olid ja mida tegemas?', 'Küsi paarilisel need küsimused ja märgi vastused üles. Siis vahetage rollid ja tee lõpus lühike kokkuvõte.', ['Kus sa eile kell kümme hommikul olid ja mida sa seal tegemas olid?', 'Kuhu sa pärast tööd või kooli tavaliselt lähed ja mida tegema?', 'Kust sa täna siia tulid? Mida sa seal tegemas käisid?', 'Mis jäi sul sel nädalal tegemata ja miks?', 'Kokkuvõte: mida sinu paariline vastas ja mis oli teil sarnast?'], [70, 120], ['Eile kell kümme olin … -mas.', 'Pärast tööd lähen … -ma.', 'Mul jäi … -mata, sest…']), { task: 'S09', fluency: true }),
+      hide(teach(tag(B.speaking('042_d_survey', 'Kus sa olid ja mida tegemas?', 'Küsi paariliselt need küsimused ja märgi vastused üles. Siis vahetage rollid ja tee lõpus lühike kokkuvõte.', ['Kus sa eile kell kümme hommikul olid ja mida sa seal tegemas olid?', 'Kuhu sa pärast tööd või kooli tavaliselt lähed ja mida tegema?', 'Kust sa täna siia tulid? Mida sa seal tegemas käisid?', 'Mis jäi sul sel nädalal tegemata ja miks?', 'Kokkuvõte: mida sinu paariline vastas ja mis oli teil sarnast?'], [70, 120], ['Eile kell kümme olin … -mas.', 'Pärast tööd lähen … -ma.', 'Mul jäi … -mata, sest…']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane küsib küsimused õpetajalt ja õpetaja küsib siis õpilaselt. Lõpus teeb õpilane kokkuvõtte, võrdleb vastuseid ja kasutab vähemalt kolme eri ma-vormi.'), V5_CUT),
     ],
     practice: [
@@ -734,7 +734,7 @@ export const LESSONS = withShapes({
         'Neljas lõik: „Lisan kirjale oma CV ja endise juhataja soovituse.”',
         'Kiri läheb tööandjale, keda Olga ei tunne: ametlik kiri algab „Lugupeetud …” ja lõpeb „Lugupidamisega”.',
       ]), 'Enne kui sa ise kirjutad, näed, mida tööandjale kirjutatakse ja millises järjekorras.'), { task: 'R12' }),
-      teach(tag(purpose(B.speaking('043_d_retell', 'Mis kirjas on? Küsi paarilisel.', 'Küsi paarilisel kirja järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('043_d_retell', 'Mis kirjas on? Küsi paariliselt.', 'Küsi paariliselt kirja järgi. B vastab terve lausega. Siis vahetage.', [
         'Millisele kohale Olga kandideerib ja kust ta kuulutuse leidis?',
         'Mida ta on harjunud tegema ja mida ta oskab?',
         'Millal saab ta alustada ja mida ta kirjale lisab?',
@@ -979,7 +979,7 @@ export const LESSONS = withShapes({
         'Igor: „Tahan töötada ühes kohas, mitte terve päeva autos istuda.”',
         'Juhataja: „Töö on kahes vahetuses, hommikul ja õhtul.”',
       ]), 'Enne kui sa ise vestlusele lähed, kuuled, kuidas kandidaat vastab ja ise küsib. Eksamil (Harno B1 kuulamine 2) on sama ülesanne.'), { task: 'L02', harno: 'L2' }),
-      teach(tag(purpose(B.speaking('044_d_retell', 'Kuidas Igor vastas? Küsi paarilisel.', 'Küsi paarilisel vestluse järgi. B vastab terve lausega. Siis vahetage.', [
+      teach(tag(purpose(B.speaking('044_d_retell', 'Kuidas Igor vastas? Küsi paariliselt.', 'Küsi paariliselt vestluse järgi. B vastab terve lausega. Siis vahetage.', [
         'Mis on Igori tugevus ja millise näite ta tõi?',
         'Kuidas Igor oma nõrkusest rääkis?',
         'Mida Igor ise küsis?',

@@ -340,7 +340,7 @@ export const LESSONS = withShapes({
       teach(tag(B.ideaCard('073_t_agree', 'Mis meie toome?', 'Te lähete koos Viktori juurde. Leppige kokku, mida ja millal te teete.', 'Te lähete koos jaanipäevale. Viktor palus tuua midagi süüa. Üks teist saab tulla ainult õhtul.',
         ['salat', 'kook', 'rong või buss', 'mis kell', 'kummikud', 'kingitus Viktorile'], 'Mida te toote ja mis kell te sõidate?'), { level: 3 }),
         'Üks-ühele: õpetaja on sõber ja keeldub vähemalt ühest ettepanekust põhjusega. Õpilane pakub teist võimalust.'),
-      B.planning('073_t_plan', 'Enne kirjutamist.', 'Tee vastuse jaoks märkmed. Kirjuta iga küsimuse juurde paar sõna.', ['Mille eest sa täna ütled?', 'Kas sa tuled? Millal?', 'Miks sa ei saa varem tulla?', 'Mida sa kaasa võtad?', 'Mida sa Viktorilt küsid?']),
+      B.planning('073_t_plan', 'Enne kirjutamist.', 'Tee vastuse jaoks märkmed. Kirjuta iga küsimuse juurde paar sõna.', ['Mille eest sa tänad?', 'Kas sa tuled? Millal?', 'Miks sa ei saa varem tulla?', 'Mida sa kaasa võtad?', 'Mida sa Viktorilt küsid?']),
       tag(B.examWriting('073_t_reply', 'Vastus Viktorile.', 'Vasta Viktori kutsele 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'vastus', {
         situation: 'Viktor kutsub sind 23. juunil jaanipäevale. Tööl on sul vahetus kella kuueni. Rong Aegviidusse läheb kell seitse.',
         points: ['Täna kutse eest.', 'Ütle, et sa tuled hiljem ja miks.', 'Paku, mida sa kaasa võtad.', 'Küsi, kuidas sa jaamast talu juurde saad.'],

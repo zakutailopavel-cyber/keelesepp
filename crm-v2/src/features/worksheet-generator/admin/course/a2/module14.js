@@ -221,7 +221,7 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja on Tom ja palub mitu korda: „Palun korda!” Õpilane on Lucía ja seletab oma sõnadega. Siis vahetage rollid.'),
       tag(B.examWriting('067_t_reply', 'Kiri Maretile.', 'Vasta Maretile 50–70 sõnaga ja teie-vormis. Kirjuta kõigist neljast punktist.', 'vastus', {
         situation: 'Sa oled Tom. Sa ei saanud kirjast kõigest aru: ülesanne 4 on liiga raske ja sõna „palved” ei ole selge. Sa oled järgmisel teisipäeval jälle tunnis.',
-        points: ['Mille eest sa täna ütled?', 'Millest sa aru ei saanud?', 'Mida sa Maretilt palud?', 'Millal sa kodutöö tood?'],
+        points: ['Mille eest sa tänad?', 'Millest sa aru ei saanud?', 'Mida sa Maretilt palud?', 'Millal sa kodutöö tood?'],
         words: [50, 70], opening: 'Tere, Maret!', closing: 'Tervitades',
       }), { level: 4, main: true }),
       tag(B.writing('067_t_lucia', 'Sõnum Lucíale.', 'Sama asi teisele inimesele: kirjuta Lucíale lühike sõnum. Ütle, mida sa Maretile kirjutasid. Kirjuta sina-vormis.', [5, 6], ['kirjutasin', 'küsisin', 'aru', 'sina'], 2), { task: 'W12' }),
