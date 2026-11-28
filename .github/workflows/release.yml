@@ -5,6 +5,10 @@ name: Release
 # release, and on request: GitHub → Actions → Release → „Run workflow” (or `gh workflow run release.yml`).
 # Gate (review I2, 2026-11-11): no release while the „CRM v2” checks (crm-v2.yml) of the newest app change on main are
 # red; while they still run, wait up to 25 min, then decide (.github/scripts/release-ci-gate.sh).
+# Deploy gate (audit 2026-11-28): no release while firestore.rules, storage.rules or the functions' source on main are
+# newer than the deploys written in docs/DEPLOY_LEDGER.md (tools/deploy-status/release-deploy-gate.mjs; no cloud
+# credentials, it trusts the ledger). Order: deploy → ledger row merged → release. A hand-started run may skip it with
+# „skip_deploy_check” — only when the app change does not need the undeployed server change.
 # Not gated here: a merge whose own commit message carries „[deploy]” / „[hotfix]” — Vercel builds it at once
 # (crm-v2/scripts/vercel-ignore.sh), only the PR checks guard it. Safe hotfix: merge the PR, then run this workflow.
 on:
@@ -12,6 +16,11 @@ on:
     - cron: '0 5 * * *'   # 07:00 Tallinn in winter (08:00 in summer)
     - cron: '0 14 * * *'  # 16:00 Tallinn in winter
   workflow_dispatch:
+    inputs:
+      skip_deploy_check:
+        description: 'Release although rules / functions on main are newer than the deploy ledger (say why in the run note)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,6 +49,17 @@ jobs:
           if [ -n "$last" ]; then changed=$(git rev-list --count "$last"..HEAD -- crm-v2); else changed=1; fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           if [ "$changed" = "0" ]; then echo "Nothing new for the app since the last release."; fi
+      - name: Rules and functions on main must be deployed (docs/DEPLOY_LEDGER.md)
+        if: steps.changes.outputs.changed != '0'
+        env:
+          SKIP_DEPLOY_CHECK: ${{ inputs.skip_deploy_check }}
+        run: |
+          if [ "$SKIP_DEPLOY_CHECK" = "true" ]; then
+            echo "::warning title=Deploy check skipped::Released by hand without the rules / functions check."
+            node tools/deploy-status/release-deploy-gate.mjs || true
+          else
+            node tools/deploy-status/release-deploy-gate.mjs
+          fi
       - name: CRM v2 checks must be green (waits up to 25 min while they run)
         if: steps.changes.outputs.changed != '0'
         env:
