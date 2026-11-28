@@ -878,6 +878,7 @@ test("student writes keep teachers inside their assigned scope", async () => {
       fields: {
         name: { stringValue: "Teacher Owned" },
         teacher: { stringValue: "Pavel" },
+        teacherUid: { stringValue: teacherUid },
         active: { booleanValue: true },
       },
     },
@@ -892,11 +893,21 @@ test("student writes keep teachers inside their assigned scope", async () => {
       fields: {
         name: { stringValue: "Foreign Create" },
         teacher: { stringValue: "Elena" },
+        teacherUid: { stringValue: otherTeacherUid },
         active: { booleanValue: true },
       },
     },
   );
   assert.equal(foreignCreate.status, 403, JSON.stringify(foreignCreate.body));
+
+  // the teacher's name alone is not ownership (the by-name mode left the rules 2026-11-28)
+  const nameOnlyCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/name-only-create-student",
+    { fields: { name: { stringValue: "Name Only" }, teacher: { stringValue: "Pavel" }, active: { booleanValue: true } } },
+  );
+  assert.equal(nameOnlyCreate.status, 403, JSON.stringify(nameOnlyCreate.body));
 
   const adminCreate = await firestoreDocumentRequest(
     adminToken,
@@ -906,6 +917,7 @@ test("student writes keep teachers inside their assigned scope", async () => {
       fields: {
         name: { stringValue: "Other Teacher Student" },
         teacher: { stringValue: "Elena Zakutailo" },
+        teacherUid: { stringValue: otherTeacherUid },
         linkedParentId: { stringValue: parentUid },
         active: { booleanValue: true },
       },
@@ -924,8 +936,8 @@ test("student writes keep teachers inside their assigned scope", async () => {
   const reassignment = await firestoreDocumentRequest(
     teacherToken,
     "PATCH",
-    "students/teacher-owned-student?updateMask.fieldPaths=teacher",
-    { fields: { teacher: { stringValue: "Elena" } } },
+    "students/teacher-owned-student?updateMask.fieldPaths=teacherUid",
+    { fields: { teacherUid: { stringValue: otherTeacherUid } } },
   );
   assert.equal(reassignment.status, 403, JSON.stringify(reassignment.body));
 
@@ -1108,7 +1120,7 @@ test("teacher UID migration API is admin-only and preview is non-mutating", asyn
   assert.equal(after.exists, false);
 });
 
-test("teacher scope flag preserves legacy reads and then enforces teacher ownership", async () => {
+test("teacher scope: ownership by uid with or without the rollout flag", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
   const db = admin.firestore();
@@ -1133,8 +1145,9 @@ test("teacher scope flag preserves legacy reads and then enforces teacher owners
   ]);
 
   try {
-    const legacyForeign = await firestoreDocumentRequest(teacherToken, "GET", "students/scope-foreign");
-    assert.equal(legacyForeign.status, 200, JSON.stringify(legacyForeign.body));
+    const unflaggedForeign = await firestoreDocumentRequest(teacherToken, "GET", "students/scope-foreign");
+    // no rollout flag yet: still scoped (the legacy „every teacher reads every student” mode left the rules 2026-11-28)
+    assert.equal(unflaggedForeign.status, 403, JSON.stringify(unflaggedForeign.body));
 
     await db.collection("securityMigrations").doc("teacherUidV1").set({
       version: 1,
