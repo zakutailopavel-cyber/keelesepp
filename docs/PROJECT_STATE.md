@@ -1,3 +1,20 @@
+## 2026-11-28 — CI kiiremaks: vitest 4 osaks, paralleelsed tööd, vahemälu (agent/ci-speed)
+
+- Main kontrollitud: 6982d20 (2026-11-28). Haru `agent/ci-speed`, PR #1383 (draft, omanik ühendab ise). Deploy'd ega production'i kutseid ei tehtud.
+- Eesmärk (omaniku luba 2026-11-28): `CRM v2` töövoo `verify` võttis 10–13 min (lint ~1 min, build ~20 s, `npm test` 9–12 min järjest), iga muudatus kaks korda (PR + main).
+- Tehtud (`.github/workflows/crm-v2.yml`):
+  - `verify` jagati: `lint`, `build` (+ bundle-size hoiatus), `test (1/4)…(4/4)` (`npm test -- --shard=i/4`, blob-aruanne) jooksevad korraga.
+  - Lõpptöö nimega täpselt `verify`: `needs: [lint, build, test]`, `if: !cancelled()`, punane kui ükski neist pole `success`; ühendab 4 blob-aruannet (`vitest --merge-reports`), kirjutab testide arvu run'i kokkuvõttesse. Lõpeb alles siis, kui kogu töö on tehtud.
+  - `node_modules` vahemälu (`actions/cache`, võti: OS + node22 + `package-lock.json` räsi); puudumisel `npm ci`. `setup-node` npm-vahemälu jääb.
+  - `security-regression`, `sheet-layout`, `financial-core` muutmata. `.github/scripts/release-ci-gate.sh`: ainult kommentaar (loeb kogu run'i, töö nimed ei loe).
+- Kontrollid (PR #1383):
+  - run 46126294645 (külm vahemälu): kogu run 4 min 29 s, `verify` valmis 4:29; run 46126866170 (soe): 3 min 59 s.
+  - Testid ühendatult: 647 faili (646 + 1 vahele jäetud), 5682 testi: 5670 läbi, 12 vahele jäetud — sama mis main 6982d20 vana `verify` (run 46125417925: 5670 / 12, 647 faili, `npm test` 10,5 min).
+  - zizmor (Security): leide pole; gitleaks, npm-audit rohelised. actionlint'i lokaalselt polnud.
+- Piirangud: osad on ebaühtlased (soe run 124–187 s osa kohta); vitest jagab faile, mitte aega. Kui üks osa kasvab üle ~4 min, tõsta osade arv 6-le (`matrix.shard` + `--shard=i/N` + `-eq N`).
+- Omaniku release-skript: check-run'id `verify` ja `financial-core` on alles samade nimedega; uued check-run'id `lint`, `build`, `test (i/4)` lisanduvad — skripti muuta pole vaja.
+- Järgmine samm: omanik ühendab PR #1383; esimese main'i run'i järel kontrollida, et `verify` on roheline ja release-skript leiab selle.
+
 ## 2026-11-28 — Täna: tühistatud ja puudutud tunnid ei ole „Käib” (agent/today-cancelled-lessons)
 
 - Main kontrollitud: 42e971a (2026-11-28). Haru `agent/today-cancelled-lessons`, PR „Täna: cancelled lessons are not shown as running”. Deploy'd ega production'i kirjutusi ei tehtud; Firestore'i loeti ainult lugemiseks (tänased `lessons` ja `schedule` read).
