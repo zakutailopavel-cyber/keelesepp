@@ -5,6 +5,11 @@ One table of what runs in production and from which commit. GitHub `main` is not
 and Cloud Functions only when the owner runs `firebase deploy`. A merged PR that says „⚠ needs deploy” is **not** live
 until it shows up here.
 
+**Release gate (2026-11-28):** `release.yml` runs `node tools/deploy-status/release-deploy-gate.mjs` and stops when
+`firestore.rules` / `storage.rules` on main differ from the commit in the table below, or the functions' source is
+newer than every commit in the „Cloud Functions” table. So the order is: deploy → this file updated and merged →
+release. The commit in the third column must stay the first thing in its cell, in backticks.
+
 **Rule (AGENTS.md):** whoever deploys rules or functions updates this file in the same day — one row per target, the
 commit it was deployed from (`git rev-parse --short HEAD` of the checkout used, normally fresh `origin/main`) and the
 UTC time. Check the live state read-only with:

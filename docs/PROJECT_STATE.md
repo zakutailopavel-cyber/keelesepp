@@ -5,6 +5,17 @@
 - Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
 - Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
 - Next step: owner review → merge → release; then wire the speller into CI.
+## 2026-11-28 — Release ootab reeglite ja funktsioonide deploy'd (agent/release-deploy-check)
+
+- Main kontrollitud: bf24a0e (2026-11-28, #1384). Haru `agent/release-deploy-check`, draft-PR „Release gate: no release while rules / functions on main are newer than the deploy ledger”. Deploy'd ega production'i kasutust pole.
+- Eesmärk (audit 2026-11-28 p 4; omanik: „делай все подряд”): veebi release võis minna välja enne reegleid / funktsioone, millest ta sõltub (juhtus 2026-11-10). 28.11 oli kuus release'i ja viis reeglite / funktsioonide deploy'd mitmest sessioonist.
+- Tehtud: `tools/deploy-status/release-deploy-gate.mjs` — võrdleb checkout'i `docs/DEPLOY_LEDGER.md`-ga, pilve volitusi ei vaja: (1) `firestore.rules` ja `storage.rules` peavad olema samad mis tabelis nimetatud commit'il; (2) funktsioonide lähtekoodi (ilma testide ja fixture'iteta) uusim muudatus peab sisalduma mõnes „Cloud Functions” tabeli commit'is. Muidu `exit 1` ja selge teade. `release.yml`: uus samm enne CI-väravat; käsitsi käivitusel sisend `skip_deploy_check` (hoiatusega). `DEPLOY_LEDGER.md`: lõik „Release gate”.
+- Leping: järjekord on nüüd deploy → `DEPLOY_LEDGER.md` rida ühendatud → release. Tabeli kolmanda veeru esimene asi peab olema commit backtick'ides.
+- Failid: `tools/deploy-status/release-deploy-gate.mjs` (+ `.test.mjs`), `.github/workflows/release.yml`, `docs/DEPLOY_LEDGER.md`.
+- Kontrollid: `node --test tools/deploy-status/` → 10 läbi; skript tänasel `main`-il → läbi; harul `agent/live-invitation-server` (deploy'mata funktsioon) → peatab release'i õige teatega. `release.yml` YAML loetav. Töövoogu ennast GitHubis käivitatud ei ole (käivitus teeb päris release'i).
+- Piirangud: (1) värav usaldab ledger'it — kas deploy päriselt toimus, näitab ainult `deploy-status.mjs` (volitustega). (2) Ei tea, MILLISEID funktsioone deploy kattis: ühe funktsiooni rida katab ka teise funktsiooni muudatuse. (3) PR, mis lisab funktsiooni koodi enne plaanitud deploy'd (nt #1377), peatab ajastatud release'id kuni deploy'ni — kas deploy'da kohe või käivitada release käsitsi `skip_deploy_check`-iga. (4) `[deploy]` / `[hotfix]` commit'i sõnumiga merge läheb väravast mööda nagu enne. (5) `tools/deploy-status` teste CI ei käivita.
+- Järgmine samm: omaniku luba → merge → järgmine ajastatud release (05:00 / 14:00 UTC) näitab sammu logis; siis audit p 5 (varukoopiate taastamise juhend).
+
 ## 2026-11-28 — Auditi parandused #1368–#1371 ühendatud ja väljas (agent/audit-fixes-released)
 
 - Main kontrollitud: a263291 (2026-11-28, release 09:34 UTC). Haru `agent/audit-fixes-released`, ainult dokumentatsioon.
