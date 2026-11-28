@@ -9,6 +9,7 @@ export const COURSE_LOADERS = {
   ek9: () => import('./courseModules.ek9.js'),
   en: () => import('./courseModules.en.js'),
   enb2: () => import('./courseModules.enb2.js'),
+  kaanded: () => import('./courseModules.kaanded.js'),
 };
 
 // courses registered before their first module (docs/COURSE_FINAL_SHAPE_EN_B2.md §9): they have a loader, but no admin

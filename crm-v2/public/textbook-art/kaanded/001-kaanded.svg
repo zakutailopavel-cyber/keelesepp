@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 750" width="900" height="750" role="img" aria-label="14 käänet ühel skeemil: kolm põhikäänet, sees, peal ja viimased viis">
+<title>14 käänet ühel skeemil: kolm põhikäänet, sees, peal ja viimased viis</title>
+<rect width="900" height="750" fill="#fff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1E1E1E"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif" stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="450" cy="380" rx="410" ry="300" fill="#E8F9B0"/>
+<text x="450" y="44" font-size="30" font-weight="700" text-anchor="middle" fill="#1E1E1E">14 käänet: üks sõna, palju vorme</text>
+<circle cx="450" cy="335" r="58" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<text x="450" y="330" font-size="30" font-weight="700" text-anchor="middle" fill="#1E1E1E">maja</text>
+<text x="450" y="356" font-size="16" text-anchor="middle" fill="#1E1E1E">14 vormi</text>
+<rect x="40" y="80" width="360" height="190" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="58" y="114" font-size="22" font-weight="700" text-anchor="start" fill="#1E1E1E">3 põhikäänet</text>
+<line x1="58" y1="128" x2="382" y2="128" stroke="#1E1E1E" stroke-width="2"/>
+<text x="58" y="164" font-size="19" text-anchor="start" fill="#1E1E1E">nimetav</text>
+<text x="205" y="164" font-size="17" text-anchor="start" fill="#555">kes? mis?</text>
+<text x="382" y="164" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">maja</text>
+<text x="58" y="206" font-size="19" text-anchor="start" fill="#1E1E1E">omastav</text>
+<text x="205" y="206" font-size="17" text-anchor="start" fill="#555">kelle? mille?</text>
+<text x="382" y="206" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">maja</text>
+<text x="58" y="248" font-size="19" text-anchor="start" fill="#1E1E1E">osastav</text>
+<text x="205" y="248" font-size="17" text-anchor="start" fill="#555">keda? mida?</text>
+<text x="382" y="248" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">maja</text>
+<rect x="500" y="80" width="360" height="190" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="518" y="114" font-size="22" font-weight="700" text-anchor="start" fill="#1E1E1E">Sees: -sse, -s, -st</text>
+<line x1="518" y1="128" x2="842" y2="128" stroke="#1E1E1E" stroke-width="2"/>
+<text x="518" y="164" font-size="19" text-anchor="start" fill="#1E1E1E">sisseütlev</text>
+<text x="665" y="164" font-size="17" text-anchor="start" fill="#555">kuhu?</text>
+<text x="842" y="164" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majja</text>
+<text x="518" y="206" font-size="19" text-anchor="start" fill="#1E1E1E">seesütlev</text>
+<text x="665" y="206" font-size="17" text-anchor="start" fill="#555">kus?</text>
+<text x="842" y="206" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majas</text>
+<text x="518" y="248" font-size="19" text-anchor="start" fill="#1E1E1E">seestütlev</text>
+<text x="665" y="248" font-size="17" text-anchor="start" fill="#555">kust?</text>
+<text x="842" y="248" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majast</text>
+<rect x="40" y="400" width="360" height="190" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="58" y="434" font-size="22" font-weight="700" text-anchor="start" fill="#1E1E1E">Peal: -le, -l, -lt</text>
+<line x1="58" y1="448" x2="382" y2="448" stroke="#1E1E1E" stroke-width="2"/>
+<text x="58" y="484" font-size="19" text-anchor="start" fill="#1E1E1E">alaleütlev</text>
+<text x="205" y="484" font-size="17" text-anchor="start" fill="#555">kuhu? kellele?</text>
+<text x="382" y="484" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majale</text>
+<text x="58" y="526" font-size="19" text-anchor="start" fill="#1E1E1E">alalütlev</text>
+<text x="205" y="526" font-size="17" text-anchor="start" fill="#555">kus? kellel?</text>
+<text x="382" y="526" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majal</text>
+<text x="58" y="568" font-size="19" text-anchor="start" fill="#1E1E1E">alaltütlev</text>
+<text x="205" y="568" font-size="17" text-anchor="start" fill="#555">kust? kellelt?</text>
+<text x="382" y="568" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majalt</text>
+<rect x="500" y="400" width="360" height="250" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="518" y="434" font-size="22" font-weight="700" text-anchor="start" fill="#1E1E1E">Viimased viis</text>
+<line x1="518" y1="448" x2="842" y2="448" stroke="#1E1E1E" stroke-width="2"/>
+<text x="518" y="482" font-size="19" text-anchor="start" fill="#1E1E1E">saav -ks</text>
+<text x="690" y="482" font-size="17" text-anchor="start" fill="#555">milleks?</text>
+<text x="842" y="482" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majaks</text>
+<text x="518" y="520" font-size="19" text-anchor="start" fill="#1E1E1E">rajav -ni</text>
+<text x="690" y="520" font-size="17" text-anchor="start" fill="#555">milleni?</text>
+<text x="842" y="520" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majani</text>
+<text x="518" y="558" font-size="19" text-anchor="start" fill="#1E1E1E">olev -na</text>
+<text x="690" y="558" font-size="17" text-anchor="start" fill="#555">millena?</text>
+<text x="842" y="558" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majana</text>
+<text x="518" y="596" font-size="19" text-anchor="start" fill="#1E1E1E">ilmaütlev -ta</text>
+<text x="690" y="596" font-size="17" text-anchor="start" fill="#555">milleta?</text>
+<text x="842" y="596" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majata</text>
+<text x="518" y="634" font-size="19" text-anchor="start" fill="#1E1E1E">kaasaütlev -ga</text>
+<text x="690" y="634" font-size="17" text-anchor="start" fill="#555">millega?</text>
+<text x="842" y="634" font-size="20" font-weight="700" text-anchor="end" fill="#1E1E1E">majaga</text>
+<line x1="400" y1="272" x2="415" y2="292" stroke="#1E1E1E" stroke-width="3" stroke-dasharray="6 6"/>
+<line x1="500" y1="272" x2="485" y2="292" stroke="#1E1E1E" stroke-width="3" stroke-dasharray="6 6"/>
+<line x1="400" y1="398" x2="415" y2="380" stroke="#1E1E1E" stroke-width="3" stroke-dasharray="6 6"/>
+<line x1="500" y1="398" x2="485" y2="380" stroke="#1E1E1E" stroke-width="3" stroke-dasharray="6 6"/>
+<rect x="40" y="670" width="820" height="60" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="450" y="708" font-size="22" font-weight="700" text-anchor="middle" fill="#1E1E1E">Reegel: omastav + lõpp → laud → laua → laua-s, laua-lt, laua-ga</text>
+</g>
+</svg>
