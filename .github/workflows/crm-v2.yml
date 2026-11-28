@@ -177,7 +177,13 @@ jobs:
         run: |
           ls .vitest-reports
           test "$(ls .vitest-reports/blob-*.json | wc -l)" -eq 4
-          npx vitest run --merge-reports --reporter=dot
+          npx vitest run --merge-reports --reporter=dot --reporter=json --outputFile.json="$RUNNER_TEMP/vitest.json"
+          # the same numbers on the run page (the log line with the dots is too long for `gh run view --log`)
+          node -e '
+            const r = require(process.argv[1]);
+            const files = r.testResults.length;
+            console.log(`### Unit tests (all shards)\n\n${files} test files, ${r.numTotalTests} tests: ${r.numPassedTests} passed, ${r.numFailedTests} failed, ${r.numPendingTests + r.numTodoTests} skipped`);
+          ' "$RUNNER_TEMP/vitest.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
   security-regression:
     runs-on: ubuntu-latest
