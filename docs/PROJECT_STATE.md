@@ -5,6 +5,51 @@
 - Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
 - Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
 - Next step: owner review → merge → release; then wire the speller into CI.
+## 2026-11-28 — Täna: tühistatud ja puudutud tunnid ei ole „Käib” (agent/today-cancelled-lessons)
+
+- Main kontrollitud: 42e971a (2026-11-28). Haru `agent/today-cancelled-lessons`, PR „Täna: cancelled lessons are not shown as running”. Deploy'd ega production'i kirjutusi ei tehtud; Firestore'i loeti ainult lugemiseks (tänased `lessons` ja `schedule` read).
+- Viga (omanik 2026-11-28): kalendris olid Olivia 10:00 ja Aleksandra 11:00 (Yelyzaveta) märgitud puudumiseks, avalehe „Täna · kõik õpetajad” näitas Oliviat „Käib” + „Alusta tundi”.
+- Põhjus: õpetaja märkis tunnid ette tunnipäevikusse (`lessons/schedule_<id>_2026-11-28_<õpilane>`, `status: 'Puudus_p'`); sarja `schedule` dokumendil `occurrenceStatuses` tänast kirjet ei ole. Kalender lahendab iga toimumise päeviku järgi (`calendarView.js resolveOccurrenceRecord` + `lessonState`), „Täna” (`todayModel.js todayLessons`) vaatas ainult toimumise `status`-t ega päevikut.
+- Tehtud: `todayLessons({ …, records })` kasutab samu `resolveOccurrenceRecord` + `lessonState` (päevik otsustab esimesena); faas `cancelled` (Tühistatud) või uus `absent` (Puudus_p / Puudus_eta, kalendri „Õpilane puudus”); väli `statusLabel` = kalendri nurgamärgi tekst (`LESSON_MARKS`). `useTodaySignals.js` annab juba laaditud päeviku (`data.lessons`). `calmModel.js timelineSplit`: `absent` nagu `cancelled` — volditud „Läbi” alla, mitte loendis. `TodayPanel.jsx`: `absent` märk = kalendri olemasolev märk (warning, „Õpilane puudus”), nupp peidetud nagu tühistatul; `today.css` sama tuhm rida. Uut kujundust ei ole.
+- Teine samm (omanik 2026-11-28 „fix the other places too”), sama haru ja PR: uus `todayModel.js journalState(item, records)` = `lessonState(resolveOccurrenceRecord(…))` ja `todayLessonCount(lessons)`.
+  - „Tunnid täna” (DashboardPage): arv = `todayLessonCount(signals.lessonsToday)` — ainult antavad tunnid (mitte tühistatud ega õpilane puudub); laaduri `todayCount` (ainult `status !== 'Tühistatud'`) eemaldatud. Muutus: ka `occurrenceStatuses`-ega märgitud puudumine ei ole enam arvus.
+  - „Vajab kõnet” (`needsCall`): tund ees loeb broneeritud ainult kui `journalState` ei ole `cancelled` ega `absent` (päevik tänasest edasi).
+  - „Makstud tunnid lõppemas” (`lessonsRunningOut`): „kuu lõpuni plaanis” = `journalState === 'planned'` (oli `status === 'Planeeritud'`) ja selle päeva päevikukirjet pole (endine kaitse jääb).
+- Kontrollid: `npx eslint --quiet src` → puhas; `npx vitest run src/features/dashboard src/features/calendar` → 38 faili, 313 testi läbi (uued: sarja toimumine tühistatud `occurrenceStatuses`-ega, päeviku „Tühistatud”, „Puudus_p”/„Puudus_eta”, grupi tühistamine, paneel ilma „Käib”/„Alusta tundi”, `todayLessonCount`, „Tunnid täna” paan DashboardPage'il, `needsCall` päeviku tühistamise/puudumisega, `lessonsRunningOut` ette märgitud puudumisega).
+- Piirangud: enne päeviku laadimist (mõni sekund) näevad rida ja „Tunnid täna” vana plaani; grupi õpilase isiklik puudumine (attendance) ei mõjuta `needsCall`-i broneeringut.
+- Järgmine ohutu samm: pärast ühendamist ja release'i avada avaleht päeval, kus õpetaja on puudumise ette märkinud, ja kontrollida, et rida on „Läbi” all märgiga „Õpilane puudus”.
+## 2026-11-28 — „Käänded lauses” v2: rohkem harjutust igas tunnis (agent/kaanded-more-practice)
+
+- Main kontrollitud: 42e971a (2026-11-28, release 07:58 UTC; #1376 main'is). Haru `agent/kaanded-more-practice`, PR „Käänded lauses: more practice per topic”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik pärast v1 avaldamist: „заданий мало по каждой теме, очень”): rohkem harjutust igas tunnis.
+- Tehtud:
+  - Uus `kaanded/practice.js`. Igas Harjutas on nüüd 9 ülesannet, 8–12 osa ülesandes, järjestus: tuvasta → vali → moodusta. Ülesanded: sorteerimine, sobitamine, valik, tabel, vormid, vormitekst, teisendus, vigade parandus, tõlge RU → ET (õpetaja kontrollib; näidisvastused õpetaja märkuses).
+  - Avastas lisandus näidete tabel, Kasutas teine suuline ülesanne.
+  - Vanad plokid alles (sama id), mitmes on rohkem osi.
+  - Plokke tunnis (Avasta / Harjuta / Kasuta): enne 5–6 / 4–5 / 6–10, nüüd 6–7 / 10 / 7–11.
+  - Hilisemad tunnid kordavad varasemaid käändeid.
+- Lisaks `tools/kaanded-publish/publish.mjs` (sisaldab #1378 skripti):
+  - `--update`: lehtede uus versioon nagu „Avalda tund”; v1 jääb `worksheetVersions`-isse.
+  - `--assignments <studentId>`: alustamata ülesanded saavad uue lehe; varukoopia enne kirjutamist.
+- Kontrollid:
+  - vitest (worksheet-generator, curriculum, library, self-study, practice, worksheet-studio, pet) → 225 faili, 2926 testi läbi; uus test: 9 harjutust × 8–12 osa.
+  - eslint 0.
+  - Vabamorf: 334 vastust on algvormi vormid. `language.py` leidis tundmatuid ainult tehnilisi väärtusi; tõlgete näidisvastustes vigu pole.
+  - Sheet lab: 18 lehte, vigu 0; ekraanipildid `mock/kaanded/v2-*`.
+  - Production'i kuivkäivitus (ainult lugemine): 18 lehte v1 → v2. Sasha (FYAyhzV7yj8L0RRHfFWZ) 18 ülesannet on alustamata ja praegu v1.
+- Järgmine samm: ühendamine + release → `--update --write` → `--assignments FYAyhzV7yj8L0RRHfFWZ --write` (omaniku otsene kinnitus).
+
+## 2026-11-28 — Audit: tunni krediidi mahaarvamise viga ei kao enam vaikselt (agent/audit-token-sync-retry)
+
+- Main kontrollitud: e7d4cb7 (2026-11-28, #1376). Haru `agent/audit-token-sync-retry`, draft-PR „Audit fix: a failed lesson-token sync is retried and shown in Vead”. Deploy'd ega production'i kirjutusi/lugemisi ei tehtud.
+- Eesmärk (auditi punkt 6, omanik 2026-11-28 „Да, бери”): `syncLessonTokens` püüdis vea kinni ja ainult logis — tund jäi märgituks, krediit paketist maha arvamata, keegi ei näinud.
+- Tehtud: uus `functions/lesson-tokens-retry-core.js` (+ test): ajutine viga (ABORTED / UNAVAILABLE / DEADLINE / 5xx) → kuni 2 kordust samas käivituses (400 ms, 1,5 s; sync on `requestId` järgi idempotentne); 4xx (pearaamatu otsus) ei kordu. Lõplik viga → üks kirje `clientErrors/lesson-tokens-<lessonId>` (samad väljad mis brauseri teatel, ainult tunni id, nimesid pole; kordumisel kasvab `count`) → leht „Vead” ja kell 07:00 kokkuvõte kellukeses. `functions/index.js`: trigger kasutab neid. `docs/LESSON_TOKENS.md` p 4.
+- Reeglid, andmeskeem, klient: muutmata (server kirjutab admin SDK-ga; `clientErrors` kuju sama).
+- Kontrollid: `cd functions && npm test` → 688 pass, 0 fail (uus fail eraldi: 4/4). Emulaatoriga ega production'is triggerit ei käivitatud; „Vead” lehte selle kirjega brauseris ei vaadatud.
+- Piirangud: trigger ei kasuta platvormi kordust (failurePolicy) — kui funktsioon ise ei käivitu või aegub, kirjet ei teki. Varasemaid vahele jäänud tunde see ei leia ega paranda.
+- Käsitsi värav: `firebase deploy --only functions:syncLessonTokens` ainult omaniku loal; seejärel `docs/DEPLOY_LEDGER.md`.
+- Järgmine ohutu samm: pärast ühendamist ja deploy'd märkida üks pakettõpilase tund ja kontrollida, et krediit liigub ja „Vead” on tühi.
+
 ## 2026-11-28 — Minikursus „Käänded lauses”: 6 tundi (agent/minicourse-kaanded)
 
 - Main kontrollitud: 00e3eae (2026-11-28, #1373), enne push'i ühendatud värske `origin/main`-iga. Haru `agent/minicourse-kaanded`, draft-PR „Mini-course: Käänded lauses (6 lessons)”. Deploy'd ega production'i kirjutusi ei tehtud.

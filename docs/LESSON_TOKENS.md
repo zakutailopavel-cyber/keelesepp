@@ -24,6 +24,11 @@ the package is used up — how many lessons are owed (to be invoiced and paid).
    a held lesson (`Toimunud`) and a no-show without notice (`Puudus_eta`, unless the plan has `chargeNoShow: false` or
    the lesson `billingWaived`) take one credit; another mark or a removed mark (the lesson is deleted) gives it back.
    Runs only for CRM v2 marks (`accountingSource: crm_v2`; the server lesson journal syncs packages itself), for cards with a package or lessons that took a credit.
+   A failed sync is not lost (audit 2026-11-28, `functions/lesson-tokens-retry-core.js`): a temporary error (contention,
+   unavailable, timeout) is tried again twice in the same run — the sync is idempotent by `requestId` — and a sync
+   that still fails writes one record per lesson to „Vead” (`clientErrors/lesson-tokens-<lessonId>`, route
+   `/server/syncLessonTokens`, lesson id only), so the admin sees it on the page and in the 07:00 digest. Repair: mark
+   the lesson again (remove the mark and set it) — the trigger runs once more.
 5. **Owed lessons („võlg”)**: a chargeable lesson held when no package has credits gets `lessonPackageStates/{lessonId}`
    `status: 'needs_attention'` (+ `lessonDate`) and the lesson `packageConsumptionStatus: 'needs_attention'`. A mark
    that no longer charges (notified absence, „Kooli kulul”, invoiced separately) or a removed lesson sets the state to

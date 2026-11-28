@@ -87,9 +87,11 @@ export function attentionItems({
   return { items: all.slice(0, limit), rest: Math.max(0, all.length - limit) };
 }
 
-// „Täna”: the lessons still ahead (running first) and the ones over or cancelled; `next` = the first few ahead
+// „Täna”: the lessons still ahead (running first) and the ones over, cancelled or missed by the student (absent);
+// `next` = the first few ahead
+const NOT_HAPPENING = new Set(['cancelled', 'absent']);
 export function timelineSplit(lessons = [], next = TIMELINE_NEXT) {
   const ahead = lessons.filter((item) => item.phase === 'now' || item.phase === 'later');
-  const done = lessons.filter((item) => item.phase === 'past' || item.phase === 'cancelled');
-  return { ahead, done, next: ahead.slice(0, next), total: lessons.filter((item) => item.phase !== 'cancelled').length };
+  const done = lessons.filter((item) => item.phase === 'past' || NOT_HAPPENING.has(item.phase));
+  return { ahead, done, next: ahead.slice(0, next), total: lessons.filter((item) => !NOT_HAPPENING.has(item.phase)).length };
 }
