@@ -89,6 +89,21 @@ describe('DashboardPage — calm home', () => {
     expect(screen.getByRole('link', { name: /Vead saidil.*1 uut/ })).toHaveAttribute('href', '/vead');
   });
 
+  it('„Tunnid täna” follows the journal like the calendar: an absence or cancellation marked ahead is not counted (owner 2026-11-28)', async () => {
+    const repo = repositories();
+    const lesson = (id, time) => ({ id, date: '2026-11-06', time, duration: 60, status: 'Planeeritud', studentId: 'student-1', studentName: 'Mari' });
+    repo.schedule.list = vi.fn().mockResolvedValue([lesson('a', '14:00'), lesson('b', '15:00'), lesson('c', '16:00')]);
+    repo.today.lessons = vi.fn(async () => [
+      { id: 'r-a', scheduleId: 'a', studentId: 'student-1', date: '2026-11-06', status: 'Puudus_p' },
+      { id: 'r-b', scheduleId: 'b', studentId: 'student-1', date: '2026-11-06', status: 'Tühistatud' },
+    ]);
+    renderDashboard(ADMIN, repo);
+    const numbers = await screen.findByRole('region', { name: 'Numbrid' });
+    const tile = () => within(numbers).getByText('Tunnid täna').closest('article');
+    await waitFor(() => expect(tile()).toHaveTextContent(/^Tunnid täna1/));
+    expect(tile()).toHaveTextContent('1 veel ees');
+  });
+
   it('admin: the four numbers and the quick links sit at the top, before „Vajab tähelepanu”, „Täna” and „Ülevaated”', async () => {
     renderDashboard(ADMIN, repositories());
     const overviews = await screen.findByRole('region', { name: 'Ülevaated' });
