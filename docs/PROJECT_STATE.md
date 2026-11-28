@@ -14,7 +14,8 @@
 - Kontrollid: `npx vitest run` → 651 faili, 5704 testi läbi (12 vahele jäetud nagu enne); `npx eslint --quiet src/hooks src/features/calendar` puhas; `npx vite build` läbi. Uus test: puudutus → märge paistab ja järgmine nupp on vaba, kuigi uuesti laadimine ei ole vastanud. Päris telefonis ega päris andmetega EI mõõdetud — kiiruse võit on koodist tuletatud, mitte mõõdetud.
 - Riskid: (1) `useAsyncData` on kogu rakenduse konks — „uusim võidab” on käitumise muutus kõigil lehtedel (kõik testid läbi). (2) Kuni taustalaadimine vastab, näitab kalender brauseri pandud kirjet; serveri lisatud väljad (nt paketi mahaarvamine) tulevad laadimisega. (3) Lugemiste arv Firestore'is ei vähenenud — iga märge laeb endiselt kõik uuesti; see on järgmine samm.
 - Tegemata (sama auditi punkt): laadida pärast märget ainult muutunu (või kuulata `lessons` muutusi) — vähem lugemisi; grupitunnis „kõik olid kohal” üks nupp; paneelist märkimine (`markDone`) ootab endiselt täit laadimist.
-- Järgmine samm: omaniku luba → merge → release → omanik proovib telefonis kolm tundi järjest märkida.
+- Olek 2026-11-28 10:26 UTC: #1387 ühendatud (`6550885`, CI roheline), release `89455c3` omaniku loal; Vercel success, sait 200. Esimene release läbi #1385 värava — samm logis „Rules and functions on main match the deploy ledger”. Päris telefonis veel proovimata.
+- Järgmine samm: omanik märgib telefonis kolm tundi järjest; siis sama auditi punkti järg (ainult muutunu laadimine, paneelist märkimine, grupi „kõik olid kohal”).
 
 ## 2026-11-28 — Varukoopiad ja taastamise juhend (agent/backup-restore-doc)
 
