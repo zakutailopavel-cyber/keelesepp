@@ -25,4 +25,16 @@ describe('legacy invoice summary', () => {
     const invoices = [{ balanceDueCents: 1000, dueDate: '2020-01-01' }];
     expect(invoices.filter(isInvoiceOverdue)).toHaveLength(1);
   });
+
+  it('owes nothing on a cancelled, credited or hand-marked paid invoice — the same as the invoice list', () => {
+    expect(invoiceBalanceCents({ status: 'Tühistatud', amountCents: 8000 })).toBe(0);
+    expect(invoiceBalanceCents({ status: 'Krediteeritud', amountCents: 8000, balanceDueCents: 8000 })).toBe(0);
+    expect(invoiceBalanceCents({ correctionStatus: 'fully_credited', amountCents: 8000 })).toBe(0);
+    // an old invoice marked „Makstud” by hand: no payment records and no paid amount
+    expect(invoiceBalanceCents({ status: 'Makstud', amount: 80 })).toBe(0);
+    // „Makstud” with a recorded part payment is judged by the amounts
+    expect(invoiceBalanceCents({ status: 'Makstud', amountCents: 8000, paidAmountCents: 3000 })).toBe(5000);
+    expect(studentFinancialSummary([{ status: 'Makstud', amount: 80, dueDate: '2026-06-01' }], new Date('2026-08-03T12:00:00Z')))
+      .toEqual({ balanceCents: 0, overdue: 0 });
+  });
 });
