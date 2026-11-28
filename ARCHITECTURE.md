@@ -1170,6 +1170,12 @@ accepted invitation short-lived relay credentials (key in Secret Manager); witho
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.
 
+Live Classroom invitations (`liveLessonInvitations`: create, accept / decline, cancel, close) are written by the
+server — `liveInvitationApi` with the checks in `functions/live-invitation-core.js` — not by the browser. The browser
+(`services/firebase/liveLessonInvitations.js`) calls it first and falls back to the direct write only while the old
+create / update rules are still in `firestore.rules`; once they are removed (frees ~7 kB of the 256 kB compiled limit)
+the fallback is dead code and goes too. Signals, presence, observers, the board and the countdown stay direct writes.
+
 ## Admin cleanup audit boundary (2026-10-07)
 
 Maintenance operations commit at most 400 data writes and one activityLog entry in the same
