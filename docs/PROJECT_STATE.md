@@ -11,10 +11,10 @@
 - Eesmärk (audit 2026-11-28 p 5; omanik: „пиши инструкцию восстановления”): repos ei olnud ei graafikut, taastamise juhendit ega proovitaastamist.
 - Tehtud: uus `docs/BACKUP_RESTORE.md` — mis on kopeeritud ja mis mitte, stsenaarium A (üksikud kirjed: taastamine kõrvalandmebaasi + valikuline tagasikopeerimine), stsenaarium B (kogu andmebaas), failid, kontod, omaniku otsused.
 - Faktid 28.11 (loetud live-projektist): Firestore `(default)` `europe-west3`; graafikud iga päev (14 päeva) ja pühapäeviti (8 nädalat), 16 koopiat `READY`, uusim 2026-11-27 21:01 UTC; point-in-time recovery VÄLJAS, kustutuskaitse VÄLJAS. Storage `keelesepp-5136b.firebasestorage.app` (`us-east1`): versioonimist pole, soft delete 7 päeva (auditi „koopiaid pole” täpsustus: kustutatud fail on 7 päeva taastatav). Auth'i kontodest ja Secret Manageri saladustest koopiat pole. `gcloud` ei ole omaniku Macis paigaldatud.
-- Kontrollimata: ÜHTEGI taastamist pole proovitud — juhendi sammud on CLI abitekstist ja Firebase'i dokumenteeritud käitumisest. Ajakulu teadmata.
+- Proovitaastamine 2026-11-28 (omaniku loal „Да, пробуй”): koopia 27.11 21:01 UTC taastati samas projektis kõrvalandmebaasi `restore-test` (09:53 UTC), stabiilselt loetav ~12–13 minuti pärast; 112 kollektsiooni mõlemas, `students` / `invoices` / `payments` / `users` arvud võrdsed, 15 kollektsiooni erinesid täpselt pärast koopiat kirjutatu võrra; võrreldi ainult arve, mitte sisu ega alamkollektsioone. `restore-test` kustutatud 10:08 UTC, alles ainult `(default)`. Samal päeval omaniku käsul („включи защиту от удаления”) `(default)` kustutuskaitse SEES (kontrollitud). Proovimata: kirjete tagasikopeerimine, stsenaarium B, failide ja kontode taastamine.
 - Riskid: taastatud andmebaasis on päris isikuandmed ja reegleid ei ole (brauser ei loe, Admin SDK loeb) — kustutada kohe pärast tööd.
-- Tegemata (omaniku otsused, osa tasulised): proovitaastamine samas projektis (`restore-test`), kustutuskaitse, PITR, bucket'i versioonimine, kontode eksport, `gcloud`, koopia vanuse kontroll CI-s.
-- Järgmine samm: omaniku luba proovitaastamiseks samas projektis → ajakulu ja arvude võrdlus juhendisse.
+- Tegemata (omaniku otsused, osa tasulised): PITR, bucket'i versioonimine, kontode eksport, `gcloud`, koopia vanuse kontroll CI-s.
+- Järgmine samm: omaniku otsus PITR-i ja failide versioonimise kohta; audit p 11 (tunni märkimise kiirus kalendris).
 
 ## 2026-11-28 — Release ootab reeglite ja funktsioonide deploy'd (agent/release-deploy-check)
 

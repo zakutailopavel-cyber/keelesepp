@@ -1,8 +1,9 @@
 # Backups and restore
 
-What is copied, what is not, and how to get data back. Written 2026-11-28 (audit point 5). **No restore has ever been
-tried on this project** — every restore step below comes from the CLI's own help and Firebase's documented behaviour,
-not from a run here. Until the trial restore at the end is done, treat the timings as unknown.
+What is copied, what is not, and how to get data back. Written 2026-11-28 (audit point 5). One trial restore of the
+database was made that day (see „Trial restore” below): restoring into a side database works and takes about a
+quarter of an hour. Everything else — copying records back, scenario B, restoring files and accounts — comes from the
+CLI's own help and Firebase's documented behaviour and has **not** been tried here.
 
 Project `keelesepp-5136b`. The facts in „What exists” were read from the live project on 2026-11-28 (read-only calls);
 re-check them with the commands shown before relying on them.
@@ -26,7 +27,8 @@ Not switched on (each is the owner's decision, some cost money):
 
 - **Point-in-time recovery** is `DISABLED`. With it Firestore could be read as it was at any minute of the last 7 days.
   Without it only the last hour can be read back (`Version Retention Period 3600s`).
-- **Delete protection** of the database is `DISABLED`: the whole database can be deleted with one command.
+- **Delete protection** of the database was `DISABLED` until 2026-11-28; the owner had it switched on that day
+  (`DELETE_PROTECTION_ENABLED`, checked after the change). Deleting `(default)` now needs the protection taken off first.
 - **Object versioning** on the Storage bucket is off: there is the 7-day soft delete and nothing after it.
 - No export of the login accounts is kept anywhere.
 
@@ -40,6 +42,25 @@ firebase firestore:databases:get "(default)" --project keelesepp-5136b
 
 A backup's name looks like `projects/keelesepp-5136b/locations/europe-west3/backups/<id>`; the list shows its snapshot
 time. Pick the newest snapshot that is **older than the damage**.
+
+## Trial restore (2026-11-28)
+
+Backup `84ca3854…` (snapshot 2026-11-27 21:01 UTC) was restored into a side database `restore-test` of the same
+project with the command of scenario A.2, compared with production by document counts only, and deleted.
+
+- Started 09:53:03 UTC. The command returns in seconds; the restore runs on.
+- ~11 minutes later the database began to answer, but for about one more minute some requests still returned „Cannot
+  serve requests when the database is undergoing a restore”. Steady answers from about 10:05 UTC: **12–13 minutes**
+  for ~30 000 documents in top-level collections. **Do not trust the first good answer** — wait for a few minutes of
+  answers without that error before reading or copying anything.
+- 112 top-level collections in both. `students` 232 = 232, `invoices` 134 = 134, `payments` 118 = 118, `users`
+  130 = 130. Fifteen collections differed, each by what was written after the snapshot (`lessons` 644 → 647,
+  `schedule` 890 → 893, `worksheetVersions` 13 506 → 13 542, …); `aiRequests` had more in the backup (11 → 3: old ones
+  are cleaned up).
+- Not compared: the content of documents and the subcollections (board elements, call signals, messages of rooms).
+- The restored database came up with delete protection and point-in-time recovery off and without rules.
+- Deleted 10:08:44 UTC with `firebase firestore:databases:delete restore-test`; `firebase firestore:databases:list`
+  showed only `(default)` afterwards.
 
 ## Rules before any restore
 
@@ -82,9 +103,10 @@ A wrong merge of two cards, a script that wrote the wrong field, a deleted invoi
 2. Restore the newest good backup into a side database (as in A.2) and check it: counts of `students`, `lessons`,
    `invoices`, `payments`; the newest lesson and invoice dates.
 3. The app, the functions and the rules all use the database id `(default)`. Two ways on:
-   - **Restore into `(default)` itself.** Only possible when no `(default)` exists: delete the broken one
+   - **Restore into `(default)` itself.** Only possible when no `(default)` exists: take the delete protection off
+     (`firebase firestore:databases:update "(default)" --delete-protection DISABLED`), delete the broken database
      (`firebase firestore:databases:delete "(default)"` — irreversible, owner's yes, and only after step 2 proved the
-     backup good), then restore the same backup with `--database "(default)"`.
+     backup good), restore the same backup with `--database "(default)"`, and switch the protection on again.
    - Keep the broken database for inspection and point everything at the new id instead — the web client, every
      function and the rules deploy would need changing. Slower and never tried; only if the old data must stay.
 4. After the restore: `firebase deploy --only firestore:rules,firestore:indexes` (a restored database starts without
@@ -117,10 +139,8 @@ Password hash parameters).
 
 ## What to do to make this real (owner's decisions)
 
-1. **Trial restore** — the only way to know a backup works and how long it takes. Restore the newest backup into
-   `restore-test` in the same project (the data never leaves the project, the browser cannot read it), compare counts
-   with production, time it, delete it. Cost: one more copy of the database for about an hour.
-2. Switch on **delete protection** (free): `firebase firestore:databases:update "(default)" --delete-protection ENABLED`.
+1. ~~Trial restore~~ — done 2026-11-28, see below. Repeat it a few times a year and after any change of the schedules.
+2. ~~Delete protection~~ — switched on 2026-11-28.
 3. Switch on **point-in-time recovery** (extra storage cost): the loss window drops from a day to a minute for the last
    7 days. `firebase firestore:databases:update "(default)" --point-in-time-recovery ENABLED`.
 4. **Object versioning** on the Storage bucket with a lifecycle rule that deletes old versions after e.g. 30 days, or
