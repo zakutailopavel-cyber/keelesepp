@@ -63,52 +63,10 @@ service cloud.firestore {
         || !exists(/databases/$(database)/documents/financialLockedDates/$(value));
     }
 
-    function teacherName(userId) {
-      return hasUserDoc(userId)
-        ? get(userPath(userId)).data.get('displayName', '')
-        : '';
-    }
-
-    function sameTeacherName(left, right) {
-      return left is string
-        && right is string
-        && (
-          left.lower() == right.lower()
-          || (
-            left.lower().matches('^pavel( .*)?$')
-            && right.lower().matches('^pavel( .*)?$')
-          )
-          || (
-            left.lower().matches('^(jelena|elena)( .*)?$')
-            && right.lower().matches('^(jelena|elena)( .*)?$')
-          )
-          || (
-            left.lower().matches('^(elizaveta|yelyzaveta)( .*)?$')
-            && right.lower().matches('^(elizaveta|yelyzaveta)( .*)?$')
-          )
-          || (
-            left.lower().matches('^(angelina|anhelina)( .*)?$')
-            && right.lower().matches('^(angelina|anhelina)( .*)?$')
-          )
-        );
-    }
-
-    function teacherOwnsStudentData(data) {
-      return isTeacher()
-        && sameTeacherName(data.get('teacher', ''), teacherName(uid()));
-    }
-
-    function teacherScopeReadEnforced() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/securityMigrations/teacherUidV1)
-        && get(/databases/$(database)/documents/securityMigrations/teacherUidV1).data.get('readEnforced', false) == true;
-    }
-
     function teacherCanRead(data) {
       return isTeacher()
         && (
-          !teacherScopeReadEnforced()
-          || data.get('teacherUid', '') == uid()
+          data.get('teacherUid', '') == uid()
           || data.get('teacherUids', []).hasAny([uid()])
         );
     }
@@ -117,11 +75,6 @@ service cloud.firestore {
       return isTeacher()
         && (
           data.get('teacherUid', '') == uid()
-          || (
-            !teacherScopeReadEnforced()
-            && data.get('teacherUid', '') == ''
-            && teacherOwnsStudentData(data)
-          )
         );
     }
 
@@ -131,13 +84,6 @@ service cloud.firestore {
           (
             before.get('teacherUid', '') == uid()
             && after.get('teacherUid', '') == uid()
-          )
-          || (
-            !teacherScopeReadEnforced()
-            && before.get('teacherUid', '') == ''
-            && after.get('teacherUid', '') == ''
-            && teacherOwnsStudentData(before)
-            && teacherOwnsStudentData(after)
           )
         );
     }
@@ -188,18 +134,13 @@ service cloud.firestore {
           && (
             studentDoc(studentId).get('teacherUid', '') == uid()
             || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
-            || (
-              !teacherScopeReadEnforced()
-              && teacherOwnsStudentData(studentDoc(studentId))
-            )
           )
         );
     }
 
     // Homework, submissions and messages of a student: the administrator, or a teacher of that student's card
-    // (teacherUid / teacherUids; by name while teacher scope is not enforced). Owner decision 2026-10-11:
+    // (teacherUid / teacherUids; the by-name mode of the 2026-08 rollout is gone). Owner decision 2026-10-11:
     // a teacher sees only their own students' correspondence and homework.
-    // Cheap uid checks first, the name comparison last: these rules also run inside large Live Classroom batches.
     function staffCanAccessStudent(studentId) {
       return isAdmin()
         || (
@@ -210,7 +151,6 @@ service cloud.firestore {
           && (
             studentDoc(studentId).get('teacherUid', '') == uid()
             || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
-            || (!teacherScopeReadEnforced() && teacherOwnsStudentData(studentDoc(studentId)))
           )
         );
     }
@@ -3967,8 +3907,7 @@ service cloud.firestore {
           teacher
           && exists(studentPath(studentId))
           && (
-            !teacherScopeReadEnforced()
-            || studentDoc(studentId).get('teacherUid', '') == uid()
+            studentDoc(studentId).get('teacherUid', '') == uid()
             || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
           )
         )
