@@ -5,6 +5,12 @@
 - Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
 - Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
 - Next step: owner review → merge → release; then wire the speller into CI.
+## 2026-11-28 — two oral pair exam lessons in Õppevara (production data, owner's yes)
+
+- Main checked: dc762dd. Data only, no code. Owner: „да, положи устные уроки в Õppevara”.
+- Created (create-only, nothing overwritten): `curriculumLessons/suuline-eksam-b2-paaris` („Suuline eksam B2 (paaris)”, level B2, 14 blocks) and `curriculumLessons/suuline-eksam-9kl-paaris` („Suuline eksam 9. klass (paaris)”, level B1, 9 blocks), each with `worksheetVersions/<id>_studio_v1`. Same fields as `worksheetDocsService.save` for a new published material; `topic: "__exam__rääkimine"`, `examPart: "rääkimine"` → Õppevara section „Eksamiks harjutamine”. Sheets are the ones given to the students earlier, names removed from id / subtitle.
+- Checked with the app's `libraryModel`: both published, found by search „suuline”. Students' existing assignments untouched.
+- Next step: none needed; a teacher assigns them from Õppevara.
 ## 2026-11-28 — forms-lookup „stops at totalMs” test in virtual time (agent/forms-lookup-virtual-time)
 
 - Main checked: b5d8d54 (2026-11-28). Branch `agent/forms-lookup-virtual-time`. Test only; `functions/index.js` unchanged, no deploy, no production writes.
