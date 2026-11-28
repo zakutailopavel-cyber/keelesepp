@@ -878,6 +878,7 @@ test("student writes keep teachers inside their assigned scope", async () => {
       fields: {
         name: { stringValue: "Teacher Owned" },
         teacher: { stringValue: "Pavel" },
+        teacherUid: { stringValue: teacherUid },
         active: { booleanValue: true },
       },
     },
@@ -892,11 +893,21 @@ test("student writes keep teachers inside their assigned scope", async () => {
       fields: {
         name: { stringValue: "Foreign Create" },
         teacher: { stringValue: "Elena" },
+        teacherUid: { stringValue: otherTeacherUid },
         active: { booleanValue: true },
       },
     },
   );
   assert.equal(foreignCreate.status, 403, JSON.stringify(foreignCreate.body));
+
+  // the teacher's name alone is not ownership (the by-name mode left the rules 2026-11-28)
+  const nameOnlyCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/name-only-create-student",
+    { fields: { name: { stringValue: "Name Only" }, teacher: { stringValue: "Pavel" }, active: { booleanValue: true } } },
+  );
+  assert.equal(nameOnlyCreate.status, 403, JSON.stringify(nameOnlyCreate.body));
 
   const adminCreate = await firestoreDocumentRequest(
     adminToken,
@@ -906,6 +917,7 @@ test("student writes keep teachers inside their assigned scope", async () => {
       fields: {
         name: { stringValue: "Other Teacher Student" },
         teacher: { stringValue: "Elena Zakutailo" },
+        teacherUid: { stringValue: otherTeacherUid },
         linkedParentId: { stringValue: parentUid },
         active: { booleanValue: true },
       },
@@ -924,8 +936,8 @@ test("student writes keep teachers inside their assigned scope", async () => {
   const reassignment = await firestoreDocumentRequest(
     teacherToken,
     "PATCH",
-    "students/teacher-owned-student?updateMask.fieldPaths=teacher",
-    { fields: { teacher: { stringValue: "Elena" } } },
+    "students/teacher-owned-student?updateMask.fieldPaths=teacherUid",
+    { fields: { teacherUid: { stringValue: otherTeacherUid } } },
   );
   assert.equal(reassignment.status, 403, JSON.stringify(reassignment.body));
 
