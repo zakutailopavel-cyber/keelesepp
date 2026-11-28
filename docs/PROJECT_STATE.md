@@ -8,6 +8,16 @@
 - Riskid ja väravad: (1) kolm sammu, igaüks omaniku loal: `firebase deploy --only functions:liveInvitationApi` → veebi release → mõne päeva pärast reeglite eemaldamine + deploy (ruum vabaneb alles siis; samas PR-is eemaldada brauseri varutee). (2) Pärast 3. sammu ei saa tundi alustada, kui funktsioon on maas. (3) Külm käivitus: esimene kutse pärast pausi võib võtta 2–4 s (hinnang, mõõtmata); `minInstances` on tasuline — ainult omaniku loal. (4) Uus funktsioon vajab avalikku kutsumisõigust (`allUsers` invoker) nagu teised `onRequest` funktsioonid — kontrollida pärast esimest deploy'd `/ping`-iga. (5) Õpilase brauser, mis on vana versiooniga lahti, kirjutab kuni 3. sammuni otse — seepärast vahe.
 - Tegemata: 3. samm (reeglite ja varutee eemaldamine); funktsiooni äratamine (`/ping`) kalendri avamisel; `studentRevenuePlans` (≈ 2 % reeglitest) samal moel.
 - Järgmine samm: CI roheline → omaniku luba pärast 4. detsembrit → `liveInvitationApi` deploy → `/ping` → proovitund prooviõpilasega.
+## 2026-11-28 — Audit: tunni krediidi mahaarvamise viga ei kao enam vaikselt (agent/audit-token-sync-retry)
+
+- Main kontrollitud: e7d4cb7 (2026-11-28, #1376). Haru `agent/audit-token-sync-retry`, draft-PR „Audit fix: a failed lesson-token sync is retried and shown in Vead”. Deploy'd ega production'i kirjutusi/lugemisi ei tehtud.
+- Eesmärk (auditi punkt 6, omanik 2026-11-28 „Да, бери”): `syncLessonTokens` püüdis vea kinni ja ainult logis — tund jäi märgituks, krediit paketist maha arvamata, keegi ei näinud.
+- Tehtud: uus `functions/lesson-tokens-retry-core.js` (+ test): ajutine viga (ABORTED / UNAVAILABLE / DEADLINE / 5xx) → kuni 2 kordust samas käivituses (400 ms, 1,5 s; sync on `requestId` järgi idempotentne); 4xx (pearaamatu otsus) ei kordu. Lõplik viga → üks kirje `clientErrors/lesson-tokens-<lessonId>` (samad väljad mis brauseri teatel, ainult tunni id, nimesid pole; kordumisel kasvab `count`) → leht „Vead” ja kell 07:00 kokkuvõte kellukeses. `functions/index.js`: trigger kasutab neid. `docs/LESSON_TOKENS.md` p 4.
+- Reeglid, andmeskeem, klient: muutmata (server kirjutab admin SDK-ga; `clientErrors` kuju sama).
+- Kontrollid: `cd functions && npm test` → 688 pass, 0 fail (uus fail eraldi: 4/4). Emulaatoriga ega production'is triggerit ei käivitatud; „Vead” lehte selle kirjega brauseris ei vaadatud.
+- Piirangud: trigger ei kasuta platvormi kordust (failurePolicy) — kui funktsioon ise ei käivitu või aegub, kirjet ei teki. Varasemaid vahele jäänud tunde see ei leia ega paranda.
+- Käsitsi värav: `firebase deploy --only functions:syncLessonTokens` ainult omaniku loal; seejärel `docs/DEPLOY_LEDGER.md`.
+- Järgmine ohutu samm: pärast ühendamist ja deploy'd märkida üks pakettõpilase tund ja kontrollida, et krediit liigub ja „Vead” on tühi.
 
 ## 2026-11-28 — Minikursus „Käänded lauses”: 6 tundi (agent/minicourse-kaanded)
 
