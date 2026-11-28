@@ -13770,7 +13770,11 @@ exports.syncLessonTokens = functions.firestore
     // only CRM v2 marks (calendar / lesson panel); the server lesson journal syncs packages itself
     if ((after || before)?.accountingSource !== "crm_v2") return null;
     const lessonId = context.params.lessonId;
+    // a temporary error is tried again (idempotent by requestId); a sync that still fails is not lost: it lands in
+    // „Vead” (clientErrors → the admin's page and the 07:00 digest), audit 2026-11-28 (lesson-tokens-retry-core.js)
+    const tokensRetry = require("./lesson-tokens-retry-core");
     try {
+     await tokensRetry.runTokenSyncWithRetry(async () => {
       const stateSnap = await db.collection("lessonPackageStates").doc(lessonId).get();
       const consumed = stateSnap.exists && stateSnap.data().status === "consumed";
       const owed = stateSnap.exists && stateSnap.data().status === "needs_attention";
@@ -13785,8 +13789,24 @@ exports.syncLessonTokens = functions.firestore
       if (after && first?.status === "restored" && first.changed) {
         await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `lesson-tokens-${context.eventId}-again`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
       }
+      return null;
+     });
     } catch (error) {
       console.error(`Lesson tokens sync failed for ${lessonId}:`, error.message);
+      try {
+        const failure = tokensRetry.tokenSyncFailureRecord({ lessonId, error });
+        const ref = db.collection("clientErrors").doc(failure.id);
+        const known = await ref.get();
+        const stamp = admin.firestore.FieldValue.serverTimestamp();
+        await ref.set({
+          ...failure.data,
+          count: Math.min(1000, (known.exists ? Number(known.data().count) || 0 : 0) + 1),
+          firstAt: known.exists && known.data().firstAt ? known.data().firstAt : stamp,
+          lastAt: stamp,
+        });
+      } catch (recordError) {
+        console.error(`Lesson tokens failure not recorded for ${lessonId}:`, recordError.message);
+      }
     }
     return null;
   });
