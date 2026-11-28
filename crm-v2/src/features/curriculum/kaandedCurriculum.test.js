@@ -55,6 +55,22 @@ describe('mini-course „Käänded lauses” (course kaanded)', () => {
     });
   });
 
+  it('v2: every Harjuta has 9 practice blocks of 8–12 items, recognise → choose → produce', () => {
+    const items = (b) => b.data.questions?.length || b.data.pairs?.length || (Array.isArray(b.data.rows) ? b.data.rows.length : 0)
+      || (typeof b.data.rows === 'string' ? b.data.rows.split('\n').length : 0) || (b.data.groups ? b.data.groups.flatMap((g) => String(g.words).split(/,|\n/)).length : 0)
+      || (String(b.data.passage || '').match(/\[/g) || []).length;
+    IDS.forEach((id) => {
+      const tasks = sheets[id].practice.blocks.filter((b) => b.type !== 'tip');
+      expect(tasks).toHaveLength(9);
+      tasks.forEach((b) => expect(items(b), `${id} ${b.id}`).toBeGreaterThanOrEqual(8));
+      tasks.forEach((b) => expect(items(b), `${id} ${b.id}`).toBeLessThanOrEqual(12));
+      const types = tasks.map((b) => b.type);
+      expect(types.indexOf('choice')).toBeLessThan(types.indexOf('formtext'));
+      expect(types.at(-1)).toBe('translation');
+      expect(new Set(types).size).toBeGreaterThanOrEqual(7);
+    });
+  });
+
   it('the control of lesson 6 has 8 + 10 + 6 + 6 = 30 points and a full key scores 30', () => {
     const doc = buildCourseSheet(MODULES[0], 'kaanded-006', 'transfer');
     const parts = ['k6_t_c1', 'k6_t_c2', 'k6_t_c3', 'k6_t_c4'].map((id) => doc.blocks.find((b) => b.id === id));
