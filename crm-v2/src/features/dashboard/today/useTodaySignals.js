@@ -57,7 +57,8 @@ export function useTodaySignals({ user = null, isAdmin = false, canViewLearning 
   const data = state.data;
   const clock = tallinnClock(now());
 
-  const lessonsToday = useMemo(() => (canViewLearning ? todayLessons({ events, today, now: clock }) : []), [canViewLearning, events, today, clock]);
+  // the journal resolves each occurrence like the calendar (an absence or cancellation marked ahead is not „Käib”)
+  const lessonsToday = useMemo(() => (canViewLearning ? todayLessons({ events, today, now: clock, records: data?.lessons || [] }) : []), [canViewLearning, events, today, clock, data]);
   // the ONE definition (calendar/unmarkedLessons.js markingSplit): the attention list, the tile and the nudge agree
   const unmarked = useMemo(() => (canViewLearning && data?.lessons ? unmarkedLessons({ schedule, lessons: data.lessons, today, teacherUid: isAdmin ? '' : teacherUid, context: data.context || {} }) : null), [canViewLearning, data, schedule, today, teacherUid, isAdmin]);
   const queue = useMemo(() => (isAdmin && data ? homeworkQueue({ submissions, homework, worksheets: data.worksheets || [], students, today, windowDays: HOMEWORK_WINDOW_DAYS }) : null), [isAdmin, data, submissions, homework, students, today]);
