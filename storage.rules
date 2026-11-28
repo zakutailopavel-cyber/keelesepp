@@ -35,6 +35,22 @@ service firebase.storage {
       return superAdmin() || role() in ['teacher', 'admin'];
     }
 
+    // A student's own files (homework, recordings, worksheets, board material): the administrator, or a teacher of that
+    // student's card — the same boundary as staffCanAccessStudent() / teacherCanRead() in firestore.rules with the
+    // teacher scope enforced (production: since 2026-08-05). Audit 2026-11-28: plain staff() let any teacher open any
+    // student's files. Shared teaching material (worksheet/, curriculum/, didactics/) stays with staff().
+    function staffOf(studentId) {
+      return superAdmin() || role() == 'admin'
+        || (
+          role() == 'teacher'
+          && firestore.exists(/databases/(default)/documents/students/$(studentId))
+          && (
+            firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('teacherUid', '') == request.auth.uid
+            || firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('teacherUids', []).hasAny([request.auth.uid])
+          )
+        );
+    }
+
     // course material: staff and approved students linked to a student card (same as courseReader in firestore.rules)
     function courseReader() {
       return staff()
@@ -95,8 +111,8 @@ service firebase.storage {
     }
 
     match /worksheet-submissions/{studentId}/{assignmentId}/{fileName} {
-      allow read: if staff() || ownsStudent(studentId);
-      allow create: if (staff() || ownsStudent(studentId))
+      allow read: if staffOf(studentId) || ownsStudent(studentId);
+      allow create: if (staffOf(studentId) || ownsStudent(studentId))
         && request.resource != null
         && request.resource.size > 0
         && request.resource.size <= 20 * 1024 * 1024
@@ -111,8 +127,8 @@ service firebase.storage {
     }
 
     match /student-worksheets/{studentId}/{fileName} {
-      allow read: if staff() || ownsStudent(studentId);
-      allow write: if staff() && safeContent();
+      allow read: if staffOf(studentId) || ownsStudent(studentId);
+      allow write: if staffOf(studentId) && safeContent();
     }
 
     match /didactics/{staffUid}/{fileName} {
@@ -121,8 +137,8 @@ service firebase.storage {
     }
 
     match /lessons/{studentId}/{fileName} {
-      allow read: if staff() || ownsStudent(studentId);
-      allow write: if staff() && safeContent();
+      allow read: if staffOf(studentId) || ownsStudent(studentId);
+      allow write: if staffOf(studentId) && safeContent();
     }
 
     // Live Classroom lesson recordings: only the recording teacher uploads audio while the recording runs.
@@ -143,12 +159,12 @@ service firebase.storage {
     }
 
     match /homework/{studentId}/{fileName} {
-      allow read: if staff() || ownsStudent(studentId);
-      allow write: if (staff() || ownsStudent(studentId)) && safeContent();
+      allow read: if staffOf(studentId) || ownsStudent(studentId);
+      allow write: if (staffOf(studentId) || ownsStudent(studentId)) && safeContent();
     }
 
     // „Kuu monoloog” (2026-11-04): one audio file per month, written (and re-recorded) only by the student's own account
-    // (role student, linked to the card; parents have no access); staff listen. Never deleted from the client.
+    // (role student, linked to the card; parents have no access); the student's teachers and the administrator listen. Never deleted from the client.
     function monologueStudent(studentId) {
       return signedIn() && role() == 'student'
         && firestore.exists(/databases/(default)/documents/students/$(studentId))
@@ -160,7 +176,7 @@ service firebase.storage {
     }
 
     match /homework/{studentId}/monologues/{fileName} {
-      allow read: if staff() || monologueStudent(studentId);
+      allow read: if staffOf(studentId) || monologueStudent(studentId);
       allow create, update: if monologueStudent(studentId)
         && fileName.matches('^[0-9]{4}-(0[1-9]|1[0-2])[.](webm|m4a|ogg)$')
         && request.resource != null
@@ -189,14 +205,14 @@ service firebase.storage {
     // material is a teacher/admin action; linked students and parents may
     // read the resulting object but cannot replace or delete it in Storage.
     match /whiteboards/{studentId}/materials/{fileName} {
-      allow read: if staff() || ownsStudent(studentId);
-      allow write: if staff() && safeContent();
+      allow read: if staffOf(studentId) || ownsStudent(studentId);
+      allow write: if staffOf(studentId) && safeContent();
     }
 
     // A student's (or parent's) own photos on the board, e.g. a notebook page: images only, up to 10 MB.
     match /whiteboards/{studentId}/student/{fileName} {
-      allow read: if staff() || ownsStudent(studentId);
-      allow write: if (staff() || ownsStudent(studentId))
+      allow read: if staffOf(studentId) || ownsStudent(studentId);
+      allow write: if (staffOf(studentId) || ownsStudent(studentId))
         && (request.resource == null
           || (request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('^image/.*$')));
     }
