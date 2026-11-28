@@ -16,6 +16,7 @@
 // Texts are original (KeeleSepa õppetekst); no textbook or Harno material. No dictation.
 import { B, teach } from '../blocks.js';
 import { exitCheck, homeTask } from '../stationBlocks.js';
+import { MORE } from './practice.js';
 
 export const MODULE = {
   id: 'kaanded-module-01',
@@ -64,7 +65,7 @@ const review = (id, lines) => B.review(id, lines);
 // short options side by side (engine block.opts.cols)
 const cols3 = (block) => ({ ...block, opts: { ...(block.opts || {}), cols: 3 } });
 
-export const LESSONS = {
+const BASE = {
   // =====================================================================================================================
   'kaanded-001': {
     title: 'Mis on kääne ja milleks?',
@@ -118,6 +119,8 @@ export const LESSONS = {
         ['Ma ootan **sõpra**.', 'Keda?', 'Kelle?', 'Kellele?'],
         ['Ma annan **sõbrale** raamatu.', 'Kellele?', 'Kellel?', 'Kellelt?'],
         ['Ma joon teed **suhkruta**.', 'Milleta?', 'Millega?', 'Milleks?'],
+        ['Me läheme õhtul **kinno**.', 'Kuhu?', 'Kus?', 'Kust?'],
+        ['Ta töötab **arstina**.', 'Kellena?', 'Kelleks?', 'Kellega?'],
       ], 'full', 'g_notice')),
       teach(B.wordforms('k1_p_forms', 'Omastav + lõpp.', 'Kirjuta vorm. Sulgudes on omastav.', [
         ['pood (poe)', 'kus? -s', 'poes'],
@@ -128,11 +131,13 @@ export const LESSONS = {
         ['linn (linna)', 'kus? -s', 'linnas'],
         ['tuba (toa)', 'kust? -st', 'toast'],
         ['raamat (raamatu)', 'milleta? -ta', 'raamatuta'],
+        ['ema (ema)', 'kellele? -le', 'emale'],
+        ['buss (bussi)', 'kust? -st', 'bussist'],
       ], 'full'), 'Учитель: если ученик пишет «poodis» или «tubast» — вернуть к правилу: окончание идёт к omastav (poe-, toa-), а не к nimetav.'),
       B.formtext('k1_p_text', 'Pane sõnad õigesse vormi.', 'Kirjuta sõna õige lõpuga. Küsimus aitab.', 'Sõnum sõbrale', [
         'Tere, Mari!',
         'Ma olen praegu [Tartus] (Tartu, kus?). Hommikul sõitsin siia [bussiga] (buss, millega?). Bussis rääkisin ühe vana [naisega] (naine, kellega?). Ta tuli just [haiglast] (haigla, kust?).',
-        'Nüüd istun [kohvikus] (kohvik, kus?) ja joon kohvi [suhkruta] (suhkur, milleta?). Õhtul lähen [teatrisse] (teater, kuhu?). Pühapäeval sõidan tagasi [koju] (kodu, kuhu?).',
+        'Nüüd istun [kohvikus] (kohvik, kus?) ja joon kohvi [suhkruta] (suhkur, milleta?). Õhtul lähen [teatrisse] (teater, kuhu?). Pühapäeval sõidan tagasi [koju] (kodu, kuhu?). Ma saadan [sõbrale] (sõber, kellele?) pildi [kohvikust] (kohvik, kust?).',
         'Kallistan! Anna',
       ]),
       B.errorfix('k1_p_fix', 'Paranda viga.', 'Sõnal puudub lõpp. Kirjuta lause õigesti.', [
@@ -141,6 +146,9 @@ export const LESSONS = {
         ['Ta tuleb kool.', 'Ta tuleb koolist.'],
         ['Ma lähen pood.', 'Ma lähen poodi.|Ma lähen poesse.'],
         ['Ma räägin ema.', 'Ma räägin emaga.'],
+        ['Kass magab diivan.', 'Kass magab diivanil.'],
+        ['Ma tulen töö.', 'Ma tulen töölt.'],
+        ['Me sõidame Tartu.', 'Me sõidame Tartusse.'],
       ]),
       help('k1_p_help', 'leia kõigepealt küsimus (kus? kuhu? kust? kellega?), siis lõpp tabelist.', 'kirjuta 3 lauset sõnaga kool: kus? kust? kuhu? (koolis, koolist, kooli). Siis sama sõnaga pood.'),
     ],
@@ -202,6 +210,8 @@ export const LESSONS = {
         ['Laual on kolm …', 'õuna', 'õun', 'õunad'],
         ['Ma armastan …', 'muusikat', 'muusika', 'muusikaga'],
         ['Isa parandas … ära.', 'auto', 'autot', 'autole'],
+        ['Mul ei ole …', 'autot', 'auto', 'autod'],
+        ['Ma ootan …', 'sind', 'sina', 'sinu'],
       ], 'full', 'g_notice')),
       teach(B.formtext('k2_p_text', 'Pane sõnad õigesse vormi.', 'Kirjuta sõna sobivas käändes: omastav või osastav.', 'Anna vaba päev', [
         'Täna on Anna kodus. Hommikul jõi ta [kohvi] (kohv) ja luges [ajalehte] (ajaleht). Siis koristas ta [toa] (tuba) ära ja pesi [aknad] (aken) puhtaks.',
@@ -215,6 +225,8 @@ export const LESSONS = {
         ['Me nägime Marit.', 'Me ei …', 'Me ei näinud Marit.'],
         ['Isa parandas auto ära.', 'Isa ei …', 'Isa ei parandanud autot ära.'],
         ['Ma lugesin raamatu läbi.', 'Ma ei …', 'Ma ei lugenud raamatut läbi.'],
+        ['Ma leidsin võtme.', 'Ma ei …', 'Ma ei leidnud võtit.'],
+        ['Tal on koer.', 'Tal ei …', 'Tal ei ole koera.|Tal pole koera.'],
       ]),
       help('k2_p_help', 'küsi endalt skeemi järgi: 1) Kas on „ei”? 2) Kas on arv või hulk? 3) Kas tegevus lõpeb ja asi on terve?', 'käsklauses on täissihitis nimetavas: Osta **leib**! Söö **supp** ära! Kirjuta kaks oma käsku.'),
     ],
@@ -275,6 +287,8 @@ export const LESSONS = {
         ['Kass on toas.', 'Kust? Kass tuleb …', 'Kass tuleb toast.'],
         ['Lapsed on õues.', 'Kuhu? Lapsed lähevad …', 'Lapsed lähevad õue.'],
         ['Isa on saunas.', 'Kust? Isa tuleb …', 'Isa tuleb saunast.'],
+        ['Raamat on kotis.', 'Kust? Võta raamat …', 'Võta raamat kotist.'],
+        ['Me oleme kinos.', 'Kuhu? Me läheme …', 'Me läheme kinno.|Me läheme kinosse.'],
       ]),
       cols3(B.choice('k3_p_choice', 'Vali õige vorm.', 'Mõtle: liikumine või koht?', [
         ['Pane piim … tagasi!', 'külmkappi', 'külmkapis', 'külmkapist'],
@@ -283,6 +297,10 @@ export const LESSONS = {
         ['Ma tulin just …, seal oli palju inimesi.', 'poest', 'poodi', 'poes'],
         ['Ta elab … juba kaks aastat.', 'Eestis', 'Eestisse', 'Eestist'],
         ['Mu vend kolis eelmisel aastal …', 'Soome', 'Soomes', 'Soomest'],
+        ['Ma panen raamatud …', 'kotti', 'kotis', 'kotist'],
+        ['Võta piim … välja!', 'külmkapist', 'külmkappi', 'külmkapis'],
+        ['Lapsed mängivad …', 'toas', 'tuppa', 'toast'],
+        ['Me sõidame suvel …', 'Lätti', 'Lätis', 'Lätist'],
       ], 'full', 'g_notice')),
       help('k3_p_help', 'liikumine sisse — kuhu? (-sse); olen sees — kus? (-s); liikumine välja — kust? (-st).', 'kasuta lühikesi vorme: maja → majja, tuba → tuppa, pood → poodi, kool → kooli, Soome → Soome. Kirjuta 4 lauset.'),
     ],
@@ -347,6 +365,8 @@ export const LESSONS = {
         ['Mu vanaema elab …', 'Hiiumaal', 'Hiiumaas', 'Hiiumaale'],
         ['Mu õde töötab …', 'haiglas', 'haiglal', 'haiglasse'],
         ['Poisid mängivad … jalgpalli.', 'staadionil', 'staadionis', 'staadionile'],
+        ['Ma sain … kirja.', 'sõbralt', 'sõbrale', 'sõbral'],
+        ['… on külm.', 'Mul', 'Mina', 'Minule'],
       ], 'full', 'g_notice')),
       B.transformation('k4_p_have', 'Mul on …', 'Kirjuta lause „on”-ga.', [
         ['mina + auto', 'Mul …', 'Mul on auto.'],
@@ -355,6 +375,9 @@ export const LESSONS = {
         ['sina + aega (ei)', 'Sul …', 'Sul ei ole aega.|Sul pole aega.'],
         ['meie + uus korter', 'Meil …', 'Meil on uus korter.'],
         ['tema + külm', 'Tal …', 'Tal on külm.|Temal on külm.'],
+        ['mina + koer (ei)', 'Mul …', 'Mul ei ole koera.|Mul pole koera.'],
+        ['ema + uus telefon', 'Emal …', 'Emal on uus telefon.'],
+        ['nemad + raha (ei)', 'Neil …', 'Neil ei ole raha.|Neil pole raha.'],
       ]),
       help('k4_p_help', 'peal, inimene, aeg ja omamine — -le, -l, -lt. Hoone sees — -sse, -s, -st.', 'kirjuta 4 lauset sõnadega mulle, mul, minult ja talle: Anna helistas mulle …'),
     ],
@@ -422,6 +445,10 @@ export const LESSONS = {
         ['… olin ma väga häbelik.', 'Lapsena', 'Lapseks', 'Lapseni'],
         ['Mida sa … soovid?', 'jõuludeks', 'jõuludena', 'jõuludega'],
         ['Ma töötasin suvel kohvikus …', 'ettekandjana', 'ettekandjaks', 'ettekandjat'],
+        ['Me sõidame Tallinnast Tartusse …', 'bussiga', 'bussita', 'bussiks'],
+        ['Ma ei saa elada …', 'kohvita', 'kohviga', 'kohvini'],
+        ['Pood on lahti kella …', 'kümneni', 'kümneks', 'kümnena'],
+        ['Ta tuli peole …', 'sõbraga', 'sõbraks', 'sõbrana'],
       ], 'full', 'g_notice')),
       B.transformation('k5_p_turn', 'Ütle ühe lausega.', 'Kasuta antud lõppu.', [
         ['Ma joon kohvi. Suhkrut ei ole.', '-ta: Ma joon kohvi …', 'Ma joon kohvi suhkruta.|Ma joon kohvi ilma suhkruta.'],
@@ -429,6 +456,9 @@ export const LESSONS = {
         ['Pood on lahti. Kell kaheksa pood suletakse.', '-ni: Pood on lahti …', 'Pood on lahti kella kaheksani.'],
         ['Mari ei olnud ema. Nüüd on ta ema.', '-ks: Mari sai …', 'Mari sai emaks.'],
         ['Ta töötab. Ta on giid.', '-na: Ta töötab …', 'Ta töötab giidina.'],
+        ['Ma lähen kinno. Mu õde tuleb ka.', '-ga: Ma lähen kinno …', 'Ma lähen kinno õega.|Ma lähen õega kinno.'],
+        ['Ilm oli soe. Nüüd on külm.', '-ks: Ilm muutus …', 'Ilm muutus külmaks.'],
+        ['Ma olin laps. Siis elasin Narvas.', '-na: … elasin Narvas.', 'Lapsena elasin Narvas.'],
       ]),
       help('k5_p_help', '-ks = muutub / saab, -ni = kuni, -na = mis rollis, -ta = ilma, -ga = koos või millega.', 'kirjuta kaks lauset omadussõnaga: hea sõbraga (lõpp ainult lõpus) ja heaks sõbraks (lõpp mõlemal).'),
     ],
@@ -499,6 +529,8 @@ export const LESSONS = {
         ['Kas sa saad … aru?', 'küsimusest', 'küsimust', 'küsimusele'],
         ['Ma tänan … abi eest.', 'teid', 'teile', 'teiega'],
         ['Vasta palun …', 'küsimusele', 'küsimust', 'küsimusest'],
+        ['Ma loodan …', 'sulle', 'sind', 'sinust'],
+        ['Ma unistan …', 'reisist', 'reisi', 'reisile'],
       ], 'full', 'g_notice')),
       B.errorfix('k6_p_fix', 'Paranda viga.', 'Siin on vene keele mõju. Kirjuta õigesti.', [
         ['Ma aitan emale.', 'Ma aitan ema.'],
@@ -507,6 +539,9 @@ export const LESSONS = {
         ['Ta sai arst.', 'Ta sai arstiks.'],
         ['Ma helistan ema.', 'Ma helistan emale.'],
         ['Ma vajan sinu abiga.', 'Ma vajan sinu abi.'],
+        ['Ma mõtlen puhkus.', 'Ma mõtlen puhkusele.'],
+        ['Ta abiellus Peetrit.', 'Ta abiellus Peetriga.'],
+        ['See sõltub ilm.', 'See sõltub ilmast.'],
       ]),
       help('k6_p_help', 'õpi tegusõna koos küsimusega: huvituma millest, mõtlema millele, aitama keda, kohtuma kellega.', 'leia Sõnaveebist (sonaveeb.ee) veel kaks tegusõna, mis tahavad -st või -ga, ja kirjuta nendega lause.'),
     ],
@@ -556,3 +591,28 @@ export const LESSONS = {
     ],
   },
 };
+
+// v2 (owner 2026-11-28: „заданий мало по каждой теме”): every Harjuta gets 9 practice blocks of 8–12 items from
+// practice.js in the gradient recognise → choose → produce; Avasta gets one example table after the rule box, Kasuta a
+// second speaking task after the main communicative task. ORDER names a block of the lesson (its id) or of MORE (its key).
+const ORDER = {
+  'kaanded-001': ['find', 'match', 'k1_p_q', 'table', 'k1_p_forms', 'k1_p_text', 'transformation', 'k1_p_fix', 'translation', 'k1_p_help'],
+  'kaanded-002': ['findCase', 'find', 'k2_p_choice', 'table', 'k2_p_text', 'formtext2', 'k2_p_neg', 'errorfix', 'translation', 'k2_p_help'],
+  'kaanded-003': ['find', 'match', 'k3_p_choice', 'table', 'wordforms', 'k3_p_text', 'k3_p_turn', 'errorfix', 'translation', 'k3_p_help'],
+  'kaanded-004': ['find', 'match', 'k4_p_inout', 'table', 'wordforms', 'k4_p_text', 'k4_p_have', 'errorfix', 'translation', 'k4_p_help'],
+  'kaanded-005': ['find', 'match', 'k5_p_choice', 'table', 'wordforms', 'k5_p_text', 'k5_p_turn', 'errorfix', 'translation', 'k5_p_help'],
+  'kaanded-006': ['find', 'match', 'k6_p_choice', 'table', 'wordforms', 'k6_p_text', 'transformation', 'k6_p_fix', 'translation', 'k6_p_help'],
+};
+function arrange(id, lesson) {
+  const more = MORE[id];
+  const own = lesson.practice;
+  const practice = ORDER[id].map((key) => more[key] || own.find((b) => b.id === key) || (() => { throw new Error(`${id}: ${key} missing`); })());
+  const left = own.filter((b) => !practice.includes(b));
+  if (left.length) throw new Error(`${id}: practice blocks left out: ${left.map((b) => b.id)}`);
+  const at = lesson.discover.findIndex((b) => b.type === 'notice') + 1;
+  const discover = [...lesson.discover.slice(0, at), more.examples, ...lesson.discover.slice(at)];
+  const main = lesson.transfer.findIndex((b) => b.data?.taskType) + 1;
+  const transfer = [...lesson.transfer.slice(0, main), more.speak2, ...lesson.transfer.slice(main)];
+  return { ...lesson, discover, practice, transfer };
+}
+export const LESSONS = Object.fromEntries(Object.entries(BASE).map(([id, lesson]) => [id, arrange(id, lesson)]));
