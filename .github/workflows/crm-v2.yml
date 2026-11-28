@@ -33,9 +33,14 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
+  # Speed-up 2026-11-28 (owner OK): the one 10–13 min `verify` job (lint → build → all unit tests in a row) is now
+  # lint, build and 4 vitest shards side by side, plus a final job still named exactly `verify` that merges the shard
+  # reports (one summary with the full test count) and is green only when every one of them is green. release.yml
+  # (release-ci-gate.sh) reads the whole run; the owner's release script waits for the check-run `verify` — both stay.
+  # node_modules is cached per lockfile + Node version; a cache miss falls back to `npm ci`.
+  lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: crm-v2
@@ -48,13 +53,131 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: crm-v2/package-lock.json
-      - run: npm ci
+      - id: modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: crm-v2/node_modules
+          key: crm-v2-node-modules-${{ runner.os }}-node22-${{ hashFiles('crm-v2/package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: crm-v2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: crm-v2/package-lock.json
+      - id: modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: crm-v2/node_modules
+          key: crm-v2-node-modules-${{ runner.os }}-node22-${{ hashFiles('crm-v2/package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run build
-      - run: npm test
       - name: Report bundle size (warning only)
         continue-on-error: true
         run: node scripts/bundle-size-report.mjs
+
+  test:
+    name: test (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      # every shard runs to the end, so one red run shows all failing tests at once
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    defaults:
+      run:
+        working-directory: crm-v2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: crm-v2/package-lock.json
+      - id: modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: crm-v2/node_modules
+          key: crm-v2-node-modules-${{ runner.os }}-node22-${{ hashFiles('crm-v2/package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      # the same `npm test` (vitest run), one quarter of the test files; the blob report feeds the summary in `verify`
+      - name: npm test (shard ${{ matrix.shard }}/4)
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: npm test -- --shard="${SHARD}/4" --reporter=default --reporter=blob
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: vitest-blob-${{ matrix.shard }}
+          path: crm-v2/.vitest-reports/
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: error
+
+  verify:
+    # the gate the owner's release script waits for: concludes only after lint, build and all 4 test shards are done
+    needs: [lint, build, test]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: crm-v2
+    steps:
+      - name: lint, build and every test shard must be green
+        env:
+          LINT: ${{ needs.lint.result }}
+          BUILD: ${{ needs.build.result }}
+          TEST: ${{ needs.test.result }}
+        working-directory: .
+        run: |
+          echo "lint=$LINT build=$BUILD test=$TEST"
+          if [ "$LINT" != success ] || [ "$BUILD" != success ] || [ "$TEST" != success ]; then
+            echo "::error title=verify::lint=$LINT build=$BUILD test=$TEST"
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: crm-v2/package-lock.json
+      - id: modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: crm-v2/node_modules
+          key: crm-v2-node-modules-${{ runner.os }}-node22-${{ hashFiles('crm-v2/package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: vitest-blob-*
+          path: crm-v2/.vitest-reports
+          merge-multiple: true
+      - name: One summary of all shards (the full test count; red if any test failed)
+        run: |
+          ls .vitest-reports
+          test "$(ls .vitest-reports/blob-*.json | wc -l)" -eq 4
+          npx vitest run --merge-reports --reporter=dot
 
   security-regression:
     runs-on: ubuntu-latest
