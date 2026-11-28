@@ -79,6 +79,8 @@ export const ROUTE_ACCESS = Object.freeze({
   '/finance/raamatupidamine': ACCESS.ADMIN,
   '/finance/ostuarved': ACCESS.ADMIN,
   '/finance/inf3': ACCESS.ADMIN,
+  // „Kuu võrdlus” (owner 2026-11-26): the month's money against invoices, lessons and cash — admin only
+  '/kuu-vordlus': ACCESS.ADMIN,
   '/ai/connect': ACCESS.ADMIN,
 });
 
