@@ -215,7 +215,8 @@
 - Tähelepanekud arvutuste kohta (ei muudetud, omanikule öeldud): ülemine tundide arv loeb tasulisi tunde (ka tasuline puudumine), „Ärinäitajad” ainult toimunuid; järgmise kuu tundide arv erineb hinnata õpilaste võrra; tulu võrdlus eelmise kuuga loeb jooksva kuu koos kalendris olevate tundidega.
 - Riskid: andme- ega turvariski pole (plokki näeb ainult administraator, nagu enne). Teine `businessReport` kutse teeb esimese arvutuse umbes kaks korda pikemaks; suure ajalooga võib see olla tuntav — mõõtmata.
 - Tegemata (omanikuga kokku lepitud järgmised PR-id): filtrid õpetaja / aine / tunni tüübi järgi; stsenaariumid „Mis siis, kui…”; kirje „Mis uut” lehel.
-- Järgmine samm: omanik vaatab PR-i pilti; pärast luba ühendamine ja release, siis päris lehe ülevaatus ja filtrite PR.
+- **Ühendatud ja release 2026-11-27 (omaniku „Сливай и выпускай”):** PR #1367 CI roheline (9/9), ühendatud main'i `feaf08d` (22:11 UTC); `release.yml` käsitsi → `[deploy]` commit `711f78a` (22:21 UTC). Reegleid ega funktsioone ei deploy'tud (ei muutunud).
+- Järgmine samm: omanik vaatab päris lehte crm.epkoolitus.ee/finance (päris andmetega pole agent seda näinud); seejärel filtrite PR — omanik ootab enne süsteemi ja kursuste auditi tulemust.
 
 ## 2026-11-27 — Finantsid: „Peida” arvete nimekirjal ja FIE arvete ploki kujundus (agent/finance-list-hide)
 
