@@ -33,6 +33,7 @@ import { ROLES } from '../../utils/roles.js';
 import { LESSON_MARKS, LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
 import { calendarTones, canMove, cleanPersonalColors, excludeDateOps, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import CalendarColors from './CalendarColors.jsx';
+import { withMarkedLesson } from './markInPlace.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid, { LessonKindsLegend } from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
@@ -710,13 +711,19 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
       return true;
     } catch (error) { setPanelError(error.message || 'Muudatust ei saanud salvestada.'); return false; } finally { setPanelSaving(false); }
   };
+  // a quick mark shows at once from the record just written; the full reload follows in the background and is not
+  // waited for, so the next lesson can be tapped straight away (calendar/markInPlace.js)
+  const showMark = (record, item) => {
+    if (record?.id) state.mutate((data) => withMarkedLesson(data, record, item));
+    state.reload();
+  };
   const quickDone = async (item) => {
     if (quickCompleting) return;
     setQuickCompleting(item.occurrenceId); setActionError('');
     try {
       const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId), plan: studentMap.get(item.studentId)?.studyPlan }) : null;
-      await lessonRepository.completeFromSchedule(item, user, topicFields(suggestion));
-      await state.reload();
+      const record = await lessonRepository.completeFromSchedule(item, user, topicFields(suggestion));
+      showMark(record, item);
     } catch (error) { setActionError(error.message || 'Tunni arvestamine ebaõnnestus.'); } finally { setQuickCompleting(''); }
   };
   // the phone agenda's inline „Toimus ✓” / „Puudus ▾”: the same path as quickDone (completeFromSchedule with the
@@ -738,7 +745,7 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
         const unmark = async () => { await lessonRepository.removeMark(record, user, { scheduleRecurring: Boolean(item.recurring) }); await state.reload(); };
         setMarkUndo(toimusUndo({ item, label, unmark, cash, paidCents, offerCash: cashable }));
       }
-      await state.reload();
+      showMark(record, item);
     } catch (error) { setActionError(fixMarkError(error)); } finally { setInlineBusy(''); }
   };
   const substituteOccurrence = async (teacher) => {

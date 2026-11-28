@@ -80,6 +80,23 @@ describe('phone calendar agenda: inline marking', () => {
     await waitFor(() => expect(repos.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ status: 'Puudus_p' })));
   });
 
+  // audit 2026-11-28: the next lesson can be tapped at once — the mark shows from the saved record, the full reload
+  // (here: one that never answers) runs in the background
+  it('a tap shows the mark and frees the next lesson without waiting for the reload', async () => {
+    const repos = renderPhone({ events: [lesson(), lesson({ id: 'schedule-2', studentName: 'Mari Maas', time: '12:00' })] });
+    repos.lessonRepository.completeFromSchedule.mockResolvedValue({ id: 'lesson-1', accountingSource: 'crm_v2', scheduleId: 'schedule-1', studentId: 's1', date: yesterday, occurrenceDate: yesterday, status: 'Toimunud' });
+    await toYesterdaysWeek();
+    const buttons = await screen.findAllByRole('button', { name: 'Toimus: Mari Maas' });
+    expect(buttons).toHaveLength(2);
+    const loads = repos.lessonRepository.listForCalendar.mock.calls.length;
+    repos.lessonRepository.listForCalendar.mockReturnValue(new Promise(() => {}));
+    fireEvent.click(buttons[0]);
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Toimus: Mari Maas' })).toHaveLength(1));
+    // the reload was started but has not answered
+    expect(repos.lessonRepository.listForCalendar.mock.calls.length).toBe(loads + 1);
+    expect(screen.getByRole('button', { name: 'Toimus: Mari Maas' })).not.toBeDisabled();
+  });
+
   it('a marked lesson shows its state and no buttons', async () => {
     renderPhone({ events: [lesson()], records: [{ id: 'r1', scheduleId: 'schedule-1', studentId: 's1', date: yesterday, status: 'Toimunud' }] });
     await toYesterdaysWeek();

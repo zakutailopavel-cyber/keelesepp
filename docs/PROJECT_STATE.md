@@ -5,6 +5,17 @@
 - Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
 - Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
 - Next step: owner review → merge → release; then wire the speller into CI.
+## 2026-11-28 — Kalender: kiirmärge paistab kohe, uuesti laadimine taustal (agent/calendar-mark-speed)
+
+- Main kontrollitud: 234a4ab (2026-11-28, #1386). Haru `agent/calendar-mark-speed`, draft-PR „Calendar: a quick mark shows at once; the reload runs in the background”. Deploy'd ega production'i kasutust pole.
+- Eesmärk (audit 2026-11-28 p 11; omaniku eesmärk 4. detsembriks „tunni märkimine 10 sekundiga”): telefoni päevakavas ootas iga „Toimus ✓” / „Puudus” täit uuesti laadimist — tunniplaan, kaks õpilaste nimekirja, grupid ja kõik kunagi märgitud tunnid — ja alles siis sai järgmist tundi puudutada.
+- Tehtud: (1) `hooks/useAsyncData.js` — uus `mutate(update)` (laaditud andmete muutmine kohapeal) ja „ainult uusim laadimine kirjutab olekut” (hiljem vastav vanem laadimine ei too vanu andmeid tagasi); (2) uus `features/calendar/markInPlace.js` `withMarkedLesson` — äsja salvestatud tunnikirje pannakse kalendri andmetesse (ühekordsel tunnil ka `schedule` kirje staatus); (3) `CalendarPage.jsx` `inlineMark` ja `quickDone`: märge paistab kohe, `state.reload()` käivitub taustal ja seda ei oodata. Kirjutamine ise (Firestore'i transaktsioon) ja „Võta tagasi” on endised. UI välimus ei muutu.
+- Failid: `crm-v2/src/hooks/useAsyncData.js` (+ uus test), `crm-v2/src/features/calendar/markInPlace.js` (+ test), `CalendarPage.jsx`, `CalendarPage.agenda.test.jsx`.
+- Kontrollid: `npx vitest run` → 651 faili, 5704 testi läbi (12 vahele jäetud nagu enne); `npx eslint --quiet src/hooks src/features/calendar` puhas; `npx vite build` läbi. Uus test: puudutus → märge paistab ja järgmine nupp on vaba, kuigi uuesti laadimine ei ole vastanud. Päris telefonis ega päris andmetega EI mõõdetud — kiiruse võit on koodist tuletatud, mitte mõõdetud.
+- Riskid: (1) `useAsyncData` on kogu rakenduse konks — „uusim võidab” on käitumise muutus kõigil lehtedel (kõik testid läbi). (2) Kuni taustalaadimine vastab, näitab kalender brauseri pandud kirjet; serveri lisatud väljad (nt paketi mahaarvamine) tulevad laadimisega. (3) Lugemiste arv Firestore'is ei vähenenud — iga märge laeb endiselt kõik uuesti; see on järgmine samm.
+- Tegemata (sama auditi punkt): laadida pärast märget ainult muutunu (või kuulata `lessons` muutusi) — vähem lugemisi; grupitunnis „kõik olid kohal” üks nupp; paneelist märkimine (`markDone`) ootab endiselt täit laadimist.
+- Järgmine samm: omaniku luba → merge → release → omanik proovib telefonis kolm tundi järjest märkida.
+
 ## 2026-11-28 — Varukoopiad ja taastamise juhend (agent/backup-restore-doc)
 
 - Main kontrollitud: db153bf (2026-11-28, #1385). Haru `agent/backup-restore-doc`, draft-PR „docs: backups and restore”. Ainult dokumentatsioon; production'ist loeti ainult seadeid (varukoopiate nimekiri ja graafik, andmebaasi ja bucket'i seaded), midagi ei muudetud ega taastatud.
