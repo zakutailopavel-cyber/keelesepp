@@ -153,6 +153,17 @@ export function canMove(item) {
 
 const COPY_FIELDS = ['studentId', 'studentName', 'teacher', 'teacherUid', 'subject', 'level', 'groupId', 'note'];
 
+// One date of a weekly series taken out (a move, a substitute, a cancel, a delete of one lesson) and its undo.
+// `delta` names only that date: the schedule service adds / removes it in place (schedule.js `patch`), so the list
+// saved by another device is never overwritten from this tab's older copy.
+export function excludeDateOps(item, date) {
+  const excluded = item.excludedDates || [];
+  return {
+    apply: { op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, date])] }, delta: { excludeAdd: [date] } },
+    undo: { op: 'patch', id: item.id, fields: { excludedDates: excluded }, delta: excluded.includes(date) ? { excludeAdd: [date] } : { excludeRemove: [date] } },
+  };
+}
+
 /**
  * Plan a move of one occurrence. Returns { apply, undo } lists of operations:
  *   { op: 'patch', id, fields } | { op: 'create', key, data } | { op: 'remove', key }
@@ -173,12 +184,12 @@ export function planMove(item, { toDate, toTime, duration, scope = 'single' }) {
   if (scope === 'single') {
     return {
       apply: [
-        { op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, from])] } },
+        excludeDateOps(item, from).apply,
         { op: 'create', key: 'single', data: { ...base, ...moved, recurring: false, status: 'Planeeritud', movedFromSeriesId: item.id, movedFromDate: from } },
       ],
       undo: [
         { op: 'remove', key: 'single' },
-        { op: 'patch', id: item.id, fields: { excludedDates: excluded } },
+        excludeDateOps(item, from).undo,
       ],
     };
   }
@@ -218,16 +229,15 @@ export function planSubstitute(item, { teacher, teacherUid }) {
   }
   const from = item.occurrenceDate || item.date;
   const base = Object.fromEntries(COPY_FIELDS.filter((key) => item[key] !== undefined && item[key] !== '').map((key) => [key, item[key]]));
-  const excluded = item.excludedDates || [];
   const extra = Object.fromEntries(['online', 'roomId', 'roomName'].filter((key) => item[key] !== undefined && item[key] !== '').map((key) => [key, item[key]]));
   return {
     apply: [
-      { op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, from])] } },
+      excludeDateOps(item, from).apply,
       { op: 'create', key: 'single', data: { ...base, ...extra, ...fields, date: from, day: dayId(from), time: item.time, duration: Number(item.duration) || 60, recurring: false, status: 'Planeeritud', movedFromSeriesId: item.id, movedFromDate: from } },
     ],
     undo: [
       { op: 'remove', key: 'single' },
-      { op: 'patch', id: item.id, fields: { excludedDates: excluded } },
+      excludeDateOps(item, from).undo,
     ],
   };
 }
@@ -252,11 +262,10 @@ export function planDelete(item, { scope = 'single', stored = item, hasRecords =
     return removeRecord;
   }
   const from = item.occurrenceDate || item.date;
-  const excluded = item.excludedDates || [];
   if (scope === 'single') {
     return {
-      apply: [{ op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, from])] } }],
-      undo: [{ op: 'patch', id: item.id, fields: { excludedDates: excluded } }],
+      apply: [excludeDateOps(item, from).apply],
+      undo: [excludeDateOps(item, from).undo],
     };
   }
   const start = item.startDate || item.date;

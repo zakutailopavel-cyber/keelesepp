@@ -30,6 +30,7 @@ const CalendarPage = lazyComponent(() => import('../features/calendar/CalendarPa
 const UnmarkedLessonsPage = lazyComponent(() => import('../features/calendar/UnmarkedLessonsPage.jsx'));
 const FinanceWorkspacePage = lazyComponent(() => import('../features/finance/FinanceWorkspacePage.jsx'));
 const FinanceMonthPage = lazyComponent(() => import('../features/finance/FinanceMonthPage.jsx'));
+const MonthReconciliationPage = lazyComponent(() => import('../features/finance/MonthReconciliationPage.jsx'));
 const FinanceSettingsPage = lazyComponent(() => import('../features/finance/FinanceSettingsPage.jsx'));
 const AccountingPage = lazyComponent(() => import('../features/accounting/AccountingPage.jsx'));
 const PurchasesPage = lazyComponent(() => import('../features/purchases/PurchasesPage.jsx'));
@@ -208,6 +209,7 @@ export default function AppRoutes() {
             <Route path="finance/raamatupidamine" element={staffPage(<AccountingPage />)} />
             <Route path="finance/ostuarved" element={staffPage(<PurchasesPage />)} />
             <Route path="finance/inf3" element={staffPage(<Inf3Page />)} />
+            <Route path="kuu-vordlus" element={staffPage(<MonthReconciliationPage />)} />
           </Route>
         </Route>
       </Route>
