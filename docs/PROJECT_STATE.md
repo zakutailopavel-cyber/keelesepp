@@ -11,6 +11,26 @@
 - Kontrollid: `npx eslint --quiet src` → puhas; `npx vitest run src/features/dashboard src/features/calendar` → 38 faili, 313 testi läbi (uued: sarja toimumine tühistatud `occurrenceStatuses`-ega, päeviku „Tühistatud”, „Puudus_p”/„Puudus_eta”, grupi tühistamine, paneel ilma „Käib”/„Alusta tundi”, `todayLessonCount`, „Tunnid täna” paan DashboardPage'il, `needsCall` päeviku tühistamise/puudumisega, `lessonsRunningOut` ette märgitud puudumisega).
 - Piirangud: enne päeviku laadimist (mõni sekund) näevad rida ja „Tunnid täna” vana plaani; grupi õpilase isiklik puudumine (attendance) ei mõjuta `needsCall`-i broneeringut.
 - Järgmine ohutu samm: pärast ühendamist ja release'i avada avaleht päeval, kus õpetaja on puudumise ette märkinud, ja kontrollida, et rida on „Läbi” all märgiga „Õpilane puudus”.
+## 2026-11-28 — „Käänded lauses” v2: rohkem harjutust igas tunnis (agent/kaanded-more-practice)
+
+- Main kontrollitud: 42e971a (2026-11-28, release 07:58 UTC; #1376 main'is). Haru `agent/kaanded-more-practice`, PR „Käänded lauses: more practice per topic”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik pärast v1 avaldamist: „заданий мало по каждой теме, очень”): rohkem harjutust igas tunnis.
+- Tehtud:
+  - Uus `kaanded/practice.js`. Igas Harjutas on nüüd 9 ülesannet, 8–12 osa ülesandes, järjestus: tuvasta → vali → moodusta. Ülesanded: sorteerimine, sobitamine, valik, tabel, vormid, vormitekst, teisendus, vigade parandus, tõlge RU → ET (õpetaja kontrollib; näidisvastused õpetaja märkuses).
+  - Avastas lisandus näidete tabel, Kasutas teine suuline ülesanne.
+  - Vanad plokid alles (sama id), mitmes on rohkem osi.
+  - Plokke tunnis (Avasta / Harjuta / Kasuta): enne 5–6 / 4–5 / 6–10, nüüd 6–7 / 10 / 7–11.
+  - Hilisemad tunnid kordavad varasemaid käändeid.
+- Lisaks `tools/kaanded-publish/publish.mjs` (sisaldab #1378 skripti):
+  - `--update`: lehtede uus versioon nagu „Avalda tund”; v1 jääb `worksheetVersions`-isse.
+  - `--assignments <studentId>`: alustamata ülesanded saavad uue lehe; varukoopia enne kirjutamist.
+- Kontrollid:
+  - vitest (worksheet-generator, curriculum, library, self-study, practice, worksheet-studio, pet) → 225 faili, 2926 testi läbi; uus test: 9 harjutust × 8–12 osa.
+  - eslint 0.
+  - Vabamorf: 334 vastust on algvormi vormid. `language.py` leidis tundmatuid ainult tehnilisi väärtusi; tõlgete näidisvastustes vigu pole.
+  - Sheet lab: 18 lehte, vigu 0; ekraanipildid `mock/kaanded/v2-*`.
+  - Production'i kuivkäivitus (ainult lugemine): 18 lehte v1 → v2. Sasha (FYAyhzV7yj8L0RRHfFWZ) 18 ülesannet on alustamata ja praegu v1.
+- Järgmine samm: ühendamine + release → `--update --write` → `--assignments FYAyhzV7yj8L0RRHfFWZ --write` (omaniku otsene kinnitus).
 
 ## 2026-11-28 — Audit: tunni krediidi mahaarvamise viga ei kao enam vaikselt (agent/audit-token-sync-retry)
 
