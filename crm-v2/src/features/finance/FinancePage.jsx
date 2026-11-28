@@ -74,6 +74,7 @@ import "./financeWorkspace.css";
 import PaymentDateField, { OverpaymentQuestion } from "./PaymentDateField.jsx";
 import { isOverpaymentRefusal, paymentRecordedNotice, recordPaymentWithAdvance } from "./paymentEntry.js";
 import MonthlyInvoicePanel from "./MonthlyInvoicePanel.jsx";
+import { tallinnToday } from "../accounting/accountingPeriod.js";
 import { useFinanceData } from "./useFinanceData.js";
 import InvoiceCorrectionDialog from "./InvoiceCorrectionDialog.jsx";
 import { fullCorrectionBlocker } from "./invoiceActions.js";
@@ -82,7 +83,7 @@ const money = (value) =>
   new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
     Number(value || 0) / 100,
   );
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => tallinnToday();
 const statusLabel = {
   paid: "Makstud",
   overdue: "Üle tähtaja",

@@ -1,3 +1,11 @@
+## 2026-11-28 — Audit fix: one rule for an invoice's unpaid balance; finance dates by the Tallinn day (agent/audit-one-balance-rule)
+
+- Main checked: feaf08d (2026-11-27, #1367 merged). Branch `agent/audit-one-balance-rule`, draft PR. No deploy, no production writes. Client only.
+- Why (owner 2026-11-28: find the weak spots and fix them without waiting): the audit found the unpaid balance computed by different rules. The invoice list (`financeRows.js financeRowState`) treated a cancelled, a credited and an old hand-marked „Makstud” invoice as owing nothing; `students/studentFinance.js invoiceBalanceCents` did not, and it feeds the home page debt, the student card, the parent page, the bell and bank matching. So such an invoice was „Makstud” in the list and a debt elsewhere (#1366 fixed only the server „Võlgade vanus”).
+- Done: `studentFinance.js` — `invoiceIsCancelled`, `invoiceIsCredited`, `invoiceIsLegacyPaid`; `invoiceBalanceCents` returns 0 for them. `financeRows.js` uses the same two helpers (behaviour unchanged). Finance dialogs take „today” from `tallinnToday()` instead of the UTC date (`PaymentDialog.jsx`, `FinancePage.jsx`, `paymentEntry.js paymentDateCheck`, `FinancialAnalyticsPanel.jsx`): between 00:00 and 02:00–03:00 Tallinn time the default payment date was yesterday (on the 1st: last month).
+- Checks: `npx vitest run src/features/finance src/features/students src/features/parents src/features/payments src/features/dashboard src/features/notifications` → 104 files, 709 tests pass; `npx eslint --quiet src/features/finance src/features/students` clean. Not checked in the browser.
+- Risks: totals of debt on the home page, student card and parent page can go DOWN after release (invoices that the list already showed as paid stop counting as debt) — that is the intent. Server copies of the rule remain separate: `functions/financial-analytics-core.js`, `functions/staff-operations-core.js`.
+- Next step: owner review → merge → release (no rules or functions deploy needed).
 ## 2026-11-28 — CI kiiremaks: vitest 4 osaks, paralleelsed tööd, vahemälu (agent/ci-speed)
 
 - Main kontrollitud: 6982d20 (2026-11-28). Haru `agent/ci-speed`, PR #1383 (draft, omanik ühendab ise). Deploy'd ega production'i kutseid ei tehtud.
