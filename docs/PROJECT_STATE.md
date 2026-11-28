@@ -6,7 +6,7 @@
 - Reeglid, andmeskeem, klient: muutmata (server kirjutab admin SDK-ga; `clientErrors` kuju sama).
 - Kontrollid: `cd functions && npm test` → 688 pass, 0 fail (uus fail eraldi: 4/4). Emulaatoriga ega production'is triggerit ei käivitatud; „Vead” lehte selle kirjega brauseris ei vaadatud.
 - Piirangud: trigger ei kasuta platvormi kordust (failurePolicy) — kui funktsioon ise ei käivitu või aegub, kirjet ei teki. Varasemaid vahele jäänud tunde see ei leia ega paranda.
-- Käsitsi värav: `firebase deploy --only functions:syncLessonTokens` ainult omaniku loal; seejärel `docs/DEPLOY_LEDGER.md`.
+- **Ühendatud ja live:** #1379 ühendatud (`20f84e8`, CI roheline), `syncLessonTokens` deploy'tud 2026-11-28 08:00 UTC puhtast `origin/main`-ist omaniku loal („Да, выкладывай”): „Deploy complete”; kirje `docs/DEPLOY_LEDGER.md`-s. Päris tunni märkimist pärast deploy'd pole veel logis nähtud.
 - Järgmine ohutu samm: pärast ühendamist ja deploy'd märkida üks pakettõpilase tund ja kontrollida, et krediit liigub ja „Vead” on tühi.
 
 ## 2026-11-28 — Minikursus „Käänded lauses”: 6 tundi (agent/minicourse-kaanded)
