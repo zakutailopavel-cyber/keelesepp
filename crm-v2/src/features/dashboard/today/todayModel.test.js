@@ -1,5 +1,5 @@
 import { groupCalendarEvents } from '../../calendar/calendarView.js';
-import { addDays, daysFrom, homeworkQueue, lessonsRunningOut, needsCall, newLeads, tallinnClock, tallinnDay, todayLessons } from './todayModel.js';
+import { addDays, daysFrom, todayLessonCount, homeworkQueue, lessonsRunningOut, needsCall, newLeads, tallinnClock, tallinnDay, todayLessons } from './todayModel.js';
 
 const DAY = 86400000;
 
@@ -57,6 +57,12 @@ describe('todayLessons — cancelled and missed lessons, the calendar\'s way (ow
     expect(at(todayLessons({ events, today: '2026-11-28', now: '10:20' }), 'Olivia').phase).toBe('now');
   });
 
+  it('„Tunnid täna” counts only lessons that are taught: not cancelled, the student not absent', () => {
+    const events = [series('Olivia', '10:00'), series('Aleksandra', '11:00'), series('Mari', '12:00'), series('Jaan', '13:00', { occurrenceStatuses: { '2026-11-28': { status: 'Tühistatud' } } })];
+    const records = [record('Olivia', 'Puudus_p'), record('Aleksandra', 'Tühistatud')];
+    expect(todayLessonCount(todayLessons({ events, today: '2026-11-28', now: '10:20', records }))).toBe(1);
+    expect(todayLessonCount(todayLessons({ events, today: '2026-11-28', now: '10:20' }))).toBe(3); // journal not loaded yet
+  });
   it('a record of another student or another day does not touch the lesson', () => {
     const list = todayLessons({ events: [series('Olivia', '10:00')], today: '2026-11-28', now: '10:20', records: [{ ...record('Olivia', 'Tühistatud'), date: '2026-11-21' }, { ...record('Olivia', 'Tühistatud'), studentId: 'other' }] });
     expect(list[0].phase).toBe('now');
@@ -103,6 +109,19 @@ describe('lessonsRunningOut', () => {
     const lessons = [{ id: 'l1', studentId: 's1', date: '2026-11-04', status: 'Toimunud', duration: 60 }];
     const list = lessonsRunningOut({ students: [student], plans: [plan], invoices, lessons, events: [weekly], today: '2026-11-04' });
     expect(list).toEqual([expect.objectContaining({ kind: 'month', studentId: 's1', left: 1, planned: 3 })]);
+  });
+  it('monthly: a lesson ahead cancelled or missed in the journal (marked ahead) is not still to come (owner 2026-11-28)', () => {
+    const invoices = [{ id: 'i1', studentId: 's1', planMonth: '2026-11', plannedUnits: 2, status: 'Ootel' }];
+    const lessons = [{ id: 'l1', studentId: 's1', date: '2026-11-04', status: 'Toimunud', duration: 60 }];
+    const record = (date, status, extra = {}) => ({ id: `r-${date}`, scheduleId: 'w1', studentId: 's1', date, status, ...extra });
+    // without the journal 11.11, 18.11 and 25.11 are all ahead; an absence marked ahead (Puudus_p) is not a lesson to
+    // give, and a series day cancelled on the series is not either
+    const series = { ...weekly, occurrenceStatuses: { '2026-11-25': { status: 'Tühistatud' } } };
+    // the series cancellation alone: 11.11 and 18.11 still ahead, 1 paid left → flagged
+    expect(lessonsRunningOut({ students: [student], plans: [plan], invoices, lessons, events: [series], today: '2026-11-04' }))
+      .toEqual([expect.objectContaining({ kind: 'month', left: 1, planned: 2 })]);
+    // + the absence on 18.11 marked ahead in the journal: only 11.11 ahead, the 1 paid lesson covers it → not flagged
+    expect(lessonsRunningOut({ students: [student], plans: [plan], invoices, lessons: [...lessons, record('2026-11-18', 'Puudus_p', { billingStatus: 'free' })], events: [series], today: '2026-11-04' })).toEqual([]);
   });
   it('monthly per subject: a subject on lesson packages has no monthly balance (owner 2026-11-06)', () => {
     const kid = { id: 'k', name: 'Kristjan', active: true, subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel' }, { subject: 'Inglise keel' }] };
@@ -190,6 +209,19 @@ describe('needsCall', () => {
     const events = [{ id: 'g', isGroup: true, studentIds: ['free'], date: '2026-11-10', time: '10:00' }, { id: 'x', studentId: 'self', date: '2026-11-06', status: 'Tühistatud' }];
     const { list } = needsCall({ ...base, events: [...base.events, ...events] });
     expect(list.some((entry) => entry.student.id === 'free')).toBe(false);
+  });
+  it('a lesson ahead cancelled or missed in the journal does not count as booked (owner 2026-11-28)', () => {
+    // „free” has one lesson ahead (9.11), but the journal says it is cancelled / the student is away; „ok” stays booked
+    const ahead = { id: 'one', date: '2026-11-09', time: '10:00', studentId: 'free', status: 'Planeeritud' };
+    const journal = (status) => [...base.lessons, { id: 'r', scheduleId: 'one', studentId: 'free', date: '2026-11-09', status }];
+    ['Tühistatud', 'Puudus_p', 'Puudus_eta'].forEach((status) => {
+      const { list } = needsCall({ ...base, events: [...base.events, ahead], lessons: journal(status) });
+      expect(list.find((entry) => entry.student.id === 'free')?.reasons.map((reason) => reason.code)).toContain('noLesson');
+    });
+    expect(needsCall({ ...base, events: [...base.events, ahead] }).list.some((entry) => entry.student.id === 'free')).toBe(false);
+    // a weekly series cancelled on its only day in the window (occurrenceStatuses) is not booked either
+    const series = { ...base.events[0], id: 'w-free', studentId: 'free', occurrenceStatuses: { '2026-11-09': { status: 'Tühistatud' }, '2026-11-16': { status: 'Tühistatud' } } };
+    expect(needsCall({ ...base, events: [...base.events, series] }).list.some((entry) => entry.student.id === 'free')).toBe(true);
   });
   it('„Helistasin” in the last 14 days moves the student to called; an older call stays as a hint', () => {
     const followups = [
