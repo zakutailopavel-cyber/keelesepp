@@ -8,7 +8,8 @@
 - Kontrollid: kohapeal `node --check` muudetud testidel; reeglid kompileeruvad ja mahuvad (probe-projekti release). Emulaatoriteste siin käivitada ei saa (Java 8) — jooksevad CI-s („Financial Core emulator”); tulemus vt PR.
 - Riskid ja väravad: (1) vajab reeglite deploy'd omaniku loal (Rules API kaudu, vt `docs/DEPLOY_LEDGER.md`); veebi release'i ega functions'i deploy'd pole vaja. (2) Enne deploy'd kontrollida production'is, et `securityMigrations/teacherUidV1.readEnforced == true` (lugemine, omaniku luba) — kui see oleks `false`, kaotaksid õpetajad ligipääsu uid-ta kaartidele. (3) 2,4 kB on umbes 10–15 lühikest reeglit, mitte püsiv lahendus.
 - Tegemata: suurimad plokid on `liveLessonInvitations` (6 % failist), `liveClassrooms` (4 %), `validWhiteboardElement` (3 %), `studentRevenuePlans` (2 %); kutsete ja hindade kirjutamine serveri kaudu vabastaks suurusjärgu võrra rohkem.
-- Järgmine samm: CI roheline → omaniku luba → lipu kontroll production'is → reeglite deploy → kirje `DEPLOY_LEDGER.md`-s.
+- Olek 2026-11-28 06:45 UTC: CI esimene jooks kukkus ühe testiga (178-st; test kontrollis vana režiimi — õpetaja loob kaardi ainult nime järgi), test kirjutati uid peale ümber, teine jooks roheline (`678825c`). Production'i lipp loetud: `readEnforced == true` alates 2026-08-05. PR #1375 ühendatud (`8289b26`), reeglid avaldatud Rules API kaudu (ruleset `58a88003`), live = repo (210 659 märki). Vt `docs/DEPLOY_LEDGER.md`.
+- Järgmine samm: `liveLessonInvitations` kirjutamine serveri kaudu (suurim plokk reeglites) — eraldi PR; alles siis `studentNotes` / `studentWords` / `lessonSummaries` / `websiteLeads` / `groups/tasks` reeglid.
 
 ## 2026-11-28 — Storage: õpetaja avab ainult oma õpilaste faile (agent/storage-teacher-scope)
 
