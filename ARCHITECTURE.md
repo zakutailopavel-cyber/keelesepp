@@ -461,6 +461,18 @@ tokens follow the direction + format. One card may hold Eesti keel individually 
   - card merge (`student-card-merge-core groupPricesMerge`): the other card's group prices join the kept plan for the
     subjects it has none for; a different price for the same subject is a conflict (`group_price`, the kept one stays).
 
+### Month reconciliation („Kuu võrdlus”)
+
+`/kuu-vordlus` (administrator only; menu „Suhtlus ja raha”) answers one question per month: is every student's
+money in? `features/finance/monthReconciliation.js` is a pure read model over existing data — the month's invoices
+(`planMonth`, else the invoice date), held chargeable lessons without an invoice at the card's price, a lesson's
+„Makstud sularahas” flag and „Sain sularaha” receipts (`cashLedger`, `source: "teacher"`) dated in the month. It
+stores nothing and adds no collection or rule. A card with „Maksab sularahas” is never listed as a debtor: it waits
+for „Sain kätte”. FIE invoices are counted only for the owner (`useIsOwner`). Every action on the screen is an
+existing operation: `financeApi.recordPayment` (through `PaymentDialog`), `financeApi.recordTeacherCash` (off the
+books, in the recorder's own cash box), `invoiceDeliveryApi.remind`, and the company bank statement through
+`BankReconciliationPanel` (`/bank-transactions/allocate`). Statements of personal accounts are not imported.
+
 ### Continuing education courses and EHIS figures
 
 `/taienduskoolitus` („Kursused ja EHIS”, administrator only) keeps one `trainingCourses` document per run of a

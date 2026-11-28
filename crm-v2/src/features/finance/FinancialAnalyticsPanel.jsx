@@ -18,13 +18,14 @@ import {
   Select,
 } from "../../components/ui/index.js";
 import { displayDate } from "./finance.js";
+import { tallinnToday } from "../accounting/accountingPeriod.js";
 import "./financialAnalytics.css";
 
 const money = (value) =>
   new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
     Number(value || 0) / 100,
   );
-const currentMonth = () => new Date().toISOString().slice(0, 7);
+const currentMonth = () => tallinnToday().slice(0, 7);
 const bucketLabels = {
   not_due: "Tähtaeg ees",
   days_1_30: "1–30 päeva",

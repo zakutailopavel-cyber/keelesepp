@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { financeApi, financeRequestId } from '../../services/firebase/financeApi.js';
+import { tallinnToday } from '../accounting/accountingPeriod.js';
 import { validatePayment } from './finance.js';
 import { financeRowState } from './financeRows.js';
 import PaymentDateField, { OverpaymentQuestion } from './PaymentDateField.jsx';
 
-const today = () => new Date().toISOString().slice(0, 10);
+// the school's day (Europe/Tallinn), not UTC: after midnight the default payment date is already today
+const today = () => tallinnToday();
 
 /**
  * „Registreeri makse” of one invoice: the month's invoice list and the side drawer's invoice panel (owner 2026-11-09)
  * open the same window; the caller records it with paymentEntry.js `recordPaymentWithAdvance`.
  */
-export default function PaymentDialog({ invoice, busy, error, overpaymentQuestion = '', onDismissOverpayment, onClose, onSubmit, cashApi = financeApi }) {
+export default function PaymentDialog({ invoice, busy, error, overpaymentQuestion = '', onDismissOverpayment, onClose, onSubmit, cashApi = financeApi, initialMethod = 'bank' }) {
   const state = financeRowState(invoice || {});
   const [form, setForm] = useState(() => ({
-    amount: (state.balanceCents / 100).toFixed(2), paidAt: today(), method: 'bank',
+    amount: (state.balanceCents / 100).toFixed(2), paidAt: today(), method: ['bank', 'cash', 'card', 'other'].includes(initialMethod) ? initialMethod : 'bank',
     reference: invoice?.paymentReference || invoice?.num || invoice?.number || '', note: '',
     // one request id per opened dialog: a double click never records the payment twice
     requestId: financeRequestId('payment'),

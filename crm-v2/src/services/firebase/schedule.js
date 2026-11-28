@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { shareInFlight } from './shareInFlight.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
@@ -107,9 +107,15 @@ export const scheduleService = {
     return normalizeScheduleEvent(id, value);
   },
   // exact field changes for drag and drop (no recalculation of other fields)
-  async patch(id, fields) {
+  // `delta` = { excludeAdd: [dates] } or { excludeRemove: [dates] }: one date goes into or out of a weekly series'
+  // `excludedDates` without rewriting the whole list, so a tab that was opened hours ago cannot wipe a date another
+  // device excluded in the meantime (audit 2026-11-28). `fields.excludedDates` is then only the caller's local view.
+  async patch(id, fields, delta) {
     const { db } = requireFirebaseClient();
-    await updateDoc(doc(db, 'schedule', id), { ...fields, updatedAtIso: new Date().toISOString() });
+    const value = { ...fields, updatedAtIso: new Date().toISOString() };
+    if (delta?.excludeAdd?.length) value.excludedDates = arrayUnion(...delta.excludeAdd);
+    else if (delta?.excludeRemove?.length) value.excludedDates = arrayRemove(...delta.excludeRemove);
+    await updateDoc(doc(db, 'schedule', id), value);
     return { id, ...fields };
   },
   // Undo of a delete: the same record comes back under the same id (Google Calendar gets it again too).
