@@ -5,6 +5,13 @@
 - Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
 - Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
 - Next step: owner review → merge → release; then wire the speller into CI.
+## 2026-11-28 — forms-lookup „stops at totalMs” test in virtual time (agent/forms-lookup-virtual-time)
+
+- Main checked: b5d8d54 (2026-11-28). Branch `agent/forms-lookup-virtual-time`. Test only; `functions/index.js` unchanged, no deploy, no production writes.
+- Why: the test still flaked on CI after #1315 widened the margins (financial-core on `fbfb4e2`, 2026-11-28: 4 calls made, `fake.calls.length < 4` failed). It used real timers.
+- Done: the approach of the never-merged #1217 brought onto main — node:test mock timers (`setTimeout`, `Date`) passed into `index.js` with rewire `__set__`, driven 1 virtual ms at a time by `settleInVirtualTime`. Checks: 504, ends at 100–101 virtual ms, searches at 0 / 40 / 80 ms, exactly 3 calls. #1217 closed as superseded.
+- Checks: `cd functions && npm test` → 691/691; the test 15/15 with 6 busy CPU loops; mutation (totalMs 100000) makes it fail.
+- Next step: if another real-timer test in `forms-lookup.test.js` flakes, move it to `settleInVirtualTime` the same way.
 ## 2026-11-28 — Kalender: kiirmärge paistab kohe, uuesti laadimine taustal (agent/calendar-mark-speed)
 
 - Main kontrollitud: 234a4ab (2026-11-28, #1386). Haru `agent/calendar-mark-speed`, draft-PR „Calendar: a quick mark shows at once; the reload runs in the background”. Deploy'd ega production'i kasutust pole.
