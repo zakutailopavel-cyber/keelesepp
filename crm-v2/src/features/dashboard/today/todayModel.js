@@ -1,7 +1,7 @@
 // „Täna” (admin start page, 2026-11-04): one screen for the school's day. Pure helpers, one per section; the panel
 // passes what the dashboard and its own few reads loaded. Days are Tallinn days (the school's), whatever the browser's
 // time zone.
-import { occurrencesForDates } from '../../calendar/calendarView.js';
+import { LESSON_MARKS, lessonMark, lessonState, occurrencesForDates, resolveOccurrenceRecord } from '../../calendar/calendarView.js';
 import { monthDates, studentLessonBalances } from '../../finance/monthlyBilling.js';
 import { isHomeworkOpen } from '../../homework/homeworkStatus.js';
 import { itemSubject, mainSubject } from '../../students/subjects.js';
@@ -36,12 +36,18 @@ const activeCard = (student) => student && student.active !== false && !student.
 // 1. Today's lessons: weekly series and group lessons expanded like the calendar; where (online / room) and whether it
 // is over, running or ahead (`now` = Tallinn HH:MM). `path` opens the lesson's calendar panel, where „Alusta tundi”
 // invites the student into the Live Classroom (the invitation is made there, never from here).
-export function todayLessons({ events = [], today, now = '00:00' }) {
+// `records` = the lesson journal (lessonsService.listForCalendar). The state is the calendar's own (calendarView.js
+// resolveOccurrenceRecord + lessonState): a journal record decides first, so an absence or a cancellation marked ahead
+// in the journal (owner 2026-11-28: Olivia 10:00 „Puudus_p” showed as „Käib”) is never shown as running or ahead.
+export function todayLessons({ events = [], today, now = '00:00', records = [] }) {
   return occurrencesForDates(events, [today]).map((item) => {
+    const resolved = resolveOccurrenceRecord(item, records);
     const end = endClock(item.time, item.duration);
-    const cancelled = item.status === 'Tühistatud';
-    const marked = Boolean(item.status) && item.status !== 'Planeeritud' && !cancelled;
-    const phase = cancelled ? 'cancelled' : !item.time ? 'later' : end && end <= now ? 'past' : item.time <= now ? 'now' : 'later';
+    const state = lessonState(resolved);
+    const status = resolved.status || 'Planeeritud';
+    const marked = state !== 'planned' && state !== 'cancelled';
+    const phase = state === 'cancelled' ? 'cancelled' : state === 'absent' ? 'absent'
+      : !item.time ? 'later' : end && end <= now ? 'past' : item.time <= now ? 'now' : 'later';
     return {
       key: item.occurrenceId,
       // the schedule entry and its day: the right-click „Ava tund (siinsamas)” opens it in the side drawer
@@ -56,7 +62,9 @@ export function todayLessons({ events = [], today, now = '00:00' }) {
       isGroup: Boolean(item.isGroup),
       online: item.online === true,
       place: item.online === true ? 'Veebitund' : item.roomName || '',
-      status: item.status || 'Planeeritud',
+      status,
+      // the calendar's corner mark label (LESSON_MARKS), e.g. „Puudus, teatas ette” instead of the raw „Puudus_p”
+      statusLabel: LESSON_MARKS[lessonMark({ ...resolved, status })]?.label || status,
       marked,
       phase,
       path: lessonPath(item),
@@ -225,9 +233,10 @@ export function needsCall({ students = [], lessons = [], homework = [], workshee
 export function lessonMeta(item, { showTeacher = false, sheets = null } = {}) {
   const room = item.online ? '' : item.place;
   let state = '';
-  if (item.phase === 'past') state = item.marked ? item.status : 'märkimata';
+  if (item.phase === 'past') state = item.marked ? item.statusLabel || item.status : 'märkimata';
+  else if (item.phase === 'absent') state = item.statusLabel || '';
   else if (item.phase !== 'cancelled' && !item.isGroup && sheets) state = sheets.length ? `${sheets[0].lessonTitle || 'Tööleht'}${sheets.length > 1 ? ` +${sheets.length - 1}` : ''} · leht tahvlil` : 'leht valimata';
-  else if (item.marked) state = item.status;
+  else if (item.marked) state = item.statusLabel || item.status;
   return [showTeacher ? item.teacher : '', room, state].filter(Boolean).join(' · ') || item.place;
 }
 

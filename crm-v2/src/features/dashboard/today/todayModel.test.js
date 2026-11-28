@@ -1,3 +1,4 @@
+import { groupCalendarEvents } from '../../calendar/calendarView.js';
 import { addDays, daysFrom, homeworkQueue, lessonsRunningOut, needsCall, newLeads, tallinnClock, tallinnDay, todayLessons } from './todayModel.js';
 
 const DAY = 86400000;
@@ -30,6 +31,41 @@ describe('todayLessons', () => {
     expect(list[1]).toMatchObject({ place: 'Klass 1', phase: 'now', end: '13:15' });
     expect(list[2]).toMatchObject({ place: '', phase: 'later' });
     expect(list[0].path).toBe(`/calendar?lesson=${encodeURIComponent('w1:2026-11-04|2026-11-04')}`);
+  });
+});
+
+describe('todayLessons — cancelled and missed lessons, the calendar\'s way (owner 2026-11-28)', () => {
+  // Saturday 2026-11-28: Olivia's weekly 10:00 series, marked „Puudus_p” ahead in the journal by the teacher
+  const series = (id, time, extra = {}) => ({ id, recurring: true, day: 'Sat', startDate: '2026-10-10', time, duration: 60, studentId: `st-${id}`, studentName: id, teacher: 'Yelyzaveta', status: 'Planeeritud', online: true, ...extra });
+  const record = (scheduleId, status) => ({ id: `schedule_${scheduleId}_2026-11-28`, scheduleId, studentId: `st-${scheduleId}`, date: '2026-11-28', status });
+  const at = (list, name) => list.find((item) => item.studentName === name);
+
+  it('a weekly-series occurrence cancelled on its day (occurrenceStatuses) is „cancelled”, not running', () => {
+    const list = todayLessons({ events: [series('Olivia', '10:00', { occurrenceStatuses: { '2026-11-28': { status: 'Tühistatud' } } })], today: '2026-11-28', now: '10:20' });
+    expect(list[0]).toMatchObject({ phase: 'cancelled', status: 'Tühistatud', marked: false });
+  });
+
+  it('a journal record decides first: „Tühistatud” is cancelled, „Puudus_p” / „Puudus_eta” are absent, never „now”', () => {
+    const events = [series('Olivia', '10:00'), series('Aleksandra', '11:00'), series('Mari', '10:00'), series('Jaan', '10:00')];
+    const records = [record('Olivia', 'Puudus_p'), record('Aleksandra', 'Puudus_p'), record('Mari', 'Tühistatud'), record('Jaan', 'Puudus_eta')];
+    const list = todayLessons({ events, today: '2026-11-28', now: '10:20', records });
+    expect(at(list, 'Olivia')).toMatchObject({ phase: 'absent', status: 'Puudus_p', statusLabel: 'Puudus, teatas ette', marked: true });
+    expect(at(list, 'Aleksandra')).toMatchObject({ phase: 'absent' }); // ahead (11:00) but missed: not „later” either
+    expect(at(list, 'Mari')).toMatchObject({ phase: 'cancelled', status: 'Tühistatud' });
+    expect(at(list, 'Jaan')).toMatchObject({ phase: 'absent', statusLabel: 'Puudus, ei teatanud (tasuline)' });
+    // without the journal (not loaded yet) the same lessons are the plain plan
+    expect(at(todayLessons({ events, today: '2026-11-28', now: '10:20' }), 'Olivia').phase).toBe('now');
+  });
+
+  it('a record of another student or another day does not touch the lesson', () => {
+    const list = todayLessons({ events: [series('Olivia', '10:00')], today: '2026-11-28', now: '10:20', records: [{ ...record('Olivia', 'Tühistatud'), date: '2026-11-21' }, { ...record('Olivia', 'Tühistatud'), studentId: 'other' }] });
+    expect(list[0].phase).toBe('now');
+  });
+
+  it('a group lesson cancelled on its day (the group lesson\'s occurrenceStatuses) is „cancelled”', () => {
+    const groups = [{ id: 'g1', name: 'Laupäeva grupp', teacher: 'Kati', students: ['a', 'b'], lessons: [{ id: 'l1', day: 'Sat', time: '10:00', duration: 60, recurring: true, startDate: '2026-10-03', occurrenceStatuses: { '2026-11-28': { status: 'Tühistatud' } } }] }];
+    const list = todayLessons({ events: groupCalendarEvents(groups), today: '2026-11-28', now: '10:20' });
+    expect(list[0]).toMatchObject({ isGroup: true, phase: 'cancelled' });
   });
 });
 

@@ -1,3 +1,13 @@
+## 2026-11-28 — Täna: tühistatud ja puudutud tunnid ei ole „Käib” (agent/today-cancelled-lessons)
+
+- Main kontrollitud: 42e971a (2026-11-28). Haru `agent/today-cancelled-lessons`, PR „Täna: cancelled lessons are not shown as running”. Deploy'd ega production'i kirjutusi ei tehtud; Firestore'i loeti ainult lugemiseks (tänased `lessons` ja `schedule` read).
+- Viga (omanik 2026-11-28): kalendris olid Olivia 10:00 ja Aleksandra 11:00 (Yelyzaveta) märgitud puudumiseks, avalehe „Täna · kõik õpetajad” näitas Oliviat „Käib” + „Alusta tundi”.
+- Põhjus: õpetaja märkis tunnid ette tunnipäevikusse (`lessons/schedule_<id>_2026-11-28_<õpilane>`, `status: 'Puudus_p'`); sarja `schedule` dokumendil `occurrenceStatuses` tänast kirjet ei ole. Kalender lahendab iga toimumise päeviku järgi (`calendarView.js resolveOccurrenceRecord` + `lessonState`), „Täna” (`todayModel.js todayLessons`) vaatas ainult toimumise `status`-t ega päevikut.
+- Tehtud: `todayLessons({ …, records })` kasutab samu `resolveOccurrenceRecord` + `lessonState` (päevik otsustab esimesena); faas `cancelled` (Tühistatud) või uus `absent` (Puudus_p / Puudus_eta, kalendri „Õpilane puudus”); väli `statusLabel` = kalendri nurgamärgi tekst (`LESSON_MARKS`). `useTodaySignals.js` annab juba laaditud päeviku (`data.lessons`). `calmModel.js timelineSplit`: `absent` nagu `cancelled` — volditud „Läbi” alla, mitte loendis. `TodayPanel.jsx`: `absent` märk = kalendri olemasolev märk (warning, „Õpilane puudus”), nupp peidetud nagu tühistatul; `today.css` sama tuhm rida. Uut kujundust ei ole.
+- Kontrollid: `npx eslint --quiet src` → puhas; `npx vitest run src/features/dashboard src/features/calendar` → 38 faili, 309 testi läbi (uued: sarja toimumine tühistatud `occurrenceStatuses`-ega, päeviku „Tühistatud”, „Puudus_p”/„Puudus_eta”, grupi tühistamine, paneel ilma „Käib”/„Alusta tundi”).
+- Piirangud: enne päeviku laadimist (mõni sekund) näeb rida vana plaani; DashboardPage `todayCount` ja `needsCall`/`lessonsRunningOut` loevad endiselt ainult toimumise staatust (pole selle PR-i ulatuses).
+- Järgmine ohutu samm: pärast ühendamist ja release'i avada avaleht päeval, kus õpetaja on puudumise ette märkinud, ja kontrollida, et rida on „Läbi” all märgiga „Õpilane puudus”.
+
 ## 2026-11-28 — Audit: tunni krediidi mahaarvamise viga ei kao enam vaikselt (agent/audit-token-sync-retry)
 
 - Main kontrollitud: e7d4cb7 (2026-11-28, #1376). Haru `agent/audit-token-sync-retry`, draft-PR „Audit fix: a failed lesson-token sync is retried and shown in Vead”. Deploy'd ega production'i kirjutusi/lugemisi ei tehtud.
