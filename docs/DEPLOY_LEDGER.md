@@ -36,6 +36,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
+| syncLessonTokens | 2026-11-28 08:00 | `20f84e8` (#1379 a failed lesson-token sync is tried again and recorded in „Vead”). From a clean checkout of `origin/main`, „Deploy complete” |
 | manualInvoiceApi, invoiceApi, linkpayApi, sendInvoicePaymentReminders | 2026-11-27 20:45 | `38766a5` (#1362 „Lisa arve”: `subject` / `noSubject` in `/create`; PDF takes no card subject for a „Muu” invoice). Deployed from the PR branch = `a23f9c1` main + this PR, „Deploy complete” |
 | financeApi | 2026-11-27 21:35 | `5d9d7a3` (#1366 aged debt: an old invoice marked „Makstud” by hand, with no payment records, is not a debt). Deployed from the PR branch = `f332a57` main + this PR, „Deploy complete” |
 | financeApi | 2026-11-26 12:35 | `90b5160` (#1353 Minu kassa: õpetaja märgib saadud sularaha, `/cash/teacher-receipt`; `source: "teacher"` raamatupidamisest väljas) |
@@ -58,6 +59,7 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-28 08:00 · function syncLessonTokens · `20f84e8` · Claude (owner OK „Да, выкладывай”) · #1379 retry of a temporary error + a record in `clientErrors` when the sync still fails; `npm test` 688 / 0 on that commit, `firebase deploy --only functions:syncLessonTokens` from a clean checkout of `origin/main`: „Deploy complete”, UpdateFunction finished 08:00:08 in the function log. No rules / hosting change. Not yet seen: a real lesson mark after the deploy (no run in the log by 08:01). Rollback: the same command from `e7d4cb7`
 - 2026-11-28 06:45 · Firestore rules · `8289b26` · Claude (owner OK „проверь переключатель и выкладывай, когда CI пройдёт”) · #1375 legacy teacher-by-name mode removed; before the deploy production `securityMigrations/teacherUidV1.readEnforced` read: `true` since 2026-08-05; CI green on `678825c` (same rules file); `firebase deploy` 503 at `:test`, then released through the Rules API with retries; live = repo verified; previous ruleset `fa91f7cc` (rollback: release it again). No hosting / functions deploy needed
 - 2026-11-28 06:08 · Storage rules · `00e3eae` · Claude (owner OK „Да, выкладывай”) · #1373 teacher scope on student folders (`homework`, `worksheet-submissions`, `student-worksheets`, `lessons`, `whiteboards`); compiled, „Deploy complete”; no hosting release needed. Rollback: `storage.rules` of `711f78a` + `firebase deploy --only storage`. Open: a teacher has not yet checked a homework file and a board picture on the live site
 - 2026-11-27 20:52 · Firestore rules · `d024acb` · Claude (owner OK) · #1361 Kursused ja EHIS: `match /trainingCourses`; first tries 20:34–20:43 refused („Total size of compiled executables must be smaller than 256000 bytes (actual: 256050 bytes)”, shown by the CLI as 503 / 409), then four redundant `allow read, write: if false` matches removed (owner OK) and released through the Rules API; live = repo verified
