@@ -5,6 +5,15 @@
 - Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator` → 89 files passed, 1 skipped; 1850 tests passed, 12 skipped.
 - Known limit: found by sampling. There is still no automatic language check in CI (`tools/course-audit/language.py` is not wired in), so other slips can exist. Lessons already copied into a student's lesson or edited by hand in the CRM keep their old text.
 - Next step: owner review → merge → release; then wire the speller into CI.
+## 2026-11-28 — Auditi parandused #1368–#1371 ühendatud ja väljas (agent/audit-fixes-released)
+
+- Main kontrollitud: a263291 (2026-11-28, release 09:34 UTC). Haru `agent/audit-fixes-released`, ainult dokumentatsioon.
+- Tehtud (omanik 2026-11-28: „Сливай и выпускай, когда CI пройдёт”): #1368 (üks võla reegel, Tallinna kuupäev), #1369 (kalendri erandid lisatakse kohapeal), #1370 (arve e-kirja „saadan” märge aegub 10 minutiga), #1371 (B1 / C1 juhiste keelevead) ühendatud järjest — iga PR kõigepealt värske `main`-iga kokku, CI roheline just sellel commit'il, siis merge. Vahepeal ühendati `main`-i ka #1365, #1383, #1363 (teised sessioonid), seepärast kolm ringi.
+- Deploy: `invoiceApi`, `manualInvoiceApi`, `linkpayApi`, `sendInvoicePaymentReminders` 09:32 UTC puhtast `origin/main`-ist (`da31f2a`), „Deploy complete”; seejärel `release.yml` → `a263291`, Vercel success, sait vastab 200. Reeglid muutmata. Kirjed `docs/DEPLOY_LEDGER.md`-s.
+- Kontrollimata: päris arve e-kirja pärast deploy'd ei saadetud; võla summasid päris lehel üle ei vaadatud (pärast #1368 võivad mõnes kohas olla väiksemad — tühistatud / krediteeritud / käsitsi „Makstud” arved ei loe enam võlaks).
+- Märkus „Ülevaade” kohta (omaniku küsimus 28.11, ainult lugemine production'ist): november „Laekunud” 2 326 € vs oktoober samal ajal 3 685 € ei ole viga — oktoobris laekus 1 529 € vanade (juuli, september) arvete eest, novembris 125 €. Võimalik täiendus (makett enne): „Laekunud” all jaotus „selle kuu arved / varasemad arved”.
+- Järgmine samm: audit p 4 — `release.yml` kontrollib enne release'i, et reeglid ja funktsioonid on live (`tools/deploy-status`).
+
 ## 2026-11-28 — Audit fix: the invoice e-mail „sending” mark expires after 10 minutes (agent/audit-invoice-email-lock)
 
 - Main checked: feaf08d (2026-11-27, #1367 merged). Branch `agent/audit-invoice-email-lock`, draft PR. **Not deployed**; no production writes.

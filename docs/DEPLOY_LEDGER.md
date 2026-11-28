@@ -28,7 +28,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 | Firestore rules (`firestore.rules`) | 2026-11-28 06:45 | `8289b26` (#1375 legacy teacher-by-name mode removed: `sameTeacherName`, `teacherOwnsStudentData`, `teacherScopeReadEnforced`). Via the Rules API (ruleset `58a88003`); `firebase deploy` failed first on a transient 503. **Compiled size ≈ 253 333 B of 256 000** (room ≈ 2 667 B). The Rules API `:test` call does not check the size; exact numbers come from a release attempt in the empty probe project `rules-size-probe-c1939a` (see `docs/PROJECT_STATE.md` 2026-11-28) | live ruleset content compared with the repo file: equal (210 659 chars) |
 | Storage rules (`storage.rules`) | 2026-11-28 06:08 | `00e3eae` (#1373 `staffOf(studentId)`: a teacher reads / writes a student's files only when on the student's card — `teacherUid` / `teacherUids`; admin unchanged) | `firebase deploy --only storage` from a clean checkout of `origin/main`: „Deploy complete”. Live ruleset not compared (`deploy-status.mjs` had no gcloud credentials on this machine) |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
-| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-28 08:34 release commit | `7906e3b` `[deploy] Release 2026-11-28 08:34 UTC` | release commit on main; Vercel status success 08:35 (commit status API). Releases in between are not listed one by one: `git log --grep='\[deploy\]'` |
+| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-28 09:34 release commit | `a263291` `[deploy] Release 2026-11-28 09:34 UTC` (#1369 calendar exclusions in place, #1371 course wording; #1368 and #1365 went out 09:20) | release commit on main; Vercel status success; site answers 200 |
 
 ## Cloud Functions
 
@@ -36,6 +36,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
+| manualInvoiceApi, invoiceApi, linkpayApi, sendInvoicePaymentReminders | 2026-11-28 09:32 | `da31f2a` (#1370 the invoice e-mail „sending” mark expires after 10 minutes). From a clean checkout of `origin/main`, „Deploy complete” |
 | manualInvoiceApi, invoiceApi, linkpayApi, sendInvoicePaymentReminders | 2026-11-27 20:45 | `38766a5` (#1362 „Lisa arve”: `subject` / `noSubject` in `/create`; PDF takes no card subject for a „Muu” invoice). Deployed from the PR branch = `a23f9c1` main + this PR, „Deploy complete” |
 | financeApi | 2026-11-27 21:35 | `5d9d7a3` (#1366 aged debt: an old invoice marked „Makstud” by hand, with no payment records, is not a debt). Deployed from the PR branch = `f332a57` main + this PR, „Deploy complete” |
 | financeApi | 2026-11-26 12:35 | `90b5160` (#1353 Minu kassa: õpetaja märgib saadud sularaha, `/cash/teacher-receipt`; `source: "teacher"` raamatupidamisest väljas) |
@@ -58,6 +59,8 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-28 09:34 · hosting (release.yml) · `a263291` · Claude (owner OK „Сливай и выпускай, когда CI пройдёт”) · #1369, #1371 (+ #1370 server side below); after the functions deploy; Vercel success, site 200. Earlier the same day releases 07:58, 08:34, 09:01 and 09:20 UTC were not made in this session
+- 2026-11-28 09:32 · functions manualInvoiceApi, invoiceApi, linkpayApi, sendInvoicePaymentReminders · `da31f2a` · Claude (owner OK, same message) · #1370; CI green on the PR's merge commit `81e1118`; „Deploy complete”; rules unchanged. Not tried with a real invoice e-mail
 - 2026-11-28 06:45 · Firestore rules · `8289b26` · Claude (owner OK „проверь переключатель и выкладывай, когда CI пройдёт”) · #1375 legacy teacher-by-name mode removed; before the deploy production `securityMigrations/teacherUidV1.readEnforced` read: `true` since 2026-08-05; CI green on `678825c` (same rules file); `firebase deploy` 503 at `:test`, then released through the Rules API with retries; live = repo verified; previous ruleset `fa91f7cc` (rollback: release it again). No hosting / functions deploy needed
 - 2026-11-28 06:08 · Storage rules · `00e3eae` · Claude (owner OK „Да, выкладывай”) · #1373 teacher scope on student folders (`homework`, `worksheet-submissions`, `student-worksheets`, `lessons`, `whiteboards`); compiled, „Deploy complete”; no hosting release needed. Rollback: `storage.rules` of `711f78a` + `firebase deploy --only storage`. Open: a teacher has not yet checked a homework file and a board picture on the live site
 - 2026-11-27 21:17 · hosting (release.yml, run 46068122691) · `f332a57` · Claude (owner OK) · #1361 Kursused ja EHIS (`/taienduskoolitus`), after the Firestore rules below; Vercel success 21:18; the page opens for the admin with the empty state, no permission error
