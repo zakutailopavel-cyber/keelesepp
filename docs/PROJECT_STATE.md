@@ -9,6 +9,39 @@
 - Tegemata: 3. samm (reeglite ja varutee eemaldamine); funktsiooni äratamine (`/ping`) kalendri avamisel; `studentRevenuePlans` (≈ 2 % reeglitest) samal moel.
 - Järgmine samm: CI roheline → omaniku luba pärast 4. detsembrit → `liveInvitationApi` deploy → `/ping` → proovitund prooviõpilasega.
 
+## 2026-11-28 — Minikursus „Käänded lauses”: 6 tundi (agent/minicourse-kaanded)
+
+- Main kontrollitud: 00e3eae (2026-11-28, #1373), enne push'i ühendatud värske `origin/main`-iga. Haru `agent/minicourse-kaanded`, draft-PR „Mini-course: Käänded lauses (6 lessons)”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-28: „мини курс на тему склонений слов в предложении … с примерами, схемами и заданиями на закрепление”): kuus tundi venekeelsetele A2–B1 õppijatele, kuidas käänded lauses töötavad.
+- Tehtud: uus kursus `kaanded` (supplement, käsitsi määramiseks). Failid:
+  - `admin/course/kaanded/module01.js`: tunnid `kaanded-001…006`, igas Avasta / Harjuta / Kasuta.
+  - Registreerimine: `courseModules.kaanded.js`, `registry.js`, `courseLoaders.js`, `courseSheet.js` `COURSES.kaanded`.
+  - Kirjed: `curriculum/kaandedCurriculum.js` + test.
+  - 8 joonskeemi: `public/textbook-art/kaanded/*.svg`.
+  - `qualityBaseline.json`: kirje `kaanded-module-01` (täistunni normid, mida 60-min minikursus teadlikult ei täida).
+  - `docs/MINICOURSE_KAANDED.md`.
+- Tunnid:
+  1. 14 käänet ja „omastav + lõpp”;
+  2. nimetav, omastav ja osastav lauses: täis- / osasihitise otsustusskeem;
+  3. sisekohakäänded: 3 × 3 skeem;
+  4. väliskohakäänded: peal, inimene, mul on, aeg; koolis vs tööl;
+  5. -ks, -ni, -na, -ta, -ga;
+  6. rektsioon + kontroll 8 + 10 + 6 + 6 = 30 p.
+
+  Igas tunnis on „Märka!” vene keele kontrastireaga, skeem, näitetekst, vormitekst algvormiga, valik, teisendus või parandus, „Abi ja lisaväljakutse”, suhtlusülesanne (`taskType` + Abikaart + Lisaväljakutse), „Kirjuta oma laused”, väljumine (30 s kõnet või 2 lauset + 2 vormi), enesekontroll 0–1–2 + tõendlause ja kodutöö.
+- Kontrollid:
+  - `npx vitest run src/features/worksheet-generator src/features/curriculum src/features/library src/features/self-study src/features/practice src/features/worksheet-studio src/features/pet` → 225 faili läbi (1 skip), 2925 testi.
+  - eslint muudetud failidel 0.
+  - Vabamorf: kõik 159 lünga, tabeli ja vormi vastust on algvormi vormid. `language.py` leidis tundmatuid ainult tehnilisi väärtusi ja URL-i.
+  - Sheet lab (1400 px): 18 lehte renderdatud, vigu 0; ekraanipildid scratchpad `mock/kaanded/`.
+- Kuidas jõuab saidile:
+  1. ühendamine + release;
+  2. **production'i kirjutus omaniku loal**: create-only skript loob `curriculumLessons/kaanded-001…006` (`kaandedCurriculumRecords`);
+  3. „Kursuse tootmine” → „Avalda tund” (admin, kirjutab lehed).
+
+  Ilma kirjeteta annab „Avalda tund” vea „Õppetundi ei leitud.”. Õppevaras on kursus Eesti keel → „Käänded lauses”. „Minu kursus” näitab seda õppijale alles siis, kui tal on kursuses tööd.
+- Piirangud: skeemid on käsitsi joonistatud SVG-d, mitte kunstniku pildid; tekstid lühikesed (55–80 sõna), kuulamist pole; v6 väravaid ei rakendata (kursus pole rangetes nimekirjades).
+- Järgmine samm: omanik vaatab ekraanipilte ja PR-i → ühendamine ja release → omaniku loal kirjete create-only skript → „Avalda tund” × 6.
 ## 2026-11-28 — Firestore reeglid: vana „õpetaja nime järgi” režiim eemaldatud (agent/rules-drop-name-scope)
 
 - Main kontrollitud: 00e3eae (2026-11-28, #1373). Haru `agent/rules-drop-name-scope`, draft-PR „Rules: drop the legacy teacher-by-name mode (frees ~2.4 kB of the 256 kB limit)”. Production'i ei deploy'tud ega kirjutatud.

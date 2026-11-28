@@ -39,6 +39,8 @@ export const COURSES = {
   // character (Markus); every lesson has two sheets — adult („Täiskasvanu”, phase discover) and school pupil („Laps”,
   // phase practice). Staff see it in „Kursuse tootmine”; nobody is assigned to it automatically.
   b1eksp: { label: 'B1 eksperimentaalkursus · täiskasvanud ja noored', name: 'B1 eksperimentaalkursus', badge: 'KeeleSepp · B1 eksperimentaalkursus' },
+  // mini-course „Käänded lauses” (owner 2026-11-28): six lessons on the noun cases for A2–B1, a supplement assigned by hand
+  kaanded: { label: 'Käänded lauses · minikursus A2–B1', name: 'Käänded lauses', badge: 'KeeleSepp · minikursus' },
   b2: named('b2'),
   c1: named('c1'),
   // the course to the Harno C1 exam (docs/COURSE_FINAL_SHAPE_C1.md, docs/B2_C1_CURRICULUM.md); no modules yet
