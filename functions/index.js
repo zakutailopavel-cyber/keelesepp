@@ -41,6 +41,7 @@ const linkpay = require("./linkpay-core");
 const issuerCore = require("./invoice-issuer-core");
 const invoiceIssuer = require("./invoice-issuer");
 const liveTurnCore = require("./live-turn-core");
+const liveInvitationCore = require("./live-invitation-core");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
@@ -9694,6 +9695,109 @@ exports.liveTurnApi = functions
       sendError(res, error);
     }
   });
+
+// ── API: Live Classroom invitations ─────────────────────────
+// The browser used to write liveLessonInvitations itself and firestore.rules checked every field (~7 kB of the 256 kB
+// compiled limit). Here the same checks run on the server (live-invitation-core.js). Signals, presence, the board and
+// the countdown of a room stay direct writes — they must be instant.
+// POST /create { id?, studentId, studentUid, studentName, teacherName, title, roomKey?, scheduleId?, occurrenceDate? }
+//   → { id, invitation }; POST /respond { invitationId, decision: accepted | declined }; POST /accept-test,
+//   /cancel { invitationId }; POST /close { invitationId, endMark? }; POST /ping wakes the function.
+exports.liveInvitationApi = functions.runWith({ timeoutSeconds: 20 }).https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method === "POST" && req.path === "/ping") { res.status(204).send(""); return; }
+  const actions = { "/respond": "", "/accept-test": "accept-test", "/cancel": "cancel", "/close": "close" };
+  if (req.method !== "POST" || (req.path !== "/create" && !(req.path in actions))) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  try {
+    const decoded = await requireFirebaseUser(req);
+    const uid = decoded.uid;
+    const profile = (await db.collection("users").doc(uid).get()).data() || {};
+    if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+    const roles = collectTrustedRoles(profile, decoded);
+    const adminActor = isSuperAdmin(decoded) || roles.has("admin");
+    const body = req.body || {};
+    res.set("Cache-Control", "no-store");
+
+    if (req.path === "/create") {
+      const studentId = String(body.studentId || "").trim();
+      const roomKey = String(body.roomKey || "").trim();
+      const idOk = (value) => liveInvitationCore.ID.test(value);
+      const [studentSnap, roomSnap] = await Promise.all([
+        idOk(studentId) ? db.collection("students").doc(studentId).get() : null,
+        roomKey && idOk(roomKey) ? db.collection("liveGroupRooms").doc(roomKey).get() : null,
+      ]);
+      const decision = liveInvitationCore.createDecision({
+        uid, admin: adminActor, teacher: roles.has("teacher"), body,
+        student: studentSnap?.exists ? studentSnap.data() : null,
+        groupRoom: roomSnap?.exists ? roomSnap.data() : null,
+      });
+      if (!decision.ok) throw httpError(decision.status, decision.error);
+      // the browser picks the id, so its fallback (a direct write of the same document) can never make a second invitation
+      const wantedId = String(body.id || "").trim();
+      if (wantedId && !idOk(wantedId)) throw httpError(400, "Vigane kutse tunnus.");
+      const reference = wantedId ? db.collection("liveLessonInvitations").doc(wantedId) : db.collection("liveLessonInvitations").doc();
+      const now = new Date();
+      const createdAtIso = now.toISOString();
+      const expiresAt = new Date(now.getTime() + liveInvitationCore.INVITATION_TTL_MS); // stored as a Firestore timestamp
+      const fields = { ...decision.fields, roomKey: decision.roomKey || reference.id, createdAtIso, expiresAt };
+      const batch = db.batch();
+      batch.create(reference, { ...fields, createdAt: FieldValue.serverTimestamp() });
+      batch.set(db.collection("activityLog").doc(), {
+        type: "live_lesson.invited",
+        label: `Tunnikutsung saadetud: ${fields.studentName}`,
+        studentId: fields.studentId,
+        studentName: fields.studentName,
+        byUid: uid,
+        byName: fields.teacherName,
+        byRole: adminActor ? "admin" : "teacher",
+        createdAt: createdAtIso,
+        date: createdAtIso.slice(0, 10),
+        meta: { invitationId: reference.id, roomKey: fields.roomKey },
+      });
+      try {
+        await batch.commit();
+      } catch (error) {
+        if (error?.code === 6) throw httpError(409, "Tunnikutsung on juba saadetud.");
+        throw error;
+      }
+      res.json({ id: reference.id, invitation: { ...fields, createdAt: createdAtIso, expiresAt: expiresAt.toISOString() } });
+      return;
+    }
+
+    const invitationId = String(body.invitationId || "").trim();
+    if (!liveInvitationCore.ID.test(invitationId)) throw httpError(400, "invitationId required");
+    const action = req.path === "/respond"
+      ? ({ accepted: "accept", declined: "decline" })[String(body.decision || "")] || ""
+      : actions[req.path];
+    const reference = db.collection("liveLessonInvitations").doc(invitationId);
+    const status = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(reference);
+      const invitation = snapshot.exists ? snapshot.data() : null;
+      let student = null;
+      if (invitation && action === "accept-test" && liveInvitationCore.ID.test(String(invitation.studentId || ""))) {
+        const studentSnap = await transaction.get(db.collection("students").doc(invitation.studentId));
+        student = studentSnap.exists ? studentSnap.data() : null;
+      }
+      const decision = liveInvitationCore.transitionDecision({
+        invitation, action, uid, admin: adminActor, student, nowMs: Date.now(), endMark: String(body.endMark || ""),
+      });
+      if (!decision.ok) throw httpError(decision.status, decision.error);
+      transaction.update(reference, {
+        status: decision.status,
+        [decision.stamp]: FieldValue.serverTimestamp(),
+        ...(decision.endMark ? { endMark: decision.endMark } : {}),
+      });
+      return decision.status;
+    });
+    res.json({ id: invitationId, status });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
 
 // ── API: invoice emails and reminders ────────────────────────
 // ── LHV LinkPay: pay links, the bank's notification and the return page (docs/LINKPAY_INTEGRATION.md) ──
