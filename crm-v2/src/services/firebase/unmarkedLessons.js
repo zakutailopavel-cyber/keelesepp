@@ -142,7 +142,7 @@ export const unmarkedLessonsService = {
     if (!item?.id || !item.occurrenceDate) throw new Error('Tundi ei leitud.');
     if (item.recurring) {
       const excluded = event.excludedDates || [];
-      await scheduleService.patch(item.id, { excludedDates: [...new Set([...excluded, item.occurrenceDate])] });
+      await scheduleService.patch(item.id, { excludedDates: [...new Set([...excluded, item.occurrenceDate])] }, { excludeAdd: [item.occurrenceDate] });
     } else {
       const { kind: _kind, evidence: _evidence, duplicateOf: _duplicateOf, reason: _reason, ...current } = event;
       await scheduleService.cancel(item.id, current);

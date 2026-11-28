@@ -60,7 +60,7 @@ describe('rooms after „Tühista tund”', () => {
   it('a cancelled date of a weekly lesson frees the room on that date', async () => {
     const props = setup({ before: lesson({ recurring: true }), after: lesson({ recurring: true, excludedDates: [today] }), bookings: [booking({ recurring: true })] });
     const select = await cancelAndOpenNewLesson();
-    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] });
+    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }, { excludeAdd: [today] });
     expect(within(select).getByRole('option', { name: 'Kabinet 1' })).not.toBeDisabled();
   });
 

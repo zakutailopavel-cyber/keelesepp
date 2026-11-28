@@ -275,7 +275,7 @@ describe('calendar v2', () => {
     fireEvent.pointerMove(block, { clientX: 5000, clientY: 133, pointerId: 1 }); // +30 min
     fireEvent.pointerUp(block, { clientX: 5000, clientY: 133, pointerId: 1 });
     fireEvent.click(await screen.findByRole('button', { name: 'Ainult see tund' }));
-    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }));
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }, { excludeAdd: [today] }));
     expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ date: today, time: '10:30', recurring: false, movedFromSeriesId: 'schedule-1' }));
   });
 
@@ -319,7 +319,7 @@ describe('calendar v2', () => {
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
     fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Kustuta/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Ainult see tund' }));
-    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }));
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }, { excludeAdd: [today] }));
     expect(props.scheduleRepository.remove).not.toHaveBeenCalled();
   });
 
@@ -578,7 +578,7 @@ describe('calendar v2', () => {
     fireEvent.change(select, { target: { value: 't9' } });
     fireEvent.click(within(panel).getByRole('button', { name: 'Kinnita asendus' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ teacher: 'Jegor', teacherUid: 't9', substituteFor: { teacher: 'Pavel', teacherUid: 't1' }, date: today, time: '10:00', recurring: false, movedFromSeriesId: 'schedule-1' })));
-    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] });
+    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }, { excludeAdd: [today] });
   });
 
   it('a teacher clicks an empty cell: busy for this day only, then a new lesson from the same menu', async () => {

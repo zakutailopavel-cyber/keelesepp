@@ -1,3 +1,12 @@
+## 2026-11-28 — Audit fix: calendar exclusions are added in place, a stale tab cannot wipe another device's move (agent/audit-calendar-exclusions)
+
+- Main checked: feaf08d (2026-11-27, #1367 merged). Branch `agent/audit-calendar-exclusions`, draft PR. No deploy, no production writes. Client only; no rules change (the field `excludedDates` is the same list).
+- Why (audit 2026-11-28, owner: fix without waiting): moving, substituting, cancelling or deleting ONE lesson of a weekly 1:1 series rewrote the whole `excludedDates` list from the browser's copy (the calendar reads with `getDocs`, not live). A tab opened hours ago then wiped a date another device had excluded: that lesson showed twice (the series date + its moved copy), counted twice in planned lessons and could be marked twice.
+- Done: `services/firebase/schedule.js patch(id, fields, delta)` — with `delta { excludeAdd | excludeRemove }` the date is written with `arrayUnion` / `arrayRemove`. `calendarGrid.js excludeDateOps(item, date)` builds the apply / undo operations for `planMove`, `planSubstitute`, `planDelete`; `CalendarPage.jsx` (`runOps`, „Tühista tund”) and `unmarkedLessons.js cancel` pass the delta. Group lessons are unchanged (they already save in a transaction).
+- Files: `crm-v2/src/services/firebase/schedule.js`, `schedulePatch.test.js` (new), `unmarkedLessons.js` (+ test), `features/calendar/calendarGrid.js` (+ test), `CalendarPage.jsx` (+ 2 tests).
+- Checks: `npx vitest run src/features/calendar src/services/firebase src/features/dashboard src/features/teachers` → 86 files, 596 tests pass; eslint clean. Not checked in the browser or with two real devices.
+- Not done (same audit finding, larger): a plan is still two separate writes (exclude the date, then create the copy) — if the second fails the lesson is gone until undo; „Muuda tundi” still saves the whole record from the tab's copy (`schedule.js update`).
+- Next step: owner review → merge → release; then one batch per plan and field-level save in „Muuda tundi”.
 ## 2026-11-27 — „Kuu võrdlus”: kuu raha võrdlus ühe ekraanina (agent/month-reconciliation)
 
 - Main kontrollitud: f332a57 (2026-11-27, release 21:17 UTC). Haru `agent/month-reconciliation`, draft-PR „Kuu võrdlus: month reconciliation screen for the admin”. Deploy'd ega production'i kirjutusi ei tehtud; `firestore.rules` ja `functions/` on muutmata.

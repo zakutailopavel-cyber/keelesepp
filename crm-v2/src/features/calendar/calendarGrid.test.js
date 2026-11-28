@@ -40,12 +40,12 @@ describe('moving lessons', () => {
 
   it('"only this lesson" skips the date in the series and creates a single lesson', () => {
     const plan = planMove({ ...weekly, occurrenceDate: '2026-09-28' }, { toDate: '2026-09-29', toTime: '17:00', scope: 'single' });
-    expect(plan.apply[0]).toEqual({ op: 'patch', id: 's1', fields: { excludedDates: ['2026-09-14', '2026-09-28'] } });
+    expect(plan.apply[0]).toEqual({ op: 'patch', id: 's1', fields: { excludedDates: ['2026-09-14', '2026-09-28'] }, delta: { excludeAdd: ['2026-09-28'] } });
     expect(plan.apply[1].data).toMatchObject({ studentId: 'st1', date: '2026-09-29', day: 'Tue', time: '17:00', recurring: false, movedFromSeriesId: 's1' });
     const series = { ...weekly, ...plan.apply[0].fields };
     expect(eventOccursOn(series, '2026-09-28')).toBe(false);
     expect(eventOccursOn(series, '2026-10-05')).toBe(true);
-    expect(plan.undo).toEqual([{ op: 'remove', key: 'single' }, { op: 'patch', id: 's1', fields: { excludedDates: ['2026-09-14'] } }]);
+    expect(plan.undo).toEqual([{ op: 'remove', key: 'single' }, { op: 'patch', id: 's1', fields: { excludedDates: ['2026-09-14'] }, delta: { excludeRemove: ['2026-09-28'] } }]);
   });
 
   it('"this and following" ends the old series and starts a new one', () => {
@@ -70,7 +70,7 @@ describe('moving lessons', () => {
     expect(() => planDelete(oneOff, { hasRecords: true })).toThrow('Toimunud');
 
     const series = { id: 'w', recurring: true, startDate: '2026-10-05', occurrenceDate: '2026-10-19', excludedDates: ['2026-10-12'] };
-    expect(planDelete(series, { scope: 'single' }).apply).toEqual([{ op: 'patch', id: 'w', fields: { excludedDates: ['2026-10-12', '2026-10-19'] } }]);
+    expect(planDelete(series, { scope: 'single' }).apply).toEqual([{ op: 'patch', id: 'w', fields: { excludedDates: ['2026-10-12', '2026-10-19'] }, delta: { excludeAdd: ['2026-10-19'] } }]);
     expect(planDelete(series, { scope: 'series' }).apply).toEqual([{ op: 'patch', id: 'w', fields: { endDate: '2026-10-18' } }]);
     expect(planDelete({ ...series, occurrenceDate: '2026-10-05' }, { scope: 'series' }).apply).toEqual([{ op: 'delete', id: 'w' }]);
     expect(planDelete({ ...series, occurrenceDate: '2026-10-05' }, { scope: 'series', hasRecords: true }).apply).toEqual([{ op: 'patch', id: 'w', fields: { endDate: '2026-10-04' } }]);
@@ -97,7 +97,7 @@ describe('planSubstitute', () => {
     const { planSubstitute } = await import('./calendarGrid.js');
     const item = { id: 's', studentId: 'x', studentName: 'Mia', teacher: 'Pavel', teacherUid: 'p', recurring: true, startDate: '2026-09-01', day: 'Fri', occurrenceDate: '2026-10-30', time: '12:00', duration: 45, online: true, excludedDates: ['2026-10-02'] };
     const plan = planSubstitute(item, { teacher: 'Jegor', teacherUid: 'j' });
-    expect(plan.apply[0]).toEqual({ op: 'patch', id: 's', fields: { excludedDates: ['2026-10-02', '2026-10-30'] } });
+    expect(plan.apply[0]).toEqual({ op: 'patch', id: 's', fields: { excludedDates: ['2026-10-02', '2026-10-30'] }, delta: { excludeAdd: ['2026-10-30'] } });
     expect(plan.apply[1].data).toMatchObject({ studentId: 'x', teacher: 'Jegor', teacherUid: 'j', substituteFor: { teacher: 'Pavel', teacherUid: 'p' }, date: '2026-10-30', time: '12:00', duration: 45, online: true, recurring: false, movedFromSeriesId: 's' });
   });
 });
