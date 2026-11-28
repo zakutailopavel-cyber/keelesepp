@@ -9,6 +9,7 @@ import { HOMEWORK_WINDOW_DAYS } from './useTodaySignals.js';
 import { homeworkService } from '../../../services/firebase/homework.js';
 import { lessonsService } from '../../../services/firebase/lessons.js';
 import { announceLessonMarked } from '../../calendar/lessonActions.js';
+import { LESSON_STATE_LABELS } from '../../calendar/calendarView.js';
 import './today.css';
 
 // The „Täna” parts of the home page (2026-11-04, calm layout 2026-11-06): today's lessons as a short timeline, and the
@@ -19,7 +20,8 @@ import './today.css';
 const tunde = (n) => `${String(n).replace('.', ',')} ${Number(n) === 1 ? 'tund' : 'tundi'}`;
 const shortDay = (iso) => (iso ? new Intl.DateTimeFormat('et-EE', { day: 'numeric', month: 'numeric', timeZone: 'Europe/Tallinn' }).format(new Date(iso)) : '');
 const waited = (days) => (days == null ? '' : days === 0 ? 'täna' : days === 1 ? 'eile' : `${days} päeva tagasi`);
-const PHASE = { now: ['success', 'Käib'], past: ['neutral', 'Läbi'], cancelled: ['danger', 'Tühistatud'] };
+// the calendar's own lesson badges (CalendarPage: LESSON_STATE_LABELS, absent = warning, cancelled = danger)
+const PHASE = { now: ['success', 'Käib'], past: ['neutral', 'Läbi'], cancelled: ['danger', LESSON_STATE_LABELS.cancelled], absent: ['warning', LESSON_STATE_LABELS.absent] };
 const Pending = ({ label = 'Arvutan…' }) => <p className="form-hint">{label}</p>;
 const Failed = () => <p className="form-hint">Andmeid ei saanud praegu laadida.</p>;
 
@@ -31,7 +33,7 @@ function LessonRow({ item, showTeacher, sheets, onMark, marking }) {
     <div><strong>{item.studentId && !item.isGroup ? <Link to={`/students/${item.studentId}`}>{item.studentName}</Link> : item.studentName}</strong>
       <small className={!item.marked && item.phase === 'past' ? 'today-unmarked' : ''}>{lessonMeta(item, { showTeacher, sheets })}</small></div>
     {PHASE[item.phase] ? <Badge tone={PHASE[item.phase][0]}>{PHASE[item.phase][1]}</Badge> : <span />}
-    {item.phase === 'cancelled' ? <span />
+    {item.phase === 'cancelled' || item.phase === 'absent' ? <span />
       : canMark ? <button type="button" className="today-start today-mark" disabled={marking} onClick={() => onMark(item)}>{marking ? 'Märgin…' : 'Toimus'}</button>
         : <Link className="today-start" to={item.path} title="Avab tunni kalendris, kus „Alusta tundi” kutsub õpilase tundi">{item.online ? <Video size={15} aria-hidden="true" /> : null}{item.phase === 'past' ? 'Ava tund' : 'Alusta tundi'}</Link>}
   </li>;
@@ -39,7 +41,7 @@ function LessonRow({ item, showTeacher, sheets, onMark, marking }) {
 
 // the sheets on each student's board for the lessons still ahead today (one read per student, once)
 function useBoardSheets(lessons, service) {
-  const ids = useMemo(() => [...new Set(lessons.filter((item) => !item.isGroup && item.studentId && item.phase !== 'past' && item.phase !== 'cancelled').map((item) => item.studentId))].sort().join(','), [lessons]);
+  const ids = useMemo(() => [...new Set(lessons.filter((item) => !item.isGroup && item.studentId && item.phase !== 'past' && item.phase !== 'cancelled' && item.phase !== 'absent').map((item) => item.studentId))].sort().join(','), [lessons]);
   const [sheets, setSheets] = useState({});
   useEffect(() => {
     if (!ids || typeof service?.listPreparedWorksheets !== 'function') return undefined;

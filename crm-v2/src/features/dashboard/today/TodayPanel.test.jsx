@@ -58,6 +58,33 @@ describe('TodayTimeline — what each lesson needs (owner 2026-11-24)', () => {
   });
 });
 
+describe('TodayTimeline — cancelled and missed lessons (owner 2026-11-28)', () => {
+  const day = [
+    { id: 'olivia', recurring: true, day: 'Sat', startDate: '2026-10-10', time: '10:00', duration: 60, studentId: 'o', studentName: 'Olivia', teacher: 'Yelyzaveta', online: true, status: 'Planeeritud' },
+    { id: 'aleksandra', recurring: true, day: 'Sat', startDate: '2026-11-14', time: '11:00', duration: 60, studentId: 'a', studentName: 'Aleksandra', teacher: 'Yelyzaveta', online: true, status: 'Planeeritud' },
+    { id: 'mari', date: '2026-11-28', time: '12:00', duration: 60, studentId: 'm', studentName: 'Mari', teacher: 'Kati', status: 'Planeeritud', occurrenceStatuses: {} },
+    { id: 'jaan', recurring: true, day: 'Sat', startDate: '2026-10-10', time: '10:30', duration: 60, studentId: 'j', studentName: 'Jaan', teacher: 'Kati', status: 'Planeeritud', occurrenceStatuses: { '2026-11-28': { status: 'Tühistatud' } } },
+  ];
+  const records = [
+    { id: 'r1', scheduleId: 'olivia', studentId: 'o', date: '2026-11-28', status: 'Puudus_p' },
+    { id: 'r2', scheduleId: 'aleksandra', studentId: 'a', date: '2026-11-28', status: 'Puudus_p' },
+  ];
+  it('no „Käib” or „Alusta tundi” for them; the lesson really ahead takes the top', () => {
+    wrap(<TodayTimeline lessons={todayLessons({ events: day, today: '2026-11-28', now: '10:20', records })} allTeachers sheetsService={{ listPreparedWorksheets: async () => [] }} />);
+    const region = screen.getByRole('region', { name: 'Täna' });
+    expect(within(region).queryByText('Käib')).not.toBeInTheDocument();
+    expect(within(region).getAllByRole('listitem').map((item) => item.textContent)).toEqual([expect.stringContaining('Mari')]);
+    expect(within(region).getAllByRole('link', { name: /Alusta tundi/ })).toHaveLength(1);
+    fireEvent.click(within(region).getByRole('button', { name: /Näita kõiki/ }));
+    const folded = within(region).getByText('Läbi (3)').closest('details');
+    expect(within(folded).getAllByText('Õpilane puudus')).toHaveLength(2);
+    expect(within(folded).getByText('Tühistatud')).toBeInTheDocument();
+    expect(within(folded).getAllByText(/Puudus, teatas ette/)).toHaveLength(2);
+    expect(within(folded).queryByRole('link', { name: /Alusta tundi|Ava tund/ })).not.toBeInTheDocument();
+    expect(within(folded).queryByRole('button', { name: 'Toimus' })).not.toBeInTheDocument();
+  });
+});
+
 describe('panels', () => {
   it('homework per teacher', () => {
     wrap(<HomeworkPanel queue={{ waiting: 1, overdue: 2, byTeacher: [{ teacher: 'Kati', waiting: 1, overdue: 2 }] }} />);

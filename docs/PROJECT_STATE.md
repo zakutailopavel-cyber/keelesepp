@@ -1,3 +1,140 @@
+## 2026-11-28 — Täna: tühistatud ja puudutud tunnid ei ole „Käib” (agent/today-cancelled-lessons)
+
+- Main kontrollitud: 42e971a (2026-11-28). Haru `agent/today-cancelled-lessons`, PR „Täna: cancelled lessons are not shown as running”. Deploy'd ega production'i kirjutusi ei tehtud; Firestore'i loeti ainult lugemiseks (tänased `lessons` ja `schedule` read).
+- Viga (omanik 2026-11-28): kalendris olid Olivia 10:00 ja Aleksandra 11:00 (Yelyzaveta) märgitud puudumiseks, avalehe „Täna · kõik õpetajad” näitas Oliviat „Käib” + „Alusta tundi”.
+- Põhjus: õpetaja märkis tunnid ette tunnipäevikusse (`lessons/schedule_<id>_2026-11-28_<õpilane>`, `status: 'Puudus_p'`); sarja `schedule` dokumendil `occurrenceStatuses` tänast kirjet ei ole. Kalender lahendab iga toimumise päeviku järgi (`calendarView.js resolveOccurrenceRecord` + `lessonState`), „Täna” (`todayModel.js todayLessons`) vaatas ainult toimumise `status`-t ega päevikut.
+- Tehtud: `todayLessons({ …, records })` kasutab samu `resolveOccurrenceRecord` + `lessonState` (päevik otsustab esimesena); faas `cancelled` (Tühistatud) või uus `absent` (Puudus_p / Puudus_eta, kalendri „Õpilane puudus”); väli `statusLabel` = kalendri nurgamärgi tekst (`LESSON_MARKS`). `useTodaySignals.js` annab juba laaditud päeviku (`data.lessons`). `calmModel.js timelineSplit`: `absent` nagu `cancelled` — volditud „Läbi” alla, mitte loendis. `TodayPanel.jsx`: `absent` märk = kalendri olemasolev märk (warning, „Õpilane puudus”), nupp peidetud nagu tühistatul; `today.css` sama tuhm rida. Uut kujundust ei ole.
+- Teine samm (omanik 2026-11-28 „fix the other places too”), sama haru ja PR: uus `todayModel.js journalState(item, records)` = `lessonState(resolveOccurrenceRecord(…))` ja `todayLessonCount(lessons)`.
+  - „Tunnid täna” (DashboardPage): arv = `todayLessonCount(signals.lessonsToday)` — ainult antavad tunnid (mitte tühistatud ega õpilane puudub); laaduri `todayCount` (ainult `status !== 'Tühistatud'`) eemaldatud. Muutus: ka `occurrenceStatuses`-ega märgitud puudumine ei ole enam arvus.
+  - „Vajab kõnet” (`needsCall`): tund ees loeb broneeritud ainult kui `journalState` ei ole `cancelled` ega `absent` (päevik tänasest edasi).
+  - „Makstud tunnid lõppemas” (`lessonsRunningOut`): „kuu lõpuni plaanis” = `journalState === 'planned'` (oli `status === 'Planeeritud'`) ja selle päeva päevikukirjet pole (endine kaitse jääb).
+- Kontrollid: `npx eslint --quiet src` → puhas; `npx vitest run src/features/dashboard src/features/calendar` → 38 faili, 313 testi läbi (uued: sarja toimumine tühistatud `occurrenceStatuses`-ega, päeviku „Tühistatud”, „Puudus_p”/„Puudus_eta”, grupi tühistamine, paneel ilma „Käib”/„Alusta tundi”, `todayLessonCount`, „Tunnid täna” paan DashboardPage'il, `needsCall` päeviku tühistamise/puudumisega, `lessonsRunningOut` ette märgitud puudumisega).
+- Piirangud: enne päeviku laadimist (mõni sekund) näevad rida ja „Tunnid täna” vana plaani; grupi õpilase isiklik puudumine (attendance) ei mõjuta `needsCall`-i broneeringut.
+- Järgmine ohutu samm: pärast ühendamist ja release'i avada avaleht päeval, kus õpetaja on puudumise ette märkinud, ja kontrollida, et rida on „Läbi” all märgiga „Õpilane puudus”.
+## 2026-11-28 — „Käänded lauses” v2: rohkem harjutust igas tunnis (agent/kaanded-more-practice)
+
+- Main kontrollitud: 42e971a (2026-11-28, release 07:58 UTC; #1376 main'is). Haru `agent/kaanded-more-practice`, PR „Käänded lauses: more practice per topic”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik pärast v1 avaldamist: „заданий мало по каждой теме, очень”): rohkem harjutust igas tunnis.
+- Tehtud:
+  - Uus `kaanded/practice.js`. Igas Harjutas on nüüd 9 ülesannet, 8–12 osa ülesandes, järjestus: tuvasta → vali → moodusta. Ülesanded: sorteerimine, sobitamine, valik, tabel, vormid, vormitekst, teisendus, vigade parandus, tõlge RU → ET (õpetaja kontrollib; näidisvastused õpetaja märkuses).
+  - Avastas lisandus näidete tabel, Kasutas teine suuline ülesanne.
+  - Vanad plokid alles (sama id), mitmes on rohkem osi.
+  - Plokke tunnis (Avasta / Harjuta / Kasuta): enne 5–6 / 4–5 / 6–10, nüüd 6–7 / 10 / 7–11.
+  - Hilisemad tunnid kordavad varasemaid käändeid.
+- Lisaks `tools/kaanded-publish/publish.mjs` (sisaldab #1378 skripti):
+  - `--update`: lehtede uus versioon nagu „Avalda tund”; v1 jääb `worksheetVersions`-isse.
+  - `--assignments <studentId>`: alustamata ülesanded saavad uue lehe; varukoopia enne kirjutamist.
+- Kontrollid:
+  - vitest (worksheet-generator, curriculum, library, self-study, practice, worksheet-studio, pet) → 225 faili, 2926 testi läbi; uus test: 9 harjutust × 8–12 osa.
+  - eslint 0.
+  - Vabamorf: 334 vastust on algvormi vormid. `language.py` leidis tundmatuid ainult tehnilisi väärtusi; tõlgete näidisvastustes vigu pole.
+  - Sheet lab: 18 lehte, vigu 0; ekraanipildid `mock/kaanded/v2-*`.
+  - Production'i kuivkäivitus (ainult lugemine): 18 lehte v1 → v2. Sasha (FYAyhzV7yj8L0RRHfFWZ) 18 ülesannet on alustamata ja praegu v1.
+- Järgmine samm: ühendamine + release → `--update --write` → `--assignments FYAyhzV7yj8L0RRHfFWZ --write` (omaniku otsene kinnitus).
+
+## 2026-11-28 — Audit: tunni krediidi mahaarvamise viga ei kao enam vaikselt (agent/audit-token-sync-retry)
+
+- Main kontrollitud: e7d4cb7 (2026-11-28, #1376). Haru `agent/audit-token-sync-retry`, draft-PR „Audit fix: a failed lesson-token sync is retried and shown in Vead”. Deploy'd ega production'i kirjutusi/lugemisi ei tehtud.
+- Eesmärk (auditi punkt 6, omanik 2026-11-28 „Да, бери”): `syncLessonTokens` püüdis vea kinni ja ainult logis — tund jäi märgituks, krediit paketist maha arvamata, keegi ei näinud.
+- Tehtud: uus `functions/lesson-tokens-retry-core.js` (+ test): ajutine viga (ABORTED / UNAVAILABLE / DEADLINE / 5xx) → kuni 2 kordust samas käivituses (400 ms, 1,5 s; sync on `requestId` järgi idempotentne); 4xx (pearaamatu otsus) ei kordu. Lõplik viga → üks kirje `clientErrors/lesson-tokens-<lessonId>` (samad väljad mis brauseri teatel, ainult tunni id, nimesid pole; kordumisel kasvab `count`) → leht „Vead” ja kell 07:00 kokkuvõte kellukeses. `functions/index.js`: trigger kasutab neid. `docs/LESSON_TOKENS.md` p 4.
+- Reeglid, andmeskeem, klient: muutmata (server kirjutab admin SDK-ga; `clientErrors` kuju sama).
+- Kontrollid: `cd functions && npm test` → 688 pass, 0 fail (uus fail eraldi: 4/4). Emulaatoriga ega production'is triggerit ei käivitatud; „Vead” lehte selle kirjega brauseris ei vaadatud.
+- Piirangud: trigger ei kasuta platvormi kordust (failurePolicy) — kui funktsioon ise ei käivitu või aegub, kirjet ei teki. Varasemaid vahele jäänud tunde see ei leia ega paranda.
+- Käsitsi värav: `firebase deploy --only functions:syncLessonTokens` ainult omaniku loal; seejärel `docs/DEPLOY_LEDGER.md`.
+- Järgmine ohutu samm: pärast ühendamist ja deploy'd märkida üks pakettõpilase tund ja kontrollida, et krediit liigub ja „Vead” on tühi.
+
+## 2026-11-28 — Minikursus „Käänded lauses”: 6 tundi (agent/minicourse-kaanded)
+
+- Main kontrollitud: 00e3eae (2026-11-28, #1373), enne push'i ühendatud värske `origin/main`-iga. Haru `agent/minicourse-kaanded`, draft-PR „Mini-course: Käänded lauses (6 lessons)”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-28: „мини курс на тему склонений слов в предложении … с примерами, схемами и заданиями на закрепление”): kuus tundi venekeelsetele A2–B1 õppijatele, kuidas käänded lauses töötavad.
+- Tehtud: uus kursus `kaanded` (supplement, käsitsi määramiseks). Failid:
+  - `admin/course/kaanded/module01.js`: tunnid `kaanded-001…006`, igas Avasta / Harjuta / Kasuta.
+  - Registreerimine: `courseModules.kaanded.js`, `registry.js`, `courseLoaders.js`, `courseSheet.js` `COURSES.kaanded`.
+  - Kirjed: `curriculum/kaandedCurriculum.js` + test.
+  - 8 joonskeemi: `public/textbook-art/kaanded/*.svg`.
+  - `qualityBaseline.json`: kirje `kaanded-module-01` (täistunni normid, mida 60-min minikursus teadlikult ei täida).
+  - `docs/MINICOURSE_KAANDED.md`.
+- Tunnid:
+  1. 14 käänet ja „omastav + lõpp”;
+  2. nimetav, omastav ja osastav lauses: täis- / osasihitise otsustusskeem;
+  3. sisekohakäänded: 3 × 3 skeem;
+  4. väliskohakäänded: peal, inimene, mul on, aeg; koolis vs tööl;
+  5. -ks, -ni, -na, -ta, -ga;
+  6. rektsioon + kontroll 8 + 10 + 6 + 6 = 30 p.
+
+  Igas tunnis on „Märka!” vene keele kontrastireaga, skeem, näitetekst, vormitekst algvormiga, valik, teisendus või parandus, „Abi ja lisaväljakutse”, suhtlusülesanne (`taskType` + Abikaart + Lisaväljakutse), „Kirjuta oma laused”, väljumine (30 s kõnet või 2 lauset + 2 vormi), enesekontroll 0–1–2 + tõendlause ja kodutöö.
+- Kontrollid:
+  - `npx vitest run src/features/worksheet-generator src/features/curriculum src/features/library src/features/self-study src/features/practice src/features/worksheet-studio src/features/pet` → 225 faili läbi (1 skip), 2925 testi.
+  - eslint muudetud failidel 0.
+  - Vabamorf: kõik 159 lünga, tabeli ja vormi vastust on algvormi vormid. `language.py` leidis tundmatuid ainult tehnilisi väärtusi ja URL-i.
+  - Sheet lab (1400 px): 18 lehte renderdatud, vigu 0; ekraanipildid scratchpad `mock/kaanded/`.
+- Kuidas jõuab saidile:
+  1. ühendamine + release;
+  2. **production'i kirjutus omaniku loal**: create-only skript loob `curriculumLessons/kaanded-001…006` (`kaandedCurriculumRecords`);
+  3. „Kursuse tootmine” → „Avalda tund” (admin, kirjutab lehed).
+
+  Ilma kirjeteta annab „Avalda tund” vea „Õppetundi ei leitud.”. Õppevaras on kursus Eesti keel → „Käänded lauses”. „Minu kursus” näitab seda õppijale alles siis, kui tal on kursuses tööd.
+- Piirangud: skeemid on käsitsi joonistatud SVG-d, mitte kunstniku pildid; tekstid lühikesed (55–80 sõna), kuulamist pole; v6 väravaid ei rakendata (kursus pole rangetes nimekirjades).
+- Järgmine samm: omanik vaatab ekraanipilte ja PR-i → ühendamine ja release → omaniku loal kirjete create-only skript → „Avalda tund” × 6.
+## 2026-11-28 — Firestore reeglid: vana „õpetaja nime järgi” režiim eemaldatud (agent/rules-drop-name-scope)
+
+- Main kontrollitud: 00e3eae (2026-11-28, #1373). Haru `agent/rules-drop-name-scope`, draft-PR „Rules: drop the legacy teacher-by-name mode (frees ~2.4 kB of the 256 kB limit)”. Production'i ei deploy'tud ega kirjutatud.
+- Eesmärk (audit 2026-11-28; omanik „Да, делай”): reeglid on Firestore'i 256 000 baidi piiril ja uued reeglid (`studentNotes`, `studentWords`, `lessonSummaries`, `websiteLeads`, `groups/tasks`) ei mahu. Vabastada ruumi koodist, mis production'is enam ei tööta.
+- Tehtud: `firestore.rules`-ist eemaldatud `teacherName`, `sameTeacherName`, `teacherOwnsStudentData`, `teacherScopeReadEnforced` ja kõik harud `!teacherScopeReadEnforced() …` (`teacherCanRead`, `teacherCanCreate`, `teacherCanUpdate`, `teacherCanInviteStudent`, `staffCanAccessStudent`, `whiteboardAccessAs`). Õpetaja õigus tuleb nüüd alati `teacherUid` / `teacherUids` järgi — nii nagu production'is alates 2026-08-05, kui `securityMigrations/teacherUidV1.readEnforced` on `true`. Lipp `readEnforced` ei mõjuta enam reegleid; `match /securityMigrations` ja serveri `teacherScopeMigrationApi` jäid puutumata (rollback ei ava enam ligipääsu — see ongi soovitud).
+- Mõõtmine (uus võte): Rules API `:test` EI kontrolli kompileeritud suurust; täpse arvu annab ainult release'i katse. Selleks loodud omaniku loal tühi tasuta projekt `rules-size-probe-c1939a` (andmeid ega kaarti pole): seal release'i PATCH vastab „actual: N bytes”. Kontrollpunkt: `4420fde` reeglid → 256 050 B, sama mis production'is 2026-11-27. Piiri alla mahtuva faili suurus = sama fail + 20 tühja lisareeglit (à 171 B) miinus lisa. Tulemus: main `00e3eae` ≈ 255 716 B (varu ≈ 284 B), see haru ≈ 253 333 B (varu ≈ 2 667 B, vabanes ≈ 2 383 B).
+- Failid: `firestore.rules`, `functions/security-access-emulator.integration.js` (nimega kaart ilma uid-ta → alati 403), `functions/finance-emulator.integration.js` (ilma liputa võõras kaart → 403), `functions/initial-assessment-rules-emulator.integration.js` (kommentaar).
+- Kontrollid: kohapeal `node --check` muudetud testidel; reeglid kompileeruvad ja mahuvad (probe-projekti release). Emulaatoriteste siin käivitada ei saa (Java 8) — jooksevad CI-s („Financial Core emulator”); tulemus vt PR.
+- Riskid ja väravad: (1) vajab reeglite deploy'd omaniku loal (Rules API kaudu, vt `docs/DEPLOY_LEDGER.md`); veebi release'i ega functions'i deploy'd pole vaja. (2) Enne deploy'd kontrollida production'is, et `securityMigrations/teacherUidV1.readEnforced == true` (lugemine, omaniku luba) — kui see oleks `false`, kaotaksid õpetajad ligipääsu uid-ta kaartidele. (3) 2,4 kB on umbes 10–15 lühikest reeglit, mitte püsiv lahendus.
+- Tegemata: suurimad plokid on `liveLessonInvitations` (6 % failist), `liveClassrooms` (4 %), `validWhiteboardElement` (3 %), `studentRevenuePlans` (2 %); kutsete ja hindade kirjutamine serveri kaudu vabastaks suurusjärgu võrra rohkem.
+- Olek 2026-11-28 06:45 UTC: CI esimene jooks kukkus ühe testiga (178-st; test kontrollis vana režiimi — õpetaja loob kaardi ainult nime järgi), test kirjutati uid peale ümber, teine jooks roheline (`678825c`). Production'i lipp loetud: `readEnforced == true` alates 2026-08-05. PR #1375 ühendatud (`8289b26`), reeglid avaldatud Rules API kaudu (ruleset `58a88003`), live = repo (210 659 märki). Vt `docs/DEPLOY_LEDGER.md`.
+- Järgmine samm: `liveLessonInvitations` kirjutamine serveri kaudu (suurim plokk reeglites) — eraldi PR; alles siis `studentNotes` / `studentWords` / `lessonSummaries` / `websiteLeads` / `groups/tasks` reeglid.
+
+## 2026-11-28 — Storage: õpetaja avab ainult oma õpilaste faile (agent/storage-teacher-scope)
+
+- Main kontrollitud: 711f78a (2026-11-27, release 22:21 UTC). Haru `agent/storage-teacher-scope`, draft-PR „Storage rules: a teacher opens only their own students' files”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (audit 2026-11-28, punkt 2; omanik: „делай все подряд”): `storage.rules` lubas igal õpetajal (`staff()`) lugeda ja kirjutada iga õpilase faile — kodutööd, salvestatud vastused, kuu monoloog, tunnimaterjal, tahvli materjal ja fotod. Firestore'is on sama piir õpetaja kaupa juba olemas (`staffCanAccessStudent`, `teacherCanRead`; production'is jõus 2026-08-05).
+- Tehtud: uus `staffOf(studentId)` — administraator või õpetaja, kes on õpilase kaardil (`teacherUid` / `teacherUids`). Kasutusel teedel `homework/{studentId}`, `homework/{studentId}/monologues`, `worksheet-submissions/{studentId}`, `student-worksheets/{studentId}`, `lessons/{studentId}`, `whiteboards/{studentId}/materials`, `whiteboards/{studentId}/student`. Ühine õppematerjal (`worksheet/`, `curriculum/`, `didactics/`, `lesson-scenes/`) jäi kõigile õpetajatele. Õpilase ja vanema ligipääs ei muutunud.
+- Failid: `storage.rules`, uus `functions/storage-rules-emulator.integration.js`, `firebase.json` (emulaatorite hulka `storage`, port 9199), `.github/workflows/financial-core-emulator.yml` (`--only … storage` ja uus test ahela lõpus). Seni ei olnud `storage.rules`-il ühtegi testi.
+- Kontrollid: kohapeal ainult `node --check` ja JSON-i kontroll — emulaatorit ei saa siin käivitada (masinas Java 8). Reeglite test jookseb CI-s („Financial Core emulator”): 2026-11-27 22:44 UTC läbi (oma õpetaja ja kaardi teine õpetaja 200, võõras õpetaja 403, administraator ja õpilase konto 200). Kaks esimest jooksu kukkusid testi enda vea tõttu (fail saadeti ilma metaandmete osata, reeglid ei näinud faili tüüpi) — reeglit ei muudetud.
+- Riskid ja väravad: (1) vajab `firebase deploy --only storage` omaniku loal (`docs/DEPLOY_LEDGER.md`); veebi release'i pole vaja. (2) Asendusõpetaja, keda õpilase kaardil ei ole, ei ava enam selle õpilase faile ega saa neid lisada — sama piir kehtib juba Firestore'i kodutööde ja tahvli kohta; asenduse ajaks tuleb õpetaja kaardile lisada. (3) Nimepõhist varuvarianti (`sameTeacherName`) Storage'is ei ole: õpilane, kelle kaardil pole `teacherUid`-d, on õpetajale suletud (administraatorile avatud). Production'i kaarte ei loetud — kui selliseid kaarte on, tuleb need enne deploy'd parandada. (4) Allalaadimislingid (`getDownloadURL` token) kehtivad edasi: reegel piirab uue lingi küsimist, mitte juba välja antud linki.
+- Tegemata (sama auditi punkt): `users` dokumenti loeb iga õpetaja ja seal on teiste tunnitasu `workHourlyRateCents` — vajab välja kolimist eraldi administraatori dokumenti (andmemigratsioon production'is, omaniku luba); `studentNotes`, `studentWords`, `lessonSummaries`, `websiteLeads`, `groups/tasks` Firestore'i reeglid — pärast reeglite ruumi vabastamist (256 kB piir).
+- Olek 2026-11-28 06:08 UTC: PR #1373 ühendatud (`00e3eae`), omaniku loal `firebase deploy --only storage` puhtast `origin/main` koopiast — „Deploy complete” (`docs/DEPLOY_LEDGER.md`). Live-reeglite sisu repoga ei võrreldud (`deploy-status.mjs` jaoks polnud selles masinas gcloud'i volitusi). Päris kaarte ei loetud: õpetajata kaartide arv on teadmata.
+- Järgmine samm: üks õpetaja avab päris lehel oma õpilase kodutöö faili ja tahvli pildi; tõrke korral tagasi `711f78a` `storage.rules` + `firebase deploy --only storage`.
+
+## 2026-11-28 — „Tulu ja prognoos”: selgem paigutus (agent/finance-overview-clear)
+
+- Main kontrollitud: 56a779e (2026-11-27, #1364; haru sellega ühendatud). Haru `agent/finance-overview-clear`, draft-PR „Tulu ja prognoos: one sentence, four numbers, bars and a work list”. Deploy'd ega production'i kirjutusi ei tehtud. Finantsi-PR-ide #1364 (nüüd main'is) ja #1365 (avatud) faile ei puudutatud.
+- Eesmärk (omanik 2026-11-27, ekraanipildid: „выглядит вообще не понятно, визуал недоделан”; pärast kolme maketti „да делай, только визуал поправь, чтобы выглядело современнее”): plokk peab viie sekundiga ütlema, palju sel kuul teeniti, palju koolile jäi, kas see on eelmisest kuust parem ja mis tuleb järgmisel kuul. Arvutusi ei muudetud.
+- Tehtud (ainult esitus): (1) üks lause valgusfooriga (`fd-verdict`); (2) neli arvu väikese trendijoonega — kasum, tulu, tunnid, õpilased; (3) tulpdiagramm: mineviku kuu tulu jaguneb kasumiks, õpetajate tasuks ja püsikuludeks, tulevased kuud katkendjoonega; (4) „Kus me praegu oleme”: järgmine kuu, kuu tulu koos, tasuvuspunkt, omaniku tundide osa, 10 suurimat õpilast; (5) „Kuhu raha läheb” (endine „Kasum ja kahjum”) ja „Kust raha tuleb” (õpetajad / ained / tunni tüüp); (6) „Vajab tegutsemist”: tööloend arvu, nimede (link õpilase kaardile) ja „Näita kõiki” nupuga, ilma punase tekstita; (7) tabelid ja ülejäänud arvud nuppude all: Õpetajad, Ained, Õpilased, Kuude kaupa, Tunnid ja arvud, Püsikulud ja omanik, Kuidas arvestatakse. Ühtegi arvu ei eemaldatud: endised plaadid „Eelmine kuu”, „Keskmine tund / Keskmiselt kuus”, „Prognoos”, „Tulu − õpetajate tasu” on vahelehel „Tunnid ja arvud”.
+- Failid: `crm-v2/src/features/finance/FinanceDashboard.jsx`, `BusinessReport.jsx`, `financeDashboard.css`, uus `dashboardView.js` (+ test), `FinanceDashboard.test.jsx`, `BusinessReport.test.jsx`. `financeDashboard.js` ja `businessReport.js` on muutmata.
+- Leping: `dashboardView.js` on puhas esituskiht (lause, trendijooned, tulba jaotus, lingid) — oma raha-reegleid seal ei ole. Tulpade jaotuse ja trendijoonte jaoks kutsutakse sama `businessReport` teist korda 12 kuu kohta (sõltub ainult andmetest, mitte valitud kuust). `BusinessReport` võtab uue valikulise `tiles`. Üksikasjade nupud on `role="group"` + `aria-pressed`, mitte ARIA-vahelehed: lehel on juba oma `role="tab"` rida ja `FinanceMonthPage.test.jsx` loeb neid.
+- Kontrollid: `npx vitest run src/features/finance src/styles` → 51 faili, 344 testi läbi; `npx eslint --quiet src/features/finance` puhas; `npx vite build` läbi. Brauseris (ajutine eelvaateleht väljamõeldud andmetega, ei ole repositooriumis): 1300 px hele ja tume teema, 375 px ilma horisontaalse kerimiseta. Kogu `npx vitest run`, päris leht sisselogituna ja päris andmed — käivitamata.
+- Tähelepanekud arvutuste kohta (ei muudetud, omanikule öeldud): ülemine tundide arv loeb tasulisi tunde (ka tasuline puudumine), „Ärinäitajad” ainult toimunuid; järgmise kuu tundide arv erineb hinnata õpilaste võrra; tulu võrdlus eelmise kuuga loeb jooksva kuu koos kalendris olevate tundidega.
+- Riskid: andme- ega turvariski pole (plokki näeb ainult administraator, nagu enne). Teine `businessReport` kutse teeb esimese arvutuse umbes kaks korda pikemaks; suure ajalooga võib see olla tuntav — mõõtmata.
+- Tegemata (omanikuga kokku lepitud järgmised PR-id): filtrid õpetaja / aine / tunni tüübi järgi; stsenaariumid „Mis siis, kui…”; kirje „Mis uut” lehel.
+- Järgmine samm: omanik vaatab PR-i pilti; pärast luba ühendamine ja release, siis päris lehe ülevaatus ja filtrite PR.
+
+## 2026-11-27 — Finantsid: „Peida” arvete nimekirjal ja FIE arvete ploki kujundus (agent/finance-list-hide)
+
+- Main kontrollitud: f332a57 (2026-11-27, release 21:17 UTC). Haru `agent/finance-list-hide`, draft-PR „Finance: „Peida” on the invoice list; FIE invoices panel styled”. Deploy'd ega production'i kirjutusi ei tehtud. Ainult klient ja CSS.
+- Eesmärk (omanik 2026-11-27, ekraanipildid): 1) „тут нет кнопки peida, чтобы не приходилось крутить вниз” — Finantside lehel tuli kuu arvete nimekirjast mööda kerida, et jõuda alumiste plokkideni; 2) „визуал недоделан” — FIE arvete plokk oli kujundamata (kokkuvõte loendina, tabel ja nupud brauseri vaikestiilis: klassidel `fie-panel__totals`, `table`, `link-button` polnud CSS-i).
+- Tehtud: `FinanceMonthPage.jsx` — nimekirja päises nupp „Peida” / „Näita” (sama välimus mis „Tulu ja prognoos” plokil); peidetud olek jääb seadmesse meelde (`localStorage` `keelesepp.financeMonth.ledgerHidden`); nimekirja vahekaardi (Arveid / Laekunud / Laekumata) valimine avab selle uuesti. `fie/fie.css` (uus, imporditud `FiePanel.jsx`-is): kokkuvõte plaatidena, tabel, nupud; kuupäev kujul PP.KK.AAAA.
+- Failid: `crm-v2/src/features/finance/FinanceMonthPage.jsx` (+ test), `financeMonth.css`, `fie/FiePanel.jsx`, `fie/fie.css`.
+- Kontrollid: `npx vitest run src/features/finance` → 49 faili, 335 testi läbi; `npx eslint --quiet src/features/finance` puhas. Brauseris (ajutine eelvaateleht näidisandmetega, 1300 px): „Peida” voldib nimekirja kokku (päis jääb), „Näita” avab; FIE plokk plaatide, tabeli ja nuppudega.
+- Riskid: andme- ega turvariski pole. Tegemata: „Ärinäitajad” ploki (palju teksti) ümberkujundus — omanik nimetas ka seda arusaamatuks; vajab enne maketti ja omaniku OK-d.
+- Järgmine samm: omaniku luba → ühendamine → release; „Ärinäitajad” makett eraldi.
+## 2026-11-27 — Võlgade vanus: käsitsi „Makstud” vana arve ei ole võlg (agent/aged-debt-paid-by-hand)
+
+- Main kontrollitud: f332a57 (2026-11-27, release 21:17 UTC). Haru `agent/aged-debt-paid-by-hand`, draft-PR „Aged debt: an old invoice marked paid by hand is not a debt”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-27, ekraanipilt „Raha liikumine → Võlgade vanus”): üks juunikuu arve oli seal „154 p üle”, kuigi arvete nimekirjas on see „Makstud”, jääk 0. Arvet ei kustutatud ega muudetud.
+- Põhjus: `functions/financial-analytics-core.js agedDebt` arvutab jäägi ainult makse kirjetest. Vana arve, mis on käsitsi märgitud „Makstud” ja millel pole ühtegi makse kirjet, jäi võlaks. Arvete nimekiri loeb sellise arve makstuks (`crm-v2 financeRows.js legacyPaid`), teavitused samuti (`staff-operations-core.js`: `status === "Makstud"`).
+- Tehtud: `agedDebt` jätab välja arve, mille `status` on „Makstud” ja mille kohta pole ühtegi makse kirjet (ka tühistatud kirje loeb kirjeks: siis otsustavad kirjed). Test `financial-analytics-core.test.js`.
+- Failid: `functions/financial-analytics-core.js`, `functions/financial-analytics-core.test.js`.
+- Kontrollid: `cd functions && npm test` → 684/684. Emulaatorit kohapeal ei käivitatud (jookseb CI-s). Production'i andmeid skriptiga ei loetud; arve seis on nähtud ainult CRM-i lehelt.
+- Deploy (omaniku „Да, выкладывай” 2026-11-27): `financeApi` 2026-11-27 21:35 UTC commit'ist `5d9d7a3`, „Deploy complete” (`docs/DEPLOY_LEDGER.md`).
+- Riskid ja väravad: vajas `firebase deploy --only functions:financeApi` (omaniku luba, `docs/DEPLOY_LEDGER.md`); kuni selleni näitab „Võlgade vanus” seda arvet edasi. Veebi release'i pole vaja. Eeldus: see arve on just selline (käsitsi „Makstud”, makse kirjeteta) — kui pärast deploy'd on see ikka nimekirjas, on põhjus muu ja tuleb arve kirje üle vaadata.
+- Järgmine samm: omaniku luba → ühendamine → `financeApi` deploy → vaadata „Võlgade vanus” üle.
+
 ## 2026-11-27 — Kursused ja EHIS-e aruanne CRM-is (agent/ehis-training-courses)
 
 - Main kontrollitud: a23f9c1 (2026-11-27, release 05:29 UTC). Haru `agent/ehis-training-courses`, draft-PR „Kursused ja EHIS: course runs, certificates and the yearly EHIS figures”. Deploy'd ega production'i kirjutusi ei tehtud.

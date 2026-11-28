@@ -7,29 +7,39 @@ describe('FinanceDashboard (calendar lessons)', () => {
     const repository = { students: vi.fn(async () => [{ id: 's1', name: 'Mia', active: true }]), schedule: vi.fn(async () => [{ id: 'w1', studentId: 's1', recurring: true, day: 'Mon', startDate: '2026-09-01', time: '17:00', duration: 60, status: 'Planeeritud' }]), groups: vi.fn(async () => []) };
     render(<FinanceDashboard today={new Date('2026-10-20T12:00:00')} repository={repository} plans={[{ studentId: 's1', lessonPriceCents: 2500 }]}
       lessons={[{ id: 'l1', scheduleId: 'w1', studentId: 's1', date: '2026-10-05', status: 'Toimunud' }]} />);
-    expect(await screen.findByText('Toimunud · oktoober 2026')).toBeInTheDocument();
+    // the four numbers: revenue so far and by the end of the month
+    const revenue = (await screen.findByText('Tulu · oktoober 2026')).closest('.fd-kpi');
+    expect(revenue).toHaveTextContent('75 €');
+    expect(revenue).toHaveTextContent('kuu lõpuks 100 €');
+    // the block in one sentence: September was 100 € too, November has 5 Mondays
+    expect(screen.getByTestId('fd-verdict')).toHaveTextContent('Tulu on eelmise kuuga samal tasemel. Kuu lõpuks tuleb tulu 100 € ja koolile jääb 100 €. Järgmise kuu kalendris on juba 125 €.');
+    expect(screen.getByTestId('fd-verdict')).toHaveTextContent('Hea kuu');
     expect(screen.getByTestId('fd-detail')).toHaveTextContent('oktoober 2026 · toimunud 75 € (3 tundi, neist 2 märkimata) · kalendris veel 25 € (1 tundi)');
     fireEvent.click(screen.getByRole('button', { name: /november 2026: kalendris/ }));
     expect(screen.getByTestId('fd-detail')).toHaveTextContent('kalendris 125 € · 5 tundi');
     // „Ärinäitajad”: lessons that took place, attendance, students, by teacher
     const report = screen.getByRole('region', { name: 'Ärinäitajad' });
+    expect(screen.getByTestId('br-todo-unmarked')).toHaveTextContent('2Märkimata tunnid');
+    fireEvent.click(screen.getByRole('button', { name: 'Tunnid ja arvud' }));
     expect(report).toHaveTextContent('Toimunud tunde3');
     expect(report).toHaveTextContent('1 märgitud toimunuks');
     expect(report).toHaveTextContent('2 märkimata (loetud toimunuks)');
     expect(report).toHaveTextContent('Kalendris veel1tundi · 25 €');
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Peida/ })); });
-    expect(screen.queryByText('Toimunud · oktoober 2026')).toBeNull();
+    expect(screen.queryByText('Tulu · oktoober 2026')).toBeNull();
   });
 
   it('switches the period: sums from month to year and the same months ahead', async () => {
     ['keelesepp.financeDashboard.period', 'keelesepp.financeDashboard.hidden'].forEach((key) => globalThis.localStorage?.removeItem?.(key));
     const repository = { students: vi.fn(async () => [{ id: 's1', name: 'Mia', active: true }]), schedule: vi.fn(async () => [{ id: 'w1', studentId: 's1', recurring: true, day: 'Mon', startDate: '2026-09-01', time: '17:00', duration: 60, status: 'Planeeritud' }]), groups: vi.fn(async () => []) };
     render(<FinanceDashboard today={new Date('2026-10-20T12:00:00')} repository={repository} plans={[{ studentId: 's1', lessonPriceCents: 2500 }]} lessons={[]} />);
-    await screen.findByText('Toimunud · oktoober 2026');
+    await screen.findByText('Tulu · oktoober 2026');
     fireEvent.click(screen.getByRole('button', { name: '3 kuud' }));
     expect(screen.getByRole('button', { name: '3 kuud' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText('Toimunud · aug – okt')).toBeInTheDocument();
-    expect(screen.getByText('Kokku · 3 kuud')).toBeInTheDocument();
+    // September 100 € + October 75 € held, 25 € still in the calendar
+    expect(screen.getByText('Tulu · aug – okt').closest('.fd-kpi')).toHaveTextContent('175 €perioodi lõpuks 200 €');
+    fireEvent.click(screen.getByRole('button', { name: 'Tunnid ja arvud' }));
+    expect(screen.getByText('Keskmiselt kuus').closest('.br-card')).toHaveTextContent('periood kokku 200 €');
     expect(screen.getByText('Prognoos · järgmised 3 kuud')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Aasta' }));
     expect(screen.getByText('Prognoos · järgmised 12 kuud')).toBeInTheDocument();
@@ -55,19 +65,23 @@ describe('FinanceDashboard (calendar lessons)', () => {
     ['keelesepp.financeDashboard.period', 'keelesepp.financeDashboard.hidden'].forEach((key) => globalThis.localStorage?.removeItem?.(key));
     const repository = { students: vi.fn(async () => [{ id: 's1', name: 'Mia', active: true }]), schedule: vi.fn(async () => [{ id: 'w1', studentId: 's1', recurring: true, day: 'Mon', startDate: '2026-09-01', time: '17:00', duration: 60, status: 'Planeeritud' }]), groups: vi.fn(async () => []) };
     render(<FinanceDashboard today={new Date('2026-10-20T12:00:00')} repository={repository} plans={[{ studentId: 's1', lessonPriceCents: 2500 }]} lessons={[]} />);
-    await screen.findByText('Toimunud · oktoober 2026');
+    await screen.findByText('Tulu · oktoober 2026');
+    expect(screen.getByRole('region', { name: 'Kus me praegu oleme' })).toHaveTextContent('Järgmine kuu · november 2026125 €');
+    fireEvent.click(screen.getByRole('button', { name: 'Tunnid ja arvud' }));
     expect(screen.getByText('Prognoos · järgmine kuu')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Aruande kuu'), { target: { value: '2026-09' } });
     // September: Mondays 7, 14, 21, 28 → 4 lessons × 25 €
-    const kpi = screen.getByText('Toimunud · september 2026').closest('.fd-kpi');
+    const kpi = screen.getByText('Tulu · september 2026').closest('.fd-kpi');
     expect(kpi).toHaveTextContent('100 €');
-    expect(kpi).toHaveTextContent('4 tundi');
+    expect(kpi).not.toHaveTextContent('kuu lõpuks');
+    expect(screen.getByText('Tunnid').closest('.fd-kpi')).toHaveTextContent('4');
+    expect(screen.getByTestId('fd-verdict')).toHaveTextContent('Tulu oli 100 € ja koolile jäi 100 €.');
     expect(screen.queryByText('Prognoos · järgmine kuu')).toBeNull();
-    expect(screen.queryByText('Kalendris veel sel kuul')).toBeNull();
-    expect(screen.getByText('Keskmine tund').closest('.fd-kpi')).toHaveTextContent('25 €');
-    expect(screen.getByRole('region', { name: 'Kasum' })).toHaveTextContent('Kasum ja kahjum · september');
+    expect(screen.getByRole('region', { name: 'Kus me praegu oleme' })).not.toHaveTextContent('Järgmine kuu ·');
+    expect(screen.getByText('Keskmine tund').closest('.br-card')).toHaveTextContent('25 €');
+    expect(screen.getByRole('region', { name: 'Kasum' })).toHaveTextContent('Kuhu raha läheb september 2026');
     fireEvent.click(screen.getByRole('button', { name: 'Järgmine kuu' }));
-    expect(screen.getByText('Toimunud · oktoober 2026')).toBeInTheDocument();
+    expect(screen.getByText('Tulu · oktoober 2026')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Eelmine kuu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Praegune kuu' }));
     expect(screen.getByText('Prognoos · järgmine kuu')).toBeInTheDocument();

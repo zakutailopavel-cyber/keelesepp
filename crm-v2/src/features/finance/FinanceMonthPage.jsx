@@ -1,4 +1,4 @@
-import {
+import { ChevronDown, ChevronUp,
   AlertTriangle,
   BookOpen,
   ChevronLeft,
@@ -69,6 +69,7 @@ import './manualInvoice.css';
 const money = (cents) => formatMoney(cents);
 const UNIT_NAMES = { month: ['Eelmine kuu', 'Järgmine kuu', 'Praegune kuu'], quarter: ['Eelmine kvartal', 'Järgmine kvartal', 'Praegune kvartal'], year: ['Eelmine aasta', 'Järgmine aasta', 'Praegune aasta'] };
 const UNIT_STORE = 'keelesepp.financeMonth.unit';
+const LEDGER_HIDDEN = 'keelesepp.financeMonth.ledgerHidden';
 const unitAtStart = () => { try { const saved = globalThis.localStorage?.getItem(UNIT_STORE); return PERIOD_UNITS.some((item) => item.id === saved) ? saved : 'month'; } catch { return 'month'; } };
 const STATUS = FINANCE_STATUS_LABELS;
 // „check” (Kontroll, admin): invoices against payment records and the bank (owner 2026-10-15)
@@ -160,6 +161,10 @@ export default function FinanceMonthPage({
   const [today] = useState(() => new Date());
   const chooseUnit = (next) => { setUnit(next); try { globalThis.localStorage?.setItem(UNIT_STORE, next); } catch { /* private mode */ } };
   const [status, setStatus] = useState(() => new globalThis.URLSearchParams(location.search).get('status') || 'all');
+  // „Peida” (owner 2026-11-27): the invoice list can be folded so the sections under it are reachable without scrolling;
+  // remembered on this device, and opened again when a tab of the list is chosen
+  const [ledgerHidden, setLedgerHidden] = useState(() => { try { return globalThis.localStorage?.getItem(LEDGER_HIDDEN) === '1'; } catch { return false; } });
+  const setLedgerVisible = (visible) => { setLedgerHidden(!visible); try { globalThis.localStorage?.setItem(LEDGER_HIDDEN, visible ? '0' : '1'); } catch { /* private mode */ } };
   const [activeView, setActiveView] = useState(() => {
     const params = new globalThis.URLSearchParams(location.search);
     const requested = params.get('status') === 'overdue' ? 'unpaid' : (VIEWS.includes(params.get('view')) ? params.get('view') : 'invoices');
@@ -277,6 +282,7 @@ export default function FinanceMonthPage({
 
   const selectView = (view, scroll = false) => {
     setActiveView(view);
+    if (['invoices', 'paid', 'unpaid'].includes(view) && ledgerHidden) setLedgerVisible(true);
     if (view === 'prepare' && !preparedMonthSet.current) { preparedMonthSet.current = true; setMonth(defaultBillingMonth()); }
     setStatus('all');
     setQuery('');
@@ -407,7 +413,8 @@ export default function FinanceMonthPage({
       {activeView === 'credits' ? (canManage ? <AdvanceManagementPanel credits={state.data.credits || []} refunds={state.data.refunds || []} invoices={invoices} onApply={(creditId, invoiceId, amount, note) => financeRepository.applyPayerCredit(creditId, invoiceId, amount, note)} onRefund={(creditId, refund) => financeRepository.refundPayerCredit(creditId, refund)} onReload={state.reload} /> : <Card><EmptyState title="Ettemaksude haldamine" description="See vaade on administraatorile." /></Card>) : null}
 
       {['invoices', 'paid', 'unpaid'].includes(activeView) ? <Card className="finance-month-ledger">
-        <div className="finance-month-ledger__heading"><div><span className="eyebrow">{activeView === 'invoices' ? 'Arved' : activeView === 'paid' ? 'Laekunud' : 'Laekumata'}</span><h2>{activeView === 'invoices' ? (unit === 'month' ? 'Kuu arved ja maksed' : 'Perioodi arved ja maksed') : activeView === 'paid' ? 'Laekunud maksetega arved' : (unit === 'month' ? 'Kuu tasumata arved' : 'Perioodi tasumata arved')}</h2></div><span>{rangeLabel} · {rows.length} kirjet</span></div>
+        <div className="finance-month-ledger__heading"><div><span className="eyebrow">{activeView === 'invoices' ? 'Arved' : activeView === 'paid' ? 'Laekunud' : 'Laekumata'}</span><h2>{activeView === 'invoices' ? (unit === 'month' ? 'Kuu arved ja maksed' : 'Perioodi arved ja maksed') : activeView === 'paid' ? 'Laekunud maksetega arved' : (unit === 'month' ? 'Kuu tasumata arved' : 'Perioodi tasumata arved')}</h2></div><div className="finance-month-ledger__side"><span>{rangeLabel} · {rows.length} kirjet</span><button type="button" className="fm-ledger-toggle" aria-expanded={!ledgerHidden} aria-controls="finance-ledger-body" onClick={() => setLedgerVisible(ledgerHidden)}>{ledgerHidden ? <><ChevronDown size={16} /> Näita</> : <><ChevronUp size={16} /> Peida</>}</button></div></div>
+        {ledgerHidden ? null : <div id="finance-ledger-body">
         <div className="finance-month-filters">
           <Input label="Otsi" type="search" placeholder="Õpilane, maksja, arve number või märkus" value={query} onChange={(event) => setQuery(event.target.value)} icon={<Search size={17} />} />
           {activeView !== 'paid' ? <Select label="Olek" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">Kõik olekud</option>{Object.entries(STATUS).filter(([value]) => activeView === 'invoices' || ['unpaid', 'partial', 'overdue', 'email-failed', 'no-show'].includes(value)).map(([value, [label]]) => <option key={value} value={value}>{label}</option>)}</Select> : null}
@@ -419,6 +426,7 @@ export default function FinanceMonthPage({
             <span><span className="finance-month-table__num">{invoice.num || invoice.number || invoice.invoiceNumber || '—'}{canNote ? <InvoiceNoteButton invoice={invoice} note={notes.get(invoice.id)} onOpen={(item) => { setError(''); setNoteInvoice(item); }} /> : null}{canNote ? <InvoiceAccountingButton invoice={invoice} onOpen={setAccountingInvoice} /> : null}</span></span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span className="fm-num"><MoneyValue cents={row.amountCents} /></span><span className={`fm-num ${row.balanceCents ? 'fm-num--strong' : 'fm-num--zero'}`}><MoneyValue cents={row.balanceCents} /></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
             <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} data-entity-action="tokens" onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" data-entity-action="payment" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} data-entity-action="print" onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} data-entity-action="send" onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.balanceCents > 0 && row.status !== 'cancelled' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} data-entity-action="remind" onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" data-entity-action="cancel" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
+        </div>}
         </div>}
       </Card> : null}
       {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel canRemoveClaims month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} onCancel={(invoice) => { setError(''); setCancelInvoice(invoice); }} onCorrectDueDate={(invoice, due, reason) => financeRepository.correctInvoiceDueDate(invoice.id, due, reason)} onCreditLessonLine={(invoice, lessonId, reason) => financeRepository.creditInvoiceLessonLine(invoice.id, lessonId, reason)} onCreditInFull={(invoice, reason, requestId) => financeRepository.creditInvoiceInFull(invoice.id, reason, requestId)} onCorrectInvoice={(invoice, correction) => financeRepository.correctIssuedInvoice(invoice.id, correction)} /> : null}

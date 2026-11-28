@@ -86,7 +86,7 @@ test("CRM v2 initial assessment document passes the rules for the student's teac
 
   const forged = await write(teacherToken, studentId, { ...updated, createdByUid: "someone-else" });
   assert.equal(forged.status, 403);
-  // Another teacher is kept out once teacher scope is enforced (in legacy mode every teacher reads every student).
+  // Another teacher is kept out (the flag below no longer changes the rules; kept so the test also runs on old rules).
   const flag = db.doc("securityMigrations/teacherUidV1");
   const previous = await flag.get();
   await flag.set({ readEnforced: true }, { merge: true });
