@@ -9742,10 +9742,10 @@ exports.liveInvitationApi = functions.runWith({ timeoutSeconds: 20 }).https.onRe
       const reference = wantedId ? db.collection("liveLessonInvitations").doc(wantedId) : db.collection("liveLessonInvitations").doc();
       const now = new Date();
       const createdAtIso = now.toISOString();
-      const expiresAt = admin.firestore.Timestamp.fromMillis(now.getTime() + liveInvitationCore.INVITATION_TTL_MS);
+      const expiresAt = new Date(now.getTime() + liveInvitationCore.INVITATION_TTL_MS); // stored as a Firestore timestamp
       const fields = { ...decision.fields, roomKey: decision.roomKey || reference.id, createdAtIso, expiresAt };
       const batch = db.batch();
-      batch.create(reference, { ...fields, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+      batch.create(reference, { ...fields, createdAt: FieldValue.serverTimestamp() });
       batch.set(db.collection("activityLog").doc(), {
         type: "live_lesson.invited",
         label: `Tunnikutsung saadetud: ${fields.studentName}`,
@@ -9764,7 +9764,7 @@ exports.liveInvitationApi = functions.runWith({ timeoutSeconds: 20 }).https.onRe
         if (error?.code === 6) throw httpError(409, "Tunnikutsung on juba saadetud.");
         throw error;
       }
-      res.json({ id: reference.id, invitation: { ...fields, createdAt: createdAtIso, expiresAt: expiresAt.toDate().toISOString() } });
+      res.json({ id: reference.id, invitation: { ...fields, createdAt: createdAtIso, expiresAt: expiresAt.toISOString() } });
       return;
     }
 
@@ -9788,7 +9788,7 @@ exports.liveInvitationApi = functions.runWith({ timeoutSeconds: 20 }).https.onRe
       if (!decision.ok) throw httpError(decision.status, decision.error);
       transaction.update(reference, {
         status: decision.status,
-        [decision.stamp]: admin.firestore.FieldValue.serverTimestamp(),
+        [decision.stamp]: FieldValue.serverTimestamp(),
         ...(decision.endMark ? { endMark: decision.endMark } : {}),
       });
       return decision.status;

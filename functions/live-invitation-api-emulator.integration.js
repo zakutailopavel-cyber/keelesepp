@@ -95,7 +95,7 @@ test("the server creates an invitation only for a teacher of the card and the ca
 
   // an expired invitation is not answered; a pending one is cancelled by its teacher
   const expiredId = `inv-api-expired-${stamp}`;
-  await db().collection("liveLessonInvitations").doc(expiredId).set({ ...stored, status: "pending", roomKey: expiredId, expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() - 1000) });
+  await db().collection("liveLessonInvitations").doc(expiredId).set({ ...stored, status: "pending", roomKey: expiredId, expiresAt: new Date(Date.now() - 1000) });
   assert.equal((await api(student, "/respond", { invitationId: expiredId, decision: "accepted" })).status, 409);
   assert.equal((await api(teacher, "/cancel", { invitationId: expiredId })).status, 200);
   assert.equal((await api(teacher, "/cancel", { invitationId: "no-such-invitation" })).status, 404);
