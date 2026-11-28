@@ -10,6 +10,23 @@
 - Piirangud ja riskid: (1) isiklike kontode ja Swedbanki väljavõtteid EI impordita — olemasolev import loob firma pangatehingu (`bankTransactions`), isiklik raha ei tohi sinna sattuda; selline makse märgitakse käsitsi („Makstud ülekandega” → makseviis „Muu”) — vajab omaniku otsust. (2) Maketi valikud „Tundi ei toimunud”, „Ei käi enam” ja hinna valik on asendatud lingiga õpilase kaardile (need muudavad tunde ja kaarti). (3) „Sain kätte” paneb sularaha selle admini kassasse, kes nuppu vajutab, ja kuupäev peab olema võrreldavas kuus (server lubab kuni 30 päeva tagasi). (4) Leht loeb kogu `lessons`, `invoices` ja `cashLedger` kollektsiooni nagu finantsleht. (5) Kuu keskel on „pärast toimunud tunde” kaardid nimekirjas kuni arve koostamiseni.
 - Tegemata: kirje „Mis uut” lehel; isiklike kontode väljavõtted; „ära arvesta seda õpilast” märge.
 - Järgmine samm: omanik vaatab ekraani ja PR-i; pärast „jah” ühendamine ja release (`[deploy]`), reegleid ega funktsioone välja panna ei ole vaja.
+## 2026-11-28 — CI kiiremaks: vitest 4 osaks, paralleelsed tööd, vahemälu (agent/ci-speed)
+
+- Main kontrollitud: 6982d20 (2026-11-28). Haru `agent/ci-speed`, PR #1383 (draft, omanik ühendab ise). Deploy'd ega production'i kutseid ei tehtud.
+- Eesmärk (omaniku luba 2026-11-28): `CRM v2` töövoo `verify` võttis 10–13 min (lint ~1 min, build ~20 s, `npm test` 9–12 min järjest), iga muudatus kaks korda (PR + main).
+- Tehtud (`.github/workflows/crm-v2.yml`):
+  - `verify` jagati: `lint`, `build` (+ bundle-size hoiatus), `test (1/4)…(4/4)` (`npm test -- --shard=i/4`, blob-aruanne) jooksevad korraga.
+  - Lõpptöö nimega täpselt `verify`: `needs: [lint, build, test]`, `if: !cancelled()`, punane kui ükski neist pole `success`; ühendab 4 blob-aruannet (`vitest --merge-reports`), kirjutab testide arvu run'i kokkuvõttesse. Lõpeb alles siis, kui kogu töö on tehtud.
+  - `node_modules` vahemälu (`actions/cache`, võti: OS + node22 + `package-lock.json` räsi); puudumisel `npm ci`. `setup-node` npm-vahemälu jääb.
+  - `security-regression`, `sheet-layout`, `financial-core` muutmata. `.github/scripts/release-ci-gate.sh`: ainult kommentaar (loeb kogu run'i, töö nimed ei loe).
+- Kontrollid (PR #1383):
+  - run 46126294645 (külm vahemälu): kogu run 4 min 29 s, `verify` valmis 4:29; run 46126866170 (soe): 3 min 59 s.
+  - Testid ühendatult: 647 faili (646 + 1 vahele jäetud), 5682 testi: 5670 läbi, 12 vahele jäetud — sama mis main 6982d20 vana `verify` (run 46125417925: 5670 / 12, 647 faili, `npm test` 10,5 min).
+  - zizmor (Security): leide pole; gitleaks, npm-audit rohelised. actionlint'i lokaalselt polnud.
+- Piirangud: osad on ebaühtlased (soe run 124–187 s osa kohta); vitest jagab faile, mitte aega. Kui üks osa kasvab üle ~4 min, tõsta osade arv 6-le (`matrix.shard` + `--shard=i/N` + `-eq N`).
+- Omaniku release-skript: check-run'id `verify` ja `financial-core` on alles samade nimedega; uued check-run'id `lint`, `build`, `test (i/4)` lisanduvad — skripti muuta pole vaja.
+- Järgmine samm: omanik ühendab PR #1383; esimese main'i run'i järel kontrollida, et `verify` on roheline ja release-skript leiab selle.
+
 ## 2026-11-28 — Täna: tühistatud ja puudutud tunnid ei ole „Käib” (agent/today-cancelled-lessons)
 
 - Main kontrollitud: 42e971a (2026-11-28). Haru `agent/today-cancelled-lessons`, PR „Täna: cancelled lessons are not shown as running”. Deploy'd ega production'i kirjutusi ei tehtud; Firestore'i loeti ainult lugemiseks (tänased `lessons` ja `schedule` read).
@@ -158,6 +175,7 @@
 - Riskid ja väravad: leht vajab enne release'i `firestore.rules` deploy'd (omaniku luba; `docs/DEPLOY_LEDGER.md`) — ilma selleta annab leht õiguste vea. Õppijate tulemused on isikuandmed: loeb ainult admin. Dokumendi number arvutatakse brauseris (kaks adminni samal ajal võiksid saada sama numbri).
 - **Reeglite deploy 2026-11-27 20:34–20:43 UTC EI õnnestunud (live reeglid muutmata, = main `821b85d`):** Firestore „Total size of compiled executables must be smaller than 256000 bytes (actual: 256050 bytes)” — 50 baiti üle. `firebase deploy` näitas seda kui 503 / 409 (PATCH releases ebaõnnestub, CLI proovib POST → „already exists”); tegelik viga tuli nähtavale Rules API release PATCH-iga. Mõõdetud: muutuja `{courseId}` → `{c}` annab 256043 (−7). Uue kollektsiooni reegel ei mahu ilma mujalt ruumi vabastamata. Variandid omanikule: (1) eemaldada faili lõpust neli üleliigset `allow read, write: if false` rida (`interactiveAssignments`, `lessonDrafts`, `lessonVersions`, `publishedLessons`) — vaikimisi keeld ja lõpu `match /{document=**}` katavad need niikuinii, ligipääs ei muutu; (2) kirjutada `trainingCourses` läbi Cloud Functioni (admin SDK), ilma reeglita. **PR-i ei tohi ühendada enne, kui reegel on live** — muidu annab leht õiguste vea.
 - **Reeglid live 2026-11-27 20:52 UTC (commit `d024acb`, ruleset `fa91f7cc`):** omanik valis variandi 1 („Да, убирай”) — neli üleliigset `if false` rida eemaldatud, `match /trainingCourses` lisatud; avaldatud Rules API kaudu (CLI moodulid, `updateRelease`), live reeglite sisu võrreldud failiga: võrdne. `docs/DEPLOY_LEDGER.md` uuendatud. Enne seda haru ühendatud värske main'iga (9b46ec6, #1362).
+- **Ühendatud ja väljas 2026-11-27:** PR #1361 kõik 10 kontrolli rohelised (sh `verify` koos reeglite emulaatoritestiga `training-courses-rules-emulator.integration.js`), ühendatud 21:06 UTC (`36cb033`, omaniku „Да, выпускай”); release `f332a57` 21:17 UTC, Vercel success 21:18. Kontrollitud omaniku Chrome'is: `https://crm.epkoolitus.ee/taienduskoolitus` avaneb adminile, õiguste viga ei ole, „Kursusi ei ole veel”. Production'i andmeid ei kirjutatud (testkursust ei loodud). Järgmine samm: sisestada 2026. aasta kursused; õpilastelt koguda täisnimi ja isikukood / sünniaeg.
 - Tegemata: tunnistuse PDF; isikukood / sünniaeg õpilase kaardil; kinnitatud õppekavade ja õppekorralduse dokumentide avaldamine veebilehel (mustandid on omaniku arvutis kaustades `ehis-oppekavad/` ja `tegevusluba-b1/`, repositooriumis neid ei ole); kirje „Mis uut” lehel.
 - Järgmine samm: omanik vaatab PR-i; pärast luba `firestore.rules` deploy, siis ühendamine ja release; seejärel sisestada 2026. aasta kursused.
 ## 2026-11-27 — „Lisa arve”: väli „Mille eest” — teine aine või „Muu” (agent/manual-invoice-subject)

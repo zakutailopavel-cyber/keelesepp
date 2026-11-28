@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Release gate (review I2, 2026-11-11): a release goes out only when the „CRM v2” checks (.github/workflows/crm-v2.yml:
-# verify = unit tests + lint + build, security-regression = functions tests + emulator, sheet-layout = phone layout)
+# lint, build, test (1/4…4/4) and verify = their gate, security-regression = functions tests + emulator, sheet-layout =
+# phone layout)
 # are green for the newest app change on main.
 #
 #   red                        → exit 1 with a clear message, nothing is released
