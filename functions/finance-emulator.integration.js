@@ -1108,7 +1108,7 @@ test("teacher UID migration API is admin-only and preview is non-mutating", asyn
   assert.equal(after.exists, false);
 });
 
-test("teacher scope flag preserves legacy reads and then enforces teacher ownership", async () => {
+test("teacher scope: ownership by uid with or without the rollout flag", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
   const db = admin.firestore();
@@ -1133,8 +1133,9 @@ test("teacher scope flag preserves legacy reads and then enforces teacher owners
   ]);
 
   try {
-    const legacyForeign = await firestoreDocumentRequest(teacherToken, "GET", "students/scope-foreign");
-    assert.equal(legacyForeign.status, 200, JSON.stringify(legacyForeign.body));
+    const unflaggedForeign = await firestoreDocumentRequest(teacherToken, "GET", "students/scope-foreign");
+    // no rollout flag yet: still scoped (the legacy „every teacher reads every student” mode left the rules 2026-11-28)
+    assert.equal(unflaggedForeign.status, 403, JSON.stringify(unflaggedForeign.body));
 
     await db.collection("securityMigrations").doc("teacherUidV1").set({
       version: 1,

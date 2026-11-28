@@ -168,14 +168,15 @@ test("a teacher reads and writes homework, submissions and messages only of thei
     db().collection(name).doc(`${name}-${studentId}`).set({ studentId, text: "x", task: "x", read: false, status: "Ootel" }))));
   const inFilter = ids => ({ fieldFilter: { field: { fieldPath: "studentId" }, op: "IN", value: { arrayValue: { values: ids.map(str) } } } });
 
+  // the rollout flag no longer matters (the by-name mode left the rules 2026-11-28): both values behave the same
   for (const enforced of [true, false]) {
     await db().collection("securityMigrations").doc("teacherUidV1").set({ readEnforced: enforced }, { merge: true });
     for (const name of collections) {
       assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-own-card`)).status, 200, `${name} own ${enforced}`);
       assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-second-card`)).status, 200, `${name} second teacher ${enforced}`);
       assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-foreign-card`)).status, 403, `${name} foreign ${enforced}`);
-      // a name-only card counts only until teacher scope is enforced
-      assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-name-card`)).status, enforced ? 403 : 200, `${name} name-only ${enforced}`);
+      // a card with the teacher's name but no uid gives no access
+      assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-name-card`)).status, 403, `${name} name-only ${enforced}`);
       const own = await runQuery(teacher, name, inFilter(["sec-own-card", "sec-second-card"]));
       assert.deepEqual([own.status, own.count], [200, 2], `${name} own query ${enforced}`);
       assert.equal((await runQuery(teacher, name, inFilter(["sec-own-card", "sec-foreign-card"]))).status, 403, `${name} mixed query ${enforced}`);
