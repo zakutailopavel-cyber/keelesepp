@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Tuba: tüdruk tuleb köögist, kass on kapis, lilled on vaasis, õun kukub kotist, raamatud on karbis, poiss läheb vannituppa">
+<title>Tuba: tüdruk tuleb köögist, kass on kapis, lilled on vaasis, õun kukub kotist, raamatud on karbis, poiss läheb vannituppa</title>
+<rect width="900" height="600" fill="#fff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1E1E1E"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif" stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="450" cy="330" rx="430" ry="250" fill="#E8F9B0"/>
+<rect x="30" y="30" width="840" height="540" fill="none" stroke="#1E1E1E" stroke-width="4"/>
+<line x1="30" y1="480" x2="870" y2="480" stroke="#1E1E1E" stroke-width="3"/>
+<rect x="60" y="170" width="120" height="310" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="120" y="155" font-size="24" font-weight="700" text-anchor="middle" fill="#1E1E1E">KÖÖK</text>
+<circle cx="160" cy="330" r="6" fill="#1E1E1E"/>
+<circle cx="225" cy="330" r="17.6" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><path d="M199.4 410.0 L202.6 358.8 Q225 349.2 247.4 358.8 L250.6 410.0 Z" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M195 450 L275 450" fill="none" stroke="#1E1E1E" stroke-width="5" marker-end="url(#ah)"/>
+<rect x="300" y="200" width="170" height="280" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<line x1="300" y1="340" x2="470" y2="340" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M300 200 L265 225 L265 455 L300 480" fill="#D9D9D9" stroke="#1E1E1E" stroke-width="3"/>
+<text x="385" y="185" font-size="24" font-weight="700" text-anchor="middle" fill="#1E1E1E">KAPP</text>
+<ellipse cx="385" cy="318" rx="38" ry="20" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<circle cx="415" cy="292" r="15" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M405 280 L407 266 L415 278 M419 278 L427 266 L428 282" fill="none" stroke="#1E1E1E" stroke-width="3"/>
+<line x1="510" y1="330" x2="700" y2="330" stroke="#1E1E1E" stroke-width="6"/>
+<line x1="525" y1="330" x2="525" y2="480" stroke="#1E1E1E" stroke-width="3"/>
+<line x1="685" y1="330" x2="685" y2="480" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M540 330 L550 270 L590 270 L600 330 Z" fill="none" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M560 270 L545 220 M570 270 L570 205 M582 270 L598 222" fill="none" stroke="#1E1E1E" stroke-width="3"/>
+<circle cx="545" cy="214" r="10" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<circle cx="570" cy="198" r="10" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<circle cx="600" cy="216" r="10" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="570" y="180" font-size="20" font-weight="700" text-anchor="middle" fill="#1E1E1E">VAAS</text>
+<path d="M620 330 L612 262 L686 262 L678 330 Z" fill="#D9D9D9" stroke="#1E1E1E" stroke-width="3"/>
+<text x="649" y="250" font-size="20" font-weight="700" text-anchor="middle" fill="#1E1E1E">KOTT</text>
+<circle cx="705" cy="292" r="13" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M708 310 L716 440" fill="none" stroke="#1E1E1E" stroke-width="4" marker-end="url(#ah)"/>
+<text x="724" y="298" font-size="22" text-anchor="start" fill="#1E1E1E">õun</text>
+<rect x="545" y="395" width="120" height="85" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<rect x="562" y="365" width="26" height="45" fill="#fff" stroke="#1E1E1E" stroke-width="2"/>
+<rect x="594" y="360" width="26" height="50" fill="#D9D9D9" stroke="#1E1E1E" stroke-width="2"/>
+<text x="605" y="445" font-size="20" font-weight="700" text-anchor="middle" fill="#1E1E1E">KARP</text>
+<rect x="790" y="170" width="70" height="310" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="862" y="155" font-size="22" font-weight="700" text-anchor="end" fill="#1E1E1E">VANNITUBA</text>
+<circle cx="762" cy="390" r="12.100000000000001" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><path d="M744.4 445.0 L746.6 409.8 Q762 403.2 777.4 409.8 L779.6 445.0 Z" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M735 470 L805 470" fill="none" stroke="#1E1E1E" stroke-width="5" marker-end="url(#ah)"/>
+<text x="450" y="530" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">Kus? Kuhu? Kust?</text>
+</g>
+</svg>

@@ -59,6 +59,29 @@ describe('FinanceMonthPage', () => {
     expect(screen.queryByRole('heading', { name: 'Õpilaste avansid' })).not.toBeInTheDocument();
   });
 
+  it('„Peida” folds the invoice list, remembers it, and a list tab opens it again', async () => {
+    globalThis.localStorage?.removeItem('keelesepp.financeMonth.ledgerHidden');
+    // the dashboard above has its own „Peida”: this one belongs to the invoice list card
+    const ledger = () => within(document.querySelector('.finance-month-ledger'));
+    const { unmount } = renderPage(props());
+    expect(await screen.findByRole('table', { name: 'Arved 2031-10' })).toBeInTheDocument();
+    fireEvent.click(ledger().getByRole('button', { name: 'Peida' }));
+    expect(screen.queryByRole('table', { name: 'Arved 2031-10' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Otsi')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Kuu arved ja maksed' })).toBeInTheDocument();
+    expect(ledger().getByRole('button', { name: 'Näita' })).toHaveAttribute('aria-expanded', 'false');
+    unmount();
+
+    renderPage(props());
+    await screen.findByRole('heading', { name: 'Kuu arved ja maksed' });
+    expect(ledger().getByRole('button', { name: 'Näita' })).toBeInTheDocument();
+    expect(screen.queryByRole('table', { name: 'Arved 2031-10' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Laekumata/ }));
+    expect(ledger().getByRole('button', { name: 'Peida' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Mari Maasikas')).toBeInTheDocument();
+    globalThis.localStorage?.removeItem('keelesepp.financeMonth.ledgerHidden');
+  });
+
   it('a payment added in the side drawer: the month reads its invoices again in place, the open view stays', async () => {
     const value = props();
     value.invoiceRepository.list

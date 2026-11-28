@@ -1,7 +1,7 @@
 // „Täna” (admin start page, 2026-11-04): one screen for the school's day. Pure helpers, one per section; the panel
 // passes what the dashboard and its own few reads loaded. Days are Tallinn days (the school's), whatever the browser's
 // time zone.
-import { occurrencesForDates } from '../../calendar/calendarView.js';
+import { LESSON_MARKS, lessonMark, lessonState, occurrencesForDates, resolveOccurrenceRecord } from '../../calendar/calendarView.js';
 import { monthDates, studentLessonBalances } from '../../finance/monthlyBilling.js';
 import { isHomeworkOpen } from '../../homework/homeworkStatus.js';
 import { itemSubject, mainSubject } from '../../students/subjects.js';
@@ -33,15 +33,29 @@ const dayOf = (value) => String(value || '').slice(0, 10);
 export const lessonPath = (item) => `/calendar?lesson=${encodeURIComponent(`${item.occurrenceId}|${item.occurrenceDate}`)}`;
 const activeCard = (student) => student && student.active !== false && !student.convertedToParent && !student.deletedAt;
 
+// the calendar's state of one occurrence with the lesson journal (calendarView.js resolveOccurrenceRecord + lessonState):
+// 'done' | 'absent' | 'cancelled' | 'planned'. A journal record decides first (an absence marked ahead is not planned).
+export const journalState = (item, records = []) => lessonState(resolveOccurrenceRecord(item, records));
+// a lesson that is taught: not cancelled, the student not absent (owner 2026-11-28)
+const NOT_TAUGHT = new Set(['cancelled', 'absent']);
+// the „Tunnid täna” tile: today's lessons that are taught (todayLessons phases)
+export const todayLessonCount = (lessons = []) => lessons.filter((item) => !NOT_TAUGHT.has(item.phase)).length;
+
 // 1. Today's lessons: weekly series and group lessons expanded like the calendar; where (online / room) and whether it
 // is over, running or ahead (`now` = Tallinn HH:MM). `path` opens the lesson's calendar panel, where „Alusta tundi”
 // invites the student into the Live Classroom (the invitation is made there, never from here).
-export function todayLessons({ events = [], today, now = '00:00' }) {
+// `records` = the lesson journal (lessonsService.listForCalendar). The state is the calendar's own (calendarView.js
+// resolveOccurrenceRecord + lessonState): a journal record decides first, so an absence or a cancellation marked ahead
+// in the journal (owner 2026-11-28: Olivia 10:00 „Puudus_p” showed as „Käib”) is never shown as running or ahead.
+export function todayLessons({ events = [], today, now = '00:00', records = [] }) {
   return occurrencesForDates(events, [today]).map((item) => {
+    const resolved = resolveOccurrenceRecord(item, records);
     const end = endClock(item.time, item.duration);
-    const cancelled = item.status === 'Tühistatud';
-    const marked = Boolean(item.status) && item.status !== 'Planeeritud' && !cancelled;
-    const phase = cancelled ? 'cancelled' : !item.time ? 'later' : end && end <= now ? 'past' : item.time <= now ? 'now' : 'later';
+    const state = lessonState(resolved); // = journalState(item, records)
+    const status = resolved.status || 'Planeeritud';
+    const marked = state !== 'planned' && state !== 'cancelled';
+    const phase = state === 'cancelled' ? 'cancelled' : state === 'absent' ? 'absent'
+      : !item.time ? 'later' : end && end <= now ? 'past' : item.time <= now ? 'now' : 'later';
     return {
       key: item.occurrenceId,
       // the schedule entry and its day: the right-click „Ava tund (siinsamas)” opens it in the side drawer
@@ -56,7 +70,9 @@ export function todayLessons({ events = [], today, now = '00:00' }) {
       isGroup: Boolean(item.isGroup),
       online: item.online === true,
       place: item.online === true ? 'Veebitund' : item.roomName || '',
-      status: item.status || 'Planeeritud',
+      status,
+      // the calendar's corner mark label (LESSON_MARKS), e.g. „Puudus, teatas ette” instead of the raw „Puudus_p”
+      statusLabel: LESSON_MARKS[lessonMark({ ...resolved, status })]?.label || status,
       marked,
       phase,
       path: lessonPath(item),
@@ -122,10 +138,13 @@ export function lessonsRunningOut({ students = [], plans = [], invoices = [], le
     if (!plan) return;
     const balances = studentLessonBalances({ student, plan, invoices, lessons, month });
     if (!balances.length) return;
-    const markedDays = new Set(lessons.filter((lesson) => lesson.studentId === student.id).map((lesson) => dayOf(lesson.occurrenceDate || lesson.date)));
+    const own = lessons.filter((lesson) => lesson.studentId === student.id);
+    const markedDays = new Set(own.map((lesson) => dayOf(lesson.occurrenceDate || lesson.date)));
     const main = mainSubject(student);
+    // still to come = the calendar's 'planned' with the journal (an absence or cancellation marked ahead is not), and
+    // no journal record that day at all (a record of a moved lesson may not point at this occurrence)
     const ahead = occurrencesForDates(events.filter((event) => event.studentId === student.id || (event.studentIds || []).includes(student.id)), rest)
-      .filter((item) => (item.status || 'Planeeritud') === 'Planeeritud' && !markedDays.has(item.occurrenceDate));
+      .filter((item) => journalState(item, own) === 'planned' && !markedDays.has(item.occurrenceDate));
     balances.forEach((balance) => {
       // a subject split by format (2026-11-18): the group direction counts the calendar group's lessons, the other the rest
       const planned = ahead.filter((item) => (!balance.subject || (itemSubject(item, student) || main) === balance.subject) && (!balance.format || lessonFormat(item) === balance.format)).length;
@@ -186,9 +205,12 @@ export function needsCall({ students = [], lessons = [], homework = [], workshee
     const due = dayOf(item.due);
     if (item.studentId && due && due >= from && due < today && isHomeworkOpen(item) && !sheetIds.has(item.worksheetAssignmentId)) count(missed, item.studentId);
   });
+  // a lesson ahead counts only if it is taught: the calendar's state with the journal (owner 2026-11-28), so a lesson
+  // cancelled or an absence marked ahead in the journal does not hide „järgmise … päeva jooksul tundi pole”
   const booked = new Set();
+  const ahead = lessons.filter((lesson) => dayOf(lesson.date) >= today);
   occurrencesForDates(events, daysFrom(today, aheadDays)).forEach((item) => {
-    if (item.status === 'Tühistatud') return;
+    if (NOT_TAUGHT.has(journalState(item, ahead))) return;
     if (item.isGroup) (item.studentIds || []).forEach((id) => booked.add(id));
     else if (item.studentId) booked.add(item.studentId);
   });
@@ -225,9 +247,10 @@ export function needsCall({ students = [], lessons = [], homework = [], workshee
 export function lessonMeta(item, { showTeacher = false, sheets = null } = {}) {
   const room = item.online ? '' : item.place;
   let state = '';
-  if (item.phase === 'past') state = item.marked ? item.status : 'märkimata';
+  if (item.phase === 'past') state = item.marked ? item.statusLabel || item.status : 'märkimata';
+  else if (item.phase === 'absent') state = item.statusLabel || '';
   else if (item.phase !== 'cancelled' && !item.isGroup && sheets) state = sheets.length ? `${sheets[0].lessonTitle || 'Tööleht'}${sheets.length > 1 ? ` +${sheets.length - 1}` : ''} · leht tahvlil` : 'leht valimata';
-  else if (item.marked) state = item.status;
+  else if (item.marked) state = item.statusLabel || item.status;
   return [showTeacher ? item.teacher : '', room, state].filter(Boolean).join(' · ') || item.place;
 }
 

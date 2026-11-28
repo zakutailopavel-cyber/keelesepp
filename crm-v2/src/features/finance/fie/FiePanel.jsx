@@ -6,6 +6,7 @@ import { invoicesService } from '../../../services/firebase/invoices.js';
 import InvoicePdfButton from '../../parents/InvoicePdfButton.jsx';
 import PaymentDialog from '../PaymentDialog.jsx';
 import { euro, fieSummary } from './fieModel.js';
+import './fie.css';
 
 const STATUS = { paid: 'Makstud', partial: 'Osaliselt', overdue: 'Üle tähtaja', unpaid: 'Tasumata', 'email-failed': 'Tasumata', 'no-show': 'Tasumata', credit: 'Krediteeritud' };
 
@@ -78,7 +79,7 @@ export default function FiePanel({ month = '', invoiceRepository = invoicesServi
       <thead><tr><th>Arve</th><th>Kuupäev</th><th>Õpilane</th><th>Summa</th><th>Laekunud</th><th>Jääk</th><th>Olek</th><th aria-label="Toimingud" /></tr></thead>
       <tbody>{summary.rows.map(({ invoice, state }) => <tr key={invoice.id}>
         <td>{invoice.num}</td>
-        <td>{invoice.date}</td>
+        <td>{/^\d{4}-\d{2}-\d{2}$/.test(invoice.date || '') ? `${invoice.date.slice(8, 10)}.${invoice.date.slice(5, 7)}.${invoice.date.slice(0, 4)}` : invoice.date}</td>
         <td>{invoice.studentName}</td>
         <td>{euro(state.amountCents)}</td>
         <td>{euro(state.paidCents)}</td>

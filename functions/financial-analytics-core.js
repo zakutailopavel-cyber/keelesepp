@@ -50,10 +50,14 @@ function agedDebt({ invoices = [], payments = [] }, asOfDate) {
     paidByInvoice.set(invoiceId, (paidByInvoice.get(invoiceId) || 0) + paymentNetAmountCents(payment));
   });
   const asOf = new Date(`${asOfDate}T12:00:00.000Z`);
+  // An old invoice marked „Makstud” by hand has no payment records at all (owner 2026-11-27: such an invoice was paid
+  // in the invoice list and months overdue here). The invoice list counts it as paid (crm-v2 financeRows.js legacyPaid).
+  const withPaymentRecords = new Set(payments.map(payment => String(payment?.invoiceId || "")));
+  const paidByHand = invoice => invoice?.status === "Makstud" && !withPaymentRecords.has(String(invoice.id || ""));
   const rows = invoices
     .filter(invoice => {
       const date = dateOf(invoice, ["date", "issuedAt", "createdAt"]);
-      return date && date <= asOfDate;
+      return date && date <= asOfDate && !paidByHand(invoice);
     })
     .map(invoice => {
       const balanceCents = Math.max(

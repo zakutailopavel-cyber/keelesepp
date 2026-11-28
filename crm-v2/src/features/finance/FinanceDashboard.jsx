@@ -6,13 +6,16 @@ import { groupsService } from '../../services/firebase/groups.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { teachersService } from '../../services/firebase/teachers.js';
-import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary, smoothPath } from './financeDashboard.js';
+import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
 import BusinessReport from './BusinessReport.jsx';
 import { businessReport } from './businessReport.js';
+import { barParts, endOfPeriodProfit, profitChange, sparkPoints, trendSeries, verdict } from './dashboardView.js';
 import './financeDashboard.css';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Math.round(Number(cents || 0) / 100));
+const signed = (cents) => (cents < 0 ? `−${money(-cents)}` : money(cents));
+const hours = (value) => String(value).replace('.', ',');
 const short = (cents) => { const euros = Math.round(Number(cents || 0) / 100); return euros >= 1000 ? `${(euros / 1000).toFixed(euros >= 10000 ? 0 : 1).replace('.', ',')}k` : `${euros}`; };
 const monthName = (month, style = 'short') => new Intl.DateTimeFormat('et-EE', { month: style, ...(style === 'long' ? { year: 'numeric' } : {}) }).format(new Date(`${month}-15T12:00:00`));
 // every card (archived ones too: their past lessons are part of the past months)
@@ -22,25 +25,20 @@ const hiddenAtStart = () => { try { return globalThis.localStorage?.getItem(STOR
 const PERIOD_STORE = 'keelesepp.financeDashboard.period';
 const periodAtStart = () => { try { const value = Number(globalThis.localStorage?.getItem(PERIOD_STORE)); return PERIODS.some((item) => item.months === value) ? value : 1; } catch { return 1; } };
 const monthsBetween = (from, to) => (Number(to.slice(0, 4)) - Number(from.slice(0, 4))) * 12 + Number(to.slice(5, 7)) - Number(from.slice(5, 7));
-const periodName = (months) => ({ 1: 'kuu', 3: '3 kuud', 6: '6 kuud', 12: 'aasta' })[months];
 
-// Chart: smooth curves of invoiced (dark green, filled) and received (light green) money, the forecast as a gold dashed
-// curve going on from this month; a guide line and a card with the numbers follow the pointer or the chosen month.
-function RevenueChart({ columns, selected, onSelect }) {
-  const width = 760; const height = 270; const left = 48; const right = 16; const bottom = 30; const top = 16;
+// Chart: one bar per month. A past month's bar is its revenue split into fixed costs, teacher pay and profit (the
+// months businessReport covers; older ones are one plain bar); the running month has the calendar's rest on top; the
+// coming months are dashed bars of what the calendar holds. A card with the numbers follows the pointer.
+function RevenueChart({ columns, parts, forecast, selected, onSelect }) {
+  const width = 760; const height = 270; const left = 44; const right = 12; const bottom = 30; const top = 24;
   const max = niceMax(Math.max(...columns.map((column) => (column.heldCents || 0) + (column.plannedCents || 0)), 1));
   const plotH = height - bottom - top;
-  const step = columns.length > 1 ? (width - left - right) / (columns.length - 1) : 0;
-  const x = (index) => left + index * step;
+  const band = (width - left - right) / Math.max(columns.length, 1);
+  const barW = Math.min(46, band * 0.62);
+  const x = (index) => left + band * (index + 0.5);
   const y = (cents) => top + plotH - (cents / max) * plotH;
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((k) => k * max);
-  const past = columns.map((column, index) => ({ column, index })).filter(({ column }) => !column.future);
-  const nowIndex = columns.findIndex((column) => column.current);
-  const held = past.map(({ column, index }) => [x(index), y(column.heldCents)]);
-  // the gold line: this month in full (held + still planned), then the planned months
-  const forecast = [...(nowIndex >= 0 ? [[x(nowIndex), y(columns[nowIndex].heldCents + columns[nowIndex].plannedCents)]] : []), ...columns.map((column, index) => ({ column, index })).filter(({ column }) => column.future).map(({ column, index }) => [x(index), y(column.plannedCents)])];
   const base = top + plotH;
-  const area = (points) => (points.length ? `${smoothPath(points)} L${points[points.length - 1][0]},${base} L${points[0][0]},${base} Z` : '');
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((k) => k * max);
   const [hover, setHover] = useState(null);
   // a narrow screen scrolls the chart: it opens at the right end (this month and the forecast)
   const scroller = useRef(null);
@@ -49,33 +47,42 @@ function RevenueChart({ columns, selected, onSelect }) {
   const pick = (event) => {
     const box = event.currentTarget.getBoundingClientRect();
     const px = ((event.clientX - box.left) / box.width) * width;
-    setHover(Math.max(0, Math.min(columns.length - 1, Math.round((px - left) / (step || 1)))));
+    setHover(Math.max(0, Math.min(columns.length - 1, Math.floor((px - left) / band))));
   };
-  // the card follows the pointer only; the chosen month is described under the chart
   const card = hover !== null ? columns[hover] : null;
+  const cardParts = card ? parts(card) : null;
   return <div className="fd-chart-scroll" ref={scroller}><div className="fd-chart-wrap">
     <svg className="fd-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Tundide tulu kuude kaupa: toimunud ja kalendris"
       onPointerMove={pick} onPointerLeave={() => setHover(null)} onClick={() => { if (hover !== null) onSelect(columns[hover].month); }}>
-      <defs>
-        <linearGradient id="fd-fill-held" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#176553" stopOpacity=".28" /><stop offset="100%" stopColor="#176553" stopOpacity="0" /></linearGradient>
-        <linearGradient id="fd-fill-forecast" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#e3a857" stopOpacity=".25" /><stop offset="100%" stopColor="#e3a857" stopOpacity="0" /></linearGradient>
-      </defs>
       {ticks.map((tick) => <g key={tick}><line x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} className="fd-grid" /><text x={left - 8} y={y(tick) + 4} className="fd-axis" textAnchor="end">{short(tick)}</text></g>)}
-      {nowIndex >= 0 && forecast.length > 1 ? <rect x={x(nowIndex)} y={top} width={width - right - x(nowIndex)} height={plotH} className="fd-future-zone" /> : null}
-      <path d={area(forecast)} fill="url(#fd-fill-forecast)" />
-      <path d={area(held)} fill="url(#fd-fill-held)" />
-      <path d={smoothPath(held)} className="fd-line fd-line--invoiced" pathLength="1" />
-      <path d={smoothPath(forecast)} className="fd-line fd-line--forecast" />
-      {shown >= 0 ? <line x1={x(shown)} x2={x(shown)} y1={top} y2={base} className="fd-guide" /> : null}
-      {past.map(({ column, index }) => <circle key={column.month} cx={x(index)} cy={y(column.heldCents)} r={index === shown ? 5.5 : 3.5} className="fd-dot fd-dot--invoiced" />)}
-      {nowIndex >= 0 && columns[nowIndex].plannedCents ? <circle cx={x(nowIndex)} cy={y(columns[nowIndex].heldCents + columns[nowIndex].plannedCents)} r="4.5" className="fd-dot fd-dot--calendar" /> : null}
-      {columns.map((column, index) => column.future ? <circle key={column.month} cx={x(index)} cy={y(column.plannedCents)} r={index === shown ? 5.5 : 4} className="fd-dot fd-dot--forecast" /> : null)}
-      {columns.map((column, index) => <text key={column.month} x={x(index)} y={height - 9} textAnchor="middle" className={`fd-axis ${column.current ? 'is-current' : ''} ${column.future ? 'is-future' : ''}`}>{monthName(column.month)}</text>)}
+      {shown >= 0 ? <rect x={x(shown) - band / 2 + 3} y={top - 14} width={band - 6} height={plotH + 14} rx="10" className="fd-band" /> : null}
+      {columns.map((column, index) => {
+        const total = (column.heldCents || 0) + (column.plannedCents || 0);
+        const barX = x(index) - barW / 2;
+        const split = column.future ? null : parts(column);
+        const clip = `fd-clip-${column.month}`;
+        const profitLine = column.future && forecast?.month === column.month && forecast.profitCents > 0 && forecast.profitCents < column.plannedCents ? y(forecast.profitCents) : null;
+        return <g key={column.month}>
+          {total > 0 ? <clipPath id={clip}><rect x={barX} y={y(total)} width={barW} height={base - y(total)} rx="7" /></clipPath> : null}
+          {column.future ? (total > 0 ? <rect x={barX} y={y(total)} width={barW} height={base - y(total)} rx="7" className="fd-bar--forecast" /> : null) : <g clipPath={`url(#${clip})`}>
+            {split ? <>
+              <rect x={barX} y={y(split.fixed)} width={barW} height={base - y(split.fixed)} className="fd-seg--fixed" />
+              <rect x={barX} y={y(split.fixed + split.pay)} width={barW} height={y(split.fixed) - y(split.fixed + split.pay)} className="fd-seg--pay" />
+              <rect x={barX} y={y(column.heldCents)} width={barW} height={y(split.fixed + split.pay) - y(column.heldCents)} className="fd-seg--profit" />
+            </> : <rect x={barX} y={y(column.heldCents || 0)} width={barW} height={base - y(column.heldCents || 0)} className="fd-seg--plain" />}
+            {column.plannedCents ? <rect x={barX} y={y(total)} width={barW} height={y(column.heldCents || 0) - y(total)} className="fd-seg--calendar" /> : null}
+          </g>}
+          {profitLine !== null ? <line x1={barX + 3} x2={barX + barW - 3} y1={profitLine} y2={profitLine} className="fd-profit-line" /> : null}
+          {total > 0 ? <text x={x(index)} y={y(total) - 7} textAnchor="middle" className="fd-value">{short(total)}</text> : null}
+          <text x={x(index)} y={height - 9} textAnchor="middle" className={`fd-axis ${column.current ? 'is-current' : ''} ${column.future ? 'is-future' : ''}`}>{monthName(column.month)}</text>
+        </g>;
+      })}
     </svg>
     {card ? <div className={`fd-tip ${hover > columns.length / 2 ? 'is-left' : ''}`} style={{ left: `${(x(hover) / width) * 100}%` }} aria-hidden="true">
       <b>{monthName(card.month, 'long')}</b>
       {card.future ? <span className="is-forecast">Kalendris <strong>{money(card.plannedCents)}</strong></span> : <>
         <span className="is-invoiced">Toimunud <strong>{money(card.heldCents)}</strong></span>
+        {cardParts ? <span className="is-profit">Kasum <strong>{signed(cardParts.profitCents)}</strong></span> : null}
         {card.plannedCents ? <span className="is-calendar">Kalendris veel <strong>{money(card.plannedCents)}</strong></span> : null}
       </>}
       <small>{card.future ? card.plannedLessons : card.heldLessons + card.plannedLessons} tundi</small>
@@ -84,6 +91,58 @@ function RevenueChart({ columns, selected, onSelect }) {
       aria-label={`${monthName(column.month, 'long')}: ${column.future ? `kalendris ${money(column.plannedCents)}` : `toimunud ${money(column.heldCents)}`}`}
       onClick={() => onSelect(column.month)} />)}</div>
   </div></div>;
+}
+
+function Spark({ values }) {
+  const points = sparkPoints(values);
+  if (!points.length) return null;
+  const last = points[points.length - 1];
+  return <svg className="fd-spark" viewBox="0 0 96 34" aria-hidden="true"><polyline points={points.map((point) => point.join(',')).join(' ')} /><circle cx={last[0]} cy={last[1]} r="3.5" /></svg>;
+}
+
+const Change = ({ value, label }) => (value === null || value === undefined ? null : <span className={`fd-tag ${value >= 0 ? 'is-up' : 'is-down'}`}>{value >= 0 ? <TrendingUp size={13} aria-hidden="true" /> : <TrendingDown size={13} aria-hidden="true" />}{value > 0 ? '+' : ''}{value}%{label ? ` ${label}` : ''}</span>);
+
+// the block in one sentence (dashboardView.verdict): better or worse, what the period ends with, the next month
+function Verdict({ view, past, period }) {
+  const unit = period === 1 ? 'kuu' : 'perioodi';
+  const head = view.change === null ? `Eelmise ${unit}ga ei saa veel võrrelda.` : view.change >= 3 ? `Tulu on eelmisest ${period === 1 ? 'kuust' : 'perioodist'} ${view.change}% suurem.` : view.change <= -3 ? `Tulu on eelmisest ${period === 1 ? 'kuust' : 'perioodist'} ${-view.change}% väiksem.` : `Tulu on eelmise ${unit}ga samal tasemel.`;
+  return <div className={`fd-verdict is-${view.tone}`} data-testid="fd-verdict">
+    <span className="fd-verdict__light" aria-hidden="true" />
+    <p><b>{head}</b> {past ? <>Tulu oli <b>{money(view.endRevenueCents)}</b> ja koolile jäi <b className={view.endProfitCents < 0 ? 'is-down' : ''}>{signed(view.endProfitCents)}</b>.</> : <>{period === 1 ? 'Kuu' : 'Perioodi'} lõpuks tuleb tulu <b>{money(view.endRevenueCents)}</b> ja koolile jääb <b className={view.endProfitCents < 0 ? 'is-down' : ''}>{signed(view.endProfitCents)}</b>.</>}
+      {view.nextCents !== null ? <> Järgmise kuu kalendris on juba <b>{money(view.nextCents)}</b>.</> : null}
+      {view.withoutOwnerCents !== null ? <> Ilma omaniku tundideta oleks kool <b className="is-down">{money(-view.withoutOwnerCents)} miinuses</b>.</> : null}
+      {view.noCosts ? <> Püsikulud on lisamata — kasum on tegelikust suurem.</> : null}</p>
+    <span className="fd-verdict__label">{view.label}</span>
+  </div>;
+}
+
+function Meter({ label, value, share, mark = null, tone = '', children }) {
+  return <div className="fd-meter"><div className="fd-meter__top"><span>{label}</span><b>{value}</b></div>
+    <div className="fd-track"><i className={tone} style={{ width: `${Math.max(0, Math.min(100, share))}%` }} />{mark === null ? null : <u style={{ left: `${Math.max(0, Math.min(100, mark))}%` }} />}</div>
+    <small>{children}</small></div>;
+}
+
+// „Kus me praegu oleme”: the next month, how much of the month is in, the break-even point, the owner's share, the top ten
+function Position({ report, summary, past, period, today }) {
+  const { pnl, forecast } = report;
+  const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const monthShare = Math.round((today.getDate() / days) * 100);
+  const inShare = summary.totalCents ? Math.round((summary.heldCents / summary.totalCents) * 100) : 0;
+  const even = pnl?.breakEven;
+  const owner = pnl?.owner;
+  return <div className="fd-panel" role="region" aria-label="Kus me praegu oleme">
+    <h3>Kus me praegu oleme</h3>
+    {forecast ? <div className="fd-next"><span>Järgmine kuu · {monthName(forecast.month, 'long')}</span>
+      <strong>{money(forecast.revenueCents)} <em>→ kasum {signed(forecast.profitCents)}</em></strong>
+      <small>{forecast.lessons} tundi kalendris · õpetajad −{money(forecast.teacherPayCents)} · püsikulud −{money(forecast.fixedCents)}. Kalender ei pruugi olla veel täis.</small></div> : null}
+    {!past && period === 1 && summary.totalCents ? <Meter label="Kuu tulu on koos" value={`${inShare}%`} share={inShare} mark={monthShare}>kuust on möödas {monthShare}% · kalendris veel {money(summary.plannedCents)}</Meter> : null}
+    {even ? <Meter label="Tasuvuspunkt (palgaliste õpetajate tunnid)" value={`${hours(even.hoursPerMonthNow)} / ${even.hoursNeededPerMonth} h`} share={(even.hoursPerMonthNow / even.hoursNeededPerMonth) * 100} tone={even.hoursPerMonthNow >= even.hoursNeededPerMonth ? '' : 'is-amber'}>
+      nende tund jätab koolile keskmiselt {money(even.marginPerHourCents)}; püsikulude ({money(pnl.fixedMonthCents)} kuus) katmiseks {even.hoursPerMonthNow >= even.hoursNeededPerMonth ? 'on tunde piisavalt' : `on puudu ${hours(Math.round((even.hoursNeededPerMonth - even.hoursPerMonthNow) * 10) / 10)} h kuus`}</Meter> : null}
+    {owner ? <Meter label={`Omaniku tunnid · ${owner.name}`} value={`${owner.share ?? 0}% tulust`} share={owner.share ?? 0} tone="is-amber">
+      {money(owner.earnedCents)}, {hours(owner.hours)} h. Ilma nendeta jääks koolile <b className={owner.withoutOwnerCents < 0 ? 'is-down' : 'is-up'}>{signed(owner.withoutOwnerCents)}</b>{owner.profitAfterOwnerPayCents !== null ? <>; kui maksta omanikule {money(owner.rateCents)}/h ({money(owner.payAtRateCents)}), on kasum <b className={owner.profitAfterOwnerPayCents < 0 ? 'is-down' : 'is-up'}>{signed(owner.profitAfterOwnerPayCents)}</b></> : null}.</Meter> : null}
+    {report.topTenShare !== null && report.studentRows.length > 10 ? <Meter label="10 suurimat õpilast" value={`${report.topTenShare}% tulust`} share={report.topTenShare}>õpilasi perioodis {report.studentRows.length}</Meter> : null}
+    {!forecast && !even && !owner ? <p className="form-hint">Lisa püsikulud ja omanik („Püsikulud ja omanik”), siis näed siin tasuvuspunkti ja omaniku tundide osa.</p> : null}
+  </div>;
 }
 
 export default function FinanceDashboard({ plans = [], lessons = [], repository = api, today = new Date(), user = null }) {
@@ -124,6 +183,9 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
     const report = businessReport({ current: anchor, months: period, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons, teachers: state.data.teachers, settings: savedSettings || state.data.settings });
     return { columns, choices, summary: periodSummary({ rows, current: anchor, months: period }), report };
   }, [state.data, plans, lessons, current, todayIso, period, savedSettings, anchor, lag]);
+  // a year month by month for the bars' split and the small trend lines (the same report, a longer period)
+  const trend = useMemo(() => (state.data ? businessReport({ current, months: 12, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons, teachers: state.data.teachers, settings: savedSettings || state.data.settings }) : null),
+    [state.data, plans, lessons, current, todayIso, savedSettings]);
   // a click on a past month of the chart chooses it for the numbers too
   const chooseMonth = (month) => { setSelected(month); if (month <= current) setAnchor(month); };
   const stepMonth = (by) => { const list = model?.choices || []; const next = list[list.indexOf(anchor) + by]; if (next) chooseMonth(next); };
@@ -131,6 +193,14 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
   const toggle = () => { const next = !hidden; setHidden(next); try { globalThis.localStorage?.setItem(STORE, next ? '1' : '0'); } catch { /* private mode */ } };
   const column = model?.columns.find((item) => item.month === selected);
   const s = model?.summary;
+  const pnl = model?.report.pnl;
+  const now = model?.report.now;
+  const endProfit = model ? endOfPeriodProfit(model.report) : 0;
+  const profitDelta = model && period === 1 ? profitChange(trend, anchor) : null;
+  const series = trendSeries(trend, anchor);
+  const trendByMonth = new Map((trend?.monthly || []).map((row) => [row.month, row]));
+  const partsOf = (item) => barParts(item.heldCents, trendByMonth.get(item.month));
+  const rangeLabel = !s ? '' : period === 1 ? monthName(anchor, 'long') : (s.from.slice(0, 4) === anchor.slice(0, 4) ? `${monthName(s.from)} – ${monthName(anchor)}` : `${monthName(s.from)} ${s.from.slice(0, 4)} – ${monthName(anchor)} ${anchor.slice(0, 4)}`);
 
   return <section className="fd" aria-label="Tundide tulu ja prognoos">
     <header className="fd-head">
@@ -147,24 +217,34 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
           {past ? <button type="button" className="fd-month-now" onClick={() => chooseMonth(current)}>Praegune kuu</button> : null}
         </div>
       </div>
+      <Verdict view={verdict({ summary: s, report: model.report, period })} past={past} period={period} />
       <div className="fd-kpis">
-        <div className="fd-kpi"><span>Toimunud · {period === 1 ? monthName(anchor, 'long') : (s.from.slice(0, 4) === anchor.slice(0, 4) ? `${monthName(s.from)} – ${monthName(anchor)}` : `${monthName(s.from)} ${s.from.slice(0, 4)} – ${monthName(anchor)} ${anchor.slice(0, 4)}`)}</span><strong>{money(s.heldCents)}</strong><small>{s.heldLessons} tundi{s.unmarkedLessons ? ` · ${s.unmarkedLessons} märkimata` : ''}</small></div>
-        {past ? null : <div className="fd-kpi fd-kpi--forecast"><span>Kalendris veel sel kuul</span><strong>{money(s.plannedCents)}</strong><small>{s.plannedLessons} tundi</small></div>}
-        {past ? null : <div className="fd-kpi"><span>{period === 1 ? 'Kuu kokku' : `Kokku · ${periodName(period)}`}</span><strong>{money(s.totalCents)}</strong><small>toimunud + kalendris</small></div>}
-        <div className="fd-kpi"><span>{period === 1 ? `Eelmine kuu · ${monthName(shiftMonth(s.from, -1), 'long')}` : `Eelmine periood · ${monthName(shiftMonth(s.from, -period))} – ${monthName(shiftMonth(s.from, -1))}`}</span><strong>{s.beforeComplete ? money(s.beforeCents) : '—'}</strong>
-          {s.changePercent !== null ? <small className={s.changePercent >= 0 ? 'is-up' : 'is-down'}>{s.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} {s.changePercent > 0 ? '+' : ''}{s.changePercent}% {period === 1 ? 'see kuu' : 'see periood'}{past ? '' : ' (kalendriga)'}</small> : <small>võrrelda pole</small>}</div>
-        {past ? null : <div className="fd-kpi fd-kpi--forecast"><span>Prognoos · {period === 1 ? 'järgmine kuu' : `järgmised ${s.aheadMonths} kuud`}</span><strong>{money(s.aheadCents)}</strong><small>{s.aheadLessons} tundi kalendris</small></div>}
-        <div className="fd-kpi"><span>{period === 1 ? 'Keskmine tund' : 'Keskmiselt kuus'}</span><strong>{money(period === 1 ? s.averageLessonCents : s.averageMonthCents)}</strong><small>{period === 1 ? 'tulu ühe õpilase tunni kohta' : `${periodName(period)} kokku ${money(s.totalCents)}`}</small></div>
+        <div className="fd-kpi fd-kpi--main"><span>Kasum · koolile jääb</span><div className="fd-kpi__row"><strong className={pnl.profitCents < 0 ? 'is-loss' : ''}>{signed(pnl.profitCents)}</strong><Spark values={series.profit} /></div>
+          <small>{past ? null : <>{period === 1 ? 'kuu' : 'perioodi'} lõpuks {signed(endProfit)} · </>}{period === 1 && profitDelta !== null ? <><b>{profitDelta > 0 ? '+' : ''}{profitDelta}%</b> eelmisest kuust · </> : null}{pnl.marginPercent !== null ? `${pnl.marginPercent}% tulust` : 'pärast õpetajate tasu ja püsikulusid'}</small></div>
+        <div className="fd-kpi"><span>Tulu · {rangeLabel}</span><div className="fd-kpi__row"><strong>{money(s.heldCents)}</strong><Spark values={series.revenue} /></div>
+          <small>{past ? null : <>{period === 1 ? 'kuu' : 'perioodi'} lõpuks {money(s.totalCents)} </>}{s.changePercent !== null ? <Change value={s.changePercent} label={period === 1 ? 'eelmisest kuust' : 'eelmisest perioodist'} /> : s.beforeComplete ? null : 'võrrelda pole'}</small></div>
+        <div className="fd-kpi"><span>Tunnid</span><div className="fd-kpi__row"><strong>{now.tookPlace}</strong><Spark values={series.lessons} /></div>
+          <small>{past ? null : `kalendris veel ${now.planned} · `}kohalolek {now.attendance === null ? '—' : `${now.attendance}%`}{now.unmarked ? ` · ${now.unmarked} märkimata` : ''}</small></div>
+        <div className="fd-kpi"><span>Õpilased</span><div className="fd-kpi__row"><strong>{now.students}</strong><Spark values={series.students} /></div>
+          <small>{model.report.newStudents.length ? <span className="fd-tag is-up">+{model.report.newStudents.length} uut</span> : null}{model.report.lostStudents.length ? <span className="fd-tag">−{model.report.lostStudents.length} lahkus</span> : null} {money(now.perStudentCents)} õpilase kohta</small></div>
       </div>
-      <div className="fd-chart-card">
-        <div className="fd-legend" aria-hidden="true"><span className="is-invoiced">Toimunud tunnid</span><span className="is-forecast">Kalendris (prognoos)</span><span className="is-calendar">Kuu kokku</span></div>
-        <RevenueChart columns={model.columns} selected={selected} onSelect={chooseMonth} />
-        {column ? <p className="fd-detail" aria-live="polite" data-testid="fd-detail"><b>{monthName(column.month, 'long')}</b>{column.future
-          ? ` · kalendris ${money(column.plannedCents)} · ${column.plannedLessons} tundi`
-          : ` · toimunud ${money(column.heldCents)} (${column.heldLessons} tundi${column.unmarkedLessons ? `, neist ${column.unmarkedLessons} märkimata` : ''})${column.plannedCents ? ` · kalendris veel ${money(column.plannedCents)} (${column.plannedLessons} tundi)` : ''}`}{column.noPrice ? ` · ${column.noPrice} tundi ilma hinnata` : ''}{column.groupNoPrice ? ` · ${column.groupNoPrice} grupitundi individuaalse hinnaga (grupi hind puudub)` : ''}</p> : null}
-        <p className="form-hint">Arvestus käib kalendri tundide järgi, mitte arvete järgi (raamatupidamine on eraldi): toimunud = märgitud „Toimunud” või tasuline puudumine, ka märkimata möödunud tund; ära jäetud ja ette teatatud puudumised ei lähe arvesse. Hind = õpilase tunnihind tunni pikkuse järgi.</p>
+      <div className="fd-split">
+        <div className="fd-panel fd-chart-card">
+          <h3>Tulu kuude kaupa ja kuhu see läks <small>klõps kuul valib selle</small></h3>
+          <div className="fd-legend" aria-hidden="true"><span className="is-profit">Kasum</span><span className="is-pay">Õpetajate tasu</span><span className="is-fixed">Püsikulud</span><span className="is-forecast">Kalendris (prognoos)</span></div>
+          <RevenueChart columns={model.columns} parts={partsOf} forecast={model.report.forecast} selected={selected} onSelect={chooseMonth} />
+          {column ? <p className="fd-detail" aria-live="polite" data-testid="fd-detail"><b>{monthName(column.month, 'long')}</b>{column.future
+            ? ` · kalendris ${money(column.plannedCents)} · ${column.plannedLessons} tundi`
+            : ` · toimunud ${money(column.heldCents)} (${column.heldLessons} tundi${column.unmarkedLessons ? `, neist ${column.unmarkedLessons} märkimata` : ''})${column.plannedCents ? ` · kalendris veel ${money(column.plannedCents)} (${column.plannedLessons} tundi)` : ''}`}{column.noPrice ? ` · ${column.noPrice} tundi ilma hinnata` : ''}{column.groupNoPrice ? ` · ${column.groupNoPrice} grupitundi individuaalse hinnaga (grupi hind puudub)` : ''}</p> : null}
+        </div>
+        <Position report={model.report} summary={s} past={past} period={period} today={today} />
       </div>
-      <BusinessReport report={model.report} settings={savedSettings || state.data.settings} teachers={state.data.teachers} onSaveSettings={repository.saveSettings && user ? async (values) => setSavedSettings(await repository.saveSettings(values, user)) : null} />
+      <BusinessReport report={model.report} settings={savedSettings || state.data.settings} teachers={state.data.teachers} onSaveSettings={repository.saveSettings && user ? async (values) => setSavedSettings(await repository.saveSettings(values, user)) : null}
+        tiles={[
+          { label: period === 1 ? 'Eelmine kuu' : 'Eelmine periood', value: s.beforeComplete ? money(s.beforeCents) : '—', hint: period === 1 ? monthName(shiftMonth(s.from, -1), 'long') : `${monthName(shiftMonth(s.from, -period))} – ${monthName(shiftMonth(s.from, -1))}` },
+          period === 1 ? { label: 'Keskmine tund', value: money(s.averageLessonCents), hint: 'tulu ühe õpilase tunni kohta, kalendriga' } : { label: 'Keskmiselt kuus', value: money(s.averageMonthCents), hint: `periood kokku ${money(s.totalCents)}` },
+          ...(past ? [] : [{ label: `Prognoos · ${period === 1 ? 'järgmine kuu' : `järgmised ${s.aheadMonths} kuud`}`, value: money(s.aheadCents), hint: `${s.aheadLessons} tundi kalendris`, forecast: true }]),
+        ]} />
     </>}
   </section>;
 }

@@ -11,8 +11,9 @@ import { MODULES as C1_MODULES } from './courseModules.c1.js';
 import { MODULES as EK9_MODULES } from './courseModules.ek9.js';
 import { MODULES as EN_MODULES } from './courseModules.en.js';
 import { MODULES as EN_B2_MODULES } from './courseModules.enb2.js';
+import { MODULES as KAANDED_MODULES } from './courseModules.kaanded.js';
 
 export * from './courseSheet.js';
 
 // every course together: 11 MB of code. A page that shows one course uses courseLoaders.js instead.
-export const COURSE_MODULES = [...A2_MODULES, ...B1_MODULES, ...B1NOOR_MODULES, ...B1EKSP_MODULES, ...B2_MODULES, ...C1_MODULES, ...EK9_MODULES, ...EN_MODULES, ...EN_B2_MODULES];
+export const COURSE_MODULES = [...A2_MODULES, ...B1_MODULES, ...B1NOOR_MODULES, ...B1EKSP_MODULES, ...B2_MODULES, ...C1_MODULES, ...EK9_MODULES, ...EN_MODULES, ...EN_B2_MODULES, ...KAANDED_MODULES];

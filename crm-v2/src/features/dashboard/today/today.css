@@ -3,7 +3,7 @@
 .today-lessons { display: grid; gap: 2px; }
 .today-lessons > li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: var(--radius-lg); }
 .today-lessons > li:hover { background: var(--gray-50); }
-.today-lessons > li.is-past, .today-lessons > li.is-cancelled { opacity: .62; }
+.today-lessons > li.is-past, .today-lessons > li.is-cancelled, .today-lessons > li.is-absent { opacity: .62; }
 .today-lessons > li.is-now { background: var(--success-soft); }
 .today-lessons time { font-weight: 700; font-variant-numeric: tabular-nums; }
 .today-lessons strong, .today-list strong, .today-calls strong { display: block; font-size: .92rem; }

@@ -17,7 +17,6 @@ import { studentsService } from '../../services/firebase/students.js';
 import { groupCalendarEvents } from '../calendar/calendarView.js';
 import { unplannedStudents } from '../calendar/unplannedStudents.js';
 import { groupStudentPeople } from '../../services/firebase/students.js';
-import { occurrencesForDates } from '../calendar/calendarView.js';
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
@@ -29,7 +28,7 @@ import UnmarkedNudge from './UnmarkedNudge.jsx';
 import CashOnHandLine from '../cash/CashOnHandLine.jsx';
 import { BalancePanel, CallsPanel, HomeworkPanel, LeadsPanel, TodayTimeline } from './today/TodayPanel.jsx';
 import { todayApi, useTodaySignals } from './today/useTodaySignals.js';
-import { tallinnDay } from './today/todayModel.js';
+import { tallinnDay, todayLessonCount } from './today/todayModel.js';
 import { attentionItems, lateReviews, lessonsSoon } from './calmModel.js';
 import './calm.css';
 import TranscriberPanel from '../lesson-recording/TranscriberPanel.jsx';
@@ -95,7 +94,6 @@ async function loadDashboardData(user, repositories, now) {
   const activeStudents = studentsResult.items.filter((item) => item.active);
   const current = tallinnDay(now());
   const events = [...schedule, ...groupCalendarEvents(groups)];
-  const todayCount = occurrencesForDates(events, [current]).filter((item) => item.status !== 'Tühistatud').length;
   const overdue = invoices.filter(isInvoiceOverdue);
   const studentIds = new Set(studentsResult.items.map((item) => item.id));
   const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
@@ -112,7 +110,6 @@ async function loadDashboardData(user, repositories, now) {
     current,
     activeStudents,
     activePeople,
-    todayCount,
     allTeachers: !teacherOnly,
     overdue,
     openHomework,
@@ -228,7 +225,7 @@ function CalmDashboard({ data, user, repositories, now }) {
   const metrics = [
     ...(data.canViewLearning ? [
       { label: 'Aktiivsed õpilased', value: data.activePeople.length, meta: data.allTeachers ? 'kõik õpetajad' : 'minu õpilased', icon: GraduationCap, tone: 'green' },
-      { label: 'Tunnid täna', value: data.todayCount, meta: `${signals.lessonsToday.filter((item) => item.phase === 'now' || item.phase === 'later').length} veel ees · ${data.allTeachers ? 'kõik õpetajad' : 'minu'}`, icon: CalendarDays, tone: 'blue' },
+      { label: 'Tunnid täna', value: todayLessonCount(signals.lessonsToday), meta: `${signals.lessonsToday.filter((item) => item.phase === 'now' || item.phase === 'later').length} veel ees · ${data.allTeachers ? 'kõik õpetajad' : 'minu'}`, icon: CalendarDays, tone: 'blue' },
       { label: 'Kodutööd pooleli', value: data.openHomework.length, meta: `ootab tegemist · ${data.pendingReviews} ootab kontrolli`, icon: CircleAlert, tone: 'purple' },
     ] : []),
     ...(data.canViewFinance ? [
