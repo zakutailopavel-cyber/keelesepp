@@ -6,6 +6,64 @@
 - Checks: `cd functions && npm test` → 687/687. Emulator tests not run locally (CI).
 - Risks and gates: needs a functions deploy (the functions that send invoice e-mails: `financeApi`, `staffOperationsApi`, the reminder schedule) — owner's permission, `docs/DEPLOY_LEDGER.md`. No web release needed. Invoices already stuck in „sending” in production (if any) become sendable again after the deploy; nothing is rewritten.
 - Next step: owner review → merge → functions deploy.
+## 2026-11-28 — Minikursus „Käänded lauses”: 6 tundi (agent/minicourse-kaanded)
+
+- Main kontrollitud: 00e3eae (2026-11-28, #1373), enne push'i ühendatud värske `origin/main`-iga. Haru `agent/minicourse-kaanded`, draft-PR „Mini-course: Käänded lauses (6 lessons)”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (omanik 2026-11-28: „мини курс на тему склонений слов в предложении … с примерами, схемами и заданиями на закрепление”): kuus tundi venekeelsetele A2–B1 õppijatele, kuidas käänded lauses töötavad.
+- Tehtud: uus kursus `kaanded` (supplement, käsitsi määramiseks). Failid:
+  - `admin/course/kaanded/module01.js`: tunnid `kaanded-001…006`, igas Avasta / Harjuta / Kasuta.
+  - Registreerimine: `courseModules.kaanded.js`, `registry.js`, `courseLoaders.js`, `courseSheet.js` `COURSES.kaanded`.
+  - Kirjed: `curriculum/kaandedCurriculum.js` + test.
+  - 8 joonskeemi: `public/textbook-art/kaanded/*.svg`.
+  - `qualityBaseline.json`: kirje `kaanded-module-01` (täistunni normid, mida 60-min minikursus teadlikult ei täida).
+  - `docs/MINICOURSE_KAANDED.md`.
+- Tunnid:
+  1. 14 käänet ja „omastav + lõpp”;
+  2. nimetav, omastav ja osastav lauses: täis- / osasihitise otsustusskeem;
+  3. sisekohakäänded: 3 × 3 skeem;
+  4. väliskohakäänded: peal, inimene, mul on, aeg; koolis vs tööl;
+  5. -ks, -ni, -na, -ta, -ga;
+  6. rektsioon + kontroll 8 + 10 + 6 + 6 = 30 p.
+
+  Igas tunnis on „Märka!” vene keele kontrastireaga, skeem, näitetekst, vormitekst algvormiga, valik, teisendus või parandus, „Abi ja lisaväljakutse”, suhtlusülesanne (`taskType` + Abikaart + Lisaväljakutse), „Kirjuta oma laused”, väljumine (30 s kõnet või 2 lauset + 2 vormi), enesekontroll 0–1–2 + tõendlause ja kodutöö.
+- Kontrollid:
+  - `npx vitest run src/features/worksheet-generator src/features/curriculum src/features/library src/features/self-study src/features/practice src/features/worksheet-studio src/features/pet` → 225 faili läbi (1 skip), 2925 testi.
+  - eslint muudetud failidel 0.
+  - Vabamorf: kõik 159 lünga, tabeli ja vormi vastust on algvormi vormid. `language.py` leidis tundmatuid ainult tehnilisi väärtusi ja URL-i.
+  - Sheet lab (1400 px): 18 lehte renderdatud, vigu 0; ekraanipildid scratchpad `mock/kaanded/`.
+- Kuidas jõuab saidile:
+  1. ühendamine + release;
+  2. **production'i kirjutus omaniku loal**: create-only skript loob `curriculumLessons/kaanded-001…006` (`kaandedCurriculumRecords`);
+  3. „Kursuse tootmine” → „Avalda tund” (admin, kirjutab lehed).
+
+  Ilma kirjeteta annab „Avalda tund” vea „Õppetundi ei leitud.”. Õppevaras on kursus Eesti keel → „Käänded lauses”. „Minu kursus” näitab seda õppijale alles siis, kui tal on kursuses tööd.
+- Piirangud: skeemid on käsitsi joonistatud SVG-d, mitte kunstniku pildid; tekstid lühikesed (55–80 sõna), kuulamist pole; v6 väravaid ei rakendata (kursus pole rangetes nimekirjades).
+- Järgmine samm: omanik vaatab ekraanipilte ja PR-i → ühendamine ja release → omaniku loal kirjete create-only skript → „Avalda tund” × 6.
+## 2026-11-28 — Firestore reeglid: vana „õpetaja nime järgi” režiim eemaldatud (agent/rules-drop-name-scope)
+
+- Main kontrollitud: 00e3eae (2026-11-28, #1373). Haru `agent/rules-drop-name-scope`, draft-PR „Rules: drop the legacy teacher-by-name mode (frees ~2.4 kB of the 256 kB limit)”. Production'i ei deploy'tud ega kirjutatud.
+- Eesmärk (audit 2026-11-28; omanik „Да, делай”): reeglid on Firestore'i 256 000 baidi piiril ja uued reeglid (`studentNotes`, `studentWords`, `lessonSummaries`, `websiteLeads`, `groups/tasks`) ei mahu. Vabastada ruumi koodist, mis production'is enam ei tööta.
+- Tehtud: `firestore.rules`-ist eemaldatud `teacherName`, `sameTeacherName`, `teacherOwnsStudentData`, `teacherScopeReadEnforced` ja kõik harud `!teacherScopeReadEnforced() …` (`teacherCanRead`, `teacherCanCreate`, `teacherCanUpdate`, `teacherCanInviteStudent`, `staffCanAccessStudent`, `whiteboardAccessAs`). Õpetaja õigus tuleb nüüd alati `teacherUid` / `teacherUids` järgi — nii nagu production'is alates 2026-08-05, kui `securityMigrations/teacherUidV1.readEnforced` on `true`. Lipp `readEnforced` ei mõjuta enam reegleid; `match /securityMigrations` ja serveri `teacherScopeMigrationApi` jäid puutumata (rollback ei ava enam ligipääsu — see ongi soovitud).
+- Mõõtmine (uus võte): Rules API `:test` EI kontrolli kompileeritud suurust; täpse arvu annab ainult release'i katse. Selleks loodud omaniku loal tühi tasuta projekt `rules-size-probe-c1939a` (andmeid ega kaarti pole): seal release'i PATCH vastab „actual: N bytes”. Kontrollpunkt: `4420fde` reeglid → 256 050 B, sama mis production'is 2026-11-27. Piiri alla mahtuva faili suurus = sama fail + 20 tühja lisareeglit (à 171 B) miinus lisa. Tulemus: main `00e3eae` ≈ 255 716 B (varu ≈ 284 B), see haru ≈ 253 333 B (varu ≈ 2 667 B, vabanes ≈ 2 383 B).
+- Failid: `firestore.rules`, `functions/security-access-emulator.integration.js` (nimega kaart ilma uid-ta → alati 403), `functions/finance-emulator.integration.js` (ilma liputa võõras kaart → 403), `functions/initial-assessment-rules-emulator.integration.js` (kommentaar).
+- Kontrollid: kohapeal `node --check` muudetud testidel; reeglid kompileeruvad ja mahuvad (probe-projekti release). Emulaatoriteste siin käivitada ei saa (Java 8) — jooksevad CI-s („Financial Core emulator”); tulemus vt PR.
+- Riskid ja väravad: (1) vajab reeglite deploy'd omaniku loal (Rules API kaudu, vt `docs/DEPLOY_LEDGER.md`); veebi release'i ega functions'i deploy'd pole vaja. (2) Enne deploy'd kontrollida production'is, et `securityMigrations/teacherUidV1.readEnforced == true` (lugemine, omaniku luba) — kui see oleks `false`, kaotaksid õpetajad ligipääsu uid-ta kaartidele. (3) 2,4 kB on umbes 10–15 lühikest reeglit, mitte püsiv lahendus.
+- Tegemata: suurimad plokid on `liveLessonInvitations` (6 % failist), `liveClassrooms` (4 %), `validWhiteboardElement` (3 %), `studentRevenuePlans` (2 %); kutsete ja hindade kirjutamine serveri kaudu vabastaks suurusjärgu võrra rohkem.
+- Olek 2026-11-28 06:45 UTC: CI esimene jooks kukkus ühe testiga (178-st; test kontrollis vana režiimi — õpetaja loob kaardi ainult nime järgi), test kirjutati uid peale ümber, teine jooks roheline (`678825c`). Production'i lipp loetud: `readEnforced == true` alates 2026-08-05. PR #1375 ühendatud (`8289b26`), reeglid avaldatud Rules API kaudu (ruleset `58a88003`), live = repo (210 659 märki). Vt `docs/DEPLOY_LEDGER.md`.
+- Järgmine samm: `liveLessonInvitations` kirjutamine serveri kaudu (suurim plokk reeglites) — eraldi PR; alles siis `studentNotes` / `studentWords` / `lessonSummaries` / `websiteLeads` / `groups/tasks` reeglid.
+
+## 2026-11-28 — Storage: õpetaja avab ainult oma õpilaste faile (agent/storage-teacher-scope)
+
+- Main kontrollitud: 711f78a (2026-11-27, release 22:21 UTC). Haru `agent/storage-teacher-scope`, draft-PR „Storage rules: a teacher opens only their own students' files”. Deploy'd ega production'i kirjutusi ei tehtud.
+- Eesmärk (audit 2026-11-28, punkt 2; omanik: „делай все подряд”): `storage.rules` lubas igal õpetajal (`staff()`) lugeda ja kirjutada iga õpilase faile — kodutööd, salvestatud vastused, kuu monoloog, tunnimaterjal, tahvli materjal ja fotod. Firestore'is on sama piir õpetaja kaupa juba olemas (`staffCanAccessStudent`, `teacherCanRead`; production'is jõus 2026-08-05).
+- Tehtud: uus `staffOf(studentId)` — administraator või õpetaja, kes on õpilase kaardil (`teacherUid` / `teacherUids`). Kasutusel teedel `homework/{studentId}`, `homework/{studentId}/monologues`, `worksheet-submissions/{studentId}`, `student-worksheets/{studentId}`, `lessons/{studentId}`, `whiteboards/{studentId}/materials`, `whiteboards/{studentId}/student`. Ühine õppematerjal (`worksheet/`, `curriculum/`, `didactics/`, `lesson-scenes/`) jäi kõigile õpetajatele. Õpilase ja vanema ligipääs ei muutunud.
+- Failid: `storage.rules`, uus `functions/storage-rules-emulator.integration.js`, `firebase.json` (emulaatorite hulka `storage`, port 9199), `.github/workflows/financial-core-emulator.yml` (`--only … storage` ja uus test ahela lõpus). Seni ei olnud `storage.rules`-il ühtegi testi.
+- Kontrollid: kohapeal ainult `node --check` ja JSON-i kontroll — emulaatorit ei saa siin käivitada (masinas Java 8). Reeglite test jookseb CI-s („Financial Core emulator”): 2026-11-27 22:44 UTC läbi (oma õpetaja ja kaardi teine õpetaja 200, võõras õpetaja 403, administraator ja õpilase konto 200). Kaks esimest jooksu kukkusid testi enda vea tõttu (fail saadeti ilma metaandmete osata, reeglid ei näinud faili tüüpi) — reeglit ei muudetud.
+- Riskid ja väravad: (1) vajab `firebase deploy --only storage` omaniku loal (`docs/DEPLOY_LEDGER.md`); veebi release'i pole vaja. (2) Asendusõpetaja, keda õpilase kaardil ei ole, ei ava enam selle õpilase faile ega saa neid lisada — sama piir kehtib juba Firestore'i kodutööde ja tahvli kohta; asenduse ajaks tuleb õpetaja kaardile lisada. (3) Nimepõhist varuvarianti (`sameTeacherName`) Storage'is ei ole: õpilane, kelle kaardil pole `teacherUid`-d, on õpetajale suletud (administraatorile avatud). Production'i kaarte ei loetud — kui selliseid kaarte on, tuleb need enne deploy'd parandada. (4) Allalaadimislingid (`getDownloadURL` token) kehtivad edasi: reegel piirab uue lingi küsimist, mitte juba välja antud linki.
+- Tegemata (sama auditi punkt): `users` dokumenti loeb iga õpetaja ja seal on teiste tunnitasu `workHourlyRateCents` — vajab välja kolimist eraldi administraatori dokumenti (andmemigratsioon production'is, omaniku luba); `studentNotes`, `studentWords`, `lessonSummaries`, `websiteLeads`, `groups/tasks` Firestore'i reeglid — pärast reeglite ruumi vabastamist (256 kB piir).
+- Olek 2026-11-28 06:08 UTC: PR #1373 ühendatud (`00e3eae`), omaniku loal `firebase deploy --only storage` puhtast `origin/main` koopiast — „Deploy complete” (`docs/DEPLOY_LEDGER.md`). Live-reeglite sisu repoga ei võrreldud (`deploy-status.mjs` jaoks polnud selles masinas gcloud'i volitusi). Päris kaarte ei loetud: õpetajata kaartide arv on teadmata.
+- Järgmine samm: üks õpetaja avab päris lehel oma õpilase kodutöö faili ja tahvli pildi; tõrke korral tagasi `711f78a` `storage.rules` + `firebase deploy --only storage`.
+
 ## 2026-11-28 — „Tulu ja prognoos”: selgem paigutus (agent/finance-overview-clear)
 
 - Main kontrollitud: 56a779e (2026-11-27, #1364; haru sellega ühendatud). Haru `agent/finance-overview-clear`, draft-PR „Tulu ja prognoos: one sentence, four numbers, bars and a work list”. Deploy'd ega production'i kirjutusi ei tehtud. Finantsi-PR-ide #1364 (nüüd main'is) ja #1365 (avatud) faile ei puudutatud.

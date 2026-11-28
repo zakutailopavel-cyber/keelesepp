@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" width="900" height="580" role="img" aria-label="Sisekohakäänded: majja, majas, majast">
+<title>Sisekohakäänded: majja, majas, majast</title>
+<rect width="900" height="580" fill="#fff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1E1E1E"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif" stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="450" cy="300" rx="420" ry="230" fill="#E8F9B0"/>
+<text x="450" y="44" font-size="30" font-weight="700" text-anchor="middle" fill="#1E1E1E">Sees: kuhu? → kus? • kust? ←</text>
+<path d="M100 150.0 L180.0 90 L260.0 150.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><rect x="110.0" y="150.0" width="140.0" height="90.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><rect x="162.0" y="188.0" width="36.0" height="52.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="180" y="300" font-size="28" font-weight="700" text-anchor="middle" fill="#1E1E1E">KUHU?</text>
+<text x="180" y="334" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">-sse</text>
+<text x="180" y="376" font-size="21" font-weight="700" text-anchor="middle" fill="#1E1E1E">majja / majasse</text>
+<text x="180" y="404" font-size="18" text-anchor="middle" fill="#1E1E1E">kooli, poodi, tuppa</text>
+<path d="M40 220 L164 220" fill="none" stroke="#1E1E1E" stroke-width="6" marker-end="url(#ah)"/>
+<circle cx="40" cy="220" r="10" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M380 150.0 L460.0 90 L540.0 150.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><rect x="390.0" y="150.0" width="140.0" height="90.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><rect x="442.0" y="188.0" width="36.0" height="52.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="460" y="300" font-size="28" font-weight="700" text-anchor="middle" fill="#1E1E1E">KUS?</text>
+<text x="460" y="334" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">-s</text>
+<text x="460" y="376" font-size="21" font-weight="700" text-anchor="middle" fill="#1E1E1E">majas</text>
+<text x="460" y="404" font-size="18" text-anchor="middle" fill="#1E1E1E">koolis, poes, toas</text>
+<circle cx="460" cy="186" r="16" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M660 150.0 L740.0 90 L820.0 150.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><rect x="670.0" y="150.0" width="140.0" height="90.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/><rect x="722.0" y="188.0" width="36.0" height="52.0" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="740" y="300" font-size="28" font-weight="700" text-anchor="middle" fill="#1E1E1E">KUST?</text>
+<text x="740" y="334" font-size="26" font-weight="700" text-anchor="middle" fill="#1E1E1E">-st</text>
+<text x="740" y="376" font-size="21" font-weight="700" text-anchor="middle" fill="#1E1E1E">majast</text>
+<text x="740" y="404" font-size="18" text-anchor="middle" fill="#1E1E1E">koolist, poest, toast</text>
+<circle cx="740" cy="220" r="10" fill="#C9F03D" stroke="#1E1E1E" stroke-width="3"/>
+<path d="M752 220 L870 220" fill="none" stroke="#1E1E1E" stroke-width="6" marker-end="url(#ah)"/>
+<rect x="60" y="440" width="780" height="110" rx="14" fill="#fff" stroke="#1E1E1E" stroke-width="3"/>
+<text x="450" y="478" font-size="21" font-weight="700" text-anchor="middle" fill="#1E1E1E">Lõpp tuleb omastava külge: pood → poe → poe-s, poe-st</text>
+<text x="450" y="512" font-size="20" text-anchor="middle" fill="#1E1E1E">Erand: kodu → koju, kodus, kodust</text>
+<text x="450" y="538" font-size="18" text-anchor="middle" fill="#444">в дом · в доме · из дома  =  majja · majas · majast</text>
+</g>
+</svg>
